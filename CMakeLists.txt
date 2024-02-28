@@ -85,6 +85,13 @@ if ( MCPL_ENABLE_CPACK )
   include(CPack)
 endif()
 
+set(MCPL_CONDA_LIB "")
+set(MCPL_CONDA_INCLUDE "") 
+if ( MCPL_CONDA_WINDOWS )
+  set(MCPL_CONDA_LIB "$ENV{CONDA_PREFIX}/Library/lib")
+  set(MCPL_CONDA_INCLUDE "$ENV{CONDA_PREFIX}/Library/include")
+endif()
+
 if( NOT MCPL_NOTOUCH_CMAKE_BUILD_TYPE )
   if ( NOT gen_is_multicfg )
     if ( "x${CMAKE_BUILD_TYPE}" STREQUAL "x" )
@@ -217,7 +224,8 @@ add_zlib_dependency( mcpl -DMCPL_HASZLIB )
 
 target_include_directories(mcpl
  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/mcpl>
-        $<INSTALL_INTERFACE:${MCPL_INCDIR}> )
+        $<INSTALL_INTERFACE:${MCPL_INCDIR}>
+		${MCPL_CONDA_INCLUDE} )
 
 if (MATH_NEEDS_LIBM)
   target_link_libraries( mcpl PRIVATE m )
@@ -232,6 +240,10 @@ endif()
 install( TARGETS mcpl mcpltool EXPORT MCPLTargets ${INSTDEST} )
 install( EXPORT MCPLTargets FILE MCPLTargets.cmake NAMESPACE MCPL:: DESTINATION ${MCPL_CMAKEDIR} )
 add_library(MCPL::mcpl ALIAS mcpl)#always alias namespaces locally
+
+if ( MCPL_CONDA_WINDOWS )
+	install( FILES "util/mcpl-config.bat" DESTINATION ${MCPL_BINDIR} )
+endif()
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file( "${PROJECT_BINARY_DIR}/MCPLConfigVersion.cmake"

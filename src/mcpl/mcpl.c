@@ -106,7 +106,13 @@
 #include <string.h>
 #include <assert.h>
 #include <math.h>
+// On non-cl.exe compiler, use normal <unistd.h> ... 
+// otherwise use local wrapper to MS-provided headers.
+#ifndef _MSC_EXTENSIONS
 #include <unistd.h>
+#else
+#include "win-unistd.h"
+#endif
 #include <limits.h>
 #ifdef MCPL_THIS_IS_MS
 #  include <fcntl.h>

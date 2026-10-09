@@ -1107,6 +1107,15 @@ MCPL_LOCAL void mcpl_unitvect_unpack_oct(const double* in, double* out) {
   out[0] *= n; out[1] *= n; out[2] *= n;
 }
 
+MCPL_LOCAL void mcpl_internal_wr_float( char * buf, float v ) { memcpy( buf, &v, sizeof(v) ); }
+MCPL_LOCAL void mcpl_internal_wr_double( char * buf, double v ) { memcpy( buf, &v, sizeof(v) ); }
+MCPL_LOCAL void mcpl_internal_wr_int32( char * buf, int32_t v ) { memcpy( buf, &v, sizeof(v) ); }
+MCPL_LOCAL void mcpl_internal_wr_uint32( char * buf, uint32_t v ) { memcpy( buf, &v, sizeof(v) ); }
+MCPL_LOCAL float mcpl_internal_rd_float( const char * buf ) { float v; memcpy( &v, buf, sizeof(v) ); return v; }
+MCPL_LOCAL double mcpl_internal_rd_double( const char * buf ) { double v; memcpy( &v, buf, sizeof(v) ); return v; }
+MCPL_LOCAL int32_t mcpl_internal_rd_int32( const char * buf ) { int32_t v; memcpy( &v, buf, sizeof(v) ); return v; }
+MCPL_LOCAL uint32_t mcpl_internal_rd_uint32( const char * buf ) { uint32_t v; memcpy( &v, buf, sizeof(v) ); return v; }
+
 MCPL_LOCAL void mcpl_internal_serialise_particle_to_buffer( const mcpl_particle_t* particle,
                                                             mcpl_outfileinternal_t * f ) {
 
@@ -1137,52 +1146,52 @@ MCPL_LOCAL void mcpl_internal_serialise_particle_to_buffer( const mcpl_particle_
   if (f->opt_singleprec) {
     if (f->opt_polarisation) {
       for (i=0;i<3;++i) {
-        *(float*)&pbuf[ibuf] = (float)particle->polarisation[i];
+        mcpl_internal_wr_float( &pbuf[ibuf], (float)particle->polarisation[i] );
         ibuf += sizeof(float);
       }
     }
     for (i=0;i<3;++i) {
-      *(float*)&pbuf[ibuf] = (float)particle->position[i];
+      mcpl_internal_wr_float( &pbuf[ibuf], (float)particle->position[i] );
       ibuf += sizeof(float);
     }
     for (i=0;i<3;++i) {
-      *(float*)&pbuf[ibuf] = (float)pack_ekindir[i];
+      mcpl_internal_wr_float( &pbuf[ibuf], (float)pack_ekindir[i] );
       ibuf += sizeof(float);
     }
-    *(float*)&pbuf[ibuf] = (float)particle->time;
+    mcpl_internal_wr_float( &pbuf[ibuf], (float)particle->time );
     ibuf += sizeof(float);
     if (!f->opt_universalweight) {
-      *(float*)&pbuf[ibuf] = (float)particle->weight;
+      mcpl_internal_wr_float( &pbuf[ibuf], (float)particle->weight );
       ibuf += sizeof(float);
     }
   } else {
     if (f->opt_polarisation) {
       for (i=0;i<3;++i) {
-        *(double*)&pbuf[ibuf] = particle->polarisation[i];
+        mcpl_internal_wr_double( &pbuf[ibuf], particle->polarisation[i] );
         ibuf += sizeof(double);
       }
     }
     for (i=0;i<3;++i) {
-      *(double*)&pbuf[ibuf] = particle->position[i];
+      mcpl_internal_wr_double( &pbuf[ibuf], particle->position[i] );
       ibuf += sizeof(double);
     }
     for (i=0;i<3;++i) {
-      *(double*)&pbuf[ibuf] = pack_ekindir[i];
+      mcpl_internal_wr_double( &pbuf[ibuf], pack_ekindir[i] );
       ibuf += sizeof(double);
     }
-    *(double*)&pbuf[ibuf] = particle->time;
+    mcpl_internal_wr_double( &pbuf[ibuf], particle->time );
     ibuf += sizeof(double);
     if (!f->opt_universalweight) {
-      *(double*)&pbuf[ibuf] = particle->weight;
+      mcpl_internal_wr_double( &pbuf[ibuf], particle->weight );
       ibuf += sizeof(double);
     }
   }
   if (!f->opt_universalpdgcode) {
-    *(int32_t*)&pbuf[ibuf] = particle->pdgcode;
+    mcpl_internal_wr_int32( &pbuf[ibuf], particle->pdgcode );
     ibuf += sizeof(int32_t);
   }
   if (f->opt_userflags) {
-    *(uint32_t*)&pbuf[ibuf] = particle->userflags;
+    mcpl_internal_wr_uint32( &pbuf[ibuf], particle->userflags );
 #ifndef NDEBUG
     ibuf += sizeof(uint32_t);
 #endif
@@ -2048,7 +2057,7 @@ const mcpl_particle_t* mcpl_read(mcpl_file_t ff)
   if (f->opt_singleprec) {
     if (f->opt_polarisation) {
       for (i=0;i<3;++i) {
-        p->polarisation[i] = *(float*)&pbuf[ibuf];
+        p->polarisation[i] = mcpl_internal_rd_float( &pbuf[ibuf] );
         ibuf += sizeof(float);
       }
     } else {
@@ -2056,23 +2065,23 @@ const mcpl_particle_t* mcpl_read(mcpl_file_t ff)
         p->polarisation[i] = 0.0;
     }
     for (i=0;i<3;++i) {
-      p->position[i] = *(float*)&pbuf[ibuf];
+      p->position[i] = mcpl_internal_rd_float( &pbuf[ibuf] );
       ibuf += sizeof(float);
     }
     for (i=0;i<3;++i) {
-      pack_ekindir[i] = *(float*)&pbuf[ibuf];
+      pack_ekindir[i] = mcpl_internal_rd_float( &pbuf[ibuf] );
       ibuf += sizeof(float);
     }
-    p->time = *(float*)&pbuf[ibuf];
+    p->time = mcpl_internal_rd_float( &pbuf[ibuf] );
     ibuf += sizeof(float);
     if (!p->weight) {
-      p->weight = *(float*)&pbuf[ibuf];
+      p->weight = mcpl_internal_rd_float( &pbuf[ibuf] );
       ibuf += sizeof(float);
     }
   } else {
     if (f->opt_polarisation) {
       for (i=0;i<3;++i) {
-        p->polarisation[i] = *(double*)&pbuf[ibuf];
+        p->polarisation[i] = mcpl_internal_rd_double( &pbuf[ibuf] );
         ibuf += sizeof(double);
       }
     } else {
@@ -2080,17 +2089,17 @@ const mcpl_particle_t* mcpl_read(mcpl_file_t ff)
         p->polarisation[i] = 0.0;
     }
     for (i=0;i<3;++i) {
-      p->position[i] = *(double*)&pbuf[ibuf];
+      p->position[i] = mcpl_internal_rd_double( &pbuf[ibuf] );
       ibuf += sizeof(double);
     }
     for (i=0;i<3;++i) {
-      pack_ekindir[i] = *(double*)&pbuf[ibuf];
+      pack_ekindir[i] = mcpl_internal_rd_double( &pbuf[ibuf] );
       ibuf += sizeof(double);
     }
-    p->time = *(double*)&pbuf[ibuf];
+    p->time = mcpl_internal_rd_double( &pbuf[ibuf] );
     ibuf += sizeof(double);
     if (!p->weight) {
-      p->weight = *(double*)&pbuf[ibuf];
+      p->weight = mcpl_internal_rd_double( &pbuf[ibuf] );
       ibuf += sizeof(double);
     }
   }
@@ -2098,11 +2107,11 @@ const mcpl_particle_t* mcpl_read(mcpl_file_t ff)
   if (f->opt_universalpdgcode) {
     p->pdgcode = f->opt_universalpdgcode;
   } else {
-    p->pdgcode = *(int32_t*)&pbuf[ibuf];
+    p->pdgcode = mcpl_internal_rd_int32( &pbuf[ibuf] );
     ibuf += sizeof(int32_t);
   }
   if (f->opt_userflags) {
-    p->userflags = *(uint32_t*)&pbuf[ibuf];
+    p->userflags = mcpl_internal_rd_uint32( &pbuf[ibuf] );
 #ifndef NDEBUG
     ibuf += sizeof(uint32_t);
 #endif

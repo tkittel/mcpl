@@ -1,0 +1,8 @@
+universal.mcpl: universal pdgcode -2112
+  pdgcode -2112
+  pdgcode -2112
+  pdgcode -2112
+perparticle.mcpl: universal pdgcode 0
+  pdgcode -11
+  pdgcode 2112
+  pdgcode -2147483648

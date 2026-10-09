@@ -1600,7 +1600,7 @@ MCPL_LOCAL mcpl_file_t mcpl_actual_open_file(const char * filename, int * repair
   f->opt_userflags = arr[2];
   f->opt_polarisation = arr[3];
   f->opt_singleprec = arr[4];
-  f->opt_universalpdgcode = (int32_t)arr[5];
+  memcpy(&f->opt_universalpdgcode, &arr[5], sizeof(int32_t));
   f->particle_size = arr[6];//We could check consistency here with the calculated value.
   if ( ! (f->particle_size<=MCPLIMP_MAX_PARTICLE_SIZE) )
     mcpl_error("unexpected particle size");

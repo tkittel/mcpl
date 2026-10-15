@@ -38,6 +38,8 @@ navigate to the relevant parts.
 
    More in the :doc:`news archive <news>`.
 
+.. _index-a-quick-look-at-a-file:
+
 A quick look at a file
 ======================
 
@@ -54,16 +56,14 @@ for the example file of the MCPL distribution:
 
    get
    news
-   about
-   contact
 
 .. toctree::
    :hidden:
    :maxdepth: 2
    :caption: Documentation
 
+   file_contents
    usage
-   format
    hooks
 
 .. toctree::
@@ -71,6 +71,7 @@ for the example file of the MCPL distribution:
    :maxdepth: 2
    :caption: Reference
 
+   format
    cmdline
    python_api
    cpp_api
@@ -79,6 +80,8 @@ for the example file of the MCPL distribution:
    :hidden:
    :caption: About
 
+   about
+   contact
    license
 
 .. sidebar-links::

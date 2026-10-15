@@ -168,7 +168,7 @@ which are dictionaries of ``(key,value)`` pairs:
 Note that values of -1.0 in the actual ``stat:sum:<key>:<value>`` comments in
 the data, are translated into ``None`` in the Python interface.
 
-Starting with the next MCPL release, the Python API can also create files (see
+Since MCPL release 3.0.0, the Python API can also create files (see
 :ref:`Python <usage_python_advanced-creating-mcpl-files>`). Here,
 *stat:sum* entries are added with the ``hdr_add_stat_sum`` method (or the
 ``stat_sum`` keyword argument), and scaled with ``hdr_scale_stat_sums``, which

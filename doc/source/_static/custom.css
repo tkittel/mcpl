@@ -26,3 +26,11 @@
   vertical-align: middle;
   white-space: nowrap;
 }
+
+/* Logos in the acknowledgements, all at the same small height on one line: */
+.mcpllogos img {
+  height: 40px;
+  width: auto;
+  margin-right: 1.5em;
+  vertical-align: middle;
+}

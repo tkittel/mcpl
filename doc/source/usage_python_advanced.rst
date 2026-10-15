@@ -4,8 +4,8 @@ Advanced usage of MCPL from Python
 
 This page describes the ``mcpl`` Python module in more detail than the :doc:`basic
 usage <usage_python>` page, which also describes how to read MCPL
-files. Most of the functionality described here is only available starting with
-the next MCPL release.
+files. Most of the functionality described here is available since MCPL release
+3.0.0.
 
 The ``mcpl`` module is implemented in pure Python, using
 `NumPy <http://www.numpy.org/>`__ to efficiently process blocks of particles.
@@ -410,7 +410,7 @@ the ``MCPL:`` and ``MCPL WARNING:`` prefixes), by calling
 Note that everything is available directly in the ``mcpl`` module after
 ``import mcpl``. Older code using the ``mcpl.mcpl`` submodule (e.g.
 ``import mcpl.mcpl`` and ``mcpl.mcpl.MCPLFile``) still works, but gives
-deprecation warnings starting with the next MCPL release.
+deprecation warnings since MCPL release 3.0.0.
 
 .. _usage_python_advanced-where-to-find-more-documentation:
 

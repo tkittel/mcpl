@@ -4,8 +4,8 @@ Using MCPL from Python
 
 If desired, it is possible to access the content of MCPL files from Python code
 by using the ``mcpl`` Python module described on this page, available since
-MCPL release 1.2.0. Starting with the next MCPL release, the module can also be
-used to create new MCPL files, and to select, edit, merge or plot particles.
+MCPL release 1.2.0. Since MCPL release 3.0.0, the module can also be used to
+create new MCPL files, and to select, edit, merge or plot particles.
 Notice that most end-users should not normally have to write code in order to
 use MCPL. Rather, they should be able to use pre-existing converters or plugins
 for their Monte Carlo applications (c.f. :doc:`hooks <hooks>`).
@@ -219,15 +219,13 @@ by running one of the following commands in a terminal:
    python -c "import mcpl;help(mcpl.MCPLFile)"
    # Documentation of the MCPLParticle class:
    python -c "import mcpl;help(mcpl.MCPLParticle)"
-   # Documentation of the MCPLOutFile class
-   # (next release):
+   # Documentation of the MCPLOutFile class:
    python -c "import mcpl;help(mcpl.MCPLOutFile)"
    # All documentation:
    python -c "import mcpl;help(mcpl)"
 
 More complete examples can be found in
 `pyexample_readmcpl <https://github.com/mctools/mcpl/blob/main/examples/pyexample_readmcpl>`__,
-and (for the next release)
 `pyexample_writemcpl <https://github.com/mctools/mcpl/blob/main/examples/pyexample_writemcpl>`__,
 `pyexample_filtermcpl <https://github.com/mctools/mcpl/blob/main/examples/pyexample_filtermcpl>`__
 and

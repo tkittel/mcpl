@@ -87,7 +87,7 @@ Using the ``--extract`` flag to ``mcpltool``, it is possible to extract a
 subset of particles from a file, into a new file. Using the ``-p`` flag, one
 can select according to `particle
 type <https://pdg.lbl.gov/2024/reviews/rpp2024-rev-monte-carlo-numbering.pdf>`__
-(2112=neutron, 22=gamma, etc.). Starting with the next MCPL release, names of
+(2112=neutron, 22=gamma, etc.). Since MCPL release 3.0.0, names of
 :ref:`common particles <usage_expressions-operators-functions-and-names>`
 can be used as well, as in ``-pneutron``. The comment which ``--extract`` adds
 to the header of the new file will then also describe how the particles were
@@ -285,23 +285,10 @@ Full usage instructions are obtainable with the ``--help`` flag:
      -v, --version   : Display version of MCPL installation.
      -h, --help      : Display this usage information (ignores all other options).
 
-Running instead ``pymcpltool --help`` shows identical options as for the
-``mcpltool``, with the exception that the merge, extract and repair options are
-absent and that instead options to extract statistics are available (starting
-with the next MCPL release, ``pymcpltool`` also has the merge, extract and
-repair options, as well as the ``--select``, ``--edit`` and ``--hist`` options
-described above, and ``--stats`` can be combined with ``-p``, ``--select``,
-``--output FILE`` and ``--backend NAME``):
-
-::
-
-   Stat options:
-     --stats FILE    : Print statistics summary of particle state data from FILE.
-     --stats --pdf FILE
-                     : Produce PDF file mcpl.pdf with histograms of particle state
-                       data from FILE.
-     --stats --gui FILE
-                     : Like --pdf, but opens interactive histogram views directly.
+The ``pymcpltool`` command has the same options as ``mcpltool``, as well as the
+``--select``, ``--edit`` and ``--hist`` options described above, and options
+for extracting statistics (described below). All its options are listed in the
+:doc:`command reference <cmdline>`.
 
 .. _usage_cmdline-extract-statistics-from-a-file:
 
@@ -316,40 +303,8 @@ state parameters:
 
    pymcpltool --stats example.mcpl
 
-::
-
-   ------------------------------------------------------------------------------
-   nparticles   : 1006
-   sum(weights) : 1006
-   ------------------------------------------------------------------------------
-                :            mean             rms             min             max
-   ------------------------------------------------------------------------------
-   ekin   [MeV] :          52.165          548.84      0.00139345         9724.96
-   x       [cm] :       -0.248153          12.073        -60.0882         65.8944
-   y       [cm] :         2.54021          12.764        -61.3354         57.6935
-   z       [cm] :              20               0              20              20
-   ux           :       0.0216263         0.48779       -0.994109        0.995773
-   uy           :     -0.00868233         0.47584       -0.994904        0.979886
-   uz           :        0.690676         0.24095       -0.734438        0.999994
-   time    [ms] :     5.04828e-05      0.00010785     7.01658e-07      0.00166018
-   weight       :               1               0               1               1
-   polx         :               0               0               0               0
-   poly         :               0               0               0               0
-   polz         :               0               0               0               0
-   ------------------------------------------------------------------------------
-   pdgcode      :        2112 (n)                   726 (72.17%)
-                           22 (gamma)               239 (23.76%)
-                           11 (e-)                   15 ( 1.49%)
-                         2212 (p)                    10 ( 0.99%)
-                          -11 (e+)                    8 ( 0.80%)
-                          211 (pi+)                   5 ( 0.50%)
-                         -211 (pi-)                   2 ( 0.20%)
-                           14 (nu_mu)                 1 ( 0.10%)
-                        [ values ]             [ weighted counts ]
-   ------------------------------------------------------------------------------
-   userflags    :           0 (0x00000000)         1006 (100.00%)
-                        [ values ]             [ weighted counts ]
-   ------------------------------------------------------------------------------
+.. literalinclude:: ../build/autogen/stats_example.txt
+   :language: none
 
 Or, one can view the parameter distributions graphically by adding ``--gui``:
 
@@ -357,12 +312,25 @@ Or, one can view the parameter distributions graphically by adding ``--gui``:
 
    pymcpltool --stats --gui example.mcpl
 
-Resulting in plots of the file contents like these:
+Resulting in plots of the file contents like these (an overview of the most
+important distributions, followed by plots of each field):
 
-|pdgcode distribution| |x distribution| |uz distribution|
+.. image:: ../build/autogen/stats_overview.png
+   :alt: Overview of the particles in the file
 
-Or one can produce a PDF file like `this one <https://mctools.github.io/mcpl/pymcpltool_stats.pdf>`__
-containing the plots by adding instead the ``--pdf`` flag:
+.. image:: ../build/autogen/stats_pdgcode.png
+   :width: 32%
+   :alt: Particle types
+.. image:: ../build/autogen/stats_x.png
+   :width: 32%
+   :alt: Distribution of x
+.. image:: ../build/autogen/stats_uz.png
+   :width: 32%
+   :alt: Distribution of uz
+
+Or one can produce a PDF file like :download:`this one
+<../build/autogen/pymcpltool_stats.pdf>` containing the plots by adding instead
+the ``--pdf`` flag:
 
 .. code:: shell
 
@@ -383,10 +351,3 @@ original MCPL files:
 .. code:: shell
 
    mcpltool --text example.mcpl out.txt
-
-.. |pdgcode distribution| image:: images/pymcpltool_stats_gui_pdgcode.png
-   :target: images/pymcpltool_stats_gui_pdgcode.png
-.. |x distribution| image:: images/pymcpltool_stats_gui_x.png
-   :target: images/pymcpltool_stats_gui_x.png
-.. |uz distribution| image:: images/pymcpltool_stats_gui_uz.png
-   :target: images/pymcpltool_stats_gui_uz.png

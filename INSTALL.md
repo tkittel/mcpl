@@ -41,8 +41,11 @@ pip install "mcpl[plot]"
 
 
 
+
 Building from source (experts)
 ==============================
+
+<!-- The rest of this file is also shown on the website (doc/source/get_source.rst) -->
 
 Advanced users might wish to build MCPL code from the sources in the upstream
 repository (https://github.com/mctools/mcpl). This is considered an
@@ -59,8 +62,78 @@ only the conda-forge channel is enabled, and that the following packages are
 also installed into the conda environment: `c-compiler`, `cmake`, and `make`
 (unix only), `zlib`, `numpy`, `pip`, and `python`.
 
+The repository contains one directory for each package: `mcpl_core`
+(`mcpl-core`: the C library, header files, `mcpltool` and `mcpl-config`),
+`mcpl_python` (`mcpl-python`: the `mcpl` Python module and `pymcpltool`),
+`mcpl_extra` (`mcpl-extra`: the converters for MCNP and PHITS) and
+`mcpl_metapkg` (`mcpl`: a package which only depends on `mcpl-core` and
+`mcpl-python`).
+
+
+
+
+Installation with pip
+---------------------
+
+From the root of a clone of the repository, the Python packages can be built
+and installed with `pip` (Python 3.9 or later):
+
+```
+pip install ./mcpl_core ./mcpl_python ./mcpl_metapkg
+```
+
+The `mcpl-extra` package must be built against the `mcpl-core` package
+installed above, which requires the build dependencies to be installed first,
+and the build isolation of `pip` to be disabled:
+
+```
+pip install scikit-build-core
+pip install --no-build-isolation ./mcpl_extra
+```
+
+
+
+
+Installation with CMake
+-----------------------
+
+The `mcpl_core` and `mcpl_extra` directories can also be built and installed
+as regular CMake projects (needing CMake 3.16 or later, a C compiler, and zlib),
+here into the directory `/path/to/install`:
+
+```
+cmake -S mcpl_core -B build_core -DCMAKE_INSTALL_PREFIX=/path/to/install
+cmake --build build_core
+cmake --install build_core
+cmake -S mcpl_extra -B build_extra -DCMAKE_INSTALL_PREFIX=/path/to/install \
+      -DCMAKE_PREFIX_PATH=/path/to/install
+cmake --build build_extra
+cmake --install build_extra
+```
+
+The `mcpl-config` command in `/path/to/install/bin` provides information about
+the installation (e.g. `mcpl-config --show libdir`), and downstream CMake
+projects can use the installation with `find_package(MCPL)` (see the
+`examples/downstream_cmake` directory).
+
+
+
+
+Running the tests
+-----------------
+
 Note that the CTests defined in `tests/` are only meant to be invoked by running
 CMake on the root of the source repository, while actual packages with code is
 meant to be build by running CMake on the `mcpl_xxx/` directory in
 question. There is for various reasons (mostly lack of manpower) no support for
-running CTests directly on a `mcpl_xxx/` subdirectory.
+running CTests directly on a `mcpl_xxx/` subdirectory. For instance:
+
+```
+cmake -S . -B build_tests -DMCPL_ENABLE_TESTING=ON
+cmake --build build_tests
+ctest --test-dir build_tests
+```
+
+Developers can also use the `devel/bin/mcpldevtool` command (e.g.
+`mcpldevtool cmake` to build and run the tests, and `mcpldevtool check` for
+static code checks).

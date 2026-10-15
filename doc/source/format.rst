@@ -23,7 +23,7 @@ List of MCPL formats
   2015-2016.
 - **MCPL-3**: The default format produced since the MCPL software release 1.0.0
   in 2016.
-- **MCPL-4**: Introduced with the next MCPL software release, and used only for
+- **MCPL-4**: Introduced with the MCPL software release 3.0.0, and used only for
   files with custom per-particle data ("userdata"). Files without userdata are
   still written as ``MCPL-3``, so they can be read by older MCPL releases.
 

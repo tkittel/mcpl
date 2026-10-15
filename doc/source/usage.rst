@@ -13,8 +13,8 @@ beneficial to use the generic :doc:`mcpltool <usage_cmdline>` or
 order to inspect or perform operations on files, and some users with advanced
 use-cases might write :doc:`C/C++ code <usage_c>` or :doc:`Python
 code <usage_python>` in order to inspect or manipulate MCPL files
-(for instance, to create new plugins or converters for their tools). Starting
-with the next MCPL release, particles can also be selected, edited and plotted
+(for instance, to create new plugins or converters for their tools). Particles
+can also be selected, edited and plotted
 with short :doc:`expressions <usage_expressions>`, from the command line
 or from Python.
 

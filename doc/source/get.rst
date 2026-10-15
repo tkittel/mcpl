@@ -47,6 +47,10 @@ packages from the conda-forge channel.
 Custom builds (expert only)
 ---------------------------
 
-Experts might wish to build MCPL packages manually. Please refer to the
-instructions `here <https://github.com/mctools/mcpl/blob/HEAD/INSTALL.md>`__
-for more details.
+Experts might wish to build MCPL packages from the sources, as described on
+the :doc:`get_source` page.
+
+.. toctree::
+   :hidden:
+
+   get_source

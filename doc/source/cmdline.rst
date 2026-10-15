@@ -2,6 +2,8 @@
 Command reference
 *****************
 
+.. _cmdline-the-pymcpltool-command:
+
 The ``pymcpltool`` command
 ==========================
 

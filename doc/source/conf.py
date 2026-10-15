@@ -60,7 +60,10 @@ extensions = [
     'sphinx_toolbox.github',
     'sphinx_toolbox.collapse',
     'breathe',
+    'myst_parser',#(only for including INSTALL.md)
 ]
+#(the sections of INSTALL.md are included below the title of a page):
+suppress_warnings = [ 'myst.header' ]
 
 templates_path = ['_templates']
 
@@ -148,8 +151,88 @@ def _plaintext_docstring( app, what, name, obj, options, lines ):
         out.append(line)
     lines[:] = '\n'.join(out).splitlines()
 
+# -- Persistent URLs -----------------------------------------------------------
+#
+# The URL of a page is given by its name (the "key" of the page, as in
+# https://.../usage_cmdline/), and the URLs of sections by explicit labels
+# (".. _<page>-<key>:" before the section, as in .../usage_cmdline/#usage...).
+# This way, URLs do not change when titles are edited or the website is
+# reorganised. The build fails if a page is added, removed or renamed without
+# updating the list below, or if a section has no such label.
+
+_page_keys = [ 'index', 'get', 'get_source', 'news', 'file_contents', 'usage',
+               'usage_cmdline', 'usage_c', 'usage_cpp', 'usage_python',
+               'usage_python_advanced', 'usage_expressions', 'hooks',
+               'hooks_geant4', 'hooks_mcstas', 'hooks_mcxtrace',
+               'hooks_mcnp', 'hooks_phits', 'hooks_others', 'format',
+               'format_statsum', 'cmdline', 'python_api', 'cpp_api', 'about',
+               'contact', 'license' ]
+#Files which are only included in other pages:
+_included_files = [ 'cite' ]
+
+def _check_page_keys( app ):
+    found = { f.stem for f in _docsrc.glob('*.rst') } - set(_included_files)
+    if found != set(_page_keys):
+        from sphinx.errors import ConfigError
+        raise ConfigError(
+            'The pages in doc/source do not match _page_keys in conf.py'
+            f' (new: {sorted(found-set(_page_keys))}, missing:'
+            f' {sorted(set(_page_keys)-found)}). The names of pages are part'
+            ' of their URLs, so they should only change deliberately (then'
+            ' update _page_keys).' )
+
+def _check_section_labels( app, docname, source ):
+    """All sections (except the title of the page) must have an explicit
+    label <docname>-<key> right before them."""
+    import re
+    lines = source[0].splitlines()
+    under = re.compile(r'^([=\-~^"*+#`\'])\1{2,}$')
+    headings = []
+    for i in range( 1, len(lines) ):
+        if ( under.match(lines[i]) and lines[i-1].strip()
+             and not under.match(lines[i-1])
+             and len(lines[i]) >= len(lines[i-1].rstrip())
+             and not lines[i-1].startswith((' ','..')) ):
+            #(skip overlined titles: the line before the heading text):
+            overlined = i >= 2 and under.match(lines[i-2])
+            headings.append( ( i-1, overlined ) )
+    bad = []
+    for n, (i, overlined) in enumerate(headings):
+        if n == 0:
+            continue#the title of the page
+        j = i - 1
+        while j >= 0 and not lines[j].strip():
+            j -= 1
+        m = re.match(r'^\.\. _([a-z0-9_]+)-([a-z0-9_-]+):$', lines[j]) if j >= 0 else None
+        if not m or m.group(1) != docname:
+            bad.append( lines[i].strip() )
+    if bad:
+        from sphinx.errors import ExtensionError
+        raise ExtensionError(
+            f'Sections in {docname}.rst without a label like ".. _{docname}-key:"'
+            ' (which gives them a persistent URL): ' + '; '.join(bad) )
+
+def _labels_as_section_ids( app, doctree ):
+    """Make the label of each section its primary id (used in the URLs of the
+    menu, the table of contents and the links to the section), keeping the id
+    made from the title as a secondary id. Docutils adds the id of the label
+    (referred to by the target node of the label) after the one from the
+    title."""
+    from docutils import nodes
+    label_ids = { t['refid'] for t in doctree.findall(nodes.target)
+                  if t.get('refid') }
+    for section in doctree.findall(nodes.section):
+        labels = [ i for i in section['ids'] if i in label_ids ]
+        if labels:
+            section['ids'] = labels + [ i for i in section['ids']
+                                        if i not in labels ]
+
 def setup( app ):
     app.connect( 'autodoc-process-docstring', _plaintext_docstring )
+    #(before Sphinx records the ids for the menu and references):
+    app.connect( 'doctree-read', _labels_as_section_ids, priority = 100 )
+    app.connect( 'builder-inited', _check_page_keys )
+    app.connect( 'source-read', _check_section_labels )
 
 # -- Generated content ---------------------------------------------------------
 
@@ -166,14 +249,15 @@ def _run_doxygen():
             print(f'Doxygen warning: {w}')
     return xmldir
 
-def _cmd_output( name, cmd ):
+def _cmd_output( name, cmd, cwd = None ):
     """Write the output of a command to a file in the autogen directory (to be
     included in the pages with literalinclude)."""
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join([str(_pysrc)]
                                         + [ e for e in [env.get('PYTHONPATH')]
                                             if e ])
-    p = subprocess.run( cmd, capture_output = True, env = env, check = False )
+    p = subprocess.run( cmd, capture_output = True, env = env, check = False,
+                        cwd = cwd )
     if p.returncode != 0 or p.stderr:
         raise RuntimeError(f'Command failed: {cmd}\n{p.stderr.decode()}')
     out = _autogendir / name
@@ -208,21 +292,38 @@ def _latest_news( n = 4 ):
     if not out.is_file() or out.read_text() != txt:
         out.write_text(txt)
 
-def _stats_figure():
-    """Overview of the particles in the example file (as made by pymcpltool
-    --stats), shown on the front page."""
-    out = _autogendir / 'stats_overview.png'
+def _stats_outputs():
+    """Output of pymcpltool --stats for the example file of the repository:
+    the text summary, the PDF made with --pdf, the overview figure (shown on
+    the front page) and a few of the other figures (like the ones shown with
+    --gui). Only regenerated when the example file changed."""
+    import shutil
     example = _reporoot / 'examples' / 'example.mcpl'
-    if out.is_file() and out.stat().st_mtime > example.stat().st_mtime:
+    workdir = _autogendir / 'stats'
+    stamp = workdir / 'done.txt'
+    if stamp.is_file() and stamp.stat().st_mtime > example.stat().st_mtime:
         return
-    code = ( 'import mcpl, mcpl.plotting;'
-             f'st = mcpl.collect_stats({str(example)!r});'
-             'mcpl.plotting.save(mcpl.stats_figures(st)[:1],'
-             f' {str(out)!r}, backend="matplotlib")' )
-    _cmd_output( 'stats_overview.log', [ sys.executable, '-c', code ] )
+    workdir.mkdir(exist_ok=True)
+    shutil.copy( example, workdir / 'example.mcpl' )
+    tool = [ sys.executable, '-m', 'mcpl' ]
+    _cmd_output( 'stats_example.txt', tool + [ '--stats', 'example.mcpl' ],
+                 cwd = workdir )
+    _cmd_output( 'stats_pdf.log', tool + [ '--stats', '--pdf', 'example.mcpl' ],
+                 cwd = workdir )
+    ( workdir / 'mcpl.pdf' ).replace( _autogendir / 'pymcpltool_stats.pdf' )
+    code = ( 'import mcpl, mcpl.plotting as p;'
+             'figs = mcpl.stats_figures(mcpl.collect_stats("example.mcpl"));'
+             'save = lambda i, fn: p.save([figs[i]], fn, backend="matplotlib");'
+             f'save(0, {str(_autogendir/"stats_overview.png")!r});'
+             f'save(1, {str(_autogendir/"stats_pdgcode.png")!r});'
+             f'save(4, {str(_autogendir/"stats_x.png")!r});'
+             f'save(9, {str(_autogendir/"stats_uz.png")!r})' )
+    _cmd_output( 'stats_figures.log', [ sys.executable, '-c', code ],
+                 cwd = workdir )
+    stamp.write_text('done\n')
 
 _latest_news()
-_stats_figure()
+_stats_outputs()
 
 # -- Options for HTML output ---------------------------------------------------
 

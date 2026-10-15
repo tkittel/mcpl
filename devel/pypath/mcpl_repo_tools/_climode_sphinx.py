@@ -68,12 +68,15 @@ def main( parser ):
             raise SystemExit('Error: sphinx-autobuild not found (see'
                              ' devel/reqs/requirements_doc.txt)')
         #(the generated content in build/autogen must not trigger rebuilds):
-        cmd = [ exe, str(srcdir), str(blddir/'html'), '--host', args.host,
+        cmd = [ exe, '-b', 'dirhtml', str(srcdir), str(blddir/'html'),
+                '--host', args.host,
                 '--port', str(args.port), '--ignore', str(blddir) ] + opts
     else:
-        builder = 'linkcheck' if args.linkcheck else 'html'
+        #(dirhtml gives URLs like .../usage_cmdline/ as on the Jekyll website):
+        builder = 'linkcheck' if args.linkcheck else 'dirhtml'
+        outdir = blddir / ( 'linkcheck' if args.linkcheck else 'html' )
         cmd = [ sys.executable, '-m', 'sphinx', '-b', builder, str(srcdir),
-                str(blddir/builder) ] + opts
+                str(outdir) ] + opts
     print('Running:', ' '.join(cmd))
     rv = subprocess.run( cmd, check = False )
     if rv.returncode:

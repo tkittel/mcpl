@@ -20,13 +20,8 @@ T. Kittelmann, et al., Monte Carlo Particle Lists: MCPL, *Computer Physics
 Communications*, Volume 218, September 2017, Pages 17-42, ISSN 0010-4655,
 https://doi.org/10.1016/j.cpc.2017.04.012 :openaccess:`open access`
 
-.. _about-license:
-
-License
--------
-
-MCPL is made available under the highly liberal open source Apache 2.0 license.
-For details, see the http://www.apache.org/licenses/LICENSE-2.0 page.
+MCPL is made available under the highly liberal open source Apache 2.0 license
+(see :doc:`license`).
 
 .. _about-acknowledgements:
 
@@ -44,7 +39,9 @@ ideas:
 - Xiao Xiao Cai (`ESS <https://europeanspallationsource.se/>`__ &
   `DTU <http://www.dtu.dk/>`__)
 
-|BrightnESS| |SINE2020| |ESS| |DTU|
+.. container:: mcpllogos
+
+   |BrightnESS| |SINE2020| |ESS| |DTU|
 
 .. |BrightnESS| image:: images/brightness_logo.png
    :target: https://cordis.europa.eu/project/id/676548

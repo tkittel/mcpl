@@ -1,0 +1,7 @@
+#For building the Sphinx-based website (needs Python 3.10 or later):
+sphinx>=8.1
+sphinx_rtd_theme>=3.0
+sphinx-toolbox>=3.8
+sphinx-autobuild>=2024.10.3
+breathe>=5.1
+numpy>=1.22

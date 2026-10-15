@@ -180,10 +180,47 @@ breathe_domain_by_extension = { 'h' : 'cpp' }
 _cmd_output( 'pymcpltool_help.txt',
              [ sys.executable, '-m', 'mcpl', '--help' ] )
 
+def _latest_news( n = 4 ):
+    """The first n items of the news page, for the front page"""
+    items, cur = [], None
+    for line in ( _docsrc / 'news.rst' ).read_text().splitlines():
+        if line.startswith('* '):
+            if cur:
+                items.append(cur)
+            cur = [line]
+        elif cur is not None and line.startswith('  '):
+            cur.append(line)
+        elif cur is not None and not line.strip():
+            items.append(cur)
+            cur = None
+    if cur:
+        items.append(cur)
+    txt = '\n\n'.join( '\n'.join(e) for e in items[:n] ) + '\n'
+    out = _autogendir / 'news_latest.rst'
+    if not out.is_file() or out.read_text() != txt:
+        out.write_text(txt)
+
+def _stats_figure():
+    """Overview of the particles in the example file (as made by pymcpltool
+    --stats), shown on the front page."""
+    out = _autogendir / 'stats_overview.png'
+    example = _reporoot / 'examples' / 'example.mcpl'
+    if out.is_file() and out.stat().st_mtime > example.stat().st_mtime:
+        return
+    code = ( 'import mcpl, mcpl.plotting;'
+             f'st = mcpl.collect_stats({str(example)!r});'
+             'mcpl.plotting.save(mcpl.stats_figures(st)[:1],'
+             f' {str(out)!r}, backend="matplotlib")' )
+    _cmd_output( 'stats_overview.log', [ sys.executable, '-c', code ] )
+
+_latest_news()
+_stats_figure()
+
 # -- Options for HTML output ---------------------------------------------------
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+html_css_files = ['custom.css']
 html_theme_options = {
     'logo_only': False,
     'collapse_navigation' : False,

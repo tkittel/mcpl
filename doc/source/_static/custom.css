@@ -1,0 +1,14 @@
+/* Box with the latest news on the front page: */
+.mcplnews {
+  border-left: 4px solid #2980b9;
+  background: #f3f6f6;
+  padding: 0.6em 1em 0.1em 1em;
+  margin-bottom: 1.5em;
+}
+.mcplnews p.mcplnews-title {
+  font-weight: bold;
+  margin-bottom: 0.4em;
+}
+.mcplnews ul li {
+  margin-bottom: 0.3em;
+}

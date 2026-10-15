@@ -5,3 +5,4 @@ sphinx-toolbox>=3.8
 sphinx-autobuild>=2024.10.3
 breathe>=5.1
 numpy>=1.22
+matplotlib>=3.6

@@ -26,6 +26,9 @@ def is_well_known_binary( frel ):
         return True
     if frel in ['devel/misc/test_encodings.log']:
         return True
+    #Images of the website:
+    if frel.startswith('doc/source/images/') and frel.endswith('.png'):
+        return True
 
 def main():
     search_str = 'f' + 'i' + 'x' + 'm' + 'e'

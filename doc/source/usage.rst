@@ -1,0 +1,34 @@
+**********
+Using MCPL
+**********
+
+Using MCPL typically implies using pre-existing :doc:`plugins or
+converters <hooks>` to either create or read a list of particles
+from MCPL files via a given simulation tool, such as
+:doc:`Geant4 <hooks_geant4>`, :doc:`McStas <hooks_mcstas>`,
+:doc:`McXtrace <hooks_mcxtrace>`, :doc:`MCNP <hooks_mcnp>`, or
+:doc:`PHITS <hooks_phits>`. Additionally, most users will find it
+beneficial to use the generic :doc:`mcpltool <usage_cmdline>` or
+:doc:`pymcpltool <usage_cmdline>` commands from the command line, in
+order to inspect or perform operations on files, and some users with advanced
+use-cases might write :doc:`C/C++ code <usage_c>` or :doc:`Python
+code <usage_python>` in order to inspect or manipulate MCPL files
+(for instance, to create new plugins or converters for their tools). Starting
+with the next MCPL release, particles can also be selected, edited and plotted
+with short :doc:`expressions <usage_expressions>`, from the command line
+or from Python.
+
+Many more details can be found in `the MCPL paper (section
+2) <https://mctools.github.io/mcpl/mcpl.pdf#nameddest=section.2>`__ and in `the
+MCPL paper (section
+3) <https://mctools.github.io/mcpl/mcpl.pdf#nameddest=section.3>`__.
+
+.. toctree::
+   :hidden:
+
+   usage_cmdline
+   usage_c
+   usage_cpp
+   usage_python
+   usage_python_advanced
+   usage_expressions

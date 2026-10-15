@@ -52,9 +52,19 @@ for the example file of the MCPL distribution:
    :maxdepth: 2
    :caption: General
 
-   intro
-   install
+   get
    news
+   about
+   contact
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: Documentation
+
+   usage
+   format
+   hooks
 
 .. toctree::
    :hidden:

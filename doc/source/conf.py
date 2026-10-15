@@ -65,9 +65,11 @@ extensions = [
 templates_path = ['_templates']
 
 #Role for marking freely available publications (styled in custom.css), as in
-#:openaccess:`open access`:
+#:openaccess:`open access`, and substitutions for non-ASCII letters (like
+#|auml|, as the sources only have ASCII characters):
 rst_prolog = """
 .. role:: openaccess
+.. include:: <isolat1.txt>
 """
 exclude_patterns = []
 

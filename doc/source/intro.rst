@@ -12,6 +12,7 @@ The format itself is formally described in:
 
    T. Kittelmann, et al., Monte Carlo Particle Lists: MCPL, Computer Physics
    Communications 218, 17-42 (2017), https://doi.org/10.1016/j.cpc.2017.04.012
+   :openaccess:`open access`
 
 All MCPL code is provided under the Apache 2.0 license (see :doc:`license`).
 If you have questions or want to report issues, please use the `issue tracker

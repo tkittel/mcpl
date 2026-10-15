@@ -12,3 +12,17 @@
 .mcplnews ul li {
   margin-bottom: 0.3em;
 }
+
+/* Label for freely available publications (the :openaccess: role): */
+.openaccess {
+  display: inline-block;
+  font-size: 75%;
+  font-weight: bold;
+  color: #1a7f37;
+  border: 1px solid #1a7f37;
+  border-radius: 3px;
+  padding: 0 0.4em;
+  margin-left: 0.3em;
+  vertical-align: middle;
+  white-space: nowrap;
+}

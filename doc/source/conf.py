@@ -63,6 +63,12 @@ extensions = [
 ]
 
 templates_path = ['_templates']
+
+#Role for marking freely available publications (styled in custom.css), as in
+#:openaccess:`open access`:
+rst_prolog = """
+.. role:: openaccess
+"""
 exclude_patterns = []
 
 #For sphinx_toolbox.sidebar_links and sphinx_toolbox.github:

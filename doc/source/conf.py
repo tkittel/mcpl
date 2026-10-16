@@ -361,6 +361,8 @@ _stats_outputs()
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 html_css_files = ['custom.css']
+#(collapsible entries on the API reference pages):
+html_js_files = ['apitoggle.js']
 #The MCPL logo (from https://github.com/mctools/mcpl-logo), in the variant for
 #dark backgrounds, since it is on the dark background of the sidebar:
 html_logo = '_static/mcpl-logo-dark.svg'

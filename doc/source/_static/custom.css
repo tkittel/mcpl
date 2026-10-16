@@ -57,3 +57,41 @@
 .wy-table-responsive table td, .wy-table-responsive table th {
   white-space: normal;
 }
+
+/* Collapsible entries on the API reference pages (see apitoggle.js): */
+dl.mcpl-collapsible > dt {
+  cursor: pointer;
+}
+dl.mcpl-collapsible > dt::before {
+  content: "\25BE";/* (down-pointing triangle) */
+  display: inline-block;
+  width: 1.1em;
+  color: #2980b9;
+}
+dl.mcpl-collapsed > dt::before {
+  content: "\25B8";/* (right-pointing triangle) */
+}
+dl.mcpl-collapsed > dd {
+  display: none;
+}
+dl.mcpl-collapsible > .mcpl-summary {
+  display: none;
+}
+dl.mcpl-collapsed > .mcpl-summary {
+  display: block;
+  margin: 0.1em 0 0.8em 1.6em;
+  color: #555;
+  font-size: 90%;
+}
+.mcpl-togglebar {
+  margin: -0.5em 0 1em 0;
+}
+.mcpl-togglebar button {
+  font-size: 80%;
+  margin-right: 0.5em;
+  padding: 0.15em 0.7em;
+  border: 1px solid #c9c9c9;
+  border-radius: 3px;
+  background: #f3f6f6;
+  cursor: pointer;
+}

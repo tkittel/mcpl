@@ -18,6 +18,11 @@ Python 3.10 or later) are listed in ``devel/reqs/requirements_doc.txt`` (and
 reference): it is included in the conda environment, but must otherwise be
 installed separately.
 
+The files ``mcpl-logo-dark.svg`` (the logo in the sidebar) and ``favicon.svg``
+in ``source/_static`` are copied unchanged from
+https://github.com/mctools/mcpl-logo (commit 1ca613d), which is under the
+Apache License 2.0 (see the usage note there).
+
 ================
 Reading material
 ================

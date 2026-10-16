@@ -330,8 +330,12 @@ _stats_outputs()
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 html_css_files = ['custom.css']
+#The MCPL logo (from https://github.com/mctools/mcpl-logo), in the variant for
+#dark backgrounds, since it is on the dark background of the sidebar:
+html_logo = '_static/mcpl-logo-dark.svg'
+html_favicon = '_static/favicon.svg'
 html_theme_options = {
-    'logo_only': False,
+    'logo_only': True,#(the logo has the name)
     'collapse_navigation' : False,
     'sticky_navigation': True,#sidebar stays in place while contents scrolls
     'navigation_with_keys': True,#navigate with left/right arrow keys

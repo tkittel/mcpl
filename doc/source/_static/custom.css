@@ -34,3 +34,12 @@
   margin-right: 1.5em;
   vertical-align: middle;
 }
+
+/* The logo at the top of the sidebar, on the background of the sidebar: */
+.wy-side-nav-search {
+  background-color: #343131;
+}
+.wy-side-nav-search > a img.logo, .wy-side-nav-search .wy-dropdown > a img.logo {
+  max-width: 85%;
+  padding: 0.3em 0 0.6em 0;
+}

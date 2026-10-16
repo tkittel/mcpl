@@ -243,7 +243,7 @@ efficiently on whole blocks, without using Python's ``eval()``:
 The syntax of these expressions, which can also be used to make histograms
 (with ``mcpl.histogram``), is described on :doc:`a page of its
 own <usage_expressions>`. The same expressions can be used with
-``pymcpltool`` on the :doc:`command line <usage_cmdline>`.
+``mcpltool`` on the :doc:`command line <usage_cmdline>`.
 
 More complete examples can be found in
 `pyexample_filtermcpl <https://github.com/mctools/mcpl/blob/main/examples/pyexample_filtermcpl>`__
@@ -321,7 +321,7 @@ read from the file, so it costs nothing unless used:
        print( p.userdata["volume"] )
 
 Merging files requires identical userdata layouts (forced merges discard the
-userdata unless all files have the same layout), and ``pymcpltool`` keeps the
+userdata unless all files have the same layout), and ``mcpltool`` keeps the
 userdata when extracting particles. A complete example is found in the file
 `pyexample_userdatamcpl <https://github.com/mctools/mcpl/blob/main/examples/pyexample_userdatamcpl>`__.
 
@@ -330,7 +330,7 @@ userdata when extracting particles. A complete example is found in the file
 Statistics and plots
 --------------------
 
-The statistics and plots of ``pymcpltool --stats`` (see :ref:`command
+The statistics and plots of ``mcpltool --stats`` (see :ref:`command
 line <usage_cmdline-extract-statistics-from-a-file>`) are also
 available from Python:
 

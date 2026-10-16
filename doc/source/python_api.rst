@@ -105,9 +105,9 @@ Physical constants
 .. automodule:: mcpl.constants
    :members:
 
-.. _python_api-the-pymcpltool-command:
+.. _python_api-the-mcpltool-command:
 
-The pymcpltool command
-======================
+The mcpltool command
+====================
 
-.. autofunction:: mcpl.app_pymcpltool
+.. autofunction:: mcpl.app_mcpltool

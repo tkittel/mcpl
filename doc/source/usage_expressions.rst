@@ -2,7 +2,7 @@
 Selecting, editing and plotting particles with expressions
 **********************************************************
 
-The ``pymcpltool`` command and the ``mcpl`` Python module can select, edit and
+The ``mcpltool`` command and the ``mcpl`` Python module can select, edit and
 plot particles based on short expressions like
 ``"pdgcode == neutron && ekin < 25meV"``. This page describes the syntax of
 these expressions, and shows how to use them from the :doc:`command
@@ -168,9 +168,8 @@ Name                               PDG code
 ``gamma`` (or ``photon``)          22
 ================================== ===========
 
-The same names can be used with the ``-p`` option of ``pymcpltool`` (as in
-``-pneutron``), which selects particles of a given type, and also with
-``mcpltool --extract -pneutron``.
+The same names can be used with the ``-p`` option of ``mcpltool`` (as in
+``-pneutron``), which selects particles of a given type.
 
 .. _usage_expressions-selecting-particles:
 
@@ -196,7 +195,7 @@ extracting particles into a new file, with ``--stats``, and with ``--hist``:
 
 .. code:: shell
 
-   pymcpltool -l3 example.mcpl \
+   mcpltool -l3 example.mcpl \
      --select "pdgcode == gamma && ekin > 1MeV"
 
 ::
@@ -211,8 +210,8 @@ extracting particles into a new file, with ``--stats``, and with ``--hist``:
       46          22      1.7843     -2.7558     0.78225          20   -0.034013   -0.088335     0.99551  1.0907e-06           1
 
 When showing particles, ``-l`` and ``-s`` apply to the selected particles. When
-extracting particles, they select a range of particles in the file (as with
-``mcpltool``), after which the selection is applied.
+extracting particles, they select a range of particles in the file, after
+which the selection is applied.
 
 .. _usage_expressions-editing-particles:
 
@@ -297,7 +296,7 @@ setting their z coordinates to 0 and their wavelengths to 1.8 Aa:
 
 .. code:: shell
 
-   pymcpltool --extract example.mcpl slow.mcpl \
+   mcpltool --extract example.mcpl slow.mcpl \
      -pneutron \
      --select "ekin < 1MeV && hypot(x,y) < 10cm" \
      --edit "z = 0cm, wavelength = 1.8Aa"
@@ -308,7 +307,7 @@ setting their z coordinates to 0 and their wavelengths to 1.8 Aa:
 
 The selection and edits are described in comments added to the header of the
 new file (e.g. ``mcpltool: extracted particles with -p2112`` and
-``pymcpltool: selected particles with: ...``), unless the ``--no-comment``
+``mcpltool: selected particles with: ...``), unless the ``--no-comment``
 option is used. Since files can only be merged if their comments are identical,
 files extracted in different ways can only be merged if they were extracted
 with ``--no-comment``.
@@ -327,12 +326,12 @@ Histograms
 
 Histograms show the values of an expression without units, so values with units
 are divided by a unit, which then becomes the unit of the axis (e.g.
-``ekin/eV`` or ``hypot(x,y)/mm``). With ``--hist``, ``pymcpltool`` plots such
+``ekin/eV`` or ``hypot(x,y)/mm``). With ``--hist``, ``mcpltool`` plots such
 histograms:
 
 .. code:: shell
 
-   pymcpltool --hist "ekin/MeV" --logx \
+   mcpltool --hist "ekin/MeV" --logx \
      --split pdgcode example.mcpl
 
 This shows the kinetic energy spectrum with logarithmic bins, with a curve for
@@ -386,7 +385,7 @@ instance, the neutron spectrum per unit lethargy, printed as a table:
 
 .. code:: shell
 
-   pymcpltool --hist "ekin/eV" --lethargy \
+   mcpltool --hist "ekin/eV" --lethargy \
      -pneutron --bins 8 --print example.mcpl
 
 ::
@@ -412,71 +411,71 @@ More command line examples
 .. code:: shell
 
    # Neutron spectrum per unit lethargy:
-   pymcpltool --hist "ekin/eV" --lethargy \
+   mcpltool --hist "ekin/eV" --lethargy \
      -pneutron run.mcpl
 
    # Neutron wavelengths from 0 to 10 Aa, in a PDF:
-   pymcpltool --hist "wavelength/Aa" -pneutron \
+   mcpltool --hist "wavelength/Aa" -pneutron \
      --range 0:10 --bins 200 --output wl.pdf \
      run.mcpl
 
    # Positions of the neutrons in the x-y plane:
-   pymcpltool --hist "x/cm : y/cm" -pneutron run.mcpl
+   mcpltool --hist "x/cm : y/cm" -pneutron run.mcpl
 
    # Distance from the z axis, from 0 to 50 mm:
-   pymcpltool --hist "hypot(x,y)/mm" --range 0:50 \
+   mcpltool --hist "hypot(x,y)/mm" --range 0:50 \
      run.mcpl
 
    # Angle to the z axis for each particle type:
-   pymcpltool --hist "acos(uz)/deg" --range 0:90 \
+   mcpltool --hist "acos(uz)/deg" --range 0:90 \
      --split pdgcode run.mcpl
 
    # Azimuthal angle versus polar angle:
-   pymcpltool \
+   mcpltool \
      --hist "atan2(uy,ux)/deg : acos(uz)/deg" \
      run.mcpl
 
    # Times of neutrons below 100 keV (log y axis):
-   pymcpltool --hist "time/ms" --logy run.mcpl \
+   mcpltool --hist "time/ms" --logy run.mcpl \
      --select "pdgcode == neutron && ekin < 100keV"
 
    # Spectra of two files in one plot, with plotly:
-   pymcpltool --hist "ekin/MeV" --logx \
+   mcpltool --hist "ekin/MeV" --logx \
      --backend plotly --output spectra.html \
      before.mcpl after.mcpl
 
    # Distribution of the particle weights:
-   pymcpltool --hist "weight" --unweighted --logy \
+   mcpltool --hist "weight" --unweighted --logy \
      run.mcpl
 
    # Spectra for particles with x > 0 and x < 0:
-   pymcpltool --hist "ekin/MeV" --logx \
+   mcpltool --hist "ekin/MeV" --logx \
      --split "x > 0cm" run.mcpl
 
    # Statistics and plots of gammas above 1 keV:
-   pymcpltool --stats run.mcpl \
+   mcpltool --stats run.mcpl \
      --select "pdgcode == gamma && ekin > 1keV"
-   pymcpltool --stats --output gammas.pdf run.mcpl \
+   mcpltool --stats --output gammas.pdf run.mcpl \
      --select "pdgcode == gamma && ekin > 1keV"
 
    # The first 20 neutrons with wavelength > 4 Aa:
-   pymcpltool -l20 run.mcpl --select \
+   mcpltool -l20 run.mcpl --select \
      "pdgcode == neutron && wavelength > 4Aa"
 
    # New file with neutrons within 5 cm of z axis:
-   pymcpltool --extract run.mcpl out.mcpl --select \
+   mcpltool --extract run.mcpl out.mcpl --select \
      "pdgcode == neutron && hypot(x,y) < 5cm"
 
    # Move particles 2 m back and delay by 1.5 ms:
-   pymcpltool --extract run.mcpl out.mcpl \
+   mcpltool --extract run.mcpl out.mcpl \
      --edit "z -= 2m, time += 1.5ms"
 
    # Make all neutrons monochromatic:
-   pymcpltool --extract run.mcpl out.mcpl -pneutron \
+   mcpltool --extract run.mcpl out.mcpl -pneutron \
      --edit "wavelength = 1.8Aa"
 
    # Place particles 2 m from origin along direction:
-   pymcpltool --extract run.mcpl out.mcpl \
+   mcpltool --extract run.mcpl out.mcpl \
      --edit "x = 2m*ux, y = 2m*uy, z = 2m*uz"
 
 .. _usage_expressions-from-python:
@@ -531,7 +530,7 @@ applied to blocks of particles:
            fout.add_particles( sel, **edit( sel ) )
 
 Histograms are made with ``mcpl.histogram`` (and ``mcpl.histogram2d``), which
-take the same options as ``pymcpltool --hist``. The results can be plotted,
+take the same options as ``mcpltool --hist``. The results can be plotted,
 saved, or used directly:
 
 .. code:: python
@@ -545,7 +544,7 @@ saved, or used directly:
    print( h.edges, h.values() )
 
 The plots are made with the plotting backend selected with the ``backend``
-argument (``--backend`` for ``pymcpltool``), with
+argument (``--backend`` for ``mcpltool``), with
 ``mcpl.plotting.set_default_backend(...)``, or with the ``MCPL_PLOT_BACKEND``
 environment variable, or else with matplotlib or plotly, whichever is installed
 (see ``mcpl.plotting.available_backends()``). The ``unicode`` and ``ascii``

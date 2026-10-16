@@ -8,9 +8,8 @@ from MCPL files via a given simulation tool, such as
 :doc:`Geant4 <hooks_geant4>`, :doc:`McStas <hooks_mcstas>`,
 :doc:`McXtrace <hooks_mcxtrace>`, :doc:`MCNP <hooks_mcnp>`, or
 :doc:`PHITS <hooks_phits>`. Additionally, most users will find it
-beneficial to use the generic :doc:`mcpltool <usage_cmdline>` or
-:doc:`pymcpltool <usage_cmdline>` commands from the command line, in
-order to inspect or perform operations on files, and some users with advanced
+beneficial to use the generic :doc:`mcpltool <usage_cmdline>` command from
+the command line, in order to inspect or perform operations on files, and some users with advanced
 use-cases might write :doc:`C/C++ code <usage_c>` or :doc:`Python
 code <usage_python>` in order to inspect or manipulate MCPL files
 (for instance, to create new plugins or converters for their tools). Particles
@@ -38,7 +37,7 @@ or from Python.
 
       :doc:`Command line <usage_cmdline>`
 
-      Inspect, merge, extract, repair and plot MCPL files with the mcpltool and pymcpltool commands.
+      Inspect, merge, extract, repair and plot MCPL files with the mcpltool command.
 
    .. container:: mcplcard
 

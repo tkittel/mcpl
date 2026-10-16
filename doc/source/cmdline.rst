@@ -2,13 +2,17 @@
 Command reference
 *****************
 
-.. _cmdline-the-pymcpltool-command:
+.. _cmdline-the-mcpltool-command:
 
-The ``pymcpltool`` command
-==========================
+The ``mcpltool`` command
+========================
 
-The ``pymcpltool`` command inspects and modifies MCPL files. Its built-in
-documentation (``pymcpltool --help``) is repeated here:
+The ``mcpltool`` command inspects and modifies MCPL files. Its built-in
+documentation (``mcpltool --help``) is repeated here:
 
-.. literalinclude:: ../build/autogen/pymcpltool_help.txt
+.. literalinclude:: ../build/autogen/mcpltool_help.txt
    :language: none
+
+The ``mcpl-core`` package also provides a minimal version of ``mcpltool``
+written in C, ``mcpltool-c`` (see :ref:`Using MCPL from the command line
+<usage_cmdline-the-minimal-mcpltool-c>`).

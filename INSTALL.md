@@ -61,8 +61,8 @@ also installed into the conda environment: `c-compiler`, `cmake`, and `make`
 (unix only), `zlib`, `numpy`, `pip`, and `python`.
 
 The repository contains one directory for each package: `mcpl_core`
-(`mcpl-core`: the C library, header files, `mcpltool` and `mcpl-config`),
-`mcpl_python` (`mcpl-python`: the `mcpl` Python module and `pymcpltool`),
+(`mcpl-core`: the C library, header files, `mcpltool-c` and `mcpl-config`),
+`mcpl_python` (`mcpl-python`: the `mcpl` Python module and `mcpltool`),
 `mcpl_extra` (`mcpl-extra`: the converters for MCNP and PHITS) and
 `mcpl_metapkg` (`mcpl`: a package which only depends on `mcpl-core` and
 `mcpl-python`).

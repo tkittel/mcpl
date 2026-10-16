@@ -193,7 +193,7 @@ shown, as a curve for each half of the x-y plane:
        split = "x > 0cm", range = (0, 90) )
    h.plot()  # or h.plot( filename = "angles.pdf" )
 
-And plots of all the particle data, like those of ``pymcpltool --stats`` on the
+And plots of all the particle data, like those of ``mcpltool --stats`` on the
 :ref:`command line <usage_cmdline-extract-statistics-from-a-file>`, are
 made with (this also works with earlier MCPL releases):
 

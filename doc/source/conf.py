@@ -274,10 +274,10 @@ _autogendir.mkdir(parents=True,exist_ok=True)
 breathe_projects = { 'mcplcpp': str(_autogendir / 'doxygen_xml') }
 breathe_default_project = 'mcplcpp'
 breathe_domain_by_extension = { 'h' : 'cpp' }
-#(with the program name of the installed command, not __main__.py):
-_cmd_output( 'pymcpltool_help.txt',
+#(with the program name of the installed command, not "python -m mcpl"):
+_cmd_output( 'mcpltool_help.txt',
              [ sys.executable, '-c',
-               'import mcpl;mcpl.app_pymcpltool(["pymcpltool","--help"])' ] )
+               'import mcpl;mcpl.app_mcpltool(["mcpltool","--help"])' ] )
 
 def _latest_news( n = 4 ):
     """The first n items of the news page, for the front page"""
@@ -300,7 +300,7 @@ def _latest_news( n = 4 ):
         out.write_text(txt)
 
 def _stats_outputs():
-    """Output of pymcpltool --stats for the example file of the repository:
+    """Output of mcpltool --stats for the example file of the repository:
     the text summary, the PDF made with --pdf, the overview figure (shown on
     the front page) and a few of the other figures (like the ones shown with
     --gui). Only regenerated when the example file changed."""
@@ -317,7 +317,7 @@ def _stats_outputs():
                  cwd = workdir )
     _cmd_output( 'stats_pdf.log', tool + [ '--stats', '--pdf', 'example.mcpl' ],
                  cwd = workdir )
-    ( workdir / 'mcpl.pdf' ).replace( _autogendir / 'pymcpltool_stats.pdf' )
+    ( workdir / 'mcpl.pdf' ).replace( _autogendir / 'mcpltool_stats.pdf' )
     code = ( 'import mcpl, mcpl.plotting as p;'
              'figs = mcpl.stats_figures(mcpl.collect_stats("example.mcpl"));'
              'save = lambda i, fn: p.save([figs[i]], fn, backend="matplotlib");'
@@ -357,6 +357,92 @@ nitpick_ignore += [ ( 'c:identifier', t )
                               'int32_t', 'uint32_t', 'int64_t', 'uint64_t',
                               'size_t', 'wchar_t' ) ]
 _stats_outputs()
+
+#The examples on the usage_cmdline page: each command is run (in a scratch
+#directory with a copy of the example file), and the command and its output
+#are shown, so the page is always up to date with the actual tool:
+_cmdline_examples = [
+    #(name, command, and whether it is hidden; in the order they are run):
+    ( 'inspect', 'mcpltool example.mcpl', False ),
+    ( 'extract_p',
+      'mcpltool --extract -p2112 example.mcpl justneutrons.mcpl', False ),
+    ( 'extract_ls',
+      'mcpltool --extract -l1 -s123 example.mcpl selected.mcpl', False ),
+    ( 'setup1',
+      'mcpltool --extract --no-comment -l300 example.mcpl file1.mcpl', True ),
+    ( 'setup2', ( 'mcpltool --extract --no-comment -s300 -l300'
+                  ' example.mcpl file2.mcpl' ), True ),
+    ( 'setup3',
+      'mcpltool --extract --no-comment -s600 example.mcpl file3.mcpl', True ),
+    ( 'merge', ( 'mcpltool --merge newfile.mcpl'
+                 ' file1.mcpl file2.mcpl file3.mcpl' ), False ),
+    ( 'dryrun', ( 'mcpltool --extract -d --select "ekin < 1MeV"'
+                  ' example.mcpl slow.mcpl' ), False ),
+    ( 'select_edit', ( 'mcpltool --extract example.mcpl slow.mcpl -pneutron'
+                       ' --select "ekin < 1MeV && hypot(x,y) < 10cm"'
+                       ' --edit "z = 0cm, wavelength = 1.8Aa"' ), False ),
+    ( 'forcemerge',
+      'mcpltool --forcemerge newfile2.mcpl example.mcpl slow.mcpl', False ),
+    ( 'hist', ( 'mcpltool --hist "ekin/MeV" --logx --split pdgcode'
+                ' --output cmdline_hist.png example.mcpl' ), True ),
+    ( 'text', 'mcpltool --text example.mcpl out.txt', False ),
+]
+
+def _cmdline_examples_outputs():
+    """Run the commands of _cmdline_examples, and write each (non-hidden)
+    command and its output to cmdline_<name>.txt in the autogen directory.
+    Only rerun when the example file, this file or the mcpl Python sources
+    changed."""
+    import re
+    import shlex
+    import shutil
+    def shown( cmd ):
+        #The command, broken into lines (before options) of at most 78 chars:
+        #(quoted arguments are kept together with the option before them):
+        units = []
+        for w in re.findall( r'"[^"]*"|\S+', cmd ):
+            if w.startswith('"') and units:
+                units[-1] += ' ' + w
+            else:
+                units.append( w )
+        lines = [ '$' ]
+        for u in units:
+            if len(lines[-1]) + 1 + len(u) > 76 and u.startswith('-'):
+                lines[-1] += ' \\'
+                lines.append( '   ' )
+            lines[-1] += ' ' + u
+        return '\n'.join( lines ) + '\n'
+    example = _reporoot / 'examples' / 'example.mcpl'
+    workdir = _autogendir / 'cmdline'
+    stamp = workdir / 'done.txt'
+    sources = [ example, pathlib.Path(__file__) ] + list(_pysrc.rglob('*.py'))
+    if ( stamp.is_file() and stamp.stat().st_mtime
+         > max( f.stat().st_mtime for f in sources ) ):
+        return
+    shutil.rmtree( workdir, ignore_errors = True )
+    workdir.mkdir( parents = True )
+    shutil.copy( example, workdir / 'example.mcpl' )
+    #(run like the installed mcpltool command, with that program name):
+    code = 'import sys;sys.argv[0]="mcpltool";from mcpl._cli import main;main()'
+    tool = [ sys.executable, '-c', code ]
+    for name, cmd, hidden in _cmdline_examples:
+        args = shlex.split(cmd)
+        assert args[0] == 'mcpltool'
+        _cmd_output( f'cmdline_{name}.out', tool + args[1:], cwd = workdir )
+        out = _autogendir / f'cmdline_{name}.out'
+        if not hidden:
+            txt = shown( cmd ) + out.read_text()
+            dest = _autogendir / f'cmdline_{name}.txt'
+            if not dest.is_file() or dest.read_text() != txt:
+                dest.write_text( txt )
+        out.unlink()
+    ( workdir / 'cmdline_hist.png' ).replace( _autogendir / 'cmdline_hist.png' )
+    lines = ( workdir / 'out.txt' ).read_text().splitlines()
+    ( _autogendir / 'cmdline_text_head.txt' ).write_text(
+        '\n'.join( lines[:10] ) + '\n' )
+    stamp.write_text('done\n')
+
+_cmdline_examples_outputs()
 
 # -- Options for HTML output ---------------------------------------------------
 

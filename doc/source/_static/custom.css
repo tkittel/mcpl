@@ -58,30 +58,50 @@
   white-space: normal;
 }
 
-/* Collapsible entries on the API reference pages (see apitoggle.js): */
+/* Entries on the API reference pages (see apitoggle.js): collapsed entries,
+   and entries with a single sentence as description, are shown compactly on
+   one line (signature and description): */
+.rst-content dl.mcpl-entry {
+  margin-bottom: 0.25em !important;
+}
+.rst-content dl.mcpl-entry > dt {
+  margin: 0.1em 0 !important;
+}
+.rst-content dl.mcpl-collapsed,
+.rst-content dl.mcpl-oneline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
 dl.mcpl-collapsible > dt {
   cursor: pointer;
 }
-dl.mcpl-collapsible > dt::before {
-  content: "\25BE";/* (down-pointing triangle) */
+dl.mcpl-entry > dt::before {
+  content: "";
   display: inline-block;
   width: 1.1em;
+}
+dl.mcpl-collapsible > dt::before {
+  content: "\25BE";/* (down-pointing triangle) */
   color: #2980b9;
 }
 dl.mcpl-collapsed > dt::before {
   content: "\25B8";/* (right-pointing triangle) */
 }
-dl.mcpl-collapsed > dd {
+dl.mcpl-collapsed > dd,
+dl.mcpl-oneline > dd {
   display: none;
 }
-dl.mcpl-collapsible > .mcpl-summary {
+dl.mcpl-entry > .mcpl-summary {
   display: none;
 }
-dl.mcpl-collapsed > .mcpl-summary {
+dl.mcpl-collapsed > .mcpl-summary,
+dl.mcpl-oneline > .mcpl-summary {
   display: block;
-  margin: 0.1em 0 0.8em 1.6em;
+  flex: 1 1 12em;
+  margin-left: 0.8em;
   color: #555;
-  font-size: 90%;
+  font-size: 92%;
 }
 .mcpl-togglebar {
   margin: -0.5em 0 1em 0;
@@ -147,4 +167,9 @@ dl.mcpl-collapsed > .mcpl-summary {
   font-weight: bold;
   font-size: 85%;
   text-align: center;
+}
+/* (space between the compact entries and what follows them) */
+.rst-content dl.mcpl-entry + section,
+.rst-content dl.mcpl-entry + p {
+  margin-top: 1.2em;
 }

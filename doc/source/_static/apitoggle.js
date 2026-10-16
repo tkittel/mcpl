@@ -14,20 +14,35 @@ document.addEventListener( 'DOMContentLoaded', function () {
     } );
   if ( !entries.length )
     return;
+  var collapsible = [];
   entries.forEach( function ( dl ) {
-    var dt = dl.querySelector( ':scope > dt' );
     var dd = dl.querySelector( ':scope > dd' );
-    dl.classList.add( 'mcpl-collapsible', 'mcpl-collapsed' );
+    dl.classList.add( 'mcpl-entry' );
     /* One-line summary: the first sentence of the description: */
     var p = dd.querySelector( ':scope > p' );
+    var summarytext = '';
     if ( p ) {
       var text = p.textContent.replace( /\s+/g, ' ' ).trim();
       var m = text.match( /^.*?[.:](\s|$)/ );
-      var summary = document.createElement( 'div' );
+      summarytext = m ? m[0].trim() : text;
+      var summary = document.createElement( 'span' );
       summary.className = 'mcpl-summary';
-      summary.textContent = m ? m[0].trim() : text;
+      summary.textContent = summarytext;
       dl.insertBefore( summary, dd );
     }
+    /* Entries whose description is just that sentence (or which have no
+       description) are always shown on one line, and not collapsible: */
+    var content = Array.prototype.filter.call( dd.children, function ( c ) {
+      return c.textContent.trim() !== '';
+    } );
+    if ( content.length === 0
+         || ( content.length === 1 && content[0] === p
+              && p.textContent.replace( /\s+/g, ' ' ).trim() === summarytext ) ) {
+      dl.classList.add( 'mcpl-oneline' );
+      return;
+    }
+    collapsible.push( dl );
+    dl.classList.add( 'mcpl-collapsible', 'mcpl-collapsed' );
     dl.querySelectorAll( ':scope > dt' ).forEach( function ( sig ) {
       sig.addEventListener( 'click', function ( ev ) {
         if ( ev.target.closest( 'a' ) )
@@ -44,7 +59,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
     button.type = 'button';
     button.textContent = b[0];
     button.addEventListener( 'click', function () {
-      entries.forEach( function ( dl ) {
+      collapsible.forEach( function ( dl ) {
         dl.classList.toggle( 'mcpl-collapsed', b[1] );
       } );
     } );

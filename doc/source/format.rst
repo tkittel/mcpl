@@ -176,10 +176,13 @@ blob keys) are stored without a terminating null character, and must not
 contain null characters. The userdata layout is ASCII, and the source name
 and comments are usually ASCII or UTF-8 text.
 
-The blob keys must be unique. In ``MCPL-4`` files, they can only have
-printable ASCII characters other than whitespace and quotes (bytes 33 to 126,
-except ``"`` and ``'``). The MCPL software applies this rule when writing
-files in any format version. The data of the blobs can be any bytes.
+The blob keys must be unique. In ``MCPL-4`` files, they must not be empty,
+and can only have printable ASCII characters other than whitespace, quotes,
+backslash and backtick (bytes 33 to 126, except ``"``, ``'``, ``\`` and
+`````). The MCPL software applies these rules to keys added to new files in
+any format version, but still copies other keys from the headers of
+``MCPL-2`` and ``MCPL-3`` files (for instance when merging such files), unless
+the new file has userdata. The data of the blobs can be any bytes.
 
 Comments starting with ``stat:`` are reserved: comments starting with
 ``stat:sum:`` follow the :doc:`stat:sum convention <format_statsum>`, and

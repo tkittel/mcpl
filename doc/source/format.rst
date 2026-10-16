@@ -252,60 +252,131 @@ The direction ``(ux,uy,uz)`` (a unit vector) and the kinetic energy ``ekin``
 are packed into three FP numbers ``(p0,p1,p2)``. In ``MCPL-3`` and ``MCPL-4``
 files, this uses the Adaptive Projection Packing algorithm (`T. Kittelmann, et
 al. 2017 <https://doi.org/10.1016/j.cpc.2017.04.012>`__ :openaccess:`open
-access`): the two components
-of the direction with the smallest magnitudes are stored directly, while the
-third is replaced by its inverse (with a magnitude of at least 1), and its
-sign is stored in the sign bit of ``p2``, whose magnitude is ``ekin``:
+access`). The two components of the direction which are not the largest in
+magnitude are stored directly, while the largest one is recovered from them
+when unpacking, with its sign stored in the sign bit of ``p2`` (whose magnitude
+is ``ekin``). To tell the three cases apart, ``uz`` is replaced by ``1/uz``
+(whose magnitude is then larger than 1) when it is not the largest:
 
-.. code-block:: text
+.. list-table:: Adaptive Projection Packing (Table B.1 of the paper)
+   :header-rows: 1
+   :widths: 22 14 14 22 28
 
-   Packing (s is the sign of the component which is
-   left out, +1.0 or -1.0, and 1/uz is +infinity
-   if uz is zero, also for -0.0):
+   * - Case
+     - ``p0``
+     - ``p1``
+     - Sign bit of ``p2``
+     - Recognised by
+   * - ``|ux|`` largest
+     - ``1/uz``
+     - ``uy``
+     - ``sign(ux)``
+     - ``|p0| > 1``
+   * - ``|uy|`` largest
+     - ``ux``
+     - ``1/uz``
+     - ``sign(uy)``
+     - ``|p0| <= 1``, ``|p1| > 1``
+   * - ``|uz|`` largest
+     - ``ux``
+     - ``uy``
+     - ``sign(uz)``
+     - ``|p0| <= 1``, ``|p1| <= 1``
 
-     if |uz| < max(|ux|,|uy|):
-       if |ux| >= |uy|:  (p0,p1) = (1/uz, uy),  s = sign(ux)
-       else:             (p0,p1) = (ux, 1/uz),  s = sign(uy)
-     else:               (p0,p1) = (ux, uy),    s = sign(uz)
-     p2 = ekin, with the sign bit set if s is -1.0
+In case of ties, ``|uz|`` counts as the largest if no other component has a
+larger magnitude, and otherwise ``|ux|`` counts as the largest if ``|ux| >=
+|uy|``. The value ``1/uz`` is ``+infinity`` when ``uz`` is zero (also for
+``-0.0``), and signs are those of the IEEE-754 sign bits (so the sign of
+``-0.0`` is negative). Note that the sign bit of ``p2`` is also used when
+``ekin`` is zero. The packing and unpacking is done in double precision: the
+three numbers are stored as FP (in single precision if the file uses that),
+and converted to double precision when they are read. In C, this can be
+implemented as:
 
-   Unpacking (s is -1.0 if the sign bit of p2 is set,
-   otherwise +1.0):
+.. code-block:: c
 
-     ekin = |p2|
-     if |p0| > 1:
-       uz = 1/p0;  uy = p1;  ux = s * sqrt(max(0, 1-uy*uy-uz*uz))
-     else if |p1| > 1:
-       uz = 1/p1;  ux = p0;  uy = s * sqrt(max(0, 1-ux*ux-uz*uz))
-     else:
-       ux = p0;  uy = p1;  uz = s * sqrt(max(0, 1-ux*ux-uy*uy))
+   #include <math.h>
 
-The packing is done in double precision, and the results are then stored as
-FP. Signs are those of the IEEE-754 sign bits, also for zeros (so ``-0.0`` has
-the sign ``-1.0``). Note that ``p0`` or ``p1`` is infinite for directions with
-``uz = 0`` and ``|uz| < max(|ux|,|uy|)``, and that the sign bit of ``p2`` is
-also used when ``ekin`` is zero.
+   /* Packs the unit vector u and the kinetic energy ekin (>= 0) into
+      the three numbers p (stored as FP in the file): */
+   void adaptprojpack_pack( const double u[3], double ekin, double p[3] )
+   {
+     if ( fabs(u[2]) >= fabs(u[0]) && fabs(u[2]) >= fabs(u[1]) ) {
+       p[0] = u[0];                       /* |uz| largest */
+       p[1] = u[1];
+       p[2] = copysign( ekin, u[2] );
+     } else {
+       /* (+infinity if uz is zero, also for -0.0): */
+       const double invuz = ( u[2] != 0.0 ? 1.0 / u[2] : INFINITY );
+       if ( fabs(u[0]) >= fabs(u[1]) ) {
+         p[0] = invuz;                    /* |ux| largest */
+         p[1] = u[1];
+         p[2] = copysign( ekin, u[0] );
+       } else {
+         p[0] = u[0];                     /* |uy| largest */
+         p[1] = invuz;
+         p[2] = copysign( ekin, u[1] );
+       }
+     }
+   }
+
+   /* Unpacks the three numbers p (as read from the file, converted to
+      double) into the unit vector u and the kinetic energy ekin: */
+   void adaptprojpack_unpack( const double p[3], double u[3],
+                              double * ekin )
+   {
+     const double s = copysign( 1.0, p[2] );
+     *ekin = fabs( p[2] );
+     if ( fabs(p[0]) > 1.0 ) {
+       u[2] = 1.0 / p[0];                 /* |ux| largest */
+       u[1] = p[1];
+       u[0] = s * sqrt( fmax( 0.0, 1.0 - ( u[1]*u[1] + u[2]*u[2] ) ) );
+     } else if ( fabs(p[1]) > 1.0 ) {
+       u[2] = 1.0 / p[1];                 /* |uy| largest */
+       u[0] = p[0];
+       u[1] = s * sqrt( fmax( 0.0, 1.0 - ( u[0]*u[0] + u[2]*u[2] ) ) );
+     } else {
+       u[0] = p[0];                       /* |uz| largest */
+       u[1] = p[1];
+       u[2] = s * sqrt( fmax( 0.0, 1.0 - ( u[0]*u[0] + u[1]*u[1] ) ) );
+     }
+   }
+
+(``fmax`` guards against tiny negative values from rounding.)
 
 ``MCPL-2`` files use octahedral packing instead, where ``(p0,p1)`` are the
 coordinates of the direction projected on an octahedron, unfolded into a
-plane, and the sign bit of ``p2`` tells that ``uz`` is exactly zero:
+plane, and the sign bit of ``p2`` tells that ``uz`` is exactly zero. Note that
+``-0.0`` counts as positive when unfolding. ``MCPL-2`` files are no longer
+written by the MCPL software, which only reads them, as in this C
+implementation:
 
-.. code-block:: text
+.. code-block:: c
 
-   Unpacking in MCPL-2:
+   #include <math.h>
 
-     z = 1 - |p0| - |p1|
-     if z < 0:
-       x = (1 - |p1|) * (+1 if p0 >= 0, otherwise -1)
-       y = (1 - |p0|) * (+1 if p1 >= 0, otherwise -1)
-     else:
-       x = p0;  y = p1
-     n = sqrt(x*x + y*y + z*z)
-     (ux,uy,uz) = (x/n, y/n, z/n)
-     ekin = |p2|, and if the sign bit of p2 is set: uz = 0
-
-``MCPL-2`` files are no longer written by the MCPL software, which only reads
-them.
+   /* Unpacks the three numbers p of MCPL-2 files (as read from the file,
+      converted to double) into the unit vector u and the kinetic energy
+      ekin: */
+   void octpack_unpack( const double p[3], double u[3], double * ekin )
+   {
+     double x = p[0];
+     double y = p[1];
+     const double z = 1.0 - fabs(p[0]) - fabs(p[1]);
+     if ( z < 0.0 ) {
+       x = ( 1.0 - fabs(p[1]) ) * ( p[0] >= 0.0 ? 1.0 : -1.0 );
+       y = ( 1.0 - fabs(p[0]) ) * ( p[1] >= 0.0 ? 1.0 : -1.0 );
+     }
+     /* (fma gives the same result whether or not the compiler would
+        contract x*x + y*y + z*z into fused multiply-adds): */
+     const double n = 1.0 / sqrt( fma( z, z, fma( y, y, x * x ) ) );
+     u[0] = x * n;
+     u[1] = y * n;
+     u[2] = z * n;
+     *ekin = fabs( p[2] );
+     if ( signbit( p[2] ) )
+       u[2] = 0.0;
+   }
 
 .. _format-mcpl-4-per-particle-userdata:
 

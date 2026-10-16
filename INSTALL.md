@@ -45,8 +45,6 @@ pip install "mcpl[plot]"
 Building from source (experts)
 ==============================
 
-<!-- The rest of this file is also shown on the website (doc/source/get_source.rst) -->
-
 Advanced users might wish to build MCPL code from the sources in the upstream
 repository (https://github.com/mctools/mcpl). This is considered an
 expert-only procedure, but it *is* based on standard tools such as CMake and

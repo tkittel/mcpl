@@ -60,10 +60,7 @@ extensions = [
     'sphinx_toolbox.github',
     'sphinx_toolbox.collapse',
     'breathe',
-    'myst_parser',#(only for including INSTALL.md)
 ]
-#(the sections of INSTALL.md are included below the title of a page):
-suppress_warnings = [ 'myst.header' ]
 
 templates_path = ['_templates']
 
@@ -330,6 +327,15 @@ def _stats_outputs():
     stamp.write_text('done\n')
 
 _latest_news()
+#The "Building from source" page, from the same source as INSTALL.md:
+def _get_source_page():
+    from mcpl_repo_tools.installdoc import produce_get_source_rst
+    _autogendir.mkdir( parents = True, exist_ok = True )
+    out = _autogendir / 'get_source_body.rst'
+    content = produce_get_source_rst()
+    if not out.is_file() or out.read_text() != content:
+        out.write_text( content )
+_get_source_page()
 _stats_outputs()
 
 # -- Options for HTML output ---------------------------------------------------

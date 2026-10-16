@@ -3,8 +3,7 @@ Building from source (experts)
 ******************************
 
 ..
-   The contents of this page come from the INSTALL.md file in the repository.
+   The contents of this page are generated from doc/install_source.md in the
+   repository, which is also the source of INSTALL.md.
 
-.. include:: ../../INSTALL.md
-   :parser: myst_parser.sphinx_
-   :start-after: <!-- The rest of this file is also shown on the website (doc/source/get_source.rst) -->
+.. include:: ../build/autogen/get_source_body.rst

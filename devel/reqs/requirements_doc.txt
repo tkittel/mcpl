@@ -1,6 +1,5 @@
 breathe>=5.1
 matplotlib>=3.6
-myst-parser>=4.0
 numpy>=1.22
 sphinx-autobuild>=2024.10.3
 sphinx-toolbox>=3.8

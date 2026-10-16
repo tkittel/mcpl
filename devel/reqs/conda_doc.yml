@@ -11,7 +11,6 @@ dependencies:
   - breathe >=5.1
   - doxygen
   - matplotlib >=3.6
-  - myst-parser >=4.0
   - numpy >=1.22
   - sphinx >=8.1
   - sphinx-autobuild >=2024.10.3

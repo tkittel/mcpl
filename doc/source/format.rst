@@ -82,7 +82,8 @@ The header starts with 48 bytes of fixed layout:
    * - 24
      - 4 B
      - UINT32
-     - Whether userflags are enabled (1) or disabled (0).
+     - Whether userflags are enabled (``0x1``) or disabled (``0x0``). In
+       ``MCPL-4`` files, ``0x2`` is added if the particles have userdata.
    * - 28
      - 4 B
      - UINT32
@@ -122,8 +123,7 @@ It is followed by entries whose presence and count depend on these values:
      - The universal weight, if enabled.
    * - 4 B+
      - DATA ARRAY
-     - The userdata layout (only in ``MCPL-4`` files, where it is empty if
-       the particles have no userdata, see
+     - The userdata layout (only in ``MCPL-4`` files with userdata, see
        :ref:`below <format-mcpl-4-per-particle-userdata>`).
    * - 4 B+
      - DATA ARRAY
@@ -170,8 +170,8 @@ After the header follow the particles, all with the same size and layout:
      - Userflags (if enabled in the file).
    * - Optional
      - Bytes
-     - Userdata (only in ``MCPL-4`` files, with the number of bytes given by
-       the layout).
+     - Userdata (only in ``MCPL-4`` files with userdata, with the number of
+       bytes given by the layout).
 
 Here, UINT32 and UINT64 are 32 and 64 bit unsigned integers, INT32 is a 32 bit
 signed integer (two's complement), and FP64 is a double precision floating
@@ -194,10 +194,14 @@ Userdata (MCPL-4)
 
 In addition to the 32 bit ``userflags``, particles can carry a fixed number of
 bytes of custom data, the *userdata*. This requires the ``MCPL-4`` format,
-which differs from ``MCPL-3`` only by the userdata layout in the header and
-the userdata bytes at the end of each particle (see the tables above). The
-userdata is optional in ``MCPL-4`` files: an empty layout means that the
-particles have no userdata.
+in which the userdata is optional: ``0x2`` in the userflags field of the
+header tells that the particles have userdata, and only then is the userdata
+layout in the header and are the userdata bytes at the end of each particle
+(see the tables above). An ``MCPL-4`` file without userdata is therefore
+identical to an ``MCPL-3`` file, except for the version number (and that its
+particles have no NaN or infinite values, see :ref:`below
+<format-values-of-particle-data>`), so changing the version number turns one
+into the other.
 
 The userdata layout is a comma-separated list of fields written as
 ``name:type`` or ``name:type[n]`` for arrays of ``n`` values, for instance

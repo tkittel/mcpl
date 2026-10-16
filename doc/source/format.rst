@@ -23,8 +23,9 @@ List of MCPL formats
   (2016).
 - **MCPL-3**: The format written since MCPL release 1.1.0 (2017). It differs
   from ``MCPL-2`` only in how the direction vectors of the particles are packed:
-  ``MCPL-3`` uses the superior Adaptive Projection Packing algorithm, while
-  ``MCPL-2`` uses Octahedral packing (see Appendix B of the `MCPL paper
+  ``MCPL-3`` uses the superior Adaptive Projection Packing algorithm (`T. Kittelmann, et al. 2017
+  <https://doi.org/10.1016/j.cpc.2017.04.012>`__ :openaccess:`open access`),
+  while ``MCPL-2`` uses Octahedral packing (see Appendix B of the `MCPL paper
   <https://doi.org/10.1016/j.cpc.2017.04.012>`__ :openaccess:`open access`).
 - **MCPL-4**: Like ``MCPL-3``, with the addition of optional custom
   per-particle data ("userdata"). It is supported since MCPL release 3.0.0, which writes it for
@@ -101,9 +102,11 @@ The header starts with 48 bytes of fixed layout:
    * - 24
      - 4 B
      - UINT32
-     - Userflags field: ``0x1`` if the particles have userflags, otherwise
-       ``0x0``. In ``MCPL-4`` files, ``0x2`` is added if the particles have
-       userdata (so the possible values are ``0x0`` to ``0x3``).
+     - Userflags field: the ``0x1`` bit is set if the particles have
+       userflags. In ``MCPL-4`` files, the ``0x2`` bit is set if the particles
+       have userdata. No other bits are set (so the possible values are
+       ``0x0`` and ``0x1``, and in ``MCPL-4`` files also ``0x2`` and
+       ``0x3``).
    * - 28
      - 4 B
      - UINT32
@@ -148,8 +151,8 @@ values:
        be positive and finite.
    * - 0 B or 4 B+
      - DATA ARRAY
-     - The userdata layout, if the userflags field has ``0x2`` (only in
-       ``MCPL-4`` files, see :ref:`below
+     - The userdata layout, if the userflags field has the ``0x2`` bit set
+       (only in ``MCPL-4`` files, see :ref:`below
        <format-mcpl-4-per-particle-userdata>`).
    * - 4 B+
      - DATA ARRAY
@@ -224,11 +227,11 @@ this order:
      - PDG code (if the universal PDG code is ``0``).
    * - Optional
      - 1 |times| UINT32
-     - Userflags (if the userflags field has ``0x1``).
+     - Userflags (if the userflags field has the ``0x1`` bit set).
    * - Optional
      - Bytes
-     - Userdata (if the userflags field has ``0x2``, with the number of bytes
-       given by the userdata layout).
+     - Userdata (if the userflags field has the ``0x2`` bit set, with the
+       number of bytes given by the userdata layout).
 
 The size of each particle in the header (at position 40) is therefore 7 FP
 (28 or 56 bytes), plus 3 FP for polarisation, 4 bytes for the PDG code, 1 FP
@@ -247,7 +250,9 @@ Packing of direction and kinetic energy
 
 The direction ``(ux,uy,uz)`` (a unit vector) and the kinetic energy ``ekin``
 are packed into three FP numbers ``(p0,p1,p2)``. In ``MCPL-3`` and ``MCPL-4``
-files, this uses the Adaptive Projection Packing algorithm: the two components
+files, this uses the Adaptive Projection Packing algorithm (`T. Kittelmann, et
+al. 2017 <https://doi.org/10.1016/j.cpc.2017.04.012>`__ :openaccess:`open
+access`): the two components
 of the direction with the smallest magnitudes are stored directly, while the
 third is replaced by its inverse (with a magnitude of at least 1), and its
 sign is stored in the sign bit of ``p2``, whose magnitude is ``ekin``:
@@ -309,8 +314,8 @@ Userdata (MCPL-4)
 
 In addition to the 32 bit ``userflags``, particles can carry a fixed number of
 bytes of custom data, the *userdata*. This requires the ``MCPL-4`` format, in
-which the userdata is optional: ``0x2`` in the userflags field of the header
-tells that the particles have userdata, and only then is the userdata layout
+which the userdata is optional: the ``0x2`` bit of the userflags field of the
+header is set if the particles have userdata, and only then is the userdata layout
 in the header and are the userdata bytes at the end of each particle. An
 ``MCPL-4`` file without userdata is therefore identical to an ``MCPL-3`` file,
 except for the version number, so changing the version number turns one into

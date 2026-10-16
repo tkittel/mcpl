@@ -97,9 +97,6 @@ their components.
 The size of a file
 ==================
 
-Each particle takes 36 bytes in single precision (the default), or 68 bytes in
-double precision, plus 12 bytes for polarisation (24 bytes in double
-precision), 4 bytes for userflags, and the size of the userdata. Particles in
-files where all particles have the same type and weight take 8 bytes less (or
-12 bytes less in double precision). Compression with gzip typically reduces
-the size further.
+Uncompressed, each particle takes between 28 and 92 bytes, plus any userflags
+and userdata (see :ref:`format-binary-layout` for the details). Compression
+with gzip typically reduces the size further.

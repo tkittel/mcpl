@@ -43,3 +43,9 @@
   max-width: 85%;
   padding: 0.3em 0 0.6em 0;
 }
+
+/* Table cells wrap their text (the theme keeps the contents of each cell on one
+   line, so tables with longer descriptions need horizontal scrolling): */
+.wy-table-responsive table td, .wy-table-responsive table th {
+  white-space: normal;
+}

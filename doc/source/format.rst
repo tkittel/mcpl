@@ -19,26 +19,171 @@ List of MCPL formats
 
 - **MCPL-1**: An early prototype format. This format was never used beyond
   internal developments and is as undocumented and unsupported as it is unused.
-- **MCPL-2**: The first publicly released format, used briefly around
-  2015-2016.
-- **MCPL-3**: The default format produced since the MCPL software release 1.0.0
-  in 2016.
-- **MCPL-4**: Introduced with the MCPL software release 3.0.0, and used only for
-  files with custom per-particle data ("userdata"). Files without userdata are
-  still written as ``MCPL-3``, so they can be read by older MCPL releases.
+- **MCPL-2**: The first publicly released format, written by MCPL release 1.0.0
+  (2016).
+- **MCPL-3**: The format written since MCPL release 1.1.0 (2017). It differs
+  from ``MCPL-2`` only in how the direction vectors of the particles are packed:
+  ``MCPL-3`` uses the superior Adaptive Projection Packing algorithm, while
+  ``MCPL-2`` uses Octahedral packing (see Appendix B of the `MCPL paper
+  <https://doi.org/10.1016/j.cpc.2017.04.012>`__ :openaccess:`open access`).
+- **MCPL-4**: Introduced with MCPL release 3.0.0, and used only for files with
+  custom per-particle data ("userdata"). Files without userdata are still
+  written as ``MCPL-3``, so they can be read by older MCPL releases.
 
-.. _format-full-format-specifications:
+.. _format-binary-layout:
 
-Full format specifications
-==========================
+Binary layout
+=============
 
-The actual binary file formats ``MCPL-2`` and ``MCPL-3`` are described in great
-detail in `section 2 of the MCPL
-paper <https://mctools.github.io/mcpl/mcpl.pdf#nameddest=section.2>`__. As
-described in the paper, the two formats are in fact almost identical, with the
-only difference being which packing algorithm is used to pack particle
-direction vectors. ``MCPL-3`` uses the superior Adaptive Projection Packing
-algorithm, while ``MCPL-2`` uses Octahedral packing.
+The binary layout of MCPL files is described in detail in `Appendix A of the
+MCPL paper <https://doi.org/10.1016/j.cpc.2017.04.012>`__ :openaccess:`open
+access`, for the ``MCPL-3`` format. The tables below are adapted from the
+paper (which is available under the CC BY 4.0 license), with the additions of
+the ``MCPL-4`` format.
+
+The header starts with 48 bytes of fixed layout:
+
+.. list-table:: Header (first part)
+   :header-rows: 1
+   :widths: 10 8 10 72
+
+   * - Position
+     - Size
+     - Type
+     - Description
+   * - 0
+     - 4 B
+     -
+     - Magic number identifying the file as an MCPL file: always
+       ``0x4d43504c`` (``MCPL`` in ASCII).
+   * - 4
+     - 3 B
+     -
+     - File format version, as a 3 digit zero-prefixed ASCII number (e.g.
+       ``003``).
+   * - 7
+     - 1 B
+     -
+     - Byte order (endianness) of the numbers in the file: ``0x4c`` (ASCII
+       ``L``) for little-endian or ``0x42`` (ASCII ``B``) for big-endian.
+   * - 8
+     - 8 B
+     - UINT64
+     - Number of particles in the file.
+   * - 16
+     - 4 B
+     - UINT32
+     - Number of comments in the file, NCMTS.
+   * - 20
+     - 4 B
+     - UINT32
+     - Number of binary data blobs in the file, NBLOBS.
+   * - 24
+     - 4 B
+     - UINT32
+     - Whether userflags are enabled (1) or disabled (0).
+   * - 28
+     - 4 B
+     - UINT32
+     - Whether polarisation vectors are enabled (1) or disabled (0).
+   * - 32
+     - 4 B
+     - UINT32
+     - Whether the floating point numbers of the particles are in single (1)
+       or double (0) precision.
+   * - 36
+     - 4 B
+     - INT32
+     - Universal PDG code. The value 0 means that each particle has its own
+       PDG code.
+   * - 40
+     - 4 B
+     - UINT32
+     - Size of each particle in bytes (redundant, as it follows from the other
+       values; in ``MCPL-4`` files it includes the userdata).
+   * - 44
+     - 4 B
+     - UINT32
+     - Whether a universal weight is present in the header (1), or each
+       particle has its own weight (0).
+
+It is followed by entries whose presence and count depend on these values:
+
+.. list-table:: Header (second part)
+   :header-rows: 1
+   :widths: 20 18 62
+
+   * - Size
+     - Type
+     - Description
+   * - 0 B or 8 B
+     - FP64
+     - The universal weight, if enabled.
+   * - 4 B+
+     - DATA ARRAY
+     - The userdata layout (only in ``MCPL-4`` files, see
+       :ref:`below <format-mcpl-4-per-particle-userdata>`).
+   * - 4 B+
+     - DATA ARRAY
+     - The source name. Always present, but might be empty.
+   * - NCMTS × 4 B+
+     - DATA ARRAYS
+     - The comments.
+   * - NBLOBS × 4 B+
+     - DATA ARRAYS
+     - The keys of the binary data blobs.
+   * - NBLOBS × 4 B+
+     - DATA ARRAYS
+     - The binary data blobs (in the same order as their keys).
+
+After the header follow the particles, all with the same size and layout:
+
+.. list-table:: Particle
+   :header-rows: 1
+   :widths: 18 18 64
+
+   * - Presence
+     - Count & type
+     - Description
+   * - Optional
+     - 3 × FP
+     - Polarisation vector (if enabled in the file).
+   * - Always
+     - 3 × FP
+     - Position.
+   * - Always
+     - 3 × FP
+     - Packed direction vector and kinetic energy.
+   * - Always
+     - 1 × FP
+     - Time.
+   * - Optional
+     - 1 × FP
+     - Weight (if the file has no universal weight).
+   * - Optional
+     - 1 × INT32
+     - PDG code (if the file has no universal PDG code).
+   * - Optional
+     - 1 × UINT32
+     - Userflags (if enabled in the file).
+   * - Optional
+     - Bytes
+     - Userdata (only in ``MCPL-4`` files, with the number of bytes given by
+       the layout).
+
+Here, UINT32 and UINT64 are 32 and 64 bit unsigned integers, INT32 is a 32 bit
+signed integer (two's complement), and FP64 is a double precision floating
+point number, while FP is a single (32 bit) or double (64 bit) precision
+floating point number, depending on the flag in the header. All floating point
+numbers follow the IEEE-754 standard. A DATA ARRAY starts with a UINT32 with
+the number of bytes which follow it (strings are stored without a terminating
+null character).
+
+The packed direction vector and kinetic energy are three numbers: the first two
+are the packed direction (with the Adaptive Projection Packing algorithm, see
+Appendix B of the paper, and they can legitimately be infinite), and the
+magnitude of the third is the kinetic energy, while its sign bit holds the
+last bit of information about the direction.
 
 .. _format-mcpl-4-per-particle-userdata:
 
@@ -47,14 +192,9 @@ MCPL-4: per-particle userdata
 
 In addition to the 32 bit ``userflags``, particles can carry a fixed number of
 bytes of custom data, the *userdata*. Files with userdata are written in the
-``MCPL-4`` format, which is identical to ``MCPL-3`` except for two additions:
-
-- The header contains one more string (a 32 bit length followed by that many
-  bytes, like the other header strings), placed right after the universal
-  weight (if present) and before the source name: the *userdata layout*, which
-  describes the contents of the userdata.
-- Each particle record is followed by the userdata bytes, whose number is given
-  by the layout (and included in the particle size stored in the header).
+``MCPL-4`` format, which is identical to ``MCPL-3`` except for the userdata
+layout in the header and the userdata bytes at the end of each particle (see
+the tables above).
 
 The userdata layout is a comma-separated list of fields written as
 ``name:type`` or ``name:type[n]`` for arrays of ``n`` values, for instance
@@ -98,10 +238,13 @@ blobs should therefore define their byte order themselves (or use text).
 Values of particle data
 =======================
 
-The particle data must not contain NaN (not-a-number) or infinite values. The C
-and Python APIs refuse to add particles with such values to files (or values
-too large to be stored in single precision), and give a warning when reading
-files which nevertheless have such values.
+In ``MCPL-4`` files, the particle data must not contain NaN (not-a-number) or
+infinite values (except in the packed direction, as described above). The
+older formats do not forbid them, so ``MCPL-2`` and ``MCPL-3`` files might
+contain such values. Since release 3.0.0, MCPL refuses to add particles with
+NaN or infinite values to any file (and values too large to be stored in
+single precision to files in single precision), and gives a warning when
+reading files with such values.
 
 .. _format-conventions:
 

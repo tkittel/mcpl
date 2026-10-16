@@ -274,8 +274,10 @@ _autogendir.mkdir(parents=True,exist_ok=True)
 breathe_projects = { 'mcplcpp': str(_autogendir / 'doxygen_xml') }
 breathe_default_project = 'mcplcpp'
 breathe_domain_by_extension = { 'h' : 'cpp' }
+#(with the program name of the installed command, not __main__.py):
 _cmd_output( 'pymcpltool_help.txt',
-             [ sys.executable, '-m', 'mcpl', '--help' ] )
+             [ sys.executable, '-c',
+               'import mcpl;mcpl.app_pymcpltool(["pymcpltool","--help"])' ] )
 
 def _latest_news( n = 4 ):
     """The first n items of the news page, for the front page"""

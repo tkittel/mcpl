@@ -162,7 +162,8 @@ _page_keys = [ 'index', 'get', 'get_source', 'news', 'file_contents', 'usage',
                'usage_python_advanced', 'usage_expressions', 'hooks',
                'hooks_geant4', 'hooks_mcstas', 'hooks_mcxtrace',
                'hooks_mcnp', 'hooks_phits', 'hooks_others', 'format',
-               'format_statsum', 'cmdline', 'python_api', 'cpp_api', 'about',
+               'format_statsum', 'cmdline', 'c_api', 'python_api', 'cpp_api',
+               'about',
                'contact', 'license' ]
 #Files which are only included in other pages:
 _included_files = [ 'cite' ]
@@ -336,6 +337,23 @@ def _get_source_page():
     if not out.is_file() or out.read_text() != content:
         out.write_text( content )
 _get_source_page()
+
+#The C API reference, from the declarations and comments in mcpl.h:
+def _c_api_page():
+    from mcpl_repo_tools.capidoc import produce_c_api_rst
+    _autogendir.mkdir( parents = True, exist_ok = True )
+    out = _autogendir / 'c_api_body.rst'
+    content = produce_c_api_rst()
+    if not out.is_file() or out.read_text() != content:
+        out.write_text( content )
+_c_api_page()
+#(the macro in front of all functions in mcpl.h):
+c_id_attributes = [ 'MCPL_API' ]
+#(standard C types, which are not documented here):
+nitpick_ignore += [ ( 'c:identifier', t )
+                   for t in ( 'int8_t', 'uint8_t', 'int16_t', 'uint16_t',
+                              'int32_t', 'uint32_t', 'int64_t', 'uint64_t',
+                              'size_t', 'wchar_t' ) ]
 _stats_outputs()
 
 # -- Options for HTML output ---------------------------------------------------

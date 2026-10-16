@@ -73,6 +73,7 @@ for the example file of the MCPL distribution:
 
    format
    cmdline
+   c_api
    python_api
    cpp_api
 

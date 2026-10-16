@@ -139,8 +139,8 @@ def markers( info ):
 
 def create_py_spec(info):
     pn = info['pypi_pkgname']
-    if not pn:
-        return None#(no pip package, see _prepare_data_and_check_errors)
+    if pn is None:
+        return None#(only available from conda-forge)
     min_v = info.get('min_version')
     max_v = info.get('max_version')
     assert not (min_v and max_v)
@@ -186,7 +186,9 @@ def install_needed( info, pyversion = None, system = None ):
 def _prepare_data_and_check_errors( rawdata ):
     from .dirs import reporoot
 
-    assert set(rawdata.keys())=={'packages','dependencies','conda_env_tools'}
+    assert set(rawdata.keys())<={'packages','dependencies','conda_env_tools','environments'}
+    assert 'conda_env_tools' in rawdata
+    rawdata.setdefault('environments',{})
     #First pkg_deps:
 
     pkgdata = rawdata['packages']
@@ -236,6 +238,24 @@ def _prepare_data_and_check_errors( rawdata ):
                                      f' "{dep}" which is not defined in'
                                      ' dependencies: section and which is not'
                                      ' itself a package name.')
+
+    for envname, deplist in rawdata['environments'].items():
+        check_name_ok(envname)
+        if envname in pkgdata['mcpl-metapkg']['deps']:
+            raise SystemExit(f'environment "{envname}" has the name of an'
+                             ' extra of the mcpl package')
+        for dep in deplist:
+            p, extra = split_pkg_extra(dep)
+            if p in pkgdata:
+                if extra is not None and extra not in pkgdata[p]['deps']:
+                    raise SystemExit(f'environment {envname} uses "{dep}"'
+                                     ' which is not an extra of a package')
+                continue
+            if dep not in rawdata['dependencies']:
+                raise SystemExit(f'environment {envname} uses dependency'
+                                 f' "{dep}" which is not defined in'
+                                 ' dependencies: section')
+            all_deps_used.add(dep)
 
     #Then dependencies:
     known_keys = { 'min_version', 'max_version', 'import_check', 'cmd_check',
@@ -299,12 +319,14 @@ def _produce_expected_deplists_for_env_files(db):
 
     add( 'all_and_devel',
          db_metapkgdeps['all'] + db_metapkgdeps['devel'] )
+    for envname, deplist in sorted(db['environments'].items()):
+        add( envname, deplist )
     return out
 
 def produce_expected_requirements_txt_files(db):
     def content( deplist ):
         lines = [ db['dependencies'][dep]['py_spec'] for dep in set(deplist)
-                  if db['dependencies'][dep]['py_spec'] ]
+                  if db['dependencies'][dep]['py_spec'] is not None ]
         return '\n'.join(sorted(lines)+[''])
     name2deplist = _produce_expected_deplists_for_env_files(db)
     return { f'requirements_{n}.txt' : content(d)
@@ -349,7 +371,11 @@ def produce_expected_testdeps_cmake(db):
         '# --mode fixreqfiles" (do not edit). Information about the',
         '# dependencies of the Python tests (see mctools_testutils.cmake).',
         '' ]
+    #(the devel extra of the mcpl package has all dependencies of the tests)
+    testdeps = expand_deps( db, db['packages']['mcpl-metapkg']['deps']['devel'] )
     for depname, info in sorted(db['dependencies'].items()):
+        if depname not in testdeps:
+            continue
         if info.get('in_pystdlib_from'):
             pass#(mctools_testutils.cmake knows how to check for these)
         elif info.get('check_code'):
@@ -386,7 +412,7 @@ def minversion_reqs( db ):
     res = []
     for dep in sorted(deps):
         info = db['dependencies'][dep]
-        if not install_needed(info) or not info['pypi_pkgname']:
+        if not install_needed(info) or info['pypi_pkgname'] is None:
             continue
         assert info.get('min_version'), f'no min_version for {dep}'
         res.append( f'{info["pypi_pkgname"]}=={info["min_version"]}.*' )

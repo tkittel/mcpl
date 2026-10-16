@@ -1,0 +1,19 @@
+name: mcpl_doc
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - c-compiler
+  - cmake
+  - make
+  - pip >=26.2.2
+  - python
+  - breathe >=5.1
+  - doxygen
+  - matplotlib >=3.6
+  - myst-parser >=4.0
+  - numpy >=1.22
+  - sphinx >=8.1
+  - sphinx-autobuild >=2024.10.3
+  - sphinx_rtd_theme >=3.0
+  - sphinx-toolbox >=3.8

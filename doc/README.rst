@@ -11,9 +11,12 @@ from the repository root::
   ./devel/bin/mcpldevtool sphinx --serve    # rebuild and serve on changes
 
 or run ``sphinx-build -b html source build/html`` in this directory, and direct
-your browser at ``doc/build/html/index.html``. The required Python packages (for Python 3.10 or
-later) are listed in ``devel/reqs/requirements_doc.txt``, and Doxygen is also
-needed (for the C++ API reference).
+your browser at ``doc/build/html/index.html``. The required Python packages (for
+Python 3.10 or later) are listed in ``devel/reqs/requirements_doc.txt`` (and
+``devel/reqs/conda_doc.yml`` for conda), which are generated from
+``devel/dependency_database.yml``. Doxygen is also needed (for the C++ API
+reference): it is included in the conda environment, but must otherwise be
+installed separately.
 
 ================
 Reading material

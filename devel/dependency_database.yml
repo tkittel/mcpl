@@ -18,11 +18,16 @@
 # py312), for the FreeBSD CI, which installs the dependencies with
 # freebsd_pip: true with pip instead (those without FreeBSD packages).
 #
-# Dependencies without pip packages (like parts of Python which not all
-# installations have) have pypi_pkgname: null, and are left out of the
-# pyproject.toml and requirements files. The field check_code gives Python
-# code which the tests run to see if a dependency works (instead of importing
-# it), for dependencies which can be imported without working.
+# Dependencies without pip packages (only available from conda-forge, or
+# parts of Python which not all installations have) have pypi_pkgname: null,
+# and are left out of the pyproject.toml and requirements files. The field
+# check_code gives Python code which the tests run to see if a dependency works
+# (instead of importing it), for dependencies which can be imported without
+# working.
+#
+# The environments section defines additional requirements and conda
+# environment files in devel/reqs/ which do not correspond to extras of the
+# packages (like "doc" for building the website).
 
 #Added to all the conda environment files, for building from source (pip at
 #least 26.2.2, which no longer trusts the root certificate "emSign ECC Root CA
@@ -93,6 +98,19 @@ packages:
         - toml
         - "CMD <python> <reporoot>/devel/bin/mcpldevtool depdb --mode testdeps2json"
 
+environments:
+  doc:
+    #(Sphinx 8.1 needs Python 3.10 or later; numpy and matplotlib are needed
+    #to import the mcpl module for the API documentation)
+    - mcpl-python[plot]
+    - sphinx
+    - sphinx-rtd-theme
+    - sphinx-toolbox
+    - sphinx-autobuild
+    - breathe
+    - myst-parser
+    - doxygen
+
 dependencies:
   toml:
     min_version: "2.0.0"
@@ -136,6 +154,29 @@ dependencies:
     min_python: "3.12"
     #(no FreeBSD package, and no wheels for FreeBSD on PyPI):
     unavailable_on: [ FreeBSD ]
+  sphinx:
+    min_version: "8.1"
+  sphinx-rtd-theme:
+    min_version: "3.0"
+    import_check: sphinx_rtd_theme
+    pypi_pkgname: sphinx_rtd_theme
+    conda_pkgname: sphinx_rtd_theme
+  sphinx-toolbox:
+    min_version: "3.8"
+    import_check: sphinx_toolbox
+  sphinx-autobuild:
+    min_version: "2024.10.3"
+    import_check: sphinx_autobuild
+  breathe:
+    min_version: "5.1"
+  myst-parser:
+    min_version: "4.0"
+    import_check: myst_parser
+  doxygen:
+    #(not on PyPI, but on conda-forge)
+    import_check: null
+    cmd_check: doxygen
+    pypi_pkgname: null
   ruff:
     min_version: "0.8.1"
     import_check: null

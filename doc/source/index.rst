@@ -93,3 +93,4 @@ for the example file of the MCPL distribution:
    Issue tracker <https://github.com/mctools/mcpl/issues>
    Discussions <https://github.com/mctools/mcpl/discussions>
    Current website <https://mctools.github.io/mcpl/>
+   Logo <https://github.com/mctools/mcpl-logo>

@@ -31,7 +31,7 @@ applications:
 
       .. container:: mcplcard-badge
 
-         McS
+         McStas
 
       :doc:`McStas <hooks_mcstas>`
 
@@ -41,7 +41,7 @@ applications:
 
       .. container:: mcplcard-badge
 
-         McX
+         McXtrace
 
       :doc:`McXtrace <hooks_mcxtrace>`
 
@@ -84,9 +84,9 @@ on the existing hooks.
 .. toctree::
    :hidden:
 
-   hooks_geant4
-   hooks_mcstas
-   hooks_mcxtrace
-   hooks_mcnp
-   hooks_phits
-   hooks_others
+   Geant4 <hooks_geant4>
+   McStas <hooks_mcstas>
+   McXtrace <hooks_mcxtrace>
+   MCNP <hooks_mcnp>
+   PHITS <hooks_phits>
+   Other applications <hooks_others>

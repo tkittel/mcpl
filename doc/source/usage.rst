@@ -18,6 +18,68 @@ can also be selected, edited and plotted
 with short :doc:`expressions <usage_expressions>`, from the command line
 or from Python.
 
+.. container:: mcplcards
+
+   .. container:: mcplcard
+
+      .. container:: mcplcard-badge
+
+         $_
+
+      :doc:`Command line <usage_cmdline>`
+
+      Inspect, merge, extract, repair and plot MCPL files with the mcpltool and pymcpltool commands.
+
+   .. container:: mcplcard
+
+      .. container:: mcplcard-badge
+
+         C
+
+      :doc:`C API <usage_c>`
+
+      Read and write MCPL files from C (or C++) code, with the mcpl.h header and the MCPL library.
+
+   .. container:: mcplcard
+
+      .. container:: mcplcard-badge
+
+         C++
+
+      :doc:`C++ interface <usage_cpp>`
+
+      The header-only mcplcpp.h, with exceptions, files which close automatically, and type-safe userdata.
+
+   .. container:: mcplcard
+
+      .. container:: mcplcard-badge
+
+         Py
+
+      :doc:`Python <usage_python>`
+
+      Read MCPL files from Python, with the particles in blocks of numpy arrays.
+
+   .. container:: mcplcard
+
+      .. container:: mcplcard-badge
+
+         Py+
+
+      :doc:`Advanced Python <usage_python_advanced>`
+
+      Create files, add userdata, compute statistics and plots, and merge files from Python.
+
+   .. container:: mcplcard
+
+      .. container:: mcplcard-badge
+
+         f(x)
+
+      :doc:`Expressions <usage_expressions>`
+
+      Select, edit and plot particles with short expressions, from the command line or from Python.
+
 Many more details can be found in `the MCPL paper (section
 2) <https://mctools.github.io/mcpl/mcpl.pdf#nameddest=section.2>`__ and in `the
 MCPL paper (section

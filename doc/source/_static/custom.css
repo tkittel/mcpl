@@ -95,3 +95,56 @@ dl.mcpl-collapsed > .mcpl-summary {
   background: #f3f6f6;
   cursor: pointer;
 }
+
+/* Cards for the subtopics on the "Using MCPL" page (the whole card is a link
+   to the subtopic, through the link in its title): */
+.mcplcards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14em, 1fr));
+  gap: 1em;
+  margin: 1.5em 0 2em 0;
+}
+.mcplcard {
+  position: relative;
+  padding: 1em 1.1em 0.6em 1.1em;
+  border-radius: 8px;
+  border: 1px solid #dfe3e8;
+  border-top: 4px solid #4a9fe8;
+  background: #fafbfc;
+  box-shadow: 0 1px 3px rgba(46,62,80,0.12);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.mcplcard:nth-child(3n+2) { border-top-color: #f0a32a; }
+.mcplcard:nth-child(3n+3) { border-top-color: #ef7f3a; }
+.mcplcard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(46,62,80,0.22);
+}
+.mcplcard p {
+  margin-bottom: 0.4em;
+  font-size: 92%;
+  color: #4a5562;
+}
+.mcplcard p a {
+  font-size: 112%;
+  font-weight: bold;
+  color: #2e3e50;
+}
+.mcplcard p a::after {
+  /* (makes the whole card clickable) */
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.mcplcard-badge p {
+  display: inline-block;
+  min-width: 2.4em;
+  padding: 0.25em 0.5em;
+  border-radius: 1.2em;
+  background: #2e3e50;
+  color: #ffffff;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: bold;
+  font-size: 85%;
+  text-align: center;
+}

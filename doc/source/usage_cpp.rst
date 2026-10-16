@@ -5,9 +5,9 @@ Using MCPL from C++
 The header file
 `mcplcpp.h <https://github.com/mctools/mcpl/blob/main/mcpl_core/include/mcplcpp.h>`__
 provides a C++ interface to MCPL. It is installed along with ``mcpl.h``, and
-needs C++17 but no additional library: like the C API, it is used by linking
-with the MCPL library (see :doc:`Using MCPL from C or C++ <usage_c>` for
-how to do that with CMake). Everything is in the namespace ``mcpl``, and the
+needs C++17 or later but no additional library: like the C API, it is used by
+linking with the MCPL library (see :doc:`Using MCPL from C or C++ <usage_c>`
+for how to do that with CMake). Everything is in the namespace ``mcpl``, and the
 interface offers the same functionality as the :doc:`C API <usage_c>`,
 with the usual benefits of C++: errors are reported as exceptions, files are
 closed automatically, and particles and their userdata are accessed through

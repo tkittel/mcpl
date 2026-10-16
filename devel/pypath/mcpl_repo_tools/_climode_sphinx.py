@@ -56,6 +56,7 @@ def main( parser ):
     import sys
 
     from .dirs import reporoot
+    _check_doxygen()
     docdir = reporoot / 'doc'
     srcdir, blddir = docdir / 'source', docdir / 'build'
     if args.clean and blddir.exists():
@@ -83,3 +84,11 @@ def main( parser ):
         raise SystemExit(rv.returncode)
     if not args.serve and not args.linkcheck:
         print(f'Website built in {blddir/"html"} (open index.html in a browser)')
+
+def _check_doxygen():
+    #Clear error if Doxygen is missing (which Sphinx would otherwise report as
+    #a crash):
+    import shutil
+    if not shutil.which('doxygen'):
+        from .cppapidoc import doxygen_missing_msg
+        raise SystemExit('Error: '+doxygen_missing_msg)

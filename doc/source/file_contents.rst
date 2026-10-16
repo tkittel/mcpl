@@ -22,7 +22,8 @@ The header
    * - Content
      - Description
    * - Format version
-     - ``MCPL-3``, or ``MCPL-4`` for files with userdata (see below).
+     - The version of the format, like ``MCPL-3`` (files with userdata need
+       ``MCPL-4``, see below).
    * - Number of particles
      - The number of particles in the file.
    * - Source name

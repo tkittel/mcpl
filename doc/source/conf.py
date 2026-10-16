@@ -233,13 +233,19 @@ def setup( app ):
     app.connect( 'doctree-read', _labels_as_section_ids, priority = 100 )
     app.connect( 'builder-inited', _check_page_keys )
     app.connect( 'source-read', _check_section_labels )
+    app.connect( 'builder-inited', lambda app : _run_doxygen() )
 
 # -- Generated content ---------------------------------------------------------
 
 def _run_doxygen():
     """XML of the C++ API (mcplcpp.h), for Breathe. Only rerun when the header
     changed."""
-    from mcpl_repo_tools.cppapidoc import header_file, run_doxygen
+    import shutil
+
+    from mcpl_repo_tools.cppapidoc import doxygen_missing_msg, header_file, run_doxygen
+    if not shutil.which('doxygen'):
+        from sphinx.errors import ConfigError
+        raise ConfigError(doxygen_missing_msg)
     xmldir = _autogendir / 'doxygen_xml'
     stamp = xmldir / 'index.xml'
     if ( not stamp.is_file()
@@ -266,7 +272,8 @@ def _cmd_output( name, cmd, cwd = None ):
         out.write_text(txt)
 
 _autogendir.mkdir(parents=True,exist_ok=True)
-breathe_projects = { 'mcplcpp': str(_run_doxygen()) }
+#(Doxygen is run when the build starts, see setup):
+breathe_projects = { 'mcplcpp': str(_autogendir / 'doxygen_xml') }
 breathe_default_project = 'mcplcpp'
 breathe_domain_by_extension = { 'h' : 'cpp' }
 _cmd_output( 'pymcpltool_help.txt',
@@ -337,7 +344,7 @@ html_favicon = '_static/favicon.svg'
 html_theme_options = {
     'logo_only': True,#(the logo has the name)
     'collapse_navigation' : False,
-    'sticky_navigation': True,#sidebar stays in place while contents scrolls
+    'sticky_navigation': False,#(the menu does not scroll along with the page)
     'navigation_with_keys': True,#navigate with left/right arrow keys
     'navigation_depth': 4,
 }

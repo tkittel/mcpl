@@ -74,14 +74,25 @@ def doxyfile( xmldir ):
         'QUIET = YES',
         '' ] )
 
+doxygen_missing_msg = """Doxygen is needed to build the website (for the C++ API
+reference), but the doxygen command was not found. Doxygen is not available
+from PyPI, so it can not be installed with pip. Instead, either use a conda
+environment (devel/reqs/conda_doc.yml includes it), or install it with the
+package manager of your system, for example:
+
+  sudo apt install doxygen    (Debian and Ubuntu)
+  sudo dnf install doxygen    (Fedora)
+  brew install doxygen        (macOS with Homebrew)
+
+or from https://www.doxygen.nl/download.html"""
+
 def run_doxygen( xmldir ):
     """Run Doxygen on mcplcpp.h, writing its XML to xmldir. Returns the
     warnings."""
     import pathlib
     exe = shutil.which('doxygen')
     if not exe:
-        raise SystemExit('Error: doxygen not found (install it, e.g. from'
-                         ' conda-forge or with the package manager)')
+        raise SystemExit('Error: '+doxygen_missing_msg)
     xmldir = pathlib.Path(xmldir)
     xmldir.mkdir(parents=True,exist_ok=True)
     (xmldir/'Doxyfile').write_text(doxyfile(xmldir.absolute()))

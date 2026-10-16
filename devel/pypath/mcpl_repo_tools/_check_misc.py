@@ -27,6 +27,9 @@ ignore_list = set()
 
 ignore_list_nonascii = {
     'devel/misc/test_encodings.x',
+    #The logo of the website, copied unchanged from
+    #https://github.com/mctools/mcpl-logo (its title has an em dash):
+    'doc/source/_static/mcpl-logo-dark.svg',
 }
 
 def get_frel(f):

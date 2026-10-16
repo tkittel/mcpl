@@ -38,6 +38,14 @@
 /* The logo at the top of the sidebar, on the background of the sidebar: */
 .wy-side-nav-search {
   background-color: #343131;
+  /* Always visible at the top of the sidebar (also when the theme scrolls
+     the menu to the current page, which then stays below the logo): */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.wy-side-scroll {
+  scroll-padding-top: var(--mcpl-sidebar-top, 10rem);
 }
 .wy-side-nav-search > a img.logo, .wy-side-nav-search .wy-dropdown > a img.logo {
   max-width: 85%;

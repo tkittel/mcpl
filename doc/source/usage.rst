@@ -24,6 +24,16 @@ or from Python.
 
       .. container:: mcplcard-badge
 
+         |arrows|
+
+      :doc:`Application hooks <hooks>`
+
+      Plugins and converters for Geant4, McStas, McXtrace, MCNP, PHITS and other applications.
+
+   .. container:: mcplcard
+
+      .. container:: mcplcard-badge
+
          $_
 
       :doc:`Command line <usage_cmdline>`
@@ -84,6 +94,8 @@ Many more details can be found in `the MCPL paper (section
 2) <https://mctools.github.io/mcpl/mcpl.pdf#nameddest=section.2>`__ and in `the
 MCPL paper (section
 3) <https://mctools.github.io/mcpl/mcpl.pdf#nameddest=section.3>`__.
+
+.. |arrows| unicode:: U+21C4
 
 .. toctree::
    :hidden:

@@ -207,22 +207,9 @@ made with (this also works with earlier MCPL releases):
 Where to find more documentation
 --------------------------------
 
-Python support for MCPL was added after the release of the `the MCPL
-paper <https://mctools.github.io/mcpl/mcpl.pdf>`__, so currently the most
-comprehensive documentation for the API provided by the ``mcpl`` Python module
-is to be found using Python's integrated ``help()`` functionality, for instance
-by running one of the following commands in a terminal:
-
-.. code:: shell
-
-   # Documentation of the MCPLFile class:
-   python -c "import mcpl;help(mcpl.MCPLFile)"
-   # Documentation of the MCPLParticle class:
-   python -c "import mcpl;help(mcpl.MCPLParticle)"
-   # Documentation of the MCPLOutFile class:
-   python -c "import mcpl;help(mcpl.MCPLOutFile)"
-   # All documentation:
-   python -c "import mcpl;help(mcpl)"
+Python's integrated ``help()`` function shows the documentation of the
+``mcpl`` module and its classes and functions, and the same documentation is in
+the :doc:`Python API reference <python_api>`.
 
 More complete examples can be found in
 `pyexample_readmcpl <https://github.com/mctools/mcpl/blob/main/examples/pyexample_readmcpl>`__,

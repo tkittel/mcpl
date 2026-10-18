@@ -42,7 +42,9 @@ class PlotBackend:
     which save() can create, and their priorities among the backends which can
     create them) and requirement (the Python package needed, if any). They
     implement show() and save(), and is_available() and can_show() if the
-    backend is not always available or able to show plots. Options can be
+    backend is not always available or able to show plots. Backends with a
+    viewer (see mcpl.view) set viewer_module to the name of the module (in
+    this package) with its run_viewer function. Options can be
     given as keyword arguments to __init__, named with the backend name as
     prefix (like matplotlib_backend)."""
     name = None
@@ -50,6 +52,7 @@ class PlotBackend:
     priority = 0
     formats: ClassVar[dict] = {}
     requirement = None
+    viewer_module = None
     #Options to use when plots are only saved in files, e.g. by mcpltool (like
     #a backend of matplotlib which needs no display):
     batch_options: ClassVar[dict] = {}
@@ -59,6 +62,18 @@ class PlotBackend:
         """Whether the backend can be used (e.g. if its requirement is
         installed). This should not import any heavy modules."""
         return True
+
+    @classmethod
+    def supports_viewer( cls ):
+        return cls.viewer_module is not None
+
+    def run_viewer( self, viewer ):
+        """Run the viewer (a mcpl._viewer.Viewer) until it is closed"""
+        if not self.supports_viewer():
+            raise MCPLError(f'The {self.name} plotting backend has no viewer')
+        #(loaded when needed, like the modules of the backends):
+        mod = importlib.import_module(f'.{self.viewer_module}',__package__)
+        mod.run_viewer(viewer,self)
 
     @classmethod
     def can_show( cls ):
@@ -235,6 +250,36 @@ def _show_backend( backend = None, terminal = False ):
         if cls.kind == 'terminal' and cls.is_available() and cls.can_show():
             return cls
     raise MCPLError('No plotting backend can show plots here')
+
+def _viewer_backend( backend = None, terminal = False ):
+    """Backend class (or object) for the viewer: the given or default one
+    (which must have a viewer), or else the preferred available backend with
+    a viewer which can show plots here (in the terminal if terminal is
+    True)."""
+    b, source = _chosen(backend)
+    if b is not None:
+        cls = _show_backend(backend,terminal)
+        if not cls.supports_viewer():
+            names = ', '.join( c.name for c in _ordered(_all_classes())
+                               if c.kind is not None and c.supports_viewer() )
+            raise MCPLError(f'The {cls.name} plotting backend{_from(source)} has'
+                            f' no viewer (the viewer is shown with the backends {names})')
+        return cls
+    ordered = [ c for c in _ordered(_all_classes())
+                if c.kind is not None and c.supports_viewer()
+                and ( c.kind == 'terminal' or not terminal ) ]
+    for cls in ordered:
+        if cls.is_available() and cls.can_show():
+            if cls.kind == 'terminal' and not terminal:
+                missing = [ c.requirement for c in ordered if c.kind != 'terminal'
+                            and not c.is_available() and c.requirement ]
+                if missing:
+                    from ._messages import _info
+                    _info(f'Showing the viewer in the terminal, since {missing[0]}'
+                          ' is not installed')
+            return cls
+    raise MCPLError('The viewer needs a window (with matplotlib) or a terminal'
+                    ' which can show Unicode characters')
 
 def _save_backend( filename, backend = None ):
     """Backend class (or object) for saving plots in filename: the given or

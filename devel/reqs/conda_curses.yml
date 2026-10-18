@@ -1,0 +1,11 @@
+name: mcpl_curses
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - c-compiler
+  - cmake
+  - make
+  - pip
+  - python
+  - numpy >=1.22

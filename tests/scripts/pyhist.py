@@ -172,32 +172,37 @@ def tool(*args):
 
 def test_cmdline():
     ex = str(example_file)
-    tool('-H','ekin/MeV;logx;split=pdgcode','-B','test',ex)
-    tool('-H','ekin/eV;lethargy;bins=5;print','-p','pdgcode == neutron',ex)
-    tool('-H','x/cm : y/cm;bins=4;print','-p','pdgcode == gamma',ex)
-    tool('-H','x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print',ex)
-    tool('-H','x/cm : y/cm;bins=2;xrange=-10:10;print',ex)
-    tool('-H','x/cm : y/cm;bins=3,2;print',ex)
+    tool('-H','ekin/MeV;logx=1;split=pdgcode','-B','test',ex)
+    tool('-H','ekin/eV;lethargy=1;bins=5;print=1','-p','pdgcode == neutron',ex)
+    tool('-H','x/cm : y/cm;bins=4;print=1','-p','pdgcode == gamma',ex)
+    tool('-H','x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print=1',ex)
+    tool('-H','x/cm : y/cm;bins=2;xrange=-10:10;print=1',ex)
+    tool('-H','x/cm : y/cm;bins=3,2;print=1',ex)
     tool('-H','x/cm;range=-10:10;bins=4','-B','test',ex,str(ref1))
-    tool('-H','time/ms;logx;logy;unweighted','-B','test',ex)
-    tool('-H','ekin/MeV;split=pdgcode;range=0:10;bins=2;print',
+    tool('-H','time/ms;logx=1;logy=1;unweighted=1','-B','test',ex)
+    tool('-H','ekin/MeV;split=pdgcode;range=0:10;bins=2;print=1',
          '-p','x > 1km',ex)
     #-l, -s and -E (the particles are picked before they are edited):
-    tool('-H','z/cm;bins=2;range=0:100;print','-s1000',ex)
-    tool('-H','z/cm;bins=2;range=0:100;print','-l3','-E','z += 50cm',ex)
-    tool('-H','z/cm;bins=2;range=0:100;print','--pick=z < 25cm',
+    tool('-H','z/cm;bins=2;range=0:100;print=1','-s1000',ex)
+    tool('-H','z/cm;bins=2;range=0:100;print=1','-l3','-E','z += 50cm',ex)
+    tool('-H','z/cm;bins=2;range=0:100;print=1','--pick=z < 25cm',
          '--edit=z += 50cm',ex)
-    tool('-Hekin/MeV;print;bins=2','-ppdgcode==22',ex)
+    tool('-Hekin/MeV;print=1;bins=2','-ppdgcode==22',ex)
     for bad in ( ['-H','ekin',ex], ['-H','ekin/MeV;bins=0',ex],
                  ['-H','ekin/MeV;range=1',ex], ['-H','ekin/MeV;range=2:1',ex],
                  ['-H','ekin/MeV;range=1:2,3:4',ex], ['-H','ekin/MeV;xrange=1:2',ex],
                  ['-H','x/cm : y/cm;range=1:2',ex],
-                 ['-H','x/cm : y/cm;logx',ex], ['-H','x/cm : y/cm : z/cm',ex],
-                 ['-H','x/cm;bins',ex], ['-H','x/cm;logx=1',ex],
-                 ['-H','x/cm;logx;logx',ex], ['-H','x/cm;foo',ex],
+                 ['-H','x/cm : y/cm;logx=1',ex], ['-H','x/cm : y/cm : z/cm',ex],
+                 ['-H','x/cm;bins',ex], ['-H','x/cm;logx',ex], ['-H','x/cm;logx=true',ex],
+                 ['-H','x/cm;logy=yes',ex], ['-H','x/cm;logx=2',ex], ['-H','x/cm;logy=auto',ex],
+                 ['-H','x/cm;logx=1;logx=1',ex], ['-H','x/cm;foo',ex],
                  ['-H','x/cm','-B','foo',ex], ['--logx',ex], ['--bins','10',ex],
                  ['-o','a.pdf',ex], ['-H','x/cm','-e',ex,'out.mcpl'],
-                 ['-H','x/cm'], ['-H','x/cm;print','-t',ex],
+                 ['-H','x/cm'], ['-H','x/cm;print=1','-t',ex],
+                 #(logx=auto: logarithmic for positive values over more than
+                 #two decades, else linear):
+                 ['-H','ekin/MeV;logx=auto;bins=3;print=1',ex], ['-H','x/cm;logx=auto;bins=3;print=1',ex],
+                 ['-H','ekin/MeV;logx=auto;range=1:10;bins=3;print=1',ex],
                  ['-H','x/cm','-t','-o','a.txt',ex] ):
         tool(*bad)
 
@@ -238,6 +243,69 @@ def test_help_topics():
         for line in lines[:3]:
             print(f'   | {line}')
 
+def test_units():
+    ex = 'example.mcpl'
+    #Expressions with units get a unit chosen for their axes (see _plot_unit):
+    from mcpldev._expressions import _plot_unit
+    for what, args in ( ( 'x, 0.3m', ((1,0,0),-30,30) ), ( 'x, 2.5m', ((1,0,0),0,250) ),
+                        ( 'x, 5mm', ((1,0,0),0,0.5) ), ( 'ekin, 9.7GeV', ((0,1,0),0.0014,9725) ),
+                        ( 'ekin, log axis', ((0,1,0),1e-9,10,True) ), ( 'time, log axis', ((0,0,1),1e-6,1e-3,True) ),
+                        ( 'x^2', ((2,0,0),0,1e4) ), ( 'sqrt(ekin)', ((0,0.5,0),0,1e-3) ),
+                        ( 'x*ekin', ((1,1,0),0,10) ), ( '1/x', ((-1,0,0),0,0.5) ),
+                        ( 'wavelength, 1.8Aa', ((1,0,0),1e-8,1.8e-8,False,True) ),
+                        ( 'wavelength, log axis 1e-3 to 100Aa', ((1,0,0),1e-11,1e-6,True,True) ),
+                        ( 'wavelength, up to 1mm', ((1,0,0),0,0.1,False,True) ), ( 'no units', (None,0,1) ) ):
+        print(f'unit of {what}: {_plot_unit(*args)}')
+    for e, kw in ( ( 'x', {} ), ( 'ekin;logx=auto', {} ), ( 'wavelength', { 'pick' : 'pdgcode == neutron' } ),
+                   ( 'x;range=-10cm:10cm;bins=2', {} ), ( 'x;range=0:1m;bins=2', {} ), ( 'x/cm;bins=2', {} ),
+                   ( 'hypot(x,y)', {} ) ):
+        h = mcpl.histogram(ex,e,**kw)
+        print(f'histogram({e!r}): label {h.label!r}, edges from {h.edges[0]:.4g} to {h.edges[-1]:.4g}')
+    h = mcpl.histogram2d(ex,'x','ekin/MeV',bins=2)
+    print('histogram2d(x, ekin/MeV):', h.to_text().splitlines()[0])
+    for e in ( 'x;range=-10:10', 'x/cm;range=-10cm:10cm', 'ekin;range=0cm:1cm', 'x;range=1cm', 'x;range=y:1cm' ):
+        try:
+            mcpl.histogram(ex,e)
+        except mcpl.MCPLError as err:
+            print(f'histogram({e!r}): {err}')
+
+def test_bars_groups_domains():
+    ex = 'example.mcpl'
+    #Bars of distinct values, split groups, and expressions which are only
+    #defined for some particles (wavelengths):
+    for e, kw in ( ( 'pdgcode;bar=auto', {} ), ( 'pdgcode;bar=3', {} ),
+                   ( 'mod(pdgcode,7);bar=auto;unweighted=1', {} ), ( 'pdgcode', { 'bar' : 2 } ),
+                   ( 'pdgcode;bar=auto', { 'pick' : 'pdgcode != neutron' } ),
+                   ( 'round(x/10cm);bar=4;logy=1', {} ), ( 'mod(floor(ekin/MeV),3);bar=auto;logy=0', {} ) ):
+        h = mcpl.histogram(ex,e,**kw)
+        print(f'histogram({e!r},{kw}):')
+        print(h.to_text())
+        show(h)
+    h = mcpl.histogram(ex,'ekin/MeV;split=pdgcode;groups=3;bins=3')
+    print('split with groups=3:', list(h.contents), h.colors)
+    h = mcpl.histogram(ex,'ekin/MeV',split='pdgcode',max_curves=4,bins=3)
+    print('split with max_curves=4:', list(h.contents), h.colors)
+    for e, kw in ( ( 'wavelength;bins=3', {} ), ( 'wavelength;bins=3', { 'pick' : 'pdgcode == neutron' } ),
+                   ( 'wavelength;split=pdgcode;bins=3', {} ), ( 'round(1000*wavelength/Aa);bar=auto', { 'pick' : 'ekin > 1GeV' } ) ):
+        h = mcpl.histogram(ex,e,**kw)
+        print(f'histogram({e!r},{kw}): label {h.label!r}, contents {[ float(np.sum(c)) for c in h.contents.values() ]}')
+    h = mcpl.histogram2d(ex,'wavelength','x',bins=2)
+    print('histogram2d(wavelength,x):', h.xlabel, '|', h.ylabel, '|', h.contents.sum())
+    for e, kw in ( ( 'x;bar=auto', {} ), ( 'pdgcode;bar=1', {} ), ( 'pdgcode;bar=on', {} ),
+                   ( 'pdgcode;bar=auto;logx=1', {} ), ( 'pdgcode;bar=auto;split=pdgcode', {} ),
+                   ( 'x:y;bar=auto', {} ), ( 'ekin/MeV;groups=3', {} ), ( 'ekin/MeV;split=pdgcode;groups=1', {} ),
+                   ( 'pdgcode', { 'bar' : 1 } ), ( 'pdgcode', { 'bar' : 'auto' } ),
+                   ( 'pdgcode;bar=auto', { 'bar' : 4 } ), ( 'pdgcode', { 'bar' : True, 'logx' : True } ),
+                   ( 'ekin/MeV;bar=auto', {} ), ( 'round(x);bar=auto', {} ),
+                   ( 'round(1e300*x/cm);bar=auto', {} ) ):
+        try:
+            mcpl.histogram(ex,e,**kw)
+            print(f'histogram({e!r},{kw}): no error')
+        except mcpl.MCPLError as err:
+            print(f'histogram({e!r},{kw}): {err}')
+
+test_units()
+test_bars_groups_domains()
 test_histograms()
 test_stats_figures()
 test_overlay()

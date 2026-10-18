@@ -25,35 +25,43 @@ on blocks of particles."""
 __all__ = [ 'ParticleEdit', 'ParticleFilter', 'ParticleValue' ]
 
 import ast
+import functools
 import math
-import re
 
 from ._common import MCPLError
+from ._exprsyntax import (
+    _dim_E,
+    _dim_L,
+    _dim_none,
+    _dim_T,
+    _expr_parse,
+    _expr_units,
+    _expr_unparse,
+    _Unit,
+)
 from ._numpy import np
-from ._physics import _particle_names, ekin_from_wavelength, wavelength_from_ekin
+from ._physics import (
+    _particle_names,
+    _pdg_label,
+    _pdg_name,
+    ekin_from_wavelength,
+    wavelength_from_ekin,
+)
 
 _expr_fields = ( 'x', 'y', 'z', 'ux', 'uy', 'uz', 'polx', 'poly', 'polz',
                  'ekin', 'time', 'weight', 'pdgcode', 'userflags',
                  'wavelength', 'fileidx' )
 _expr_constants = { 'pi' : math.pi, **_particle_names }
-#Dimensions (length,energy,time) and units of quantities in expressions. Values
-#are internally in the units of MCPL (cm, MeV, ms), also for wavelengths:
-_dim_none = (0,0,0)
-_dim_L, _dim_E, _dim_T = (1,0,0), (0,1,0), (0,0,1)
-_expr_units = { 'meV' : (1e-9,_dim_E), 'eV' : (1e-6,_dim_E),
-                'keV' : (1e-3,_dim_E), 'MeV' : (1.0,_dim_E),
-                'GeV' : (1e3,_dim_E), 'TeV' : (1e6,_dim_E),
-                'ns' : (1e-6,_dim_T), 'us' : (1e-3,_dim_T),
-                'ms' : (1.0,_dim_T), 's' : (1e3,_dim_T),
-                'Aa' : (1e-8,_dim_L), 'nm' : (1e-7,_dim_L),
-                'um' : (1e-4,_dim_L), 'mm' : (0.1,_dim_L),
-                'cm' : (1.0,_dim_L), 'm' : (100.0,_dim_L),
-                'km' : (1e5,_dim_L),
-                'deg' : (math.pi/180,None), 'rad' : (1.0,None) }
 _expr_field_dims = { 'x' : _dim_L, 'y' : _dim_L, 'z' : _dim_L,
                      'ekin' : _dim_E, 'time' : _dim_T,
                      'wavelength' : _dim_L }
 _expr_wl_unit = 1e-8#wavelengths are in Aa in the Python API
+#Fields which are only defined for some particles: the field and the values
+#for which they are defined:
+_expr_field_domains = { 'wavelength' : ( 'pdgcode', ( 2112, 22 ) ) }
+#Labels and short names of the values of fields (for labels in plots and
+#tables, with symbols for plots if unicode is set, see _pdg_symbols):
+_expr_value_names = { 'pdgcode' : ( _pdg_label, _pdg_name ) }
 #Example units to suggest in error messages:
 _expr_unit_hints = { _dim_L : 'cm', _dim_E : 'MeV', _dim_T : 'ms' }
 #Functions requiring dimensionless arguments:
@@ -61,9 +69,10 @@ _expr_functions_nodim = { 'exp' : np.exp, 'log' : np.log, 'log10' : np.log10,
                           'sin' : np.sin, 'cos' : np.cos, 'tan' : np.tan,
                           'asin' : np.arcsin, 'acos' : np.arccos,
                           'atan' : np.arctan }
+#Functions giving integers, of values without units:
+_expr_functions_toint = { 'round' : np.rint, 'floor' : np.floor, 'ceil' : np.ceil }
 #Functions keeping the units of the argument(s):
-_expr_functions_samedim = { 'abs' : np.abs, 'floor' : np.floor,
-                            'ceil' : np.ceil, 'min' : np.minimum,
+_expr_functions_samedim = { 'abs' : np.abs, 'min' : np.minimum,
                             'max' : np.maximum, 'hypot' : np.hypot,
                             'clamp' : np.clip }
 #Functions used as statements in edits:
@@ -74,7 +83,8 @@ _rotation_planes = { 'rotate_x' : ( ('y','z'), ('uy','uz'), ('poly','polz') ),
                      'rotate_z' : ( ('x','y'), ('ux','uy'), ('polx','poly') ) }
 _expr_functions = dict( sqrt = np.sqrt, atan2 = np.arctan2, angle_to = None,
                         mod = np.mod,
-                        **_expr_functions_nodim, **_expr_functions_samedim )
+                        **_expr_functions_nodim, **_expr_functions_toint,
+                        **_expr_functions_samedim )
 
 def _angle_highres( a, b ):
     """Angles between the vectors a and b (given as tuples of components),
@@ -119,32 +129,6 @@ def _expr_normalise( expr ):
     _check_chars(expr)
     return ' '.join(expr.split())
 
-#C-style operators, which give errors saying what to use instead:
-_expr_unsupported_ops = ( ( '&&', 'and', 'x > 0 and y > 0' ),
-                          ( '||', 'or', 'x > 0 or y > 0' ),
-                          ( '!', 'not', 'not (x > 0)' ),
-                          ( '%', 'mod(a,b)', 'mod(userflags,4) == 1' ) )
-
-def _expr_check_ops( expr ):
-    #NB: Do not add support for these: ! and % break command lines in some
-    #shells (bash history expansion, Windows batch files).
-    for op, alt, example in _expr_unsupported_ops:
-        found = ( re.search(r'!(?!=)',expr) if op == '!' else op in expr )
-        if found:
-            raise MCPLError(f'Use "{alt}" instead of "{op}" in expressions (e.g.'
-                            f' "{example}"), in expression "{expr}"')
-
-def _expr_preprocess( expr ):
-    """Translate ^ to ** (powers), and numbers with units (e.g. 25meV) to
-    multiplications."""
-    _expr_check_ops(expr)
-    e = expr.replace('^','**')
-    units = '|'.join(sorted(_expr_units,key=len,reverse=True))
-    #(a power directly after a unit only applies to the unit, e.g. 4cm^2):
-    e = re.sub(r'(?<![\w.])((?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*(' + units
-               + r')\b(\s*\*\*\s*\d+)?',
-               lambda m : f'({m.group(1)}*{m.group(2)}{m.group(3) or ""})', e)
-    return e
 
 def _expr_check( node, expr, variables = () ):
     """Check that only supported constructs are used in parsed expression
@@ -154,7 +138,7 @@ def _expr_check( node, expr, variables = () ):
                  ast.Sub, ast.Mult, ast.Div, ast.Pow, ast.FloorDiv,
                  ast.BitAnd, ast.BitOr, ast.Compare, ast.Eq, ast.NotEq,
                  ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.Name, ast.Load,
-                 ast.Constant, ast.Call )
+                 ast.Constant, ast.Call, _Unit )
     #TODO: Consider supporting conditional expressions ("a if cond else b",
     #e.g. evaluated with _ExprEvaluator._with_active for each branch, like the
     #right side of and/or), which were removed since nothing used them.
@@ -171,19 +155,81 @@ def _expr_check( node, expr, variables = () ):
         if isinstance(n,ast.Name) and not ( n.id in _expr_fields
                                             or n.id in variables
                                             or n.id in _expr_constants
-                                            or n.id in _expr_units
                                             or n.id in _expr_functions ):
             raise MCPLError(f'Unknown name "{n.id}" in expression "{expr}"'
                             ' (particle fields are: '
                             + ', '.join(_expr_fields) + ')')
 
-def _expr_parse( expr, mode = 'eval' ):
-    try:
-        tree = ast.parse( _expr_preprocess(expr).strip(), mode = mode )
-    except SyntaxError:
-        hint = ' (use == for comparisons)' if mode == 'eval' and '=' in expr else ''
-        raise MCPLError(f'Syntax error in expression "{expr}"{hint}')
-    return tree
+def _expr_canonical( expr, edit = False ):
+    """The normalised form of an expression (or of the statements of an edit),
+    generated from its parsed form: the same for all ways of writing it which
+    are parsed the same, e.g. "ekin/MeV" and "(ekin) / MeV", or "25meV" and
+    "25.0 meV". Raises MCPLError for invalid syntax."""
+    expr = _expr_normalise(expr)
+    if not edit:
+        return _Expr(expr).canonical
+    return ';'.join( _expr_unparse(_expr_parse(part, mode = 'exec'))
+                      for part in ParticleEdit._split(expr) )
+
+class _Expr:
+    """A parsed (and checked) expression of a value or condition: the common
+    basis of ParticleFilter, ParticleValue and the values in ParticleEdit,
+    with the properties derived from its tree, and its evaluation. The tree
+    is given for parts of other expressions (like the values assigned in
+    edits, with their variables), and the text is then used in messages."""
+    def __init__( self, text, tree = None, variables = () ):
+        self.text = _expr_normalise(text)
+        self.tree = _expr_parse(self.text) if tree is None else ast.Expression(body = tree)
+        _expr_check(self.tree, self.text, variables)
+
+    @functools.cached_property
+    def canonical( self ):
+        """The normalised text, generated from the tree (see _expr_canonical)"""
+        return _expr_unparse(self.tree)
+
+    @functools.cached_property
+    def names( self ):
+        """All names used (fields, variables, constants and functions)"""
+        return frozenset( n.id for n in ast.walk(self.tree) if isinstance(n,ast.Name) )
+
+    @property
+    def fields( self ):
+        """The particle fields used (including fileidx)"""
+        return self.names & frozenset(_expr_fields)
+
+    @property
+    def field( self ):
+        """The field if the expression is just a field (as "pdgcode"), else None"""
+        body = self.tree.body
+        return body.id if isinstance(body,ast.Name) and body.id in _expr_fields else None
+
+    @property
+    def domains( self ):
+        """Where the expression is defined, if only for some particles (as for
+        wavelengths): a list of (field, values) which must all hold (see
+        _expr_field_domains)"""
+        return [ _expr_field_domains[f] for f in sorted(self.fields) if f in _expr_field_domains ]
+
+    def value_label( self, value, unicode = False ):
+        """Label of a value of the expression if it is a field whose values have
+        names (as "n (2112)" for pdgcode, see _expr_value_names), else None"""
+        names = _expr_value_names.get(self.field)
+        return names[0](value,unicode) if names else None
+
+    def domain_mask( self, block ):
+        """Mask of the particles of the block for which the expression is
+        defined"""
+        mask = np.ones(len(block),dtype=bool)
+        for field, values in self.domains:
+            mask &= np.isin(np.broadcast_to(getattr(block,field),(len(block),)),list(values))
+        return mask
+
+    def evaluate( self, block, active = None ):
+        """The value (a _Q) for the particles of the block (for those of the mask
+        active, if given)"""
+        ev = _ExprEvaluator(block,self.text)
+        ev.active = active
+        return ev(self.tree)
 
 class _Q:
     """Value with dimension (length,energy,time) in an expression. Values
@@ -237,9 +283,6 @@ class _ExprEvaluator:
             return self.state[n]
         if n in _expr_constants:
             return _Q(_expr_constants[n])
-        if n in _expr_units:
-            v, d = _expr_units[n]
-            return _Q(v,d)
         if n not in self._cache:
             q = _Q(getattr(self._block,n),_expr_field_dims.get(n))
             self._cache[n] = self.finite(q,f'The particle field {n} has')
@@ -309,6 +352,9 @@ class _ExprEvaluator:
             return self.finite(_Q(node.value,zero=(node.value==0)),'A constant has')
         if isinstance(node,ast.Name):
             return self.name(node.id)
+        if isinstance(node,_Unit):
+            v, d = _expr_units[node.unit]
+            return _Q(v ** node.power,self.dimpow(d,node.power,f'The unit {node.unit}'))
         if isinstance(node,ast.BoolOp):
             #The right side of and (or) is only used for particles
             #where the left side is true (false):
@@ -375,25 +421,50 @@ class _ExprEvaluator:
             if a.d is None:
                 return _Q(np.power(np.asarray(a.v,dtype=float),b.v))
             e = np.asarray(b.v)
-            if e.ndim or float(e) != round(float(e)):
-                self.error('Values with units can only be raised to integer powers')
-            e = round(float(e))
+            if e.ndim:
+                self.error('Values with units can only be raised to constant powers')
+            e = float(e)
             return _Q(np.power(np.asarray(a.v,dtype=float),e),
-                      tuple( i * e for i in a.d ))
+                      self.dimpow(a.d,e,'Raising to a power'))
+    def dimpow( self, d, e, what ):
+        """The dimension d to the power e, which must give whole or half powers
+        of the units (as in sqrt(ekin))"""
+        if d is None:
+            return None
+        res = []
+        for i in d:
+            p = i * e
+            if 2 * p != round(2 * p):
+                self.error(f'{what} gives units with powers which are not whole or'
+                           f' half numbers ({_dimstr(d)} to the power {e:g})')
+            res.append( int(p) if float(p).is_integer() else float(p) )
+        return tuple(res)
     def call( self, fname, args ):
         fct = _expr_functions[fname]
         with np.errstate(divide='ignore',invalid='ignore'):
             if fname in _expr_functions_nodim:
-                return _Q(fct(*[self.nodim(q,f'{fname}(..)') for q in args]))
+                if len(args) != 1:
+                    self.error(f'{fname}(..) takes one argument')
+                return _Q(fct(self.nodim(args[0],f'{fname}(..)')))
+            if fname in _expr_functions_toint:
+                if len(args) != 1:
+                    self.error(f'{fname}(..) takes one argument')
+                v = np.asarray(fct(self.nodim(args[0],f'{fname}(..)')))
+                if v.dtype.kind in 'iub':
+                    return _Q(v)
+                big = ~( np.abs(v) < 2.0**62 )
+                if self.active is not None:
+                    big &= self.active
+                if np.any(big):
+                    self.error(f'{fname}(..) of values too large for integers')
+                return _Q(np.where(big,0,v).astype(np.int64))
             if fname == 'sqrt':
                 if len(args) != 1:
                     self.error('sqrt(..) takes one argument')
                 q = args[0]
                 if q.d is None:
                     return _Q(np.sqrt(q.v))
-                if any( i % 2 for i in q.d ):
-                    self.error(f'sqrt(..) of value with {_dimstr(q.d)}')
-                return _Q(np.sqrt(q.v),tuple( i // 2 for i in q.d ))
+                return _Q(np.sqrt(q.v),self.dimpow(q.d,0.5,'sqrt(..)'))
             if fname == 'atan2':
                 if len(args) != 2:
                     self.error('atan2(..) takes two arguments')
@@ -426,7 +497,7 @@ class _ExprEvaluator:
                 for q in args[1:]:
                     self.same(args[0],q,'hypot(..)')
                 return _Q(np.sqrt(sum( np.square(q.v) for q in args )),d)
-            if len(args) == 1 and fname in ('abs','floor','ceil'):
+            if len(args) == 1 and fname == 'abs':
                 return _Q(fct(args[0].v),args[0].d)
             if fname == 'clamp':
                 if len(args) != 3:
@@ -503,28 +574,27 @@ class ParticleFilter:
     as in "x > 0"): meV, eV, keV, MeV,
     GeV, TeV (energy), ns, us, ms, s (time), Aa, nm, um, mm, cm, m, km
     (length, also for wavelengths), as in "ekin < 25meV", "wavelength >
-    0.18nm" or "x^2 + y^2 < 4cm^2". The units deg and rad can be used for
+    0.18nm" or "x^2 + y^2 < 4cm^2" (a power directly after a unit only
+    applies to the unit, and units can also have half powers, as in
+    "sqrt(ekin)/sqrt(eV)"). The units deg and rad can be used for
     angles (which are otherwise in radians), as in "acos(uz) < 10deg".
     Expressions with missing or inconsistent units, like "x < 2" or "x <
     1meV", are rejected.
     """
     def __init__( self, expression ):
-        expression = _expr_normalise(expression)
-        self._expr = expression
-        self._tree = _expr_parse(expression)
-        _expr_check(self._tree, expression)
+        self._e = _Expr(expression)
+        self._expr = self._e.text
         self(_EmptyBlock())#check units etc.
         #(for marking stat:sum entries as not available when particles are
         #picked by their positions in the file):
-        self._uses_fileidx = any( isinstance(n,ast.Name) and n.id == 'fileidx'
-                                  for n in ast.walk(self._tree) )
+        self._uses_fileidx = 'fileidx' in self._e.fields
     @property
     def expression( self ):
         """The expression (with normalised whitespace)"""
         return self._expr
     def __call__( self, block ):
         """Return boolean array picking particles in the block"""
-        res = np.asarray(_ExprEvaluator(block,self._expr)(self._tree).v)
+        res = np.asarray(self._e.evaluate(block).v)
         if res.dtype.kind in 'iu':
             res = res != 0#like in C, e.g. for "userflags & 0x10"
         if res.dtype != bool:
@@ -533,6 +603,14 @@ class ParticleFilter:
         return np.broadcast_to(res,(len(block),))
     def __repr__( self ):
         return f'ParticleFilter({self._expr!r})'
+
+def _values( q, block ):
+    """The values of an evaluated expression (a _Q) for each particle of the
+    block (with 1 and 0 for true and false)"""
+    v = np.asarray(q.v)
+    if v.dtype == bool:
+        v = v.astype(float)
+    return np.broadcast_to(v,(len(block),))
 
 class ParticleValue:
     """Numerical value calculated from particle fields with an expression
@@ -546,10 +624,8 @@ class ParticleValue:
            print( val(block) )
     """
     def __init__( self, expression ):
-        expression = _expr_normalise(expression)
-        self._expr = expression
-        self._tree = _expr_parse(expression)
-        _expr_check(self._tree, expression)
+        self._e = _Expr(expression)
+        self._expr = self._e.text
         self(_EmptyBlock())#check units etc.
     @property
     def expression( self ):
@@ -557,7 +633,7 @@ class ParticleValue:
         return self._expr
     def __call__( self, block ):
         """Return array with the values for the particles in the block"""
-        q = _ExprEvaluator(block,self._expr)(self._tree)
+        q = self._e.evaluate(block)
         if q.d is not None:
             u = _expr_unit_hints.get(q.d)
             if u == 'cm' and 'wavelength' in self._expr:
@@ -567,12 +643,106 @@ class ParticleValue:
             hint = f', e.g. {e}/{u}' if u else ''
             raise MCPLError(f'Expression "{self._expr}" has units'
                             f' ({_dimstr(q.d)}), so divide it by a unit{hint}')
-        v = np.asarray(q.v)
-        if v.dtype == bool:
-            v = v.astype(float)
-        return np.broadcast_to(v,(len(block),))
+        return _values(q,block)
     def __repr__( self ):
         return f'ParticleValue({self._expr!r})'
+
+class _PlotValue:
+    """Values of an expression for plots, which can have units (the axes of the
+    plots show the units, see _plot_unit): the values are in the units of
+    MCPL (cm, MeV and ms, also for wavelengths), with the dimension dim (None
+    for values without units)."""
+    def __init__( self, expression ):
+        if isinstance(expression,(ParticleValue,_PlotValue)):
+            expression = expression.expression
+        self._e = _Expr(expression)
+        self.expression = self._e.text
+        q = self._e.evaluate(_EmptyBlock())#(also checks the units)
+        self.dim = q.d
+        self.wavelength = 'wavelength' in self._e.fields
+    def __call__( self, block ):
+        """The values for the particles of the block (NaN where the expression
+        is not defined, see _Expr.domains)"""
+        if not self._e.domains:
+            return _values(self._e.evaluate(block),block)
+        mask = self._e.domain_mask(block)
+        v = np.array(_values(self._e.evaluate(block,active=mask),block),dtype=float)
+        v[~mask] = np.nan
+        return v
+
+    def domain_values( self, block ):
+        """The values of the fields deciding where the expression is defined,
+        for the particles of the block where it is (as {field : set})"""
+        if not self._e.domains:
+            return {}
+        mask = self._e.domain_mask(block)
+        return { field : set( np.unique(np.broadcast_to(getattr(block,field),(len(block),))[mask]).tolist() )
+                 for field, _ in self._e.domains }
+
+    def domain_note( self, seen, unicode = False ):
+        """Note for labels on the particles for which the values are defined,
+        like "(n/gamma only)", given the values of domain_values seen (or None if
+        defined for all particles, see _expr_value_names for unicode)"""
+        return _domain_note([ ( field, [ v for v in values if v in seen.get(field,()) ] )
+                              for field, values in self._e.domains ],unicode)
+
+def _domain_note( domains, unicode = False ):
+    """Note for labels on the values of fields for which values are defined
+    (a list of (field, values)), like "(n/gamma only)", or None"""
+    names = [ _expr_value_names[field][1](v,unicode) for field, values in domains
+              for v in values ]
+    return f'({"/".join(names)} only)' if names else None
+
+#Units of the base dimensions for plots (see _plot_unit), by increasing size,
+#and the standard ones for logarithmic axes:
+_plot_units = [ [ u for u, ( _, d ) in sorted(_expr_units.items(),key=lambda e : e[1][0])
+                  if d == base ] for base in ( _dim_L, _dim_E, _dim_T ) ]
+_plot_units_log = ( 'm', 'eV', 's' )
+_plot_units_mcpl = ( 'cm', 'MeV', 'ms' )
+#Wavelengths in this range (in Aa) are shown in Aa:
+_plot_wl_range = ( 0.5e-3, 5e3 )
+
+def _plot_unit( dim, lo, hi, log = False, wavelength = False ):
+    """The unit for showing values with the dimension dim from lo to hi (in the
+    units of MCPL), as (text, scale), where scale is the size of the unit in the
+    units of MCPL (values are divided by it), or None for values without units.
+    For a single base dimension (with a power, as for x^2 or sqrt(ekin)):
+    wavelengths from 0.5e-3 to 5e3 Aa are in Aa, logarithmic axes are in m, eV
+    or s, and linear axes in the largest unit in which the largest absolute
+    value is at least 1. Other dimensions are in the units of MCPL."""
+    if dim is None:
+        return None
+    powers = [ ( i, e ) for i, e in enumerate(dim) if e ]
+    def text( units ):
+        return '*'.join( units[i] + ( '' if e == 1 else f'^{e!r}' ) for i, e in powers )
+    if len(powers) != 1:
+        return text(_plot_units_mcpl), 1.0
+    i, e = powers[0]
+    amax = max(abs(lo),abs(hi))
+    #(the size of the values in the base dimension, e.g. a length for x^2):
+    size = amax ** ( 1.0 / e ) if amax > 0 else 0.0
+    wl_lo, wl_hi = ( v * _expr_units['Aa'][0] for v in _plot_wl_range )
+    if wavelength and dim == _dim_L and lo >= wl_lo and hi <= wl_hi:
+        unit = 'Aa'
+    elif log:
+        unit = _plot_units_log[i]
+    elif size > 0:
+        fits = [ u for u in _plot_units[i] if size / _expr_units[u][0] >= 1 ]
+        unit = fits[-1] if fits else _plot_units[i][0]
+    else:
+        unit = _plot_units_mcpl[i]
+    units = list(_plot_units_mcpl)
+    units[i] = unit
+    return text(units), _expr_units[unit][0] ** e
+
+def _range_value( text ):
+    """The value (in the units of MCPL) and dimension of a constant in the range
+    of a histogram, like 10cm or -2.5"""
+    e = _Expr(text)
+    if e.fields:
+        raise MCPLError(f'Ranges of histograms must be constants (not "{text}")')
+    q = e.evaluate(_EmptyBlock())
+    return float(np.asarray(q.v)), q.d
 
 class ParticleEdit:
     """Modification of particle fields given by an expression with statements
@@ -648,10 +818,8 @@ class ParticleEdit:
                                   op = stmt.op, right = stmt.value)
             else:
                 value = stmt.value
-            value = ast.Expression(body = value)
-            _expr_check(value, expression, variables)
-            used.update( n.id for n in ast.walk(value)
-                         if isinstance(n,ast.Name) and n.id in variables )
+            value = _Expr(expression, tree = value, variables = variables)
+            used.update( value.names & variables )
             if name not in self._assignable:
                 variables.add(name)
             self._statements.append( ('assign', name, value) )
@@ -698,11 +866,9 @@ class ParticleEdit:
         if len(call.args) != 1:
             raise MCPLError(f'{fname}(..) takes one argument (an angle) in'
                             f' "{self._expr}"')
-        angle = ast.Expression(body = call.args[0])
-        _expr_check(angle, self._expr, variables)
+        angle = _Expr(self._expr, tree = call.args[0], variables = variables)
         self._used_in_angles = getattr(self,'_used_in_angles',set())
-        self._used_in_angles.update( n.id for n in ast.walk(angle)
-                                     if isinstance(n,ast.Name) and n.id in variables )
+        self._used_in_angles.update( angle.names & variables )
         return ( fname, angle )
 
     @staticmethod
@@ -749,7 +915,7 @@ class ParticleEdit:
         for st in self._statements:
             if st[0] == 'assign':
                 _, name, value = st
-                q = ev(value)
+                q = ev(value.tree)
                 if name in self._assignable:
                     d = _expr_field_dims.get(name)
                     if q.d != d and not q.zero:
@@ -776,7 +942,7 @@ class ParticleEdit:
                 modified.update( e for e in (a,b) if e in self._assignable )
             else:
                 fname, angle = st
-                qa = ev(angle)
+                qa = ev(angle.tree)
                 if qa.d is not None:
                     ev.error(f'{fname}(..) requires an angle (e.g. 90deg), not'
                              f' {_dimstr(qa.d)}')
@@ -842,15 +1008,10 @@ def _quantity_functions( coords ):
     for name, expr in coords.items():
         if not isinstance(name,str) or not name:
             raise MCPLError('Coordinate names must be non-empty strings')
-        expr = _expr_normalise(expr)
-        tree = _expr_parse(expr)
-        _expr_check(tree,expr)
-        def fct( block, expr = expr, tree = tree ):
-            q = _ExprEvaluator(block,expr)(tree)
-            v = np.asarray(q.v)
-            if v.dtype == bool:
-                v = v.astype(float)
-            return np.broadcast_to(v,(len(block),)), q.d
+        e = _Expr(expr)
+        def fct( block, e = e ):
+            q = e.evaluate(block)
+            return _values(q,block), q.d
         fct(_EmptyBlock())#check units etc.
         res[name] = fct
     return res

@@ -46,6 +46,7 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   mcpltool [options] FILE                  Show the header and first particles
   mcpltool -S [options] FILE               Summary of the particles
+  mcpltool -w [options] FILE               View the particles interactively
   mcpltool -H HIST [options] FILE [...]    Histogram
   mcpltool -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
   mcpltool -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
@@ -61,7 +62,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
-  mcpltool -H "ekin/MeV;logx;split=pdgcode" file.mcpl.gz
+  mcpltool -H "ekin/MeV;logx=1;split=pdgcode" file.mcpl.gz
   mcpltool -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   mcpltool -S file.mcpl.gz
 
@@ -85,6 +86,7 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   mcpltool [options] FILE                  Show the header and first particles
   mcpltool -S [options] FILE               Summary of the particles
+  mcpltool -w [options] FILE               View the particles interactively
   mcpltool -H HIST [options] FILE [...]    Histogram
   mcpltool -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
   mcpltool -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
@@ -100,7 +102,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
-  mcpltool -H "ekin/MeV;logx;split=pdgcode" file.mcpl.gz
+  mcpltool -H "ekin/MeV;logx=1;split=pdgcode" file.mcpl.gz
   mcpltool -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   mcpltool -S file.mcpl.gz
 

@@ -8,6 +8,8 @@ dependencies:
   - make
   - pip
   - python
+  - ipympl >=0.9
+  - ipywidgets >=8.0
   - matplotlib >=3.6
   - numpy >=1.22
   - pyyaml >=6.0.0

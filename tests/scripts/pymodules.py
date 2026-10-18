@@ -46,17 +46,21 @@ layers = {
     '_common' : 0,
     '_messages' : 0,
     '_exprhelp' : 0,
+    '_viewer_ui' : 0,
+    '_logo' : 0,
     '_physics' : 1,
     '_statsum' : 1,
     '_userdata' : 1,
     '_scipp' : 1,
     '_termcolor' : 1,
     '_blocks' : 2,
+    '_exprsyntax' : 1,
     '_expressions' : 2,
     '_reader' : 3,
     '_writer' : 4,
     '_fileops' : 5,
     '_examples' : 5,
+    '_extract' : 5,
     '_plotbackend' : 6,
     'plotting' : 7,
     '_plotbackend_mpl' : 8,
@@ -65,6 +69,10 @@ layers = {
     '_stats' : 6,
     '_histogram' : 8,
     '_statsplot' : 9,
+    '_plotbackend_mpl_gui' : 9,
+    '_plotbackend_text_gui' : 9,
+    '_viewer_jupyter' : 9,
+    '_viewer' : 10,
     '_clistats' : 10,
     '_cli' : 11,
     '__init__' : top,
@@ -76,8 +84,11 @@ public_submodules = ['constants', 'plotting']
 
 allowed_external_imports = {
     'numpy' : ['_numpy'],
-    'matplotlib' : ['_plotbackend_mpl'],
+    'matplotlib' : ['_plotbackend_mpl', '_plotbackend_mpl_gui'],
     'scipp' : ['_scipp'],
+    'ipywidgets' : ['_viewer_jupyter'],
+    'IPython' : ['_viewer', '_viewer_jupyter'],
+    'curses' : ['_plotbackend_text_gui'],
 }
 
 def imports_of( path ):
@@ -103,7 +114,7 @@ def imports_of( path ):
 
 #External modules which are slow to import, and which must therefore only be
 #imported inside functions (i.e. on demand, when plots are made):
-on_demand_external_imports = ['matplotlib', 'scipp']
+on_demand_external_imports = ['matplotlib', 'scipp', 'ipywidgets', 'IPython', 'curses']
 
 def import_time_externals( path ):
     """External top level modules imported when the file is imported (i.e.

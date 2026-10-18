@@ -113,7 +113,7 @@ cases = [
       tool('-l3','--pick','pdgcode == gamma','example.mcpl') ),
     ( 'mcpltool --stats', '_cli _clistats _stats', tool('--stats','example.mcpl') ),
     ( 'mcpltool --hist with print', '_cli _clistats _expressions _histogram',
-      tool('--hist','ekin/MeV;print','example.mcpl') ),
+      tool('--hist','ekin/MeV;print=1','example.mcpl') ),
     ( 'mcpltool --extract', '_cli', tool('--extract','example.mcpl','e1.mcpl') ),
     ( 'mcpltool --extract --edit', '_cli _expressions',
       tool('--extract','example.mcpl','e2.mcpl','--edit','z += 1m') ),

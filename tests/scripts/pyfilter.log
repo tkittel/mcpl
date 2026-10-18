@@ -1,3 +1,47 @@
+value 'ekin/MeV': 'ekin/MeV'
+value '(ekin) / MeV': 'ekin/MeV'
+value '(x**2+y^2)/cm^2': '(x^2+y^2)/cm^2'
+value '2.5e-3MeV*ekin/MeV^2': '0.0025MeV*ekin/MeV^2'
+value '-(x/cm)^2': '-(x/cm)^2'
+value '2^-1*x/cm': '2^-1*x/cm'
+value '(-2)^2*ux': '(-2)^2*ux'
+value 'ekin/(2*MeV)': 'ekin/2MeV'
+value '1e30*ekin/MeV': '1e+30*ekin/MeV'
+value 'angle_to( 0, 0, 1 )/deg': 'angle_to(0,0,1)/deg'
+'2^(ekin/TeV)MeV/MeV' is '(2^(ekin/TeV))*(1*MeV)/MeV': True, normalised '2^(ekin/TeV)MeV/MeV'
+'ekin/2MeV' is 'ekin/(2*MeV)': True, normalised 'ekin/2MeV'
+'-2MeV/MeV' is '-(2*MeV)/MeV': True, normalised '-2MeV/MeV'
+'2cm^-1*x' is '2*(cm^-1)*x': True, normalised '2cm^-1*x'
+'2cm^(-1)*x' is '2*(cm^-1)*x': True, normalised '2cm^-1*x'
+'sqrt(ekin)/sqrt(eV)' is 'sqrt(ekin/eV)': True, normalised 'sqrt(ekin)/sqrt(eV)'
+'abs(x)^1.5/cm^1.5' is '(abs(x)/cm)^1.5': True, normalised 'abs(x)^1.5/cm^1.5'
+'cm^(1/2)*cm^0.5/cm' is '1': True, normalised 'cm^0.5*cm^0.5/cm'
+'2^3MeV/MeV' is '8': True, normalised '2^3MeV/MeV'
+'(x)cm/cm^2' is 'x/cm': True, normalised 'x*cm/cm^2'
+cm^0.25 > 1: Units can only have whole or half powers (like cm^2 or cm^0.5), in expression "cm^0.25 > 1"
+ekin^0.25 > 1: Raising to a power gives units with powers which are not whole or half numbers (energy to the power 0.25) in expression "ekin^0.25 > 1"
+sqrt(sqrt(ekin)) > 1: sqrt(..) gives units with powers which are not whole or half numbers (energy^0.5 to the power 0.5) in expression "sqrt(sqrt(ekin)) > 1"
+2cm^x > 1: Syntax error in expression "2cm^x > 1"
+x cm > 1: Syntax error in expression "x cm > 1"
+cm^2MeV > 1: Syntax error in expression "cm^2MeV > 1"
+pick 'pdgcode==neutron and (ekin<1MeV)': 'pdgcode==neutron and ekin<1MeV'
+pick 'not (x > 1cm) or y<0': 'not x>1cm or y<0'
+pick '(x>0 or y>0) and z>0': '(x>0 or y>0) and z>0'
+pick 'ekin < 4cm^2*1MeV/cm^2': 'ekin<4cm^2*1MeV/cm^2'
+edit 'z += 1cm;weight *= 0.5': 'z+=1cm;weight*=0.5'
+edit 'rotate_z(90deg) ; z+=10 cm': 'rotate_z(90deg);z+=10cm'
+parsed 'pdgcode == neutron and wavelength > 1.8Aa': fields ['pdgcode', 'wavelength'], names ['neutron', 'pdgcode', 'wavelength'], canonical 'pdgcode==neutron and wavelength>1.8Aa'
+parsed 'hypot(x,y)/cm': fields ['x', 'y'], names ['hypot', 'x', 'y'], canonical 'hypot(x,y)/cm'
+parsed 'mod(fileidx,10) == 0': fields ['fileidx'], names ['fileidx', 'mod'], canonical 'mod(fileidx,10)==0'
+random expressions: 428 of 428 valid ones have equivalent normalised forms
+exp(2,3): exp(..) takes one argument in expression "exp(2,3)"
+cos(ux,2): cos(..) takes one argument in expression "cos(ux,2)"
+histogram 'ekin/MeV;logx=1;bins=50': 'ekin/MeV;bins=50;logx=1'
+histogram 'ekin / MeV ; bins=50 ;logx=1': 'ekin/MeV;bins=50;logx=1'
+histogram '(ekin)/MeV;bins=50;logx=1': 'ekin/MeV;bins=50;logx=1'
+histogram 'x/cm : y/cm;xrange=-1:1': 'x/cm:y/cm;xrange=-1.0:1.0'
+histogram 'x/cm:y/cm;xrange=-1.0:1': 'x/cm:y/cm;xrange=-1.0:1.0'
+histogram 'ekin/MeV;split=pdgcode==22': 'ekin/MeV;split=pdgcode==22'
 angle_to(x,y,z)/deg of the first particles: [14.360296 22.479602  5.704463]
 angle between (1,1e-06,0) and (1,0,0): 1e-06 (acos of dot product: 1.00004e-06)
 angle between (1,1e-09,0) and (1,0,0): 1e-09 (acos of dot product: 0)
@@ -92,8 +136,8 @@ ParticleFilter('x^2 + y^2 < 4'): Incompatible units in comparison: length^2 and 
 ParticleFilter('x < 1meV'): Incompatible units in comparison: length and energy in expression "x < 1meV"
 ParticleFilter('ekin > 2cm'): Incompatible units in comparison: energy and length in expression "ekin > 2cm"
 ParticleFilter('sin(x) > 0'): sin(..) requires a value without units, not length in expression "sin(x) > 0"
-ParticleFilter('x^0.5 > 1cm'): Values with units can only be raised to integer powers in expression "x^0.5 > 1cm"
-ParticleFilter('sqrt(x) < 2'): sqrt(..) of value with length in expression "sqrt(x) < 2"
+ParticleFilter('x^0.5 > 1cm'): Incompatible units in comparison: length^0.5 and length in expression "x^0.5 > 1cm"
+ParticleFilter('sqrt(x) < 2'): Incompatible units in comparison: length^0.5 and value without units in expression "sqrt(x) < 2"
 ParticleFilter('x + time > 0cm'): Incompatible units in arithmetic: length and time in expression "x + time > 0cm"
 ParticleFilter('ekin^x > 1'): Exponent with units (length) in expression "ekin^x > 1"
 ParticleFilter('atan2(x, ekin) > 0'): Incompatible units in atan2(..): length and energy in expression "atan2(x, ekin) > 0"
@@ -105,15 +149,15 @@ ParticleFilter('dirx > 0'): Unknown name "dirx" in expression "dirx > 0" (partic
 ParticleFilter('t < 1ms'): Unknown name "t" in expression "t < 1ms" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 ParticleFilter('is_neutron'): Unknown name "is_neutron" in expression "is_neutron" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 ParticleFilter('neutron_wl > 1Aa'): Unknown name "neutron_wl" in expression "neutron_wl > 1Aa" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-ParticleFilter('degrees(acos(uz)) < 10'): Unsupported function call in expression "degrees(acos(uz)) < 10" (available functions are: abs, acos, angle_to, asin, atan, atan2, ceil, clamp, cos, exp, floor, hypot, log, log10, max, min, mod, sin, sqrt, tan)
+ParticleFilter('degrees(acos(uz)) < 10'): Unsupported function call in expression "degrees(acos(uz)) < 10" (available functions are: abs, acos, angle_to, asin, atan, atan2, ceil, clamp, cos, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan)
 ParticleFilter('ekin = 1MeV'): Syntax error in expression "ekin = 1MeV" (use == for comparisons)
 ParticleFilter('ekin > 1MeV & x < 2cm'): The bitwise operator & requires integer operands (use "and" and "or" for logical and/or)
 ParticleFilter('foo > 1'): Unknown name "foo" in expression "foo > 1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 ParticleFilter("__import__('os').system('ls')"): The character ' can not be used in expressions (in "__import__('os').system('ls')")
 ParticleFilter('ekin'): Expression "ekin" is not a condition (e.g. a comparison)
-ParticleFilter('lambda: 1'): Unsupported syntax in expression "lambda: 1"
-ParticleFilter('sin(x, y=1) > 0'): Unsupported function call in expression "sin(x, y=1) > 0" (available functions are: abs, acos, angle_to, asin, atan, atan2, ceil, clamp, cos, exp, floor, hypot, log, log10, max, min, mod, sin, sqrt, tan)
-ParticleFilter('x.real > 0'): Unsupported syntax in expression "x.real > 0"
+ParticleFilter('lambda: 1'): Syntax error in expression "lambda: 1"
+ParticleFilter('sin(x, y=1) > 0'): Syntax error in expression "sin(x, y=1) > 0" (use == for comparisons)
+ParticleFilter('x.real > 0'): Syntax error in expression "x.real > 0"
 ParticleFilter('[x][0] > 0'): The character [ can not be used in expressions (in "[x][0] > 0")
 ParticleFilter("x > 'a'"): The character ' can not be used in expressions (in "x > 'a'")
 ParticleFilter(''): Syntax error in expression ""
@@ -136,7 +180,7 @@ ParticleFilter('(-1)^(x/cm) > 0'): Raising to a power gives NaN or infinite valu
 ParticleFilter('x != x and 1/(x/cm - x/cm) > 1'): no error
 ParticleFilter('~x > 0cm'): The bitwise operator ~ requires integer operands (use "not" for logical not)
 ParticleFilter('~uz > 0'): The bitwise operator ~ requires integer operands (use "not" for logical not)
-ParticleFilter('x > 0cm if ux > 0 else x < 0cm'): Unsupported syntax in expression "x > 0cm if ux > 0 else x < 0cm"
+ParticleFilter('x > 0cm if ux > 0 else x < 0cm'): Syntax error in expression "x > 0cm if ux > 0 else x < 0cm"
 ParticleEdit('x = 2*ux'): Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x = 2*ux"
 ParticleEdit('x = 2'): Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x = 2"
 ParticleEdit('ekin = 0.025'): Can not assign value without units to ekin, which is an energy (add units, e.g. 2MeV), in expression "ekin = 0.025"
@@ -169,7 +213,7 @@ ParticleEdit('x = 1cm, y = 1cm'): Separate the statements of edits with ";" (not
 ParticleEdit('fileidx = 2'): fileidx (the position of the particles in the file) can not be changed, in "fileidx = 2"
 ParticleEdit('fileidx += 1'): fileidx (the position of the particles in the file) can not be changed, in "fileidx += 1"
 ParticleEdit('swap(fileidx,pdgcode)'): fileidx (the position of the particles in the file) can not be changed, in "swap(fileidx,pdgcode)"
-ParticleEdit('x = y = 1cm'): Unsupported assignment "x = y = 1cm" in "x = y = 1cm"
+ParticleEdit('x = y = 1cm'): Syntax error in expression "x = y = 1cm"
 ParticleEdit('x, y = y, x'): Separate the statements of edits with ";" (not ",") in "x, y = y, x"
 ParticleEdit(''): Empty edit expression
 ParticleEdit('pdgcode = 1.5'): Non-integer values assigned to pdgcode

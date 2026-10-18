@@ -176,12 +176,15 @@ _hints = (
     ( 'functions', 'abs(a)',
       'absolute value (same unit)',
       'absolute value (same unit as a: e.g. abs(x) < 5cm)' ),
+    ( 'functions', 'round(a)',
+      'nearest integer',
+      'the nearest integer, of a value without units (e.g. round(x/cm))' ),
     ( 'functions', 'floor(a)',
-      'round down (same unit)',
-      'round down to an integer (same unit as a: e.g. floor(time/ms))' ),
+      'round down to an integer',
+      'round down to an integer, of a value without units (e.g. floor(time/ms))' ),
     ( 'functions', 'ceil(a)',
-      'round up (same unit)',
-      'round up to an integer (same unit as a: e.g. ceil(ekin/MeV))' ),
+      'round up to an integer',
+      'round up to an integer, of a value without units (e.g. ceil(ekin/MeV))' ),
     ( 'functions', 'min(a,b,...)',
       'smallest value (same unit)',
       'smallest of the values, which must have the same unit (e.g. min(x,y) > 0cm)' ),
@@ -247,33 +250,39 @@ _hints = (
       'number of bins (default: chosen from the number of particles, e.g. bins=50)' ),
     ( 'histoptions', 'range=LOW:HIGH',
       'range of the histogram',
-      'range of the histogram, without units like the expression (default: all values, e.g. range=0:10)' ),
+      'range of the histogram, with units if the expression has units (default: all values, e.g. range=0:10, or range=1meV:10MeV)' ),
     ( 'histoptions', 'xrange=LOW:HIGH',
       'range of x in 2D histograms',
-      'range of the first expression of a 2D histogram (default: all values, e.g. xrange=-10:10)' ),
+      'range of the first expression of a 2D histogram (default: all values, e.g. xrange=-10cm:10cm)' ),
     ( 'histoptions', 'yrange=LOW:HIGH',
       'range of y in 2D histograms',
-      'range of the second expression of a 2D histogram (default: all values, e.g. yrange=-10:10)' ),
-    ( 'histoptions', 'logx',
+      'range of the second expression of a 2D histogram (default: all values, e.g. yrange=-10cm:10cm)' ),
+    ( 'histoptions', 'logx=1|0|auto',
       'logarithmic x axis',
-      'logarithmic binning and x axis (e.g. "ekin/MeV;logx")' ),
-    ( 'histoptions', 'logy',
+      'logarithmic binning and x axis (e.g. "ekin/MeV;logx=1", or logx=auto if suitable for the values)' ),
+    ( 'histoptions', 'logy=1|0|auto',
       'logarithmic y axis',
-      'logarithmic y axis' ),
-    ( 'histoptions', 'lethargy',
-      'per unit lethargy (implies logx)',
-      'divide by the bin widths in lethargy, so 1/E spectra are flat (implies logx)' ),
+      'logarithmic y axis, or scale of the bars of bar charts (logy=auto if suitable for the values, the default for bar charts)' ),
+    ( 'histoptions', 'lethargy=1|0',
+      'per unit lethargy (implies logx=1)',
+      'divide by the bin widths in lethargy, so 1/E spectra are flat (implies logx=1)' ),
     ( 'histoptions', 'split=EXPR',
       'one curve per value of EXPR',
       'one curve for each value of the expression EXPR (e.g. split=pdgcode, or split=x > 0cm)' ),
-    ( 'histoptions', 'unweighted',
+    ( 'histoptions', 'groups=N|auto',
+      'number of curves of split',
+      'the number of curves of split, the others are combined into one (default: auto, which is 8)' ),
+    ( 'histoptions', 'bar=N|auto|0',
+      'bars of distinct values',
+      'a bar chart, with a bar for each value (which must be whole numbers), for the N largest ones, the others are combined into one (auto: 10, e.g. "pdgcode;bar=auto" or "round(x/cm);bar=auto")' ),
+    ( 'histoptions', 'unweighted=1|0',
       'count particles',
       'count particles instead of summing their weights' ),
-    ( 'histoptions', 'print',
+    ( 'histoptions', 'print=1|0',
       'print contents instead of plotting',
       'print the contents of the histogram instead of plotting it' ),)
 
-_group_titles = { 'histoptions' : 'Options (after the expression, separated by ";")',
+_group_titles = { 'histoptions' : 'Options (after the expression, separated by ";"; options which are on or off are given as 1 or 0)',
                   'fields' : 'Fields of the particles',
                   'constants' : 'Constants',
                   'particles' : 'Particle names (PDG codes)',
@@ -300,13 +309,15 @@ in the units of the field, and wavelength = ... changing ekin), assignments
 to variables (other lowercase names, which can be used in later statements),
 and the statements listed below. The expressions are written as for -p (see
 -p help).''',
-    'hist' : '''HIST: an expression without units (divide values with units by a unit,
-e.g. ekin/MeV), or two separated by ":" for a 2D histogram, followed by
-options separated by ";", e.g.
-  -H "ekin/MeV;logx;split=pdgcode"
+    'hist' : '''HIST: an expression, or two separated by ":" for a 2D histogram, followed
+by options NAME=VALUE separated by ";", e.g.
+  -H "ekin;logx=auto;split=pdgcode"
   -H "wavelength/Aa;bins=100;range=0:10"
-  -H "x/cm : y/cm;xrange=-10:10;yrange=-10:10"
-The expressions are written as for -p (see -p help).''',
+  -H "x : y;xrange=-10cm:10cm;yrange=-10cm:10cm"
+  -H "pdgcode;bar=auto"
+Values with units are shown in a suitable unit, unless divided by one (as in
+wavelength/Aa). Particles for which the wavelength is not defined are left
+out. The expressions are written as for -p (see -p help).''',
 }
 
 _topic_groups = {

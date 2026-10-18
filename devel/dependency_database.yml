@@ -29,8 +29,16 @@ packages:
         - numpy
       plot:
         - matplotlib
+      #(curses is in the standard library, except on Windows):
+      curses:
+        - windows-curses
+      #(not in "all", since it is only needed in Jupyter):
+      jupyter:
+        - ipywidgets
+        - ipympl
       all:
         - ADD plot
+        - ADD curses
       #(not in "all", since scipp needs a more recent Python and numpy):
       scipp:
         - scipp
@@ -50,6 +58,10 @@ packages:
       #(extras of mcpl-python are forwarded):
       plot:
         - mcpl-python[plot]
+      curses:
+        - mcpl-python[curses]
+      jupyter:
+        - mcpl-python[jupyter]
       all:
         - mcpl-python[all]
       scipp:
@@ -75,6 +87,18 @@ dependencies:
   numpy:
     min_version: "1.22"
     freebsd_pkgname: "{py}-numpy"
+  windows-curses:
+    min_version: "2.3"
+    import_check: curses
+    only_on: [ Windows ]
+    #(not on conda-forge):
+    conda_pkgname: null
+  ipywidgets:
+    min_version: "8.0"
+    freebsd_pkgname: "{py}-ipywidgets"
+  ipympl:
+    min_version: "0.9"
+    freebsd_pkgname: "{py}-ipympl"
   scipp:
     min_version: "26.9"
     min_python: "3.12"

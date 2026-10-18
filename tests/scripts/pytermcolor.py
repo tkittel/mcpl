@@ -39,7 +39,7 @@ import mcpldev as mcpl
 from mcpldev import _termcolor
 from mcpldev._plotbackend_text import AsciiBackend, UnicodeBackend
 from mcpldev._termcolor import _code256, _ncolors, _paint
-from mcpldev.plotting import Hist2D
+from mcpldev.plotting import Hist2D, StepHist
 from MCPLTestUtils.dirs import test_data_dir
 
 example_file = test_data_dir.joinpath('example.mcpl')
@@ -101,8 +101,8 @@ def shown( backend, figures ):
     return out.getvalue()
 
 def test_stripped():
-    h1 = mcpl.histogram(example_file,'ekin/MeV;logx;bins=20')
-    hs = mcpl.histogram(example_file,'ekin/MeV;logx;split=pdgcode;bins=20')
+    h1 = mcpl.histogram(example_file,'ekin/MeV;logx=1;bins=20')
+    hs = mcpl.histogram(example_file,'ekin/MeV;logx=1;split=pdgcode;bins=20')
     h2 = mcpl.histogram(example_file,'x/cm : y/cm;bins=10')
     stats = mcpl.stats_figures(mcpl.collect_stats(example_file))[0]
     cases = ( ('1D',h1.figure()), ('split',hs.figure()), ('2D',h2.figure()),
@@ -117,10 +117,17 @@ def test_stripped():
                 print(f'{opt} {name}: colours used: {col != plain},'
                       f' same text without them: {same}')
                 has2d = any( isinstance(i,Hist2D) for p in fig.panels for i in p.items )
-                if has2d and opt == 'unicode':
+                curves = any( sum( isinstance(i,StepHist) for i in p.items ) > 1
+                              for p in fig.panels )
+                if ( has2d or curves ) and opt == 'unicode':
                     #(2D maps are drawn with half blocks, two cells per
-                    #character, but everything else is the same):
-                    print('   half blocks:', '\u2580' in col and '\u2580' not in plain)
+                    #character, and several curves as lines of braille dots,
+                    #but everything else is the same):
+                    if has2d:
+                        print('   half blocks:', '\u2580' in col and '\u2580' not in plain)
+                    if curves:
+                        print('   braille lines:', any( 0x2800 < ord(ch) <= 0x28ff for ch in col )
+                              and not any( 0x2800 < ord(ch) <= 0x28ff for ch in plain ))
                     assert not same
                 else:
                     assert same
@@ -157,7 +164,7 @@ def test_tool():
     tool('-H',h,'-B','ascii','--color=always')
     tool('-H',h,'--color=sometimes')
     tool('-H',h,'--color=always','-o','x.txt')
-    tool('-H',h+';print','--color=always')
+    tool('-H',h+';print=1','--color=always')
     tool('-S','--color=always')
     tool('-H',h,'-t','--color=always','--color=never')
 

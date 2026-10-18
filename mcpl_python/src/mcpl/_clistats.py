@@ -51,14 +51,21 @@ def _plot_backend( outfn, backend, terminal, color = None ):
         bk.check_format(outfn)
         return bk
     cls = _show_backend(backend,terminal)
-    opts = {}
-    if color is not None and not isinstance(cls,PlotBackend):
-        if cls.kind == 'terminal' and f'{cls.name}_color' in _option_names(cls):
-            opts[f'{cls.name}_color'] = color
-        elif backend is not None:
-            raise MCPLError(f'--color can not be used with the {cls.name}'
-                            ' plotting backend (only for plots in the terminal)')
-    return _create(cls,**opts)
+    return _create(cls,**_color_options(cls,backend,color))
+
+def _color_options( cls, backend, color ):
+    """Options of the backend (class) for the --color setting (None if not
+    given), for plots in the terminal. An error if the backend was chosen
+    (backend is not None) and is not for the terminal."""
+    from ._plotbackend import PlotBackend
+    if color is None or isinstance(cls,PlotBackend):
+        return {}
+    if cls.kind == 'terminal' and f'{cls.name}_color' in _option_names(cls):
+        return { f'{cls.name}_color' : color }
+    if backend is not None:
+        raise MCPLError(f'--color can not be used with the {cls.name}'
+                        ' plotting backend (only for plots in the terminal)')
+    return {}
 
 def _option_names( cls ):
     import inspect
@@ -85,7 +92,7 @@ def mcpltool_stats(filename,skip,limit,pick,edit,outfn,backend,bad):
 
 def mcpltool_hist(filelist,histstr,skip,limit,pick,edit,outfn,backend,terminal,bad,
                   color=None):
-    from ._histogram import _parse_hist, histogram, histogram2d
+    from ._histogram import _histogram, _parse_hist
     if not filelist:
         bad("No input file specified")
     try:
@@ -109,18 +116,9 @@ def mcpltool_hist(filelist,histstr,skip,limit,pick,edit,outfn,backend,terminal,b
             res = bk.resolution()
             if res is not None:
                 maxbins = tuple(res) if len(exprs) == 2 else res[0]
-    bins = o['bins'] or 'auto'
     sources = [ _view(fn,skip,limit,pick,edit) for fn in filelist ]
     try:
-        if len(exprs) == 2:
-            h = histogram2d(sources,exprs[0],exprs[1],bins=bins,
-                            xrange=o['xrange'],yrange=o['yrange'],
-                            unweighted=o['unweighted'],_maxbins=maxbins)
-        else:
-            h = histogram(sources,exprs[0],bins=bins,range=o['range'],
-                          _maxbins=maxbins,logx=o['logx'],
-                          unweighted=o['unweighted'],split=o['split'],
-                          lethargy=o['lethargy'])
+        h = _histogram(sources,o,_maxbins=maxbins)
     except MCPLError as e:
         bad(str(e))
     title = [ f'{what}: {e.expression}' for what, e in (('pick',pick),
@@ -131,12 +129,11 @@ def mcpltool_hist(filelist,histstr,skip,limit,pick,edit,outfn,backend,terminal,b
     if o['print']:
         print(h.to_text())
         return
-    kw = {} if len(exprs) == 2 else { 'logy' : o['logy'] }
     try:
         if maxbins is not None and hasattr(bk,'_fit_resolution'):
             #(draw the bins exactly, with a whole number of columns each):
             bk._fit_resolution(h._display_bins)
-        files = h.plot(filename=outfn,backend=bk,**kw)
+        files = h.plot(filename=outfn,backend=bk)
     except MCPLError as e:
         bad(str(e))
     if files:

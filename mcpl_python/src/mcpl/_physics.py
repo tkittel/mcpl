@@ -82,6 +82,33 @@ _particle_names = { 'neutron' : 2112, 'antineutron' : -2112,
                     'muon' : 13, 'antimuon' : -13,
                     'gamma' : 22, 'photon' : 22 }
 
+#Symbols of particles for plots (legends and other decorations, never texts
+#which might be copied, like the names in expressions):
+_pdg_symbols = { 'gamma' : '\u03b3', 'e-' : 'e\u207b', 'e+' : 'e\u207a',
+                 'mu-' : '\u03bc\u207b', 'mu+' : '\u03bc\u207a', 'tau-' : '\u03c4\u207b',
+                 'tau+' : '\u03c4\u207a', 'pi+' : '\u03c0\u207a', 'pi-' : '\u03c0\u207b',
+                 'pi0' : '\u03c0\u2070', 'K+' : 'K\u207a', 'K-' : 'K\u207b',
+                 'nu_e' : '\u03bd\u2091', 'alpha' : '\u03b1' }
+
+def _pdg_name( pdgcode, unicode = False ):
+    """Name of a particle type, like "n" (with the symbol for plots, like "\u03b3", if
+    unicode is set), or None if unknown"""
+    name = _pdg_database(int(pdgcode))
+    return _pdg_symbols.get(name,name) if unicode else name
+
+def _pdg_label( pdgcode, unicode = False ):
+    """Label of a particle type, like "n (2112)" (or "2112" if unknown, see
+    _pdg_name for unicode)"""
+    name = _pdg_name(pdgcode,unicode)
+    return f'{name} ({int(pdgcode)})' if name else str(int(pdgcode))
+
+def _ascii_symbols( text ):
+    """The text with the symbols of particles for plots (see _pdg_symbols)
+    replaced by their names, for plots in ASCII"""
+    for name, sym in sorted( _pdg_symbols.items(), key = lambda kv : -len(kv[1]) ):
+        text = text.replace(sym,name)
+    return text
+
 def wavelength_from_ekin(ekin, pdgcode = 2112):
     """Convert kinetic energy [MeV] to (de Broglie) wavelength [Aa] for
     neutrons (pdgcode 2112) and gammas (pdgcode 22), using the CODATA 2022

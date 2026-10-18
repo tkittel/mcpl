@@ -78,9 +78,12 @@ class Hist2D:
         self.logz = logz
 
 class Bars:
-    """Bar chart with a bar for each label (horizontal if horizontal is set)."""
-    def __init__( self, labels, values, horizontal = False ):
+    """Bar chart with a bar for each label (horizontal if horizontal is set).
+    The colors are indices into the colour cycle of the backend, one for each
+    bar (by default all bars have the first colour)."""
+    def __init__( self, labels, values, horizontal = False, colors = None ):
         self.labels, self.values, self.horizontal = labels, values, horizontal
+        self.colors = colors
 
 class Text:
     """Message shown in the middle of a panel (e.g. "No data")."""
@@ -100,6 +103,25 @@ class Panel:
         """Add an item (e.g. a StepHist) to the panel, and return it"""
         self.items.append(item)
         return item
+
+def _map_texts( figure, fct ):
+    """Copy of the figure with the function applied to all its texts (titles,
+    labels and texts)"""
+    import copy
+    fig = copy.deepcopy(figure)
+    def f( t ):
+        return fct(t) if isinstance(t,str) else t
+    fig.title = f(fig.title)
+    for p in fig.panels:
+        p.title, p.xlabel, p.ylabel = f(p.title), f(p.xlabel), f(p.ylabel)
+        for item in p.items:
+            if isinstance(item,StepHist):
+                item.label = f(item.label)
+            elif isinstance(item,Bars):
+                item.labels = [ f(lbl) for lbl in item.labels ]
+            elif isinstance(item,Text):
+                item.text = f(item.text)
+    return fig
 
 class Figure:
     """Figure (page) with panels arranged in a grid of nrows x ncols."""

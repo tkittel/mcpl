@@ -1,0 +1,6 @@
+interactive figure shown: True warning: ''
+axes of the overview: 7 clickable: 6
+view after clicking the 4th plot: overview:position selected in the list: True
+x range after the pick, zoom kept: (np.float64(-50.0), np.float64(50.0))
+x range of another view, not zoomed: True
+window, after changing the limit: log (np.float64(1.0), np.float64(100.0))

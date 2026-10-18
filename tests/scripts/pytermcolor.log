@@ -16,11 +16,13 @@ Number of colours (stream is a terminal or not):
 no colours: 'X'
 256 colour codes of black, white, grey, red: [16, 231, 244, 196]
 unicode 1D: colours used: True, same text without them: True
-unicode split: colours used: True, same text without them: True
+unicode split: colours used: True, same text without them: False
+   braille lines: True
 unicode 2D: colours used: True, same text without them: False
    half blocks: True
 unicode overview: colours used: True, same text without them: False
    half blocks: True
+   braille lines: True
 ascii 1D: colours used: True, same text without them: True
 ascii split: colours used: True, same text without them: True
 ascii 2D: colours used: True, same text without them: True
@@ -38,9 +40,9 @@ mcpltool -H ekin/MeV;bins=5 --color=sometimes : exit code 1, colours: False
    | ERROR: --color must be auto, always or never.
 mcpltool -H ekin/MeV;bins=5 --color=always -o x.txt : exit code 1, colours: False
    | ERROR: --color can not be used with -o (plots are saved without colours).
-mcpltool -H ekin/MeV;bins=5;print --color=always : exit code 1, colours: False
+mcpltool -H ekin/MeV;bins=5;print=1 --color=always : exit code 1, colours: False
    | ERROR: The histogram option print can not be used together with -o, -B, -t or --color.
 mcpltool -S --color=always : exit code 1, colours: False
-   | ERROR: --color can only be used with -H.
+   | ERROR: --color can only be used with -H or -w.
 mcpltool -H ekin/MeV;bins=5 -t --color=always --color=never : exit code 1, colours: False
    | ERROR: --color specified more than once

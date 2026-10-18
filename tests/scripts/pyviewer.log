@@ -1,0 +1,222 @@
+skip=0 limit=None pick=None edit=None:
+   example.mcpl: 1006/1006 particles (100.0%), Σw = 1006 (100.0%)
+   25 views, same figures as mcpltool -S and -H: True
+skip=0 limit=None pick='pdgcode == neutron' edit=None:
+   example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   25 views, same figures as mcpltool -S and -H: True
+skip=100 limit=500 pick='ekin > 1MeV' edit='z += 1m':
+   example.mcpl: 196/500 particles (39.2%), Σw = 196 (39.2%)
+   25 views, same figures as mcpltool -S and -H: True
+skip=0 limit=None pick='mod(fileidx,3) == 0' edit='weight *= 2':
+   example.mcpl: 336/1006 particles (33.4%), Σw = 672 (66.8%)
+   25 views, same figures as mcpltool -S and -H: True
+views: overview:ekin, overview:wavelength, overview:direction, overview:position, overview:time, overview:pdgcode, pdgcode, userflags, ekin, x, y, z, ux, uy, uz, time, weight, polx, poly, polz
+check('skip','10'): (True, '')
+check('skip','x'): (False, 'Skip must be a number of particles')
+check('limit','all'): (True, '')
+check('limit','-5'): (False, 'Limit must be a number of particles (or all)')
+check('limit',' 1e6 '): (True, '')
+check('limit','2.5e3'): (True, '')
+check('limit','1.5'): (False, 'Limit must be a number of particles (or all)')
+check('limit','1e400'): (False, 'Limit must be a number of particles (or all)')
+check('limit','nan'): (False, 'Limit must be a number of particles (or all)')
+check('pick','pdgcode == neutron'): (True, '')
+check('pick','x > 1'): (False, 'Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 1"')
+check('pick','x > 0 && y > 0'): (False, 'Use "and" instead of "&&" in expressions (e.g. "x > 0 and y > 0"), in expression "x > 0 && y > 0"')
+check('edit','z += 1cm;weight *= 0.5'): (True, '')
+check('edit','x = 2'): (False, 'Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x = 2"')
+check('edit','fileidx = 1'): (False, 'fileidx (the position of the particles in the file) can not be changed, in "fileidx = 1"')
+check('plot','ekin/MeV;logx=1'): (True, '')
+check('plot','ekin'): (True, '')
+check('plot','ekin/MeV;print=1'): (False, 'The histogram option print can not be used in the viewer')
+check('plot',''): (False, 'Give an expression to plot, e.g. ekin/MeV')
+check('plot','x/cm : y/cm;range=1:2'): (False, 'Histogram option "range" can only be used for 1D histograms (use xrange and yrange), in "x/cm : y/cm;range=1:2"')
+complete('pick','pdgcode == neu'): (11, [('neutron', 'PDG code 2112')])
+complete('pick','ek'): (0, [('ekin', 'kinetic energy (an energy)')])
+complete('pick','sq'): (0, [('sqrt(', 'square root')])
+complete('edit','rot'): (0, [('rotate_x(', 'rotate around the x axis'), ('rotate_y(', 'rotate around the y axis'), ('rotate_z(', 'rotate around the z axis')])
+complete('plot','ekin/MeV;lo'): (9, [('logx=', 'logarithmic x axis'), ('logy=', 'logarithmic y axis')])
+complete('plot','hyp'): (0, [('hypot(', 'sqrt(a^2+b^2+...) (same unit)')])
+complete('skip','1'): (1, [])
+hint('ekin > 1MeV',2): ekin  kinetic energy (an energy)
+hint('pdgcode == gamma',None): gamma  PDG code 22
+hint('x',None): x  x coordinate of the position (a length)
+hint('1 + 2',None): None
+hint line while editing plot with '': ('Give an expression to plot, e.g. ekin/MeV  (Tab: complete)', 'error')
+hint line while editing plot with 'ek': ('Unknown name "ek" in expression "ek" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)  (Tab: complete)', 'error')
+hint line while editing plot with 'ekin/MeV': ('hint: MeV  energy unit  (Tab: complete)', 'dim')
+hint line while editing skip with 'x': ('Skip must be a number of particles', 'error')
+completions of "e": ['ekin', 'electron', 'eV', 'exp('] chosen: eV | list line: ekin  electron  [eV]  exp( | popup line: Up/Down: choose   Enter or Tab: insert   Esc: close
+Enter inserts it: None 'eV' completions left: []
+Up from the first wraps to: angle_to( | Esc closes without inserting: None '' []
+unknown view: Unknown view "foo" (the views are: overview:ekin, overview:wavelength, overview:direction, overview:position, overview:time, overview:pdgcode, pdgcode, userflags, ekin, x, y, z, ux, uy, uz, time, weight, polx, poly, polz, overview)
+invalid pick: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 1"
+view shown first: ('ekin', 'ekin')
+('example.mcpl: 1006/1006 particles (100.0%), Σw = 1006 (100.0%)', '')
+set('pick','pdgcode == gamma'): True, ('example.mcpl: 239/1006 particles (23.8%), Σw = 239 (23.8%)', '')
+set('skip','1000'): True, ('example.mcpl: 0/6 particles (0.0%), Σw = 0 (0.0%)', 'error: no particles picked')
+set('limit','3'): True, ('example.mcpl: 0/3 particles (0.0%), Σw = 0 (0.0%)', 'error: no particles picked')
+set('pick','x > 1km'): True, ('example.mcpl: 0/3 particles (0.0%), Σw = 0 (0.0%)', 'error: no particles picked')
+set('pick',''): True, ('example.mcpl: 3/3 particles (100.0%), Σw = 3 (100.0%)', '')
+set('skip','0'): True, ('example.mcpl: 3/3 particles (100.0%), Σw = 3 (100.0%)', '')
+set('limit',''): True, ('example.mcpl: 1006/1006 particles (100.0%), Σw = 1006 (100.0%)', '')
+views after adding plots: ['plot:time/ms;logx=1', 'plot:ekin/MeV'] current: plot:time/ms;logx=1
+limit 1e3: 1e3 mcpltool -w -l1000 -H "time/ms;logx=1" -H "ekin/MeV" example.mcpl
+history of pick: ['pdgcode == gamma', 'x > 1km']
+command view: mcpltool -w -H "time/ms;logx=1" -H "ekin/MeV" example.mcpl
+command extract: mcpltool -e example.mcpl example_selected.mcpl.gz
+commands of the overview: {'view': 'mcpltool -w -H "time/ms;logx=1" -H "ekin/MeV" example.mcpl', 'extract': 'mcpltool -e example.mcpl example_selected.mcpl.gz'}
+same pick, written differently: (True, '') restarted: False 'pdgcode==neutron'
+limit 1e3 then 1000: (True, '') (True, '') restarts: 1
+same plot, written differently: (True, '') plots: ['ekin/MeV;logx=1;bins=50'] current: plot:ekin/MeV;logx=1;bins=50
+changed to the same plot: (True, '') plots: ['ekin/MeV;logx=1;bins=50']
+unchanged: (True, '') ['plot:time/ms;logx=1', 'plot:ekin/MeV'] current: plot:ekin/MeV
+change to keV: (True, '') ['plot:time/ms;logx=1', 'plot:ekin/keV'] current: plot:ekin/keV
+change to an existing plot: (True, '') ['polz', 'plot:time/ms;logx=1']
+invalid change: (False, 'Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)')
+unknown plot: (False, 'No added plot "nope"')
+remove: (True, '') ['polz'] current: polz
+suggested name: example_selected.mcpl.gz
+dry run: MCPL: Would extract 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz
+files after the dry run: []
+written: MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz
+next suggested name: example_selected2.mcpl.gz
+next suggested name: example_selected3.mcpl.gz
+existing file: The file example_selected.mcpl.gz already exists
+written file: 726 particles, comments: 'mcpltool: extracted particles with -p "pdgcode == neutron" -E "z += 1m"'
+To open the viewer like this again:
+  mcpltool -w -p "pdgcode == neutron" -E "z += 1m" example.mcpl
+To write the picked and edited particles to a file:
+  mcpltool -e -p "pdgcode == neutron" -E "z += 1m" example.mcpl example_selected3.mcpl.gz
+without pick and edit:
+To open the viewer like this again:
+  mcpltool -w -l100 example.mcpl
+==> keys ['WAIT', 'p', 'p', 'd', 'g', 'c', 'o', 'd', 'e', ' ', '=', '=', ' ', 'n', 'e', 'u', 'Tab', 'Enter', 'WAIT', 'Down', 'Down', 'Down', 'WAIT']:
+   |                         example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   |   overview:ekin
+   |   overview:wavelength                                  pick: pdgcode == neutron
+   |   overview:direction
+   | ▸ overview:position                                            Position
+   |   overview:time         (y: y [cm])
+   |   overview:pdgcode          32.3 ┤            ▄▄    ▄▄▄▄▄▄▀▀▄▄ ▀▀  ▀▀▀▄    ▄▄      ▄▄    ▄▄ ▀▀ ▀ ▀▀
+   |   pdgcode (all 2112)             │              ▄▄  ▀▀▀ ▀▀▀ ▀▀▄   ▄▄▀▀  ▄▄         ▀▀    ▀▀    ▄▄
+   |   userflags (all 0)              │           ▀▀              ▀▀   ▀▀▄▄  ▀▀▄▄               ▄▄  ▀▀ ▀▀
+   |   ekin                           │ ▀▀              ▀▀   ▀▀▄  ▄▀▀     ▄▄▀          ▄▄                   ▀▀
+   |   x                              │         ▄▄ ▀▀ ▄▄          ▀▀      ▀▀    ▄▄▄▄▄  ▀▀     ▀▀
+   |   y                              │         ▀▀  ▀▀▀▀      ▄▄       ▀▀▀   ▄▄  ▀▀▀▀▀▀▀         ▀▀           ▀▀
+   |   z (all 20 cm)                  │   ▀▀▄▄      ▄▄  ▄▄    ▄▄ ▄▀▀▄▀▀▀▄▄    ▀▀   ▀▀▀▄  ▄▄  ▀▀ ▀▀  ▄▀▀   ▄▄
+   |   ux                             │▄    ▄▄      ▄▄▄▄▄▄ ▄▄▄▀▀▀▀▀▀▀▀▄▄▄  ▄▄▀▀ ▀▀▄▄▄▄  ▄▀▀▄ ▄▄▄▄   ▀▀▄    ▄▄
+   |   uy                             │▀    ▀▀      ▀▀▀▀  ▄▀▀▀▀▀▀▀▄ ▀▀▀▀▀▀▄▄▀▀▀▀▀▀▀▀▀▀▀▀▀▄▀▀ ▀▀▀▀    ▀▀▀▀
+   |   uz                             │          ▄▄  ▀▀▄▄▀▀▀▀▀▀▀▀▀▀▀▄▀▀▄▀▀▄▄▀▀▀▀▄▄▄ ▄▀▀▄▀▀▀▀▀▀▀▀▀▀▄▄▀▀
+   |   time                           │ ▄▄  ▄▄        ▄▀▀       ▀▀▀▀▄▀▀▄▄▀▀▀▀▀▀▀ ▄▄▄▀▀▄▀▀   ▀▀▀▀▄▀▀▀ ▄▄▄
+   |   weight (all 1)                 │▄           ▀  ▀▀ ▀▀▄   ▀▄▀▀▀▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀     ▀▀ ▄▄▀▀▀▀     ▀▀
+   |   polx (all 0)                   │▄▄       ▄▄      ▄▄▄  ▀▀▄ ▀▀▀▀▄▀▀▀▀▀▀▀▀▀▀▄▄▄▀▀▄▄▄▄▀▀▄▄▀▀ ▀▀▀▀▀▀          ▀
+   |   poly (all 0)                   │   ▀▀    ▀▀▄▄▄▄▄▄▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▄▀▀▄  ▀▀ ▄▄     ▄▄
+   |   polz (all 0)                   │         ▀▀  ▀▀ ▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄▀▀▀ ▀▀ ▀▀▄▀▀  ▀▀
+   |                                  │      ▀▀    ▀▀▄     ▀▀   ▀▀▄▀▀▄▀▀▀▀▀▀▀▀▄▀▀▀▄  ▀▀▄▀ ▀▀▄▀▀ ▀▀▀▀▀      ▄▄
+   |                                  │ ▀▀       ▀▀       ▄▄  ▀▀▀ ▀▀ ▀▀▀▀▀▀▀▀▀▀▀▄▀▀▀▀▀▀▀▀     ▀▀    ▄▀▀   ▄▄▀▀
+   |                                  │                      ▀▀▀▄▀▀ ▀▀▀▀▀▀▀ ▀▀▀ ▀▀▀▀▀▀▀▀▀▄▄▀▀▀▀ ▀▀ ▄▄
+   |                                  │▄▀▀           ▀▀▀    ▀▀  ▀▀▀▄       ▄▀ ▀▀▄▀▀▀▀▀  ▄▄          ▀ ▄▄
+   |                                  │    ▄▄        ▄▄         ▄▄   ▀▀  ▀▀▀ ▄▄▀▀▄▄▀▀       ▄▄
+   |                                  │    ▀▀▀       ▀▀         ▀▀      ▀▀ ▀▄▄▀▀ ▀▀▄      ▀▀▀▀
+   |                                  │  ▀▀  ▄▄          ▀▀▀▀  ▀▀          ▄                 ▀▀     ▀
+   |                                  │      ▀▀                       ▀▀   ▀   ▄▄      ▀▀    ▀▀▀  ▄▄
+   |                           -25.46 ┤    ▀▀       ▀▀                  ▄▄     ▀▀                 ▀▀
+   |                                  └┬────────────────────────────────────────────────────────────────────────┬
+   |                                  -27.99                            -0.1708                             27.64
+   |                                                                     x [cm]
+   |                         per cell: 0.005 ██████████ 0.1154 ██████████ 2.665 (log scale)
+   |  Skip: [0]
+   |  Limit: [all]
+   |  Pick: [pdgcode == neutron]
+   |  Edit: [no changes]
+   |  Add plot: [e.g. hypot(x,y)/cm;logy=1]
+   | 
+   |  [Write file...]  [Help]  [Quit]
+==> keys ['WAIT', 'e', 'x', ' ', '=', ' ', '2', 'WAIT']:
+   |                         example.mcpl: 1006/1006 particles (100.0%), Σw = 1006 (100.0%)
+   | ▸ overview:ekin
+   |   overview:wavelength                                       Kinetic energy
+   |   overview:direction       33.76 ┤                     ⢠⡄ ⣀⡴⠶⠛⣦⠞⢹⡏⢹
+   |   overview:position              │                     ⡞⢳⡞⠙⠃    ⠘⠃⢸
+   |   overview:time                  │                   ⢰⣾⠁     ⢰⡆   ⢈⣷⡆
+   |   overview:pdgcode               │                  ⢀⡏⠛      ⢸⡇⣰⠚⠳⣼ ⠿⢻⣆   ⣤
+   |   pdgcode                        │                  ⢸        ⣸⠹⠇  ⠛  ⠸⠾⡆⣤⡄⣿
+   |   userflags (all 0)              │              ⢀⣿⣠⡄⡏        ⡇         ⣧⣿⣇⣿⡇
+   |   ekin                           │              ⣸  ⣿⠁      ⢠⠏⠁         ⣿⢸⢸⡟⣧⢤    ⢠⡄ ⢸⡇
+   |   x                              │              ⡇  ⠛       ⢸           ⠛⢸⢸⠁⣿⠈⡇⣤ ⡖⠋⢳ ⣸⡇⣶
+   |   y                              │          ⢰⡆  ⡇          ⠉            ⢸⡞ ⠙⡆⣿⠙⡆⡇ ⠈⡇⡇⣧⢿  ⣶                 ⢰
+   |   z (all 20 cm)                  │         ⣀⢸⢧⣀⣀⡇                  ⢀⡀⣀  ⢸⡇  ⡇⣿ ⠛⠁  ⣇⡇⠉⢸⢀⣸⢹ ⣀     ⣀         ⢸
+   |   ux                             │         ⣿⢸                      ⢸⡇⣿  ⡇   ⢳⣷⢲       ⢸⢸ ⢸ ⣿     ⣿         ⢸
+   |   uy                             │         ⣿⢸                      ⢸⡇⣿  ⡇   ⢸⣿⢸       ⠸⠏ ⢸ ⡏⡇    ⡟⡆        ⠉
+   |   uz                             │⠒⠂       ⣿⣸       ⠐⡆    ⣰⡆  ⢰⢲   ⢸⣷⣿⣷⠈⡗⣦ ⣰⡆⣿⡞⡆⣶⢰⢲⢀⡀⣀⠠⡄ ⡞⢺⡗⢷⢲⢲  ⣷⢳⣶⣶⢰⡆
+   |   time                           │         ⣿⡇        ⡇   ⢀⣿⡇  ⠚⢸   ⠉⣿⢸⣿ ⡇⣿ ⣿⡇⣿⠇⡇⣿⢺⠸ ⡇⢸ ⡇ ⡇⢸⡇⢸⢸⢸  ⣿⢸⡟⣿⢸⡇
+   |   weight (all 1)                 │        ⢀⣿⡇        ⡇    ⢸⡇   ⢸    ⣿⢸⣿⠠⠇⡟⠈⢹⡇⣿ ⡇⣿⢸   ⠈ ⠃⢀⡇⠼⡇⢸⠉⢸  ⣿⢸⡇⣿⢸⡇
+   |   polx (all 0)                   │                        ⢸⡇   ⢸    ⣿⢸⡇  ⠁ ⢸⡇⣿ ⡇⣿⢸         ⡇⢸ ⢸ ⠠⣿⢸⡇⣿⢸⡇
+   |   poly (all 0)                   │                        ⢸⠃   ⢸    ⣿⢸⡇    ⢸ ⡟ ⣇⣿⣸         ⡇⢸    ⣿⣸⣇⣿⡞⡇
+   |   polz (all 0)                   │                        ⢸    ⢸    ⣿⢸⡇    ⢸ ⡇ ⠘⠛⠃         ⡇⢸   ⢀⡇⠛⠃⢸⡇⡇
+   |                                  │                        ⠼         ⠿⢸⡇    ⢸⠠⠇             ⡇⢸         ⠇
+   |                                  │                                   ⢸⡇    ⠼               ⡇⢸
+   |                                  │                                   ⢸⡇                    ⡇⢸
+   |                                  │                                   ⢸⡇                    ⡇⠉
+   |                                  │                                   ⢸⡇                    ⡇
+   |                                  │                                   ⠸⠇                   ⠠⠇
+   |                                  │
+   |                             0.02 ┤
+   |                                  └┬────────────────────────────────────────────────────────────────────────┬
+   |                                  0.001393                           3.681                               9725
+   |                                                                   ekin [MeV]
+   |                         ━━ n (2112)   ━━ γ (22)     ━━ e⁻ (11)    ━━ p (2212)   ━━ e⁺ (-11)   ━━ other
+   | 
+   |  Skip: [0]
+   |  Limit: [all]
+   |  Pick: [all particles]
+   |  Edit: [no changes]
+   |  Add plot: [e.g. hypot(x,y)/cm;logy=1]
+   | 
+   |  [Write file...]  [Help]  [Quit]
+==> keys ['WAIT', 'a', 'h', 'y', 'p', 'o', 't', '(', 'x', ',', 'y', ')', '/', 'c', 'm', ';', 'l', 'o', 'Tab', 'y', '=', '1', 'Enter', 'WAIT']:
+   views: plot:hypot(x,y)/cm;logy=1 current: plot:hypot(x,y)/cm;logy=1
+==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'k', 'e', 'V', 'Enter', 'WAIT']:
+   changed with Enter: plot:ekin/keV current: plot:ekin/keV
+==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Enter', 'WAIT']:
+   Enter twice keeps the plot: plot:ekin/MeV current: plot:ekin/MeV
+   Enter on an added plot, editing: 'ekin/MeV' | hint line when emptied: ('Enter: remove this plot   Esc: cancel', 'dim') True
+==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Enter', 'WAIT']:
+   removed with an empty text: polz current: polz
+   Enter on another view, editing: False
+==> keys ['WAIT', 'h']:
+==> keys ['WAIT', 's', '1', '2', 'Esc', 'i', '5', '0', 'Enter', 'WAIT', 'p', 'Up', 'Esc']:
+   skip, limit: '' '50' example.mcpl: 50/50 particles (100.0%), Σw = 50 (100.0%)
+==> keys ['WAIT', ('Mouse', 2, 3, True), 'WAIT']:
+   view after clicking on line 3: overview:direction
+==> keys ['WAIT', 'p', 'x', 'Ctrl-C', 'p', 'y']:
+   Ctrl-C quits like q, while editing a field: '' running: False
+==> keys ['WAIT', 'a', 'e', 'Tab', 'Down']:
+   popup of the completions:
+   | ┌──────────────────────────────────────┐
+   | │ekin      kinetic energy (an energy)  │
+   | │electron  PDG code 11                 │
+   | │eV        energy unit, 1e-6 MeV       │
+   | │exp(      exponential (a without unit)│
+   | └──────────────────────────────────────┘
+==> keys ['WAIT', 'p', 'p', 'd', 'g', 'c', 'o', 'd', 'e', ' ', '=', '=', ' ', 'n', 'e', 'u', 'WAIT']:
+   ascii backend, only ASCII characters: True | selected view: ['> overview:pdgcode         p (2212) (0.99%) |# 10']
+ANSI segments: [('ab', None, None), ('cd', 1, None), ('e', None, None), ('f', 2, 1)]
+mcpltool -w -S: exit code 1
+   | ERROR: -w and -S can not be used together.
+mcpltool -w -o x.pdf: exit code 1
+   | ERROR: -o can only be used with -S or -H.
+mcpltool -H x/cm -H y/cm: exit code 1
+   | ERROR: -H specified more than once (several plots are only possible with -w)
+mcpltool -w -B ascii: exit code 1
+   | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
+mcpltool --view=foo: exit code 1
+   | ERROR: Unknown view "foo" (the views are: overview:ekin, overview:wavelength, overview:direction, overview:position, overview:time, overview:pdgcode, pdgcode, userflags, ekin, x, y, z, ux, uy, uz, time, weight, polx, poly, polz, overview)
+mcpltool -w --color=always: exit code 1
+   | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
+mcpltool -w -p x > 1: exit code 1
+   | ERROR: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 1"
+mcpltool -wekin -w: exit code 1
+   | ERROR: -w specified more than once
+mcpltool -w with two files: ERROR: The viewer shows one file (-w can only be used with one file).

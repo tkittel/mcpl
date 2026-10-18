@@ -243,19 +243,6 @@ def collect_stats(mcplfile,stats='all',bin_data=True,pick=None):
     with stat names as key and the collected statistics as values. If pick
     is given (an expression or a ParticleFilter), only the picked particles
     are included."""
-
-    #Normal stats (will be used weighted, except for stats about the weight field itself):
-    possible_std_stats = set(_possible_std_stats)
-    #Stats for which distributions are less likely to be relevant, so unique
-    #values and their frequency will be returned instead:
-    possible_freq_stats = set(_possible_freq_stats)
-
-    if stats=='all':
-        stats = possible_std_stats.union(possible_freq_stats)
-
-    if not isinstance(stats,set):
-        stats = set(stats)
-
     if not isinstance(mcplfile,(MCPLFile,_PickedFile)):
         mcplfile = MCPLFile(mcplfile)
     if pick is not None or ( isinstance(mcplfile,MCPLFile) and (
@@ -266,182 +253,225 @@ def collect_stats(mcplfile,stats='all',bin_data=True,pick=None):
                  if pick is None else
                  "Can not calculate stats when no particles are picked")
         return {}
-
-    unknown = stats.difference(possible_std_stats.union(possible_freq_stats))
-    if unknown:
-        raise MCPLError('Unknown stat names requested: "{}"'.format('","'.join(unknown)))
-
-    #Some stats might be constant for all particles in the file:
-    constant_stats_available = set()
-    if mcplfile.opt_universalpdgcode:
-        constant_stats_available.add('pdgcode')
-    if not mcplfile.opt_userflags:
-        constant_stats_available.add('userflags')
-    if mcplfile.opt_universalweight:
-        constant_stats_available.add('weight')
-    if not mcplfile.opt_polarisation:
-        constant_stats_available |= {'polx','poly','polz'}
-    cnst_stats = constant_stats_available.intersection(stats)
-    stats = stats.difference(cnst_stats)
-
-    std_stats = sorted(stats.difference(constant_stats_available).intersection(possible_std_stats))
-    freq_stats = sorted(stats.difference(constant_stats_available).intersection(possible_freq_stats))
-
-    if not std_stats and not freq_stats and not cnst_stats:
-        raise MCPLError('No stats requested')
-
-    weight_sum = mcplfile.nparticles * mcplfile.opt_universalweight if mcplfile.opt_universalweight else None
-
-    nbins = 100 if mcplfile.nparticles < 1000 else 200
-
-    if nbins%2==0:
-        nbins += 1#ensure nbins is odd (makes some stuff below easier)
-
-    collected_stats={}
-    if std_stats:
-        #Unfortunately we need a pass-through in order to collect
-        #statistics for histogram ranges:
-        for s in std_stats:
-            collected_stats[s] = _StatCollector()
+    acc = _StatsAccumulator(mcplfile,stats,bin_data)
+    if acc.needs_pass1:
         for pb in mcplfile.particle_blocks:
-            vals_weight=pb.weight
-            for s,sc in collected_stats.items():
-                if s=='weight':
-                    sc.add_data(vals_weight)
-                else:
-                    sc.add_data(getattr(pb,s),vals_weight)
-    ranges={}
-    for s,sc in collected_stats.items():
-        if weight_sum is None and s!='weight':
-            weight_sum = sc['integral']
-        ranges[s] = [max(sc['min'],sc['mean']-2*sc['rms']),
-                     min(sc['max'],sc['mean']+2*sc['rms'])]
-        if not ranges[s][0]<ranges[s][1]:
-            ranges[s] = (ranges[s][0]-1.0,ranges[s][1]+1.0)
+            acc.add1(pb)
+    acc.start2(mcplfile.nparticles)
+    if acc.needs_pass2:
+        for pb in mcplfile.particle_blocks:
+            acc.add2(pb)
+    elif acc.needs_weight_sum:
+        for pb in mcplfile.particle_blocks:
+            acc.add_weights(pb)
+    return acc.result()
 
-    hists={}
-    outside={}
-    ov = _Overview(collected_stats,ranges,nbins) if bin_data else None
-    if ov and not ov.enabled:
-        ov = None
-    freq_uc={s: (np.asarray([],dtype=int),np.asarray([],dtype=float)) for s in freq_stats}
-    if (std_stats and bin_data) or freq_stats:
-        #pass through and collect data:
+class _StatsAccumulator:
+    """The statistics of collect_stats, collected from the particle blocks
+    given to add1 (first pass, for the ranges of the histograms), and then,
+    after start2, to add2 (second pass). If neither pass is needed, the blocks
+    are instead given to add_weights, if needs_weight_sum. The file (an
+    MCPLFile or a view of one) is only used for its header information."""
+
+    def __init__(self,mcplfile,stats='all',bin_data=True):
+        #Normal stats (will be used weighted, except for stats about the weight field itself):
+        possible_std_stats = set(_possible_std_stats)
+        #Stats for which distributions are less likely to be relevant, so unique
+        #values and their frequency will be returned instead:
+        possible_freq_stats = set(_possible_freq_stats)
+
+        if stats=='all':
+            stats = possible_std_stats.union(possible_freq_stats)
+
+        if not isinstance(stats,set):
+            stats = set(stats)
+
+        unknown = stats.difference(possible_std_stats.union(possible_freq_stats))
+        if unknown:
+            raise MCPLError('Unknown stat names requested: "{}"'.format('","'.join(unknown)))
+
+        #Some stats might be constant for all particles in the file:
+        constant_stats_available = set()
+        if mcplfile.opt_universalpdgcode:
+            constant_stats_available.add('pdgcode')
+        if not mcplfile.opt_userflags:
+            constant_stats_available.add('userflags')
+        if mcplfile.opt_universalweight:
+            constant_stats_available.add('weight')
+        if not mcplfile.opt_polarisation:
+            constant_stats_available |= {'polx','poly','polz'}
+        cnst_stats = constant_stats_available.intersection(stats)
+        stats = stats.difference(cnst_stats)
+
+        std_stats = sorted(stats.difference(constant_stats_available).intersection(possible_std_stats))
+        freq_stats = sorted(stats.difference(constant_stats_available).intersection(possible_freq_stats))
+
+        if not std_stats and not freq_stats and not cnst_stats:
+            raise MCPLError('No stats requested')
+
+        self._f = mcplfile
+        self._bin_data = bin_data
+        self._std, self._freq, self._cnst = std_stats, freq_stats, cnst_stats
+        self.collected_stats = {}
+        if std_stats:
+            #Unfortunately we need a pass-through in order to collect
+            #statistics for histogram ranges:
+            for s in std_stats:
+                self.collected_stats[s] = _StatCollector()
+        self.needs_pass1 = bool(std_stats)
+        self.needs_pass2 = bool( (std_stats and bin_data) or freq_stats )
+
+    def add1(self,pb):
+        vals_weight=pb.weight
+        for s,sc in self.collected_stats.items():
+            if s=='weight':
+                sc.add_data(vals_weight)
+            else:
+                sc.add_data(getattr(pb,s),vals_weight)
+
+    def start2(self,nparticles):
+        """Prepare for the second pass, for a file with nparticles particles"""
+        mcplfile = self._f
+        self._n = nparticles
+        uw = mcplfile.opt_universalweight
+        self._weight_sum = nparticles * uw if uw else None
+        nbins = 100 if nparticles < 1000 else 200
+        if nbins%2==0:
+            nbins += 1#ensure nbins is odd (makes some stuff below easier)
+        self._nbins = nbins
+        ranges={}
+        for s,sc in self.collected_stats.items():
+            if self._weight_sum is None and s!='weight':
+                self._weight_sum = sc['integral']
+            ranges[s] = [max(sc['min'],sc['mean']-2*sc['rms']),
+                         min(sc['max'],sc['mean']+2*sc['rms'])]
+            if not ranges[s][0]<ranges[s][1]:
+                ranges[s] = (ranges[s][0]-1.0,ranges[s][1]+1.0)
+        self._ranges = ranges
+        self._hists={}
+        self._outside={}
+        ov = _Overview(self.collected_stats,ranges,nbins) if self._bin_data else None
+        if ov and not ov.enabled:
+            ov = None
+        self._ov = ov
+        self._freq_uc={s: (np.asarray([],dtype=int),np.asarray([],dtype=float)) for s in self._freq}
+        self._sumw = 0.0
+        self.needs_weight_sum = self._weight_sum is None and not self.needs_pass2
+
+    def add2(self,pb):
+        freq_stats, freq_uc = self._freq, self._freq_uc
+        ranges, nbins, hists, outside = self._ranges, self._nbins, self._hists, self._outside
+        vals_weight = pb.weight
+        disable=[]
+        for s in freq_stats:
+            uc_block = _unique_count(getattr(pb,s),vals_weight)
+            freq_uc[s] = _merge_unique_count(freq_uc[s],uc_block)
+            if len(freq_uc[s][0])>10000:
+                _warning(f"Too many unique values in {s} field. Disabling {s} statistics")
+                disable+=[s]
+        for s in disable:
+            del freq_uc[s]
+            freq_stats.remove(s)
+        for s in (self._std if self._bin_data else []):
+            vals = getattr(pb,s) if s!='weight' else vals_weight
+            w = None if s=='weight' else vals_weight
+            h,bins = np.histogram(vals, bins=nbins, range=ranges[s],
+                                  weights=w)
+            if s in hists:
+                hists[s][0] += h
+            else:
+                hists[s] = [ h, bins ]
+            out = ( vals < ranges[s][0] ) | ( vals > ranges[s][1] )
+            outside[s] = outside.get(s,0.0) + float( np.count_nonzero(out)
+                                                     if w is None else w[out].sum() )
+        if self._ov:
+            self._ov.add(pb)
+        self._sumw += pb.weight.sum()
+
+    def add_weights(self,pb):
+        self._sumw += pb.weight.sum()
+
+    def result(self):
+        mcplfile, bin_data = self._f, self._bin_data
+        cnst_stats, freq_uc = set(self._cnst), dict(self._freq_uc)
+        collected_stats, hists, nbins = dict(self.collected_stats), self._hists, self._nbins
+        weight_sum = self._weight_sum
         if weight_sum is None:
-            sumw = 0.0
-        for pb in mcplfile.particle_blocks:
-            vals_weight = pb.weight
-            disable=[]
-            for s in freq_stats:
-                uc_block = _unique_count(getattr(pb,s),vals_weight)
-                freq_uc[s] = _merge_unique_count(freq_uc[s],uc_block)
-                if len(freq_uc[s][0])>10000:
-                    _warning(f"Too many unique values in {s} field. Disabling {s} statistics")
-                    disable+=[s]
-            for s in disable:
-                del freq_uc[s]
-                freq_stats.remove(s)
-            for s in (std_stats if bin_data else []):
-                vals = getattr(pb,s) if s!='weight' else vals_weight
-                w = None if s=='weight' else vals_weight
-                h,bins = np.histogram(vals, bins=nbins, range=ranges[s],
-                                      weights=w)
-                if s in hists:
-                    hists[s][0] += h
-                else:
-                    hists[s] = [ h, bins ]
-                out = ( vals < ranges[s][0] ) | ( vals > ranges[s][1] )
-                outside[s] = outside.get(s,0.0) + float( np.count_nonzero(out)
-                                                         if w is None else w[out].sum() )
-            if ov:
-                ov.add(pb)
-            if weight_sum is None:
-                sumw += pb.weight.sum()
-        if weight_sum is None:
-            weight_sum = sumw
+            weight_sum = self._sumw
 
-    if weight_sum is None:
-        #apparently we need a run-through for the sole purpose of calculating this...
-        assert not std_stats and not freq_stats
-        weight_sum = 0.0
-        for pb in mcplfile.particle_blocks:
-            weight_sum += pb.weight.sum()
-
-    assert weight_sum is not None
-
-    if cnst_stats:
-        if 'pdgcode' in cnst_stats:
-            assert mcplfile.opt_universalpdgcode
-            cnst_stats.remove('pdgcode')
-            freq_uc['pdgcode'] = (np.asarray([mcplfile.opt_universalpdgcode]),np.asarray([weight_sum]))
-        if 'userflags' in cnst_stats:
-            assert not mcplfile.opt_userflags
-            cnst_stats.remove('userflags')
-            freq_uc['userflags'] = (np.asarray([0]),np.asarray([weight_sum]))
-        if 'weight' in cnst_stats:
-            uw=mcplfile.opt_universalweight
-            assert uw
-            cnst_stats.remove('weight')
-            sc=_StatCollector()
-            sc.add_data(np.asarray([uw],float),np.asarray([mcplfile.nparticles],float))
-            collected_stats['weight']=sc
-            if bin_data:
-                bins = np.linspace(0.0,2.0*uw,nbins+1)
-                h = np.zeros(nbins)
-                assert nbins % 2 != 0#nbins is odd, value falls at bin center below:
-                h[nbins//2] = uw * mcplfile.nparticles#unweighted!
-                hists['weight'] = [ h, bins ]
-        for spol in ('polx','poly','polz'):
-            if spol in cnst_stats:
-                cnst_stats.remove(spol)
+        if cnst_stats:
+            if 'pdgcode' in cnst_stats:
+                assert mcplfile.opt_universalpdgcode
+                cnst_stats.remove('pdgcode')
+                freq_uc['pdgcode'] = (np.asarray([mcplfile.opt_universalpdgcode]),np.asarray([weight_sum]))
+            if 'userflags' in cnst_stats:
+                assert not mcplfile.opt_userflags
+                cnst_stats.remove('userflags')
+                freq_uc['userflags'] = (np.asarray([0]),np.asarray([weight_sum]))
+            if 'weight' in cnst_stats:
+                uw=mcplfile.opt_universalweight
+                assert uw
+                cnst_stats.remove('weight')
                 sc=_StatCollector()
-                sc.add_data(np.asarray([0.0],float),np.asarray([weight_sum],float))
-                collected_stats[spol] = sc
+                sc.add_data(np.asarray([uw],float),np.asarray([self._n],float))
+                collected_stats['weight']=sc
                 if bin_data:
-                    bins = np.linspace(-1.0,1.0,nbins+1)
+                    bins = np.linspace(0.0,2.0*uw,nbins+1)
                     h = np.zeros(nbins)
-                    assert nbins % 2 != 0#nbins is odd, value 0.0 falls at bin center:
-                    h[nbins//2] = weight_sum
-                    hists[spol] = [ h, bins ]
+                    assert nbins % 2 != 0#nbins is odd, value falls at bin center below:
+                    h[nbins//2] = uw * self._n#unweighted!
+                    hists['weight'] = [ h, bins ]
+            for spol in ('polx','poly','polz'):
+                if spol in cnst_stats:
+                    cnst_stats.remove(spol)
+                    sc=_StatCollector()
+                    sc.add_data(np.asarray([0.0],float),np.asarray([weight_sum],float))
+                    collected_stats[spol] = sc
+                    if bin_data:
+                        bins = np.linspace(-1.0,1.0,nbins+1)
+                        h = np.zeros(nbins)
+                        assert nbins % 2 != 0#nbins is odd, value 0.0 falls at bin center:
+                        h[nbins//2] = weight_sum
+                        hists[spol] = [ h, bins ]
 
-    for s in list(freq_uc):
-        #sort by frequency:
-        u,c=freq_uc[s]
-        sortidx=np.argsort(u,kind='mergesort')#the indices that would sort u
-        u,c=u[sortidx],c[sortidx]
-        sortidx=np.argsort(c,kind='mergesort')[::-1]#the indices that would sort c, viewed in reverse order
-        freq_uc[s] = u[sortidx],c[sortidx]
+        for s in list(freq_uc):
+            #sort by frequency:
+            u,c=freq_uc[s]
+            sortidx=np.argsort(u,kind='mergesort')#the indices that would sort u
+            u,c=u[sortidx],c[sortidx]
+            sortidx=np.argsort(c,kind='mergesort')[::-1]#the indices that would sort c, viewed in reverse order
+            freq_uc[s] = u[sortidx],c[sortidx]
 
-    results = { 'file':{'type':'fileinfo','integral':weight_sum,'nparticles':mcplfile.nparticles,
-                        'stat_sum':dict(mcplfile.stat_sum),
-                        'filename':os.path.basename(os.fsdecode(mcplfile._filename))} }
-    if ov:
-        results['overview'] = ov.result()
-    if isinstance(mcplfile,_PickedFile):
-        if mcplfile.pick:
-            results['file']['pick'] = mcplfile.pick
-        if getattr(mcplfile,'edit',None):
-            results['file']['edit'] = mcplfile.edit
-    for s,uc in freq_uc.items():
-        results[s] = { 'unique_values': uc[0], 'unique_values_counts' : uc[1], 'weighted' : True, 'type':'freq' }
+        results = { 'file':{'type':'fileinfo','integral':weight_sum,'nparticles':self._n,
+                            'stat_sum':dict(mcplfile.stat_sum),
+                            'filename':os.path.basename(os.fsdecode(mcplfile._filename))} }
+        if self._ov:
+            results['overview'] = self._ov.result()
+        if isinstance(mcplfile,_PickedFile) or getattr(mcplfile,'_viewer',False):
+            if mcplfile.pick:
+                results['file']['pick'] = mcplfile.pick
+            if getattr(mcplfile,'edit',None):
+                results['file']['edit'] = mcplfile.edit
+        for s,uc in freq_uc.items():
+            results[s] = { 'unique_values': uc[0], 'unique_values_counts' : uc[1], 'weighted' : True, 'type':'freq' }
 
-    units={'ekin': 'MeV','x': 'cm','y': 'cm','z': 'cm','time': 'ms'}
+        units={'ekin': 'MeV','x': 'cm','y': 'cm','z': 'cm','time': 'ms'}
 
-    for s,sc in collected_stats.items():
-        d=sc.as_dict()
-        d.update({'summary':sc.summarise(),
-                  'name':s,
-                  'unit':units.get(s,None),
-                  'weighted': s!='weight',
-                  'type' : 'hist'})
-        if bin_data:
-            h,bins = hists[s]
-            d.update({'hist_bins' : bins,
-                      'hist' : h,
-                      'hist_outside' : outside.get(s,0.0)})
-        results[s] = d
+        for s,sc in collected_stats.items():
+            d=sc.as_dict()
+            d.update({'summary':sc.summarise(),
+                      'name':s,
+                      'unit':units.get(s,None),
+                      'weighted': s!='weight',
+                      'type' : 'hist'})
+            if bin_data:
+                h,bins = hists[s]
+                d.update({'hist_bins' : bins,
+                          'hist' : h,
+                          'hist_outside' : self._outside.get(s,0.0)})
+            results[s] = d
 
-    return results
+        return results
 
 _freq_alt_descr =  {'pdgcode': _pdg_database,
                     'userflags':lambda x : f'0x{x:08x}'}

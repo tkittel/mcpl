@@ -29,8 +29,10 @@ import os
 import warnings
 
 from ._common import MCPLError
+from ._expressions import _domain_note, _expr_field_domains
+from ._histogram import _bars_panel, _top_keys, _value_colors
 from ._numpy import np
-from ._physics import _pdg_database
+from ._physics import _pdg_label, _pdg_name
 from ._plotbackend import PlotBackend
 from ._stats import (
     _freq_alt_descr,
@@ -51,10 +53,8 @@ from .plotting import (
 
 
 def _type_label(k):
-    if k == 'other':
-        return 'other'
-    descr = _pdg_database(k)
-    return f'{descr} ({k})' if descr else str(k)
+    """Label of a particle type in plots (with symbols, see _pdg_symbols)"""
+    return 'other' if k == 'other' else _pdg_label(k,unicode=True)
 
 def _overview_figure(stats):
     """Overview page with energy, wavelength and angle distributions by
@@ -68,7 +68,7 @@ def _overview_figure(stats):
         title += f"\nedit: {info['edit']}"
     fig = Figure( title = title, nrows = 2, ncols = 3 )
     #Same colour for each particle type in all plots:
-    colors = { k : i for i,k in enumerate(ov['ekin']) }
+    colors = _value_colors('pdgcode',list(ov['ekin']))
     def steps(panel,bins,hists):
         for k,h in hists.items():
             if h.any():
@@ -76,11 +76,13 @@ def _overview_figure(stats):
     def nonzero_range(bins,hists):
         nz = np.flatnonzero(sum(h for h in hists))
         return ( bins[nz[0]], bins[nz[-1]+1] ) if len(nz) else None
-    p = fig.add(Panel( title = 'Kinetic energy (weighted)', xlabel = 'ekin [MeV]',
+    p = fig.add(Panel( title = 'Kinetic energy', xlabel = 'ekin [MeV]',
                        logx = ov['ekin_log'], logy = True,
                        xlim = nonzero_range(ov['ekin_bins'],ov['ekin'].values()) ))
     steps(p,ov['ekin_bins'],ov['ekin'])
-    p = fig.add(Panel( title = 'Wavelength of neutrons and gammas (weighted)',
+    #(the wavelength is only defined for some particles, see _expr_field_domains):
+    wl_note = _domain_note([ _expr_field_domains['wavelength'] ],unicode=True)
+    p = fig.add(Panel( title = f'Wavelength {wl_note}',
                        xlabel = 'wavelength [Aa]', logx = True ))
     if ov['wl']:
         lo, hi = [], []
@@ -96,28 +98,30 @@ def _overview_figure(stats):
     else:
         p.logx = False
         p.add(Text('No neutrons or gammas' if ov['ekin_log'] else 'Not available'))
-    p = fig.add(Panel( title = 'Direction (weighted)',
+    p = fig.add(Panel( title = 'Direction',
                        xlabel = 'angle to z axis [degrees]', logy = True,
                        xlim = ( 0.0, 180.0 ) ))
     steps(p,ov['theta_bins'],ov['theta'])
     (x0,x1),(y0,y1) = ov['xy_range']
-    p = fig.add(Panel( title = 'Position (weighted)', xlabel = 'x [cm]',
+    p = fig.add(Panel( title = 'Position', xlabel = 'x [cm]',
                        ylabel = 'y [cm]' ))
     nb = ov['xy'].shape
     p.add(Hist2D(np.linspace(x0,x1,nb[0]+1),np.linspace(y0,y1,nb[1]+1),ov['xy']))
-    p = fig.add(Panel( title = 'Time (weighted)', xlabel = 'time [ms]',
+    p = fig.add(Panel( title = 'Time', xlabel = 'time [ms]',
                        logx = ov['time_log'], logy = True ))
     p.add(StepHist(ov['time_bins'],ov['time']))
-    p = fig.add(Panel( title = 'Particle types (weighted)' ))
+    title = 'Particle types'
     if 'pdgcode' in stats:
         u,c = stats['pdgcode']['unique_values'], stats['pdgcode']['unique_values_counts']
-        n = min(len(u),10)
-        labels = [ _type_label(int(e)) for e in u[:n] ]
-        counts = list(c[:n])
-        if len(u) > n:
-            labels[-1], counts[-1] = 'other', c[n-1:].sum()
-        p.add(Bars(labels,counts,horizontal=True))
-        p.logx = max(counts) > 100 * min(counts)
+        sums = dict(zip(( int(e) for e in u ),( float(e) for e in c )))
+        shown, rest = _top_keys(sums,10)
+        keys = shown + ( [ 'other' ] if rest else [] )
+        values = [ sums[k] for k in shown ] + ( [ sum( sums[k] for k in rest ) ] if rest else [] )
+        colors = _value_colors('pdgcode',keys)
+        fig.add(_bars_panel([ _type_label(k) for k in keys ],values,
+                            [ colors[k] for k in keys ],'auto',title = title))
+    else:
+        fig.add(Panel( title = title ))
     return fig
 
 def stats_figures(stats):
@@ -135,7 +139,9 @@ def stats_figures(stats):
             continue
         freq=stats[s]
         u,c=freq['unique_values'],freq['unique_values_counts']
-        fct_alt_descr = _freq_alt_descr.get(s,lambda x: None)
+        #(names of particle types with symbols, see _pdg_symbols):
+        fct_alt_descr = ( ( lambda x : _pdg_name(x,True) ) if s == 'pdgcode'
+                          else _freq_alt_descr.get(s,lambda x: None) )
         def fmt_fct_raw(x, fct_alt_descr=fct_alt_descr):
             alttxt = fct_alt_descr(x)
             return f'{x!s}\n({alttxt})' if alttxt is not None else str(x)
@@ -158,9 +164,9 @@ def stats_figures(stats):
         if h.get('hist_outside') and stats['file']['integral']:
             frac = h['hist_outside'] / stats['file']['integral']
             xlabel += f'\n({100.0*frac:.3g}% of {"weights" if h["weighted"] else "particles"} outside plot range)'
-        title = '{}{} ({})'.format(s,
-                                   ' [{}]'.format(h['unit']) if h['unit'] is not None else '',
-                                   'weighted' if h['weighted'] else 'unweighted')
+        title = '{}{}{}'.format(s,
+                                ' [{}]'.format(h['unit']) if h['unit'] is not None else '',
+                                '' if h['weighted'] else ' (unweighted)')
         figures.append(Figure( panels = [ Panel( title = title, xlabel = xlabel,
                                                  xlim = ( bins[0], bins[-1] ),
                                                  items = [ StepHist(bins,hist) ] ) ] ))

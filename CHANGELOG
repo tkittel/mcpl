@@ -1,4 +1,8 @@
 v2.2.9  (work in progress)
+      * New viewer: mcpltool -w FILE (or mcpl.view(FILE) in Python, also in
+        Jupyter) shows an overview and plots of the particles, in a window or
+        in the terminal, where the particles can be picked and edited, and
+        written to a new file. New extras: "curses" and "jupyter".
       * Plots in the terminal (the unicode and ascii plotting backends) are
         shown in colour: curves with the colours of matplotlib, and 2D maps
         with the viridis colour map (with the unicode backend, drawn with half
@@ -426,17 +430,11 @@ v2.2.9  (work in progress)
         several histograms, also on top of each other in one plot with
         overlay=True (e.g. to compare simulations).
       * New mcpltool -H (--hist) option for histograms of expressions, with
-        options in the same string separated by ";", e.g. mcpltool -H
-        "ekin/eV;lethargy" -p "pdgcode == neutron" FILE: the binning (bins=N,
-        range=LOW:HIGH, logx), logy, separate curves for each value of an
-        expression (split=pdgcode) or file, 2D histograms ("x/cm : y/cm",
-        with xrange=LOW:HIGH and yrange=LOW:HIGH),
-        unweighted histograms, and printing the contents as text (print).
-        Plots are shown in a window (matplotlib), or in the terminal (always
-        with -t), and saved with -o FILE in the format given by the
-        extension (.png, .pdf, .svg or .txt). The backend can be chosen
-        with -B. mcpl.histogram also accepts these strings, e.g.
-        mcpl.histogram(FILE,"ekin/eV;lethargy").
+        options NAME=VALUE separated by ";" (see mcpltool -H help), e.g.
+        mcpltool -H "ekin;logx=1" -p "pdgcode == neutron" FILE, also for 2D
+        histograms and bar charts. Plots are shown in a window (matplotlib)
+        or in the terminal (with -t), or saved with -o FILE. mcpl.histogram
+        also accepts these strings.
       * mcpltool --extract no longer leaves a broken output file behind when
         given an invalid -p argument.
       * ssw2mcpl and phits2mcpl no longer leave an unfinished output file behind

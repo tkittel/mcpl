@@ -322,7 +322,100 @@ def test_angle_to():
         except mcpl.MCPLError as e:
             print(f'{bad}: {e}')
 
+def test_canonical():
+    #Normalised forms of expressions (from their parsed forms), which must be
+    #valid expressions giving the same values, and their own normalised forms:
+    from mcpldev._expressions import _expr_canonical
+    from mcpldev._histogram import _hist_key
+    with mcpl.MCPLFile(example_file) as f:
+        b = next(iter(f.particle_blocks))
+    for e in ( 'ekin/MeV', '(ekin) / MeV', '(x**2+y^2)/cm^2', '2.5e-3MeV*ekin/MeV^2',
+               '-(x/cm)^2', '2^-1*x/cm', '(-2)^2*ux', 'ekin/(2*MeV)', '1e30*ekin/MeV',
+               'angle_to( 0, 0, 1 )/deg' ):
+        k = _expr_canonical(e)
+        same = np.allclose(mcpl.ParticleValue(e)(b),mcpl.ParticleValue(k)(b),equal_nan=True)
+        print(f'value {e!r}: {k!r}')
+        assert same and _expr_canonical(k) == k
+    #Units are values (MeV is 1MeV), a number or closing parenthesis directly
+    #before a unit multiplies it (binding less tightly than ^ and more tightly
+    #than * and /), and a power directly after a unit applies to the unit:
+    for a, c in ( ( '2^(ekin/TeV)MeV/MeV', '(2^(ekin/TeV))*(1*MeV)/MeV' ), ( 'ekin/2MeV', 'ekin/(2*MeV)' ),
+                  ( '-2MeV/MeV', '-(2*MeV)/MeV' ), ( '2cm^-1*x', '2*(cm^-1)*x' ), ( '2cm^(-1)*x', '2*(cm^-1)*x' ),
+                  ( 'sqrt(ekin)/sqrt(eV)', 'sqrt(ekin/eV)' ), ( 'abs(x)^1.5/cm^1.5', '(abs(x)/cm)^1.5' ),
+                  ( 'cm^(1/2)*cm^0.5/cm', '1' ), ( '2^3MeV/MeV', '8' ), ( '(x)cm/cm^2', 'x/cm' ) ):
+        same = np.allclose(mcpl.ParticleValue(a)(b),mcpl.ParticleValue(c)(b))
+        print(f'{a!r} is {c!r}: {same}, normalised {_expr_canonical(a)!r}')
+        assert same
+    for bad in ( 'cm^0.25 > 1', 'ekin^0.25 > 1', 'sqrt(sqrt(ekin)) > 1', '2cm^x > 1', 'x cm > 1', 'cm^2MeV > 1' ):
+        try:
+            mcpl.ParticleFilter(bad)
+        except mcpl.MCPLError as e:
+            print(f'{bad}: {e}')
+    for e in ( 'pdgcode==neutron and (ekin<1MeV)', 'not (x > 1cm) or y<0',
+               '(x>0 or y>0) and z>0', 'ekin < 4cm^2*1MeV/cm^2' ):
+        k = _expr_canonical(e)
+        print(f'pick {e!r}: {k!r}')
+        assert ( mcpl.ParticleFilter(e)(b) == mcpl.ParticleFilter(k)(b) ).all()
+        assert _expr_canonical(k) == k
+    for e in ( 'z += 1cm;weight *= 0.5', 'rotate_z(90deg) ; z+=10 cm' ):
+        print(f'edit {e!r}: {_expr_canonical(e,edit=True)!r}')
+    #The parsed expressions, with what they use:
+    from mcpldev._expressions import _Expr
+    for e in ( 'pdgcode == neutron and wavelength > 1.8Aa', 'hypot(x,y)/cm', 'mod(fileidx,10) == 0' ):
+        x = _Expr(e)
+        print(f'parsed {e!r}: fields {sorted(x.fields)}, names {sorted(x.names)},'
+              f' canonical {x.canonical!r}')
+    #Random expressions (from a grammar of values and conditions), whose
+    #normalised forms must give exactly the same values:
+    import random
+    rng = random.Random(12345)
+    plain = [ 'ux', 'uz', '(x/cm)', '(ekin/MeV)', 'weight', '2', '3.5', '1e3', '(4cm^2/cm^2)', '(25meV/eV)',
+              '(x/2cm)', '(2cm^(-1)*x)', '(sqrt(ekin)/sqrt(eV))', '(2^(ux)MeV/MeV)', '(sqrt(2)cm/cm)', '(-2meV/eV)' ]
+    def val( d ):
+        if d <= 0 or rng.random() < 0.25:
+            return rng.choice(plain)
+        k = rng.random()
+        if k < 0.45:
+            return val(d-1) + rng.choice(['+','-','*','/','//']) + val(d-1)
+        if k < 0.6:
+            return rng.choice(['-','+']) + val(d-1)
+        if k < 0.75:
+            return f'({val(d-1)})^' + rng.choice(['2','-1','0.5','(1/2)'])
+        if k < 0.85:
+            return rng.choice(['abs','cos','atan2','hypot','max']) + f'({val(d-1)},{val(d-1)})'
+        return f'({val(d-1)})'
+    def cond( d ):
+        k = rng.random()
+        if d <= 0 or k < 0.4:
+            return val(2) + rng.choice(['<','>=','==','!=']) + val(2)
+        if k < 0.7:
+            return cond(d-1) + rng.choice([' and ',' or ']) + cond(d-1)
+        if k < 0.85:
+            return 'not ' + cond(d-1)
+        return f'({cond(d-1)})'
+    nok = nchecked = 0
+    for e in [ val(4) for _ in range(300) ] + [ cond(3) for _ in range(300) ]:
+        cls = mcpl.ParticleFilter if any( c in e for c in '<>=' ) else mcpl.ParticleValue
+        try:
+            orig = cls(e)(b)
+        except mcpl.MCPLError:
+            continue#(e.g. wrong numbers of arguments, or NaN values)
+        k = _expr_canonical(e)
+        nchecked += 1
+        nok += ( np.array_equal(orig,cls(k)(b),equal_nan=True) and _expr_canonical(k) == k )
+    print(f'random expressions: {nok} of {nchecked} valid ones have equivalent normalised forms')
+    assert nok == nchecked
+    for bad in ( 'exp(2,3)', 'cos(ux,2)' ):
+        try:
+            mcpl.ParticleValue(bad)
+        except mcpl.MCPLError as e:
+            print(f'{bad}: {e}')
+    for h in ( 'ekin/MeV;logx=1;bins=50', 'ekin / MeV ; bins=50 ;logx=1', '(ekin)/MeV;bins=50;logx=1',
+               'x/cm : y/cm;xrange=-1:1', 'x/cm:y/cm;xrange=-1.0:1', 'ekin/MeV;split=pdgcode==22' ):
+        print(f'histogram {h!r}: {_hist_key(h)!r}')
+
 if __name__ == '__main__':
+    test_canonical()
     test_angle_to()
     test_exact_rotations()
     test_whitespace()

@@ -136,7 +136,7 @@ def test_resolution():
 def test_tool():
     out = io.StringIO()
     with contextlib.redirect_stdout(out), contextlib.suppress(SystemExit):
-        mcpl.app_mcpltool(['mcpltool','--hist','time/ms;logx;bins=20',
+        mcpl.app_mcpltool(['mcpltool','--hist','time/ms;logx=1;bins=20',
                              '--backend','ascii',str(example_file)])
     lines = out.getvalue().splitlines()
     print(f'mcpltool --hist --backend ascii: {len(lines)} lines, first and last:')

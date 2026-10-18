@@ -28,14 +28,16 @@ __all__ = []
 
 import math
 import pathlib
+import re
 import shutil
 import sys
 from typing import ClassVar
 
 from ._numpy import np
+from ._physics import _ascii_symbols, _pdg_symbols
 from ._plotbackend import PlotBackend
 from ._termcolor import _check_setting, _curve_rgb, _map_rgb, _ncolors, _paint
-from .plotting import Bars, Hist2D, StepHist, Text
+from .plotting import Bars, Hist2D, StepHist, Text, _map_texts
 
 
 class _Chars:
@@ -67,6 +69,31 @@ _unicode = _Chars(
     vline = '\u2502', hline = '\u2500', corner = '\u2514', ytick = '\u2524',
     xtick = '\u252c' )
 
+#Bits of the dots of braille characters (U+2800 + bits), for the left and
+#right columns of dots, from the top:
+_braille_bits = ( ( 0x01, 0x02, 0x04, 0x40 ), ( 0x08, 0x10, 0x20, 0x80 ) )
+
+_ansi_re = re.compile('\x1b\\[[0-9;]*m')
+
+def _significant( v ):
+    """Mask of the positive values of the array, ignoring the tiny ones left by
+    rounding errors when bins are resampled to the characters"""
+    v = np.asarray(v,dtype=float)
+    vmax = v.max() if v.size else 0.0
+    return v > ( 1e-10 * vmax if vmax > 0 else 0.0 )
+
+def _legend_columns( entries, width ):
+    """Lines of the legend entries ((text, visible width) pairs), in as many
+    aligned columns as fit in the width"""
+    colw = max( w for _, w in entries ) + 3
+    ncol = max( 1, min( len(entries), ( width + 3 ) // colw ) )
+    lines = []
+    for i in range(0,len(entries),ncol):
+        row = entries[i:i+ncol]
+        lines.append( ''.join( t + ' ' * ( colw - w ) for t, w in row[:-1] )
+                      + row[-1][0] )
+    return lines
+
 def _fmt( v ):
     return f'{v:.4g}'
 
@@ -81,9 +108,12 @@ def _fmt_y( v ):
 def _center( text, width ):
     return text.center(width).rstrip()
 
+def _stdout_encoding():
+    return getattr(sys.stdout,'encoding',None) or 'ascii'
+
 def _can_encode( c ):
     """Whether all the characters can be written to standard output"""
-    enc = getattr(sys.stdout,'encoding',None) or 'ascii'
+    enc = _stdout_encoding()
     try:
         ( c.fill + c.hfill + c.shades + c.markers + c.vline + c.hline
           + c.corner + c.ytick + c.xtick ).encode(enc)
@@ -96,6 +126,8 @@ class _TextBackend(PlotBackend):
     kind = 'terminal'
     _chars = None
     encoding = 'utf-8'
+    #Whether several curves in colour are drawn as lines of braille dots:
+    _braille = False
     #Whether 2D maps in colour are drawn with half blocks (two cells per
     #character, with foreground and background colours):
     _halfblocks = False
@@ -138,12 +170,19 @@ class _TextBackend(PlotBackend):
 
     def save( self, figures, filename ):
         self.check_format(filename)
-        pathlib.Path(filename).write_text( '\n\n'.join( self.draw(f) for f in figures )
+        pathlib.Path(filename).write_text( '\n\n'.join( self.draw(f,self.encoding) for f in figures )
                                            + '\n', encoding = self.encoding )
         return [ filename ]
 
-    def draw( self, figure ):
-        """Text representation of the figure"""
+    def draw( self, figure, encoding = None ):
+        """Text representation of the figure, for the encoding (default: that of
+        standard output). The symbols of particles in labels (see _pdg_symbols)
+        are replaced by their names if they can not be written."""
+        enc = 'ascii' if self.encoding == 'ascii' else ( encoding or _stdout_encoding() )
+        try:
+            ''.join(_pdg_symbols.values()).encode(enc)
+        except (UnicodeEncodeError,LookupError):
+            figure = _map_texts(figure,_ascii_symbols)
         out = []
         if figure.title:
             out += [ _center(line,self._width) for line in figure.title.split('\n') ]
@@ -164,6 +203,8 @@ class _TextBackend(PlotBackend):
             if isinstance(item,Hist2D):
                 out += self._draw_hist2d(panel,item)
             elif isinstance(item,Bars):
+                if panel.ylabel:
+                    out.append(f'({panel.ylabel})')
                 out += self._draw_bars(item)
             elif isinstance(item,Text):
                 out += [ _center(line,self._width) for line in item.text.split('\n') ]
@@ -227,7 +268,7 @@ class _TextBackend(PlotBackend):
         v = np.asarray(allvals,dtype=float)
         v = v[np.isfinite(v)]
         if panel.logy:
-            pos = v[v>0]
+            pos = v[_significant(v)]
             if not len(pos):
                 return ( lambda x : np.zeros_like(np.asarray(x,dtype=float)) ), ( '1', '1' )
             vmin, vmax = ( panel.ylim if panel.ylim else ( pos.min(), pos.max() ) )
@@ -301,6 +342,10 @@ class _TextBackend(PlotBackend):
                     k = min( nlev, max( 0, units - row * nlev ) )
                     if k:
                         grid[h-1-row][j] = self._p(c.fill[k],rgb)
+        elif self._braille and self._nc:
+            #In colour, the curves are drawn as lines with braille
+            #characters (of 2x4 dots):
+            self._draw_braille(panel,steps,lo,hi,ncols,height,grid)
         else:
             #A marker symbol for each curve (for bins with contents, drawing
             #the first curves last, so they are on top):
@@ -321,15 +366,57 @@ class _TextBackend(PlotBackend):
                 out.append( f'{self._p(c.fill[-1],self._curve_color(steps[0],0))}'
                             f' {labels[0]}' )
             else:
-                out += [ f'{self._p(self._marker(s,k),self._curve_color(s,k))}'
-                         f' {s.label}'
-                         for k,s in enumerate(steps) if s.label is not None ]
+                braille = self._braille and self._nc
+                line = '\u2501\u2501'#(for the lines of braille dots)
+                entries = []#(text, visible width)
+                for k,s in enumerate(steps):
+                    if s.label is not None:
+                        sym = line if braille else self._marker(s,k)
+                        entries.append( ( f'{self._p(sym,self._curve_color(s,k))} {s.label}',
+                                          len(sym) + 1 + len(s.label) ) )
+                width = max( len(_ansi_re.sub('',ln)) for ln in out )
+                out += _legend_columns(entries,width)
         return out
 
+    def _draw_braille( self, panel, steps, lo, hi, ncols, height, grid ):
+        """Draw the curves on the grid as lines of braille dots (2 by 4 per
+        character). Characters with dots of several curves get the average of
+        their colours."""
+        h = self._height
+        nx, ny = 2 * ncols, 4 * h
+        cells = {}#(row,col) -> [dot bits, indices of the curves]
+        def dot( k, x, y ):
+            e = cells.setdefault( ( h - 1 - y // 4, x // 2 ), [ 0, set() ] )
+            e[0] |= _braille_bits[x % 2][3 - y % 4]
+            e[1].add(k)
+        for k, s in enumerate(steps):
+            v = self._columns(s.edges,s.values,lo,hi,panel.logx,nx)
+            ok = np.isfinite(v) & ( v > 0 )
+            #(zero values only where they connect to non-zero ones, so the
+            #curves do not all overlap at the bottom):
+            near = ok.copy()
+            near[1:] |= ok[:-1]
+            near[:-1] |= ok[1:]
+            draw = near & np.isfinite(v) & ( v >= 0 ) if not panel.logy else ok
+            prev = None
+            for x in range(nx):
+                if not draw[x]:
+                    prev = None
+                    continue
+                y = min( ny - 1, int( float(height(v[x])) * 4 ) )
+                for yy in ( range(min(prev,y),max(prev,y)+1) if prev is not None else ( y, ) ):
+                    dot(k,x,yy)
+                prev = y
+        for (r,c), (bits, ks) in cells.items():
+            rgbs = [ self._curve_color(steps[k],k) for k in sorted(ks) ]
+            rgb = tuple( round( sum( x[i] for x in rgbs ) / len(rgbs) ) for i in range(3) )
+            grid[r][c] = self._p(chr(0x2800 + bits),rgb)
+
     def _marker( self, item, k ):
-        """Marker symbol of the k'th StepHist of a panel"""
+        """Marker symbol of the k'th StepHist of a panel (by position, so the
+        curves of a panel have different markers also with fixed colours)"""
         m = self._chars.markers
-        return m[ ( item.color if item.color is not None else k ) % len(m) ]
+        return m[ k % len(m) ]
 
     def _draw_bars( self, item ):
         c = self._chars
@@ -342,12 +429,13 @@ class _TextBackend(PlotBackend):
         vmax = max( [ v for v in values if v > 0 ], default = 1.0 )
         nlev = len(c.hfill) - 1
         out = []
-        for lab, v, t in zip(labels,values,vtexts):
+        colors = item.colors or [ 0 ] * len(values)
+        for lab, v, t, col in zip(labels,values,vtexts,colors):
             units = round( max(0.0,v) / vmax * nmax * nlev )
             if v > 0:
                 units = max( 1, units )#non-zero values are always visible
             bar = c.hfill[-1] * ( units // nlev ) + ( c.hfill[units % nlev] if units % nlev else '' )
-            out.append( f'{lab:>{lw}} {c.vline}{self._p(bar,_curve_rgb(0))} {t}' )
+            out.append( f'{lab:>{lw}} {c.vline}{self._p(bar,_curve_rgb(col))} {t}' )
         return out
 
     def _draw_hist2d( self, panel, item ):
@@ -364,6 +452,7 @@ class _TextBackend(PlotBackend):
         v = np.asarray(item.values,dtype=float)
         cells = ( self._overlap_matrix(item.xedges,xlo,xhi,ncols) @ v
                   @ self._overlap_matrix(item.yedges,ylo,yhi,ncells).T )
+        cells = np.where(_significant(cells),cells,0.0)
         pos = cells[cells>0]
         nlev = len(c.shades) - 1
         grid = [ [' '] * ncols for _ in range(nrows) ]
@@ -395,15 +484,22 @@ class _TextBackend(PlotBackend):
         if panel.ylabel:
             out.insert( 0, f'(y: {panel.ylabel})' )
         if len(pos):
+            #The scale, with the value in its middle (the values are those of
+            #the characters, from the bins resampled to them):
+            #(on a linear scale, the colours start at 0):
             log = ' (log scale)' if item.logz else ''
+            vlo = vmin if item.logz else 0.0
+            vmid = ( math.sqrt( vmin * vmax ) if item.logz else 0.5 * vmax )
             if half:
-                scale = ''.join( self._p( c.shades[-1], _map_rgb( k / 19 ) )
-                                 for k in range(20) )
-                out.append( f'{_fmt(vmin)} {scale} {_fmt(vmax)}{log}' )
+                bar = [ self._p( c.shades[-1], _map_rgb( k / 19 ) ) for k in range(20) ]
+                scale = f'{"".join(bar[:10])} {_fmt(vmid)} {"".join(bar[10:])}'
+                out.append( f'per cell: {_fmt(vlo)} {scale} {_fmt(vmax)}{log}' )
             else:
-                lo_c, hi_c = ( self._p(c.shades[1],_map_rgb(0.0) if self._nc else None),
-                               self._p(c.shades[-1],_map_rgb(1.0) if self._nc else None) )
-                out.append( f'{lo_c} = {_fmt(vmin)} ... {hi_c} = {_fmt(vmax)}{log}' )
+                mid = math.ceil( 0.5 * nlev )
+                lo_c, mid_c, hi_c = ( self._p(c.shades[k],_map_rgb(f) if self._nc else None)
+                                      for k, f in ( (1,0.0), (mid,0.5), (nlev,1.0) ) )
+                out.append( f'per cell: {lo_c} = {_fmt(vlo)} ... {mid_c} = {_fmt(vmid)}'
+                            f' ... {hi_c} = {_fmt(vmax)}{log}' )
         return out
 
 class UnicodeBackend(_TextBackend):
@@ -421,6 +517,8 @@ class UnicodeBackend(_TextBackend):
     formats: ClassVar[dict] = { 'txt' : 100 }
     _chars = _unicode
     _halfblocks = True
+    _braille = True
+    viewer_module = '_plotbackend_text_gui'
 
     @classmethod
     def can_show( cls ):
@@ -442,6 +540,7 @@ class AsciiBackend(_TextBackend):
     formats: ClassVar[dict] = { 'txt' : 10 }
     _chars = _ascii
     encoding = 'ascii'
+    viewer_module = '_plotbackend_text_gui'
 
     def __init__( self, ascii_width = None, ascii_height = None,
                   ascii_color = 'auto' ):

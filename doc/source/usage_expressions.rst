@@ -1,30 +1,34 @@
-**********************************************************
-Selecting, editing and plotting particles with expressions
-**********************************************************
+********************************************************
+Picking, editing and plotting particles with expressions
+********************************************************
 
-The ``mcpltool`` command and the ``mcpl`` Python module can select, edit and
+The ``mcpltool`` command and the ``mcpl`` Python module can pick, edit and
 plot particles based on short expressions like
-``"pdgcode == neutron && ekin < 25meV"``. This page describes the syntax of
+``"pdgcode == neutron and ekin < 25meV"``. This page describes the syntax of
 these expressions, and shows how to use them from the :doc:`command
 line <usage_cmdline>` and from :doc:`Python <usage_python>`.
 
 Expressions are used in three ways:
 
-+------------------+-------------------+--------------------------+------------------------------------------+
-| Use              | Command line      | Python API               | Example                                  |
-+==================+===================+==========================+==========================================+
-| Select particles | ``--select EXPR`` | ``ParticleFilter(EXPR)`` | ``"pdgcode == neutron && ekin < 25meV"`` |
-+------------------+-------------------+--------------------------+------------------------------------------+
-| Edit particles   | ``--edit EXPR``   | ``ParticleEdit(EXPR)``   | ``"z += 1m, weight *= 0.5"``             |
-+------------------+-------------------+--------------------------+------------------------------------------+
-| Values for       | ``--hist EXPR``   | ``ParticleValue(EXPR)``, | ``"ekin/eV"``                            |
-| histograms       |                   | ``histogram(..)``        |                                          |
-+------------------+-------------------+--------------------------+------------------------------------------+
++------------------+-------------------+--------------------------+-------------------------------------------+
+| Use              | Command line      | Python API               | Example                                   |
++==================+===================+==========================+===========================================+
+| Pick particles   | ``-p PICK``       | ``ParticleFilter(PICK)`` | ``"pdgcode == neutron and ekin < 25meV"`` |
++------------------+-------------------+--------------------------+-------------------------------------------+
+| Edit particles   | ``-E EDIT``       | ``ParticleEdit(EDIT)``   | ``"z += 1m;weight *= 0.5"``               |
++------------------+-------------------+--------------------------+-------------------------------------------+
+| Values for       | ``-H HIST``       | ``ParticleValue(EXPR)``, | ``"ekin/eV"``                             |
+| histograms       |                   | ``histogram(..)``        |                                           |
++------------------+-------------------+--------------------------+-------------------------------------------+
 
 Expressions are evaluated efficiently with NumPy on blocks of particles, and
 not with Python's ``eval()``, so they can only do what is described here.
 Whitespace, including newlines, only separates the parts of expressions, so
 long expressions can be written over several lines (in Python code).
+Expressions can only contain printable ASCII characters, and not the
+characters ``" ' { } [ ] # $`` backtick or backslash. With ``mcpltool``, put
+them in double quotes, which works in all the usual shells on Unix and
+Windows.
 
 .. _usage_expressions-particle-fields:
 
@@ -54,16 +58,18 @@ Expressions use the same names for the particle fields as the Python API:
 +-------------------------+-----------------------------------------------------------------------------------+-------------------------+
 | ``userflags``           | User flags                                                                        | none (integer)          |
 +-------------------------+-----------------------------------------------------------------------------------+-------------------------+
+| ``fileidx``             | Position of the particle in the file, counting from 0 (can not be edited)         | none (integer)          |
++-------------------------+-----------------------------------------------------------------------------------+-------------------------+
 | ``wavelength``          | Wavelength of neutrons and gammas (calculated from ``ekin``)                      | length                  |
 +-------------------------+-----------------------------------------------------------------------------------+-------------------------+
 
 The wavelength is only defined for neutrons and gammas, and it is an error to
-use it for other particles. Expressions must therefore select neutrons or
+use it for other particles. Expressions must therefore pick neutrons or
 gammas before using the wavelength, as in
-``"pdgcode == neutron && wavelength > 1.8Aa"``. As in C, the right side of
-``&&`` is only evaluated for the particles where the left side is true (and the
-right side of ``||`` only where the left side is false), so here the wavelength
-is only used for neutrons. Without the ``pdgcode == neutron``, the expression
+``"pdgcode == neutron and wavelength > 1.8Aa"``. The right side of ``and`` is
+only evaluated for the particles where the left side is true (and the right
+side of ``or`` only where the left side is false), so here the wavelength is
+only used for neutrons. Without the ``pdgcode == neutron``, the expression
 gives an error for files which contain other particles than neutrons and
 gammas.
 
@@ -106,7 +112,7 @@ without units can not be combined with values with units:
    x < 2meV           # error: length vs. energy
    x^2 + y^2 < 4cm^2  # ok (an area)
    acos(uz) < 10deg   # ok
-   x = 2m*ux          # ok (in --edit)
+   x = 2m*ux          # ok (in -E)
    x = 2*ux           # error: no units for x
 
 Plain numbers can still be used as factors (``2*x``) and for the fields without
@@ -120,15 +126,14 @@ Operators, functions and names
 ------------------------------
 
 +--------------------------------------+--------------------------------------+
-| Arithmetic                           | ``+``, ``-``, ``*``, ``/``, ``%``,   |
-|                                      | and ``^`` (or ``**``) for powers     |
+| Arithmetic                           | ``+``, ``-``, ``*``, ``/``, and      |
+|                                      | ``^`` (or ``**``) for powers         |
 +--------------------------------------+--------------------------------------+
 | Comparisons                          | ``==``, ``!=``, ``<``, ``<=``,       |
 |                                      | ``>``, ``>=`` (which can be chained, |
 |                                      | as in ``0 < x < 2cm``)               |
 +--------------------------------------+--------------------------------------+
-| Logic                                | ``&&`` or ``and``, \|\| or ``or``,   |
-|                                      | ``!`` or ``not``                     |
+| Logic                                | ``and``, ``or``, ``not``             |
 +--------------------------------------+--------------------------------------+
 | Bitwise (for ``userflags``)          | ``&``, \|, ``~`` (not), with         |
 |                                      | integers like ``16``, ``0x10`` or    |
@@ -142,6 +147,7 @@ Operators, functions and names
 |                                      | ``hypot(a,b,...)``,                  |
 |                                      | ``min(a,b,...)``, ``max(a,b,...)``,  |
 |                                      | ``clamp(value,low,high)``,           |
+|                                      | ``mod(a,b)`` (integers),             |
 |                                      | ``angle_to(x,y,z)``                  |
 +--------------------------------------+--------------------------------------+
 | Constants                            | ``pi``                               |
@@ -153,7 +159,12 @@ function ``angle_to(x,y,z)`` gives the angle between the direction of the
 particles and the vector (x,y,z), precisely also for very small angles (unlike
 ``acos``). For instance, ``angle_to(0,0,1) < 1deg`` selects particles within 1
 degree of the z axis, and ``angle_to(x,y,z)`` is the angle between the
-direction and the position.
+direction and the position. The function ``mod(a,b)`` gives the remainder of
+the division of two integers without units, so ``mod(fileidx,10) == 0`` picks
+every tenth particle in the file.
+
+The C-like operators ``&&``, ``||``, ``!`` and ``%`` can not be used, and give
+an error saying what to write instead (``!=`` can of course be used).
 
 Instead of PDG codes, the following names can be used for common particles:
 
@@ -168,66 +179,54 @@ Name                               PDG code
 ``gamma`` (or ``photon``)          22
 ================================== ===========
 
-The same names can be used with the ``-p`` option of ``mcpltool`` (as in
-``-pneutron``), which selects particles of a given type.
+For instance, ``-p "pdgcode == neutron"`` picks the neutrons.
 
 .. _usage_expressions-selecting-particles:
 
-Selecting particles
--------------------
+Picking particles
+-----------------
 
-Selections are expressions which are true for the particles to select:
+Picks are expressions which are true for the particles to pick:
 
 ::
 
-   pdgcode == neutron && ekin < 25meV
-   pdgcode == gamma && hypot(x,y) < 5cm
-   pdgcode == neutron && acos(uz) < 2deg
-   x > 0 && 0 < z < 1m
+   pdgcode == neutron and ekin < 25meV
+   pdgcode == gamma and hypot(x,y) < 5cm
+   pdgcode == neutron and acos(uz) < 2deg
+   x > 0 and 0 < z < 1m
    userflags & 0x10
-   (userflags & 0xff) == 7 || time > 10us
+   (userflags & 0xff) == 7 or time > 10us
+   not (pdgcode == neutron or pdgcode == gamma)
 
-As in C, integers which are not 0 count as true, so ``userflags & 0x10``
-selects the particles for which this bit is set in the userflags.
+Integers which are not 0 count as true, so ``userflags & 0x10`` picks the
+particles for which this bit is set in the userflags.
 
-On the command line, selections can be used when showing particles, when
-extracting particles into a new file, with ``--stats``, and with ``--hist``:
+On the command line, ``-p`` can be used when showing particles, when
+extracting particles into a new file (``-e``), with ``-S`` and with ``-H``.
+Here the gammas above 1 MeV are shown (``-n`` leaves out the header):
 
-.. code:: shell
+.. literalinclude:: ../build/autogen/cmdline_pick_show.txt
+   :language: console
 
-   mcpltool -l3 example.mcpl \
-     --select "pdgcode == gamma && ekin > 1MeV"
-
-::
-
-   Opened MCPL file example.mcpl:
-   [... header ...]
-   Showing particles selected with: pdgcode == gamma && ekin > 1MeV
-
-   index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight
-       0          22      1.2635     -3.5852    -0.81223          20    -0.41453   -0.022799     0.90975  7.3389e-07           1
-       1          22      2.6273     0.85935      10.196          20   0.0031473     0.75937     0.65065  8.6567e-07           1
-      46          22      1.7843     -2.7558     0.78225          20   -0.034013   -0.088335     0.99551  1.0907e-06           1
-
-When showing particles, ``-l`` and ``-s`` apply to the selected particles. When
-extracting particles, they select a range of particles in the file, after
-which the selection is applied.
+The ``-l`` and ``-s`` options choose a range of particles in the file, after
+which the particles are picked (and edited). When showing particles, at most
+10 of the picked particles are shown unless ``-l`` is given.
 
 .. _usage_expressions-editing-particles:
 
 Editing particles
 -----------------
 
-Edits are statements separated by commas, which are executed in order (so each
+Edits are statements separated by ``;``, which are executed in order (so each
 statement sees the results of the previous ones):
 
 ::
 
-   z += 1m, time += 1.5ms
+   z += 1m;time += 1.5ms
    wavelength = 1.8Aa
-   weight *= 0.5, pdgcode = neutron
-   rotate_y(90deg), x += 10cm
-   tmp = x, x = y, y = tmp
+   weight *= 0.5;pdgcode = neutron
+   rotate_y(90deg);x += 10cm
+   tmp = x;x = y;y = tmp
    swap(x, y)
    x = clamp(x, -5cm, 5cm)
 
@@ -282,41 +281,33 @@ The statements are:
 |                         |                         | degrees are exact.      |
 +-------------------------+-------------------------+-------------------------+
 
-Since the statements are executed in order, ``x = -y, y = x`` sets both ``x``
+Since the statements are executed in order, ``x = -y;y = x`` sets both ``x``
 and ``y`` to ``-y``. A rotation around the z axis by 90 degrees can instead be
 written as ``rotate_z(90deg)``, or with a variable as
-``tmp = x, x = -y, y = tmp``. The order also matters for combinations of
-rotations and translations: ``rotate_y(90deg), x += 10cm`` first rotates and
+``tmp = x;x = -y;y = tmp``. The order also matters for combinations of
+rotations and translations: ``rotate_y(90deg);x += 10cm`` first rotates and
 then moves the particles along the (new) x axis, while
-``x += 10cm, rotate_y(90deg)`` moves them before the rotation (so they end up
+``x += 10cm;rotate_y(90deg)`` moves them before the rotation (so they end up
 moved along the z axis).
 
 For instance, extracting the neutrons below 1 MeV within 10 cm of the z axis,
-setting their z coordinates to 0 and their wavelengths to 1.8 Aa:
+setting their z coordinates to 0 and their wavelengths to 1.8 Aa (the
+particles are picked before they are edited):
 
-.. code:: shell
+.. literalinclude:: ../build/autogen/cmdline_pick_edit.txt
+   :language: console
 
-   mcpltool --extract example.mcpl slow.mcpl \
-     -pneutron \
-     --select "ekin < 1MeV && hypot(x,y) < 10cm" \
-     --edit "z = 0cm, wavelength = 1.8Aa"
-
-::
-
-   MCPL: Successfully extracted 155 / 1006 particles from example.mcpl into slow.mcpl
-
-The selection and edits are described in comments added to the header of the
-new file (e.g. ``mcpltool: extracted particles with -p2112`` and
-``mcpltool: selected particles with: ...``), unless the ``--no-comment``
-option is used. Since files can only be merged if their comments are identical,
-files extracted in different ways can only be merged if they were extracted
-with ``--no-comment``.
+The options are described in a comment added to the header of the new file
+(e.g. ``mcpltool: extracted particles with -p "pdgcode == neutron"``), unless
+the ``--no-comment`` option is used. Since files can only be merged if their
+comments are identical, files extracted in different ways can only be merged
+if they were extracted with ``--no-comment``.
 
 Following the :doc:`stat:sum <format_statsum>` guidelines, *stat:sum*
-entries in the header are kept when particles are selected based on their
-properties, but marked as not available (-1) when they are selected based on
-their position in the file (with ``-l`` or ``-s``) or when their weights are
-edited. In the latter case, ``--keep-statsum`` keeps them, for edits which are
+entries in the header are kept when particles are picked based on their
+properties, but marked as not available (-1) when they are picked based on
+their position in the file (with ``-l``, ``-s``, or ``fileidx`` in ``-p``) or
+when their weights are edited. In the latter case, ``--keep-statsum`` keeps them, for edits which are
 known to be compatible with the *stat:sum* entries.
 
 .. _usage_expressions-histograms:
@@ -326,82 +317,78 @@ Histograms
 
 Histograms show the values of an expression without units, so values with units
 are divided by a unit, which then becomes the unit of the axis (e.g.
-``ekin/eV`` or ``hypot(x,y)/mm``). With ``--hist``, ``mcpltool`` plots such
-histograms:
+``ekin/eV`` or ``hypot(x,y)/mm``). With ``-H`` (``--hist``), ``mcpltool`` plots
+such histograms. The options of the histogram follow the expression, separated
+by ``;``:
 
 .. code:: shell
 
-   mcpltool --hist "ekin/MeV" --logx \
-     --split pdgcode example.mcpl
+   mcpltool -H "ekin/MeV;logx;split=pdgcode" example.mcpl
 
 This shows the kinetic energy spectrum with logarithmic bins, with a curve for
-each particle type. The options for histograms are:
+each particle type. The options in the histogram string are:
 
 +--------------------------------------+--------------------------------------+
 | Option                               |                                      |
 +======================================+======================================+
-| ``--select EXPR``, ``-pNAME``        | Only include the selected particles. |
+| ``bins=N``                           | Number of bins (default: chosen from |
+|                                      | the number of particles).            |
 +--------------------------------------+--------------------------------------+
-| ``--bins N``                         | Number of bins (default 100).        |
-+--------------------------------------+--------------------------------------+
-| ``--range LOW:HIGH``                 | Range of the histogram, in the units |
+| ``range=LOW:HIGH``                   | Range of the histogram, in the units |
 |                                      | of the expression (default is all    |
 |                                      | values).                             |
 +--------------------------------------+--------------------------------------+
-| ``--logx``, ``--logy``               | Logarithmic bins and x axis, or      |
+| ``logx``, ``logy``                   | Logarithmic bins and x axis, or      |
 |                                      | logarithmic y axis.                  |
 +--------------------------------------+--------------------------------------+
-| ``--lethargy``                       | Divide the contents by the bin       |
+| ``lethargy``                         | Divide the contents by the bin       |
 |                                      | widths in lethargy, ln(E2/E1), as is |
 |                                      | usual for energy spectra (implies    |
-|                                      | ``--logx``).                         |
+|                                      | ``logx``).                           |
 +--------------------------------------+--------------------------------------+
-| ``--split EXPR``                     | A curve for each value of the        |
-|                                      | expression, e.g. ``--split pdgcode`` |
-|                                      | or ``--split "x > 0cm"``.            |
+| ``split=EXPR``                       | A curve for each value of the        |
+|                                      | expression, e.g. ``split=pdgcode``   |
+|                                      | or ``split=x > 0cm``.                |
 +--------------------------------------+--------------------------------------+
-| ``--unweighted``                     | Count particles rather than summing  |
+| ``unweighted``                       | Count particles rather than summing  |
 |                                      | their weights.                       |
 +--------------------------------------+--------------------------------------+
-| ``--print``                          | Print the contents of the histogram  |
+| ``print``                            | Print the contents of the histogram  |
 |                                      | as text instead of plotting it.      |
 +--------------------------------------+--------------------------------------+
-| ``--output FILE``                    | Save the plot in a file (e.g.        |
-|                                      | ``.pdf`` or ``.png``, or ``.html``   |
-|                                      | with plotly).                        |
+
+And the options of ``mcpltool`` for histograms are:
+
 +--------------------------------------+--------------------------------------+
-| ``--backend NAME``                   | Plotting backend: ``matplotlib``,    |
-|                                      | ``plotly``, or ``unicode`` and       |
-|                                      | ``ascii`` which draw plots as text   |
-|                                      | in the terminal (default is the one  |
-|                                      | named by the ``MCPL_PLOT_BACKEND``   |
-|                                      | environment variable, or else the    |
-|                                      | first available).                    |
+| Option                               |                                      |
++======================================+======================================+
+| ``-p PICK``, ``-E EDIT``,            | Only use the picked particles (and   |
+| ``-lN``, ``-sN``                     | edit them), or only a range of the   |
+|                                      | particles in the file.               |
++--------------------------------------+--------------------------------------+
+| ``-t``                               | Show the plot in the terminal.       |
++--------------------------------------+--------------------------------------+
+| ``-o FILE``                          | Save the plot in a file, in the      |
+|                                      | format given by the extension:       |
+|                                      | ``.png``, ``.pdf``, ``.svg``, or     |
+|                                      | ``.txt`` for plots drawn as text.    |
++--------------------------------------+--------------------------------------+
+| ``-B NAME``                          | Plotting backend: ``matplotlib``, or |
+|                                      | ``unicode`` and ``ascii`` which draw |
+|                                      | plots as text. By default, plots are |
+|                                      | shown in a window with matplotlib,   |
+|                                      | or else in the terminal, and saved   |
+|                                      | with the backend for the format.     |
 +--------------------------------------+--------------------------------------+
 
 With more than one file, there is a curve for each file, and two expressions
-separated by ``" : "`` give a 2D histogram (e.g. ``--hist "x/cm : y/cm"``). For
-instance, the neutron spectrum per unit lethargy, printed as a table:
+separated by ``:`` give a 2D histogram, with the options ``xrange=LOW:HIGH``
+and ``yrange=LOW:HIGH`` for the ranges of the axes (e.g.
+``-H "x/cm : y/cm;xrange=-10:10"``). For instance, the neutron spectrum per
+unit lethargy, printed as a table:
 
-.. code:: shell
-
-   mcpltool --hist "ekin/eV" --lethargy \
-     -pneutron --bins 8 --print example.mcpl
-
-::
-
-   # histogram of: ekin/eV
-   # selection: pdgcode == neutron
-   # values: weights per unit lethargy
-   # lower edge | upper edge | value
-   1393.4488 8391.2549 1.1139528
-   8391.2549 50531.572 21.165103
-   50531.572 304297.73 111.95225
-   304297.73 1832460.4 181.01733
-   1832460.4 11034953 54.026709
-   11034953 66451746 20.608126
-   66451746 4.0016794e+08 11.696504
-   4.0016794e+08 2.4097844e+09 2.7848819
+.. literalinclude:: ../build/autogen/cmdline_hist_print.txt
+   :language: console
 
 .. _usage_expressions-more-command-line-examples:
 
@@ -411,102 +398,101 @@ More command line examples
 .. code:: shell
 
    # Neutron spectrum per unit lethargy:
-   mcpltool --hist "ekin/eV" --lethargy \
-     -pneutron run.mcpl
+   mcpltool -H "ekin/eV;lethargy" \
+     -p "pdgcode == neutron" run.mcpl.gz
 
    # Neutron wavelengths from 0 to 10 Aa, in a PDF:
-   mcpltool --hist "wavelength/Aa" -pneutron \
-     --range 0:10 --bins 200 --output wl.pdf \
-     run.mcpl
+   mcpltool -H "wavelength/Aa;range=0:10;bins=200" \
+     -p "pdgcode == neutron" -o wl.pdf run.mcpl.gz
 
    # Positions of the neutrons in the x-y plane:
-   mcpltool --hist "x/cm : y/cm" -pneutron run.mcpl
+   mcpltool -H "x/cm : y/cm" -p "pdgcode == neutron" \
+     run.mcpl.gz
 
    # Distance from the z axis, from 0 to 50 mm:
-   mcpltool --hist "hypot(x,y)/mm" --range 0:50 \
-     run.mcpl
+   mcpltool -H "hypot(x,y)/mm;range=0:50" run.mcpl.gz
 
    # Angle to the z axis for each particle type:
-   mcpltool --hist "acos(uz)/deg" --range 0:90 \
-     --split pdgcode run.mcpl
+   mcpltool -H "acos(uz)/deg;range=0:90;split=pdgcode" \
+     run.mcpl.gz
 
    # Azimuthal angle versus polar angle:
-   mcpltool \
-     --hist "atan2(uy,ux)/deg : acos(uz)/deg" \
-     run.mcpl
+   mcpltool -H "atan2(uy,ux)/deg : acos(uz)/deg" \
+     run.mcpl.gz
 
    # Times of neutrons below 100 keV (log y axis):
-   mcpltool --hist "time/ms" --logy run.mcpl \
-     --select "pdgcode == neutron && ekin < 100keV"
+   mcpltool -H "time/ms;logy" run.mcpl.gz \
+     -p "pdgcode == neutron and ekin < 100keV"
 
-   # Spectra of two files in one plot, with plotly:
-   mcpltool --hist "ekin/MeV" --logx \
-     --backend plotly --output spectra.html \
-     before.mcpl after.mcpl
+   # Spectra of two files in one plot, in the terminal:
+   mcpltool -H "ekin/MeV;logx" -t \
+     before.mcpl.gz after.mcpl.gz
 
    # Distribution of the particle weights:
-   mcpltool --hist "weight" --unweighted --logy \
-     run.mcpl
+   mcpltool -H "weight;unweighted;logy" run.mcpl.gz
 
    # Spectra for particles with x > 0 and x < 0:
-   mcpltool --hist "ekin/MeV" --logx \
-     --split "x > 0cm" run.mcpl
+   mcpltool -H "ekin/MeV;logx;split=x > 0cm" run.mcpl.gz
 
-   # Statistics and plots of gammas above 1 keV:
-   mcpltool --stats run.mcpl \
-     --select "pdgcode == gamma && ekin > 1keV"
-   mcpltool --stats --output gammas.pdf run.mcpl \
-     --select "pdgcode == gamma && ekin > 1keV"
+   # Statistics and overview plot of gammas above 1 keV:
+   mcpltool -S -p "pdgcode == gamma and ekin > 1keV" \
+     run.mcpl.gz
+   mcpltool -S -o gammas.pdf run.mcpl.gz \
+     -p "pdgcode == gamma and ekin > 1keV"
 
    # The first 20 neutrons with wavelength > 4 Aa:
-   mcpltool -l20 run.mcpl --select \
-     "pdgcode == neutron && wavelength > 4Aa"
+   mcpltool -l20 run.mcpl.gz \
+     -p "pdgcode == neutron and wavelength > 4Aa"
 
    # New file with neutrons within 5 cm of z axis:
-   mcpltool --extract run.mcpl out.mcpl --select \
-     "pdgcode == neutron && hypot(x,y) < 5cm"
+   mcpltool -e run.mcpl.gz out.mcpl.gz \
+     -p "pdgcode == neutron and hypot(x,y) < 5cm"
+
+   # New file with every tenth particle:
+   mcpltool -e -p "mod(fileidx,10) == 0" \
+     run.mcpl.gz out.mcpl.gz
 
    # Move particles 2 m back and delay by 1.5 ms:
-   mcpltool --extract run.mcpl out.mcpl \
-     --edit "z -= 2m, time += 1.5ms"
+   mcpltool -e run.mcpl.gz out.mcpl.gz \
+     -E "z -= 2m;time += 1.5ms"
 
    # Make all neutrons monochromatic:
-   mcpltool --extract run.mcpl out.mcpl -pneutron \
-     --edit "wavelength = 1.8Aa"
+   mcpltool -e run.mcpl.gz out.mcpl.gz \
+     -p "pdgcode == neutron" -E "wavelength = 1.8Aa"
 
    # Place particles 2 m from origin along direction:
-   mcpltool --extract run.mcpl out.mcpl \
-     --edit "x = 2m*ux, y = 2m*uy, z = 2m*uz"
+   mcpltool -e run.mcpl.gz out.mcpl.gz \
+     -E "x = 2m*ux;y = 2m*uy;z = 2m*uz"
 
 .. _usage_expressions-from-python:
 
 From Python
 -----------
 
-When reading or writing files, selections and edits can be given directly to
-``MCPLFile`` and ``MCPLOutFile`` with the ``select`` and ``edit`` arguments.
+When reading or writing files, picks and edits can be given directly to
+``MCPLFile`` and ``MCPLOutFile`` with the ``pick`` and ``edit`` arguments.
 When reading, the blocks of particles (and single particles) then only contain
-the selected particles, with the edits applied. When writing, they are applied
+the picked particles, with the edits applied. When writing, they are applied
 to all the particles added:
 
 .. code:: python
 
    import mcpl
    fin = mcpl.MCPLFile(
-       "input.mcpl",
-       select = "pdgcode == neutron && ekin < 25meV",
+       "input.mcpl.gz",
+       pick = "pdgcode == neutron and ekin < 25meV",
        edit = "z += 1m" )
-   fout = mcpl.MCPLOutFile( "output.mcpl" )
+   fout = mcpl.MCPLOutFile( "output.mcpl.gz" )
    with fin, fout:
        fout.transfer_metadata( fin )
        for block in fin.particle_blocks:
            fout.add_particles( block )
 
 Here, the particles are copied exactly, except for the edited ``z``
-coordinates. Small selections from several blocks in the file are merged into
+coordinates. Small picks from several blocks in the file are merged into
 blocks of about the usual size (``blocklength``). The particles keep their
-positions in the file (``file_index`` of particles, and ``file_indices`` of
-blocks), while ``nparticles`` is still the number of particles in the file.
+positions in the file (``fileidx`` of particles and of blocks), while
+``nparticles`` is still the number of particles in the file.
 
 The same expressions are also used by the classes ``ParticleFilter``,
 ``ParticleEdit`` and ``ParticleValue`` in the ``mcpl`` module, which are
@@ -516,12 +502,12 @@ applied to blocks of particles:
 
    import mcpl
    flt = mcpl.ParticleFilter(
-       "pdgcode == neutron && ekin < 25meV" )
+       "pdgcode == neutron and ekin < 25meV" )
    edit = mcpl.ParticleEdit(
-       "z += 1m, wavelength = 1.8Aa" )
+       "z += 1m;wavelength = 1.8Aa" )
    val = mcpl.ParticleValue( "ekin/meV" )
-   fin = mcpl.MCPLFile( "input.mcpl" )
-   fout = mcpl.MCPLOutFile( "output2.mcpl" )
+   fin = mcpl.MCPLFile( "input.mcpl.gz" )
+   fout = mcpl.MCPLOutFile( "output2.mcpl.gz" )
    with fin, fout:
        fout.transfer_metadata( fin )
        for block in fin.particle_blocks:
@@ -530,28 +516,34 @@ applied to blocks of particles:
            fout.add_particles( sel, **edit( sel ) )
 
 Histograms are made with ``mcpl.histogram`` (and ``mcpl.histogram2d``), which
-take the same options as ``mcpltool --hist``. The results can be plotted,
-saved, or used directly:
+take the same options as ``mcpltool -H``, as arguments or in the same
+histogram strings. The results can be plotted, saved, or used directly:
 
 .. code:: python
 
    import mcpl
-   h = mcpl.histogram( "input.mcpl", "ekin/eV",
-                       select = "pdgcode == neutron",
+   h = mcpl.histogram( "input.mcpl.gz", "ekin/eV",
+                       pick = "pdgcode == neutron",
                        lethargy = True, bins = 50 )
+   # Or: mcpl.histogram( "input.mcpl.gz",
+   #                     "ekin/eV;lethargy;bins=50",
+   #                     pick = "pdgcode == neutron" )
    h.plot()  # or h.plot( filename = "spectrum.pdf" )
    # Bin edges and values (per unit lethargy):
    print( h.edges, h.values() )
 
 The plots are made with the plotting backend selected with the ``backend``
-argument (``--backend`` for ``mcpltool``), with
-``mcpl.plotting.set_default_backend(...)``, or with the ``MCPL_PLOT_BACKEND``
-environment variable, or else with matplotlib or plotly, whichever is installed
-(see ``mcpl.plotting.available_backends()``). The ``unicode`` and ``ascii``
-backends draw plots as text, in the terminal or in ``.txt`` files, and need no
+argument (``-B`` for ``mcpltool``) or with
+``mcpl.plotting.set_default_backend(...)``. Otherwise, plots are shown in a
+window with matplotlib if it is installed (and there is a display), or else in
+the terminal with the ``unicode`` backend (or the ``ascii`` backend, in
+terminals which can not show its characters), or always in the terminal with
+``terminal = True``. Plots are saved with the backend for the format given by
+the extension of the file name (see ``mcpl.plotting.available_backends()`` and
+``mcpl.plotting.formats()``). The ``unicode`` and ``ascii`` backends need no
 extra packages. Options for the backends are given as keyword arguments named
 after the backend, like ``matplotlib_backend = "agg"`` or
-``plotly_renderer = "browser"``. Custom backends can be added by subclassing
+``unicode_width = 100``. Custom backends can be added by subclassing
 ``mcpl.plotting.Backend`` and calling ``mcpl.plotting.register_backend``.
 
 Several histograms can be shown or saved together with
@@ -560,10 +552,8 @@ compare simulations):
 
 .. code:: python
 
-   h1 = mcpl.histogram( "run1.mcpl", "ekin/eV",
-                        logx = True )
-   h2 = mcpl.histogram( "run2.mcpl", "ekin/eV",
-                        logx = True )
+   h1 = mcpl.histogram( "run1.mcpl.gz", "ekin/eV;logx" )
+   h2 = mcpl.histogram( "run2.mcpl.gz", "ekin/eV;logx" )
    labels = [ "run 1", "run 2" ]
    mcpl.plot_histograms( [ h1, h2 ], labels = labels,
                          overlay = True )

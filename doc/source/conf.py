@@ -275,9 +275,13 @@ breathe_projects = { 'mcplcpp': str(_autogendir / 'doxygen_xml') }
 breathe_default_project = 'mcplcpp'
 breathe_domain_by_extension = { 'h' : 'cpp' }
 #(with the program name of the installed command, not "python -m mcpl"):
-_cmd_output( 'mcpltool_help.txt',
-             [ sys.executable, '-c',
-               'import mcpl;mcpl.app_mcpltool(["mcpltool","--help"])' ] )
+for _fn, _args in ( ( 'mcpltool_help.txt', '"-h"' ),
+                    ( 'mcpltool_fullhelp.txt', '"--full-help"' ),
+                    ( 'mcpltool_help_pick.txt', '"-p","help"' ),
+                    ( 'mcpltool_help_edit.txt', '"-E","help"' ),
+                    ( 'mcpltool_help_hist.txt', '"-H","help"' ) ):
+    _cmd_output( _fn, [ sys.executable, '-c',
+                        f'import mcpl;mcpl.app_mcpltool(["mcpltool",{_args}])' ] )
 
 def _latest_news( n = 4 ):
     """The first n items of the news page, for the front page"""
@@ -300,24 +304,26 @@ def _latest_news( n = 4 ):
         out.write_text(txt)
 
 def _stats_outputs():
-    """Output of mcpltool --stats for the example file of the repository:
-    the text summary, the PDF made with --pdf, the overview figure (shown on
-    the front page) and a few of the other figures (like the ones shown with
-    --gui). Only regenerated when the example file changed."""
+    """Output of mcpltool -S for the example file of the repository: the
+    text summary, the overview plot (as PDF with -S -o, and as PNG for the
+    pages) and a few of the plots of each field. Only regenerated when the
+    example file changed."""
     import shutil
     example = _reporoot / 'examples' / 'example.mcpl'
     workdir = _autogendir / 'stats'
-    stamp = workdir / 'done.txt'
+    stamp = workdir / 'done_v2.txt'
     if stamp.is_file() and stamp.stat().st_mtime > example.stat().st_mtime:
         return
     workdir.mkdir(exist_ok=True)
     shutil.copy( example, workdir / 'example.mcpl' )
     tool = [ sys.executable, '-m', 'mcpl' ]
-    _cmd_output( 'stats_example.txt', tool + [ '--stats', 'example.mcpl' ],
+    _cmd_output( 'stats_example.txt', tool + [ '-S', 'example.mcpl' ],
                  cwd = workdir )
-    _cmd_output( 'stats_pdf.log', tool + [ '--stats', '--pdf', 'example.mcpl' ],
+    ( workdir / 'overview.pdf' ).unlink( missing_ok = True )
+    _cmd_output( 'stats_pdf.log',
+                 tool + [ '-S', '-o', 'overview.pdf', 'example.mcpl' ],
                  cwd = workdir )
-    ( workdir / 'mcpl.pdf' ).replace( _autogendir / 'mcpltool_stats.pdf' )
+    ( workdir / 'overview.pdf' ).replace( _autogendir / 'mcpltool_stats.pdf' )
     code = ( 'import mcpl, mcpl.plotting as p;'
              'figs = mcpl.stats_figures(mcpl.collect_stats("example.mcpl"));'
              'save = lambda i, fn: p.save([figs[i]], fn, backend="matplotlib");'
@@ -364,27 +370,34 @@ _stats_outputs()
 _cmdline_examples = [
     #(name, command, and whether it is hidden; in the order they are run):
     ( 'inspect', 'mcpltool example.mcpl', False ),
-    ( 'extract_p',
-      'mcpltool --extract -p2112 example.mcpl justneutrons.mcpl', False ),
+    ( 'pick_show', ( 'mcpltool -n -p "pdgcode == gamma and ekin > 1MeV"'
+                     ' example.mcpl' ), False ),
+    ( 'extract_p', ( 'mcpltool -e -p "pdgcode == neutron"'
+                     ' example.mcpl neutrons.mcpl.gz' ), False ),
     ( 'extract_ls',
-      'mcpltool --extract -l1 -s123 example.mcpl selected.mcpl', False ),
+      'mcpltool -e -l1 -s123 example.mcpl one.mcpl.gz', False ),
     ( 'setup1',
-      'mcpltool --extract --no-comment -l300 example.mcpl file1.mcpl', True ),
-    ( 'setup2', ( 'mcpltool --extract --no-comment -s300 -l300'
-                  ' example.mcpl file2.mcpl' ), True ),
+      'mcpltool -e --no-comment -l300 example.mcpl file1.mcpl.gz', True ),
+    ( 'setup2', ( 'mcpltool -e --no-comment -s300 -l300'
+                  ' example.mcpl file2.mcpl.gz' ), True ),
     ( 'setup3',
-      'mcpltool --extract --no-comment -s600 example.mcpl file3.mcpl', True ),
-    ( 'merge', ( 'mcpltool --merge newfile.mcpl'
-                 ' file1.mcpl file2.mcpl file3.mcpl' ), False ),
-    ( 'dryrun', ( 'mcpltool --extract -d --select "ekin < 1MeV"'
-                  ' example.mcpl slow.mcpl' ), False ),
-    ( 'select_edit', ( 'mcpltool --extract example.mcpl slow.mcpl -pneutron'
-                       ' --select "ekin < 1MeV && hypot(x,y) < 10cm"'
-                       ' --edit "z = 0cm, wavelength = 1.8Aa"' ), False ),
-    ( 'forcemerge',
-      'mcpltool --forcemerge newfile2.mcpl example.mcpl slow.mcpl', False ),
-    ( 'hist', ( 'mcpltool --hist "ekin/MeV" --logx --split pdgcode'
-                ' --output cmdline_hist.png example.mcpl' ), True ),
+      'mcpltool -e --no-comment -s600 example.mcpl file3.mcpl.gz', True ),
+    ( 'merge', ( 'mcpltool -m newfile.mcpl.gz'
+                 ' file1.mcpl.gz file2.mcpl.gz file3.mcpl.gz' ), False ),
+    ( 'dryrun', ( 'mcpltool -e -d -p "ekin < 1MeV"'
+                  ' example.mcpl slow.mcpl.gz' ), False ),
+    ( 'pick_edit', ( 'mcpltool -e -p "pdgcode == neutron and ekin < 1MeV'
+                     ' and hypot(x,y) < 10cm"'
+                     ' -E "z = 0cm;wavelength = 1.8Aa"'
+                     ' example.mcpl slow.mcpl.gz' ), False ),
+    ( 'forcemerge', ( 'mcpltool --forcemerge newfile2.mcpl.gz'
+                      ' example.mcpl slow.mcpl.gz' ), False ),
+    ( 'hist', ( 'mcpltool -H "ekin/MeV;logx;split=pdgcode"'
+                ' -o cmdline_hist.png example.mcpl' ), True ),
+    ( 'hist_term', ( 'mcpltool -H "ekin/MeV;logx;split=pdgcode" -t'
+                     ' example.mcpl' ), False ),
+    ( 'hist_print', ( 'mcpltool -H "ekin/eV;lethargy;bins=8;print"'
+                      ' -p "pdgcode == neutron" example.mcpl' ), False ),
     ( 'text', 'mcpltool --text example.mcpl out.txt', False ),
 ]
 

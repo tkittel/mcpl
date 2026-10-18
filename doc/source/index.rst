@@ -43,8 +43,9 @@ navigate to the relevant parts.
 A quick look at a file
 ======================
 
-The particles in a file can be summarised with ``mcpltool --stats``, here
-for the example file of the MCPL distribution:
+The particles in a file can be summarised with ``mcpltool -S``, here with
+the overview plot (``-S -o overview.png``) of the example file of the MCPL
+distribution:
 
 .. figure:: ../build/autogen/stats_overview.png
    :alt: Overview of the particles in an MCPL file

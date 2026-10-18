@@ -13,7 +13,7 @@ the command line, in order to inspect or perform operations on files, and some u
 use-cases might write :doc:`C/C++ code <usage_c>` or :doc:`Python
 code <usage_python>` in order to inspect or manipulate MCPL files
 (for instance, to create new plugins or converters for their tools). Particles
-can also be selected, edited and plotted
+can also be picked, edited and plotted
 with short :doc:`expressions <usage_expressions>`, from the command line
 or from Python.
 
@@ -87,7 +87,7 @@ or from Python.
 
       :doc:`Expressions <usage_expressions>`
 
-      Select, edit and plot particles with short expressions, from the command line or from Python.
+      Pick, edit and plot particles with short expressions, from the command line or from Python.
 
 Many more details can be found in `the MCPL paper (section
 2) <https://mctools.github.io/mcpl/mcpl.pdf#nameddest=section.2>`__ and in `the

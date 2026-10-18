@@ -5,7 +5,7 @@ Using MCPL from Python
 If desired, it is possible to access the content of MCPL files from Python code
 by using the ``mcpl`` Python module described on this page, available since
 MCPL release 1.2.0. Since MCPL release 3.0.0, the module can also be used to
-create new MCPL files, and to select, edit, merge or plot particles.
+create new MCPL files, and to pick, edit, merge or plot particles.
 Notice that most end-users should not normally have to write code in order to
 use MCPL. Rather, they should be able to use pre-existing converters or plugins
 for their Monte Carlo applications (c.f. :doc:`hooks <hooks>`).
@@ -119,10 +119,10 @@ header information and file settings.
 
 .. _usage_python-selecting-and-editing-particles:
 
-Selecting and editing particles
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Picking and editing particles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Particles can be selected and edited with short
+Particles can be picked and edited with short
 :doc:`expressions <usage_expressions>`, for instance when copying them
 into a new file. Here the neutrons below 25 meV within 5 cm of the z axis are
 copied, rotated 90 degrees around the z axis and moved 1 m along it:
@@ -130,12 +130,12 @@ copied, rotated 90 degrees around the z axis and moved 1 m along it:
 .. code:: python
 
    import mcpl
-   sel = ( "pdgcode == neutron && ekin < 25meV"
-           " && hypot(x,y) < 5cm" )
-   edit = "rotate_z(90deg), z += 1m"
-   fin = mcpl.MCPLFile( "input.mcpl", select = sel,
+   pick = ( "pdgcode == neutron and ekin < 25meV"
+            " and hypot(x,y) < 5cm" )
+   edit = "rotate_z(90deg);z += 1m"
+   fin = mcpl.MCPLFile( "input.mcpl.gz", pick = pick,
                         edit = edit )
-   with mcpl.MCPLOutFile( "output.mcpl" ) as fout:
+   with mcpl.MCPLOutFile( "output.mcpl.gz" ) as fout:
        fout.transfer_metadata( fin )  # copy header
        for block in fin.particle_blocks:
            fout.add_particles( block )
@@ -188,19 +188,19 @@ shown, as a curve for each half of the x-y plane:
 
    import mcpl
    h = mcpl.histogram(
-       "myfile.mcpl", "acos(uz)/deg",
-       select = "pdgcode == neutron && ekin > 1keV",
+       "myfile.mcpl.gz", "acos(uz)/deg",
+       pick = "pdgcode == neutron and ekin > 1keV",
        split = "x > 0cm", range = (0, 90) )
    h.plot()  # or h.plot( filename = "angles.pdf" )
 
-And plots of all the particle data, like those of ``mcpltool --stats`` on the
-:ref:`command line <usage_cmdline-extract-statistics-from-a-file>`, are
-made with (this also works with earlier MCPL releases):
+And an overview plot of the particle data, like that of ``mcpltool -S -o`` on
+the :ref:`command line <usage_cmdline-extract-statistics-from-a-file>`, is
+made with (``plot_stats`` also works with earlier MCPL releases):
 
 .. code:: python
 
    import mcpl
-   mcpl.plot_stats( "myfile.mcpl" )
+   mcpl.plot_stats( "myfile.mcpl.gz" )
 
 .. _usage_python-where-to-find-more-documentation:
 

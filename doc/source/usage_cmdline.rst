@@ -4,7 +4,7 @@ Using MCPL from the command line
 
 MCPL provides the command-line tool ``mcpltool`` (from the ``mcpl-python``
 package), which can be used to inspect MCPL files, show statistics and plots of
-their contents, select or edit particles with expressions, and carry out
+their contents, pick or edit particles with expressions, and carry out
 operations like merging, extracting or repairing files. Before MCPL 3.0.0, it
 was called ``pymcpltool``.
 
@@ -45,17 +45,16 @@ used to suppress the header information.
 Extract some particles from a file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using the ``--extract`` flag to ``mcpltool``, it is possible to extract a
-subset of particles from a file, into a new file. Using the ``-p`` flag, one
-can select according to `particle
+Using the ``-e`` (``--extract``) flag to ``mcpltool``, it is possible to
+extract a subset of particles from a file, into a new file. With ``-p``
+(``--pick``), the particles are picked with an :doc:`expression
+<usage_expressions>`, for instance by `particle
 type <https://pdg.lbl.gov/2024/reviews/rpp2024-rev-monte-carlo-numbering.pdf>`__
-(2112=neutron, 22=gamma, etc.). Since MCPL release 3.0.0, names of
-:ref:`common particles <usage_expressions-operators-functions-and-names>`
-can be used as well, as in ``-pneutron``. The comment which ``--extract`` adds
-to the header of the new file will then also describe how the particles were
-selected (e.g. ``mcpltool: extracted particles with -p2112``), rather than
-giving the number of particles in the original file, and it can be disabled
-with the new ``--no-comment`` option.
+(2112=neutron, 22=gamma, etc., or the names of :ref:`common particles
+<usage_expressions-operators-functions-and-names>`). The comment which ``-e``
+adds to the header of the new file describes how the particles were extracted
+(e.g. ``mcpltool: extracted particles with -p "pdgcode == neutron"``), and it
+can be disabled with the ``--no-comment`` option.
 
 .. literalinclude:: ../build/autogen/cmdline_extract_p.txt
    :language: console
@@ -75,9 +74,9 @@ starting from position 123:
 Merging compatible files
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using the ``--merge`` flag to ``mcpltool``, it is possible to merge contents
-from a list of compatible files into a single new one. Here three existing
-files are merged, creating newfile.mcpl as a result:
+Using the ``-m`` (``--merge``) flag to ``mcpltool``, it is possible to merge
+contents from a list of compatible files into a single new one. Here three
+existing files are merged, creating newfile.mcpl.gz as a result:
 
 .. literalinclude:: ../build/autogen/cmdline_merge.txt
    :language: console
@@ -95,8 +94,8 @@ Occasionally, the compatibility requirements for the --merge option can not be
 satisfied. At the expense of discarding descriptive meta-data such as comments
 and binary blobs, a brute-force merge of the files can be instead performed
 with the ``--forcemerge`` flag. Here the example file is merged with a file
-which was made from it with ``--select`` and ``--edit`` (see below), and thus
-has more comments:
+which was made from it with ``-p`` and ``-E`` (see below), and thus has more
+comments:
 
 .. literalinclude:: ../build/autogen/cmdline_forcemerge.txt
    :language: console
@@ -123,79 +122,94 @@ as the real run, followed by a note that nothing was written:
 .. literalinclude:: ../build/autogen/cmdline_dryrun.txt
    :language: console
 
-This works with ``--merge``, ``--forcemerge``, ``--extract``, ``--repair`` and
-``--text``, and the option is ignored with commands which do not write files
-(so it can always be added), except that plots can not be saved in a dry run.
+This works with ``-m``, ``--forcemerge``, ``-e``, ``-r`` and ``--text``, and
+the option is ignored with commands which do not write files (so it can always
+be added), except that plots can not be saved in a dry run (with ``-o``).
 
 .. _usage_cmdline-selecting-editing-and-plotting-particles-with-expressions:
 
-Selecting, editing and plotting particles with expressions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Picking, editing and plotting particles with expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Particles can be selected and edited based on expressions
-with the ``--select`` and ``--edit`` options, and histograms of expressions can
-be plotted with ``--hist``. Here neutrons below 1 MeV within 10 cm of the z
-axis are extracted, while setting their z coordinates to 0 and their
+Particles can be picked and edited based on expressions with the ``-p``
+(``--pick``) and ``-E`` (``--edit``) options, and histograms of expressions
+can be plotted with ``-H`` (``--hist``). Here neutrons below 1 MeV within 10 cm
+of the z axis are extracted, while setting their z coordinates to 0 and their
 wavelengths to 1.8 Aa:
 
-.. literalinclude:: ../build/autogen/cmdline_select_edit.txt
+.. literalinclude:: ../build/autogen/cmdline_pick_edit.txt
    :language: console
 
 And here the energy spectrum of all particles is plotted, with a curve for each
-particle type:
+particle type (the options of the histogram follow the expression, separated
+by ``;``):
 
 .. code:: console
 
-   $ mcpltool --hist "ekin/MeV" --logx --split pdgcode example.mcpl
+   $ mcpltool -H "ekin/MeV;logx;split=pdgcode" example.mcpl
 
 .. image:: ../build/autogen/cmdline_hist.png
    :alt: Energy spectrum of each particle type
 
+Plots are shown in a window with matplotlib, or in the terminal if matplotlib
+is not installed. With ``-t``, they are always shown in the terminal:
+
+.. literalinclude:: ../build/autogen/cmdline_hist_term.txt
+   :language: none
+
+With ``-o FILE``, plots are saved in a file, in the format given by the
+extension (``.png``, ``.pdf``, ``.svg``, or ``.txt`` for plots drawn as text).
 The expressions, and many more examples, are described on :doc:`a page of their
 own <usage_expressions>`.
 
 .. _usage_cmdline-get-full-usage-instructions:
 
-Get full usage instructions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get usage instructions
+~~~~~~~~~~~~~~~~~~~~~~
 
-Full usage instructions are obtainable with the ``--help`` flag, and are also
-listed in the :doc:`command reference <cmdline>`:
+A summary of the most common options is shown with ``-h`` (``--help``):
 
 .. code:: console
 
-   $ mcpltool --help
+   $ mcpltool -h
 
 .. literalinclude:: ../build/autogen/mcpltool_help.txt
    :language: none
+
+All options are shown with ``--full-help``, and how to write the expressions
+of ``-p``, ``-E`` and ``-H`` with ``-p help``, ``-E help`` and ``-H help``.
+All of these are also listed in the :doc:`command reference <cmdline>`.
 
 .. _usage_cmdline-extract-statistics-from-a-file:
 
 Extract statistics from a file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using ``mcpltool`` with the ``--stats`` flag, it is possible to analyse a
-file to get statistics of the contained particles and the distribution of their
-state parameters:
+Using ``mcpltool`` with the ``-S`` (``--stats``) flag, it is possible to
+analyse a file to get statistics of the contained particles and the
+distribution of their state parameters (also with ``-p``, ``-E``, ``-l`` and
+``-s``, for only some of the particles):
 
 .. code:: console
 
-   $ mcpltool --stats example.mcpl
+   $ mcpltool -S example.mcpl
 
 .. literalinclude:: ../build/autogen/stats_example.txt
    :language: none
 
-Or, one can view the parameter distributions graphically by adding ``--gui``:
+With ``-o FILE``, an overview plot of the most important distributions is
+saved in a file instead, like :download:`this PDF file
+<../build/autogen/mcpltool_stats.pdf>`:
 
 .. code:: console
 
-   $ mcpltool --stats --gui example.mcpl
-
-Resulting in plots of the file contents like these (an overview of the most
-important distributions, followed by plots of each field):
+   $ mcpltool -S -o overview.pdf example.mcpl
 
 .. image:: ../build/autogen/stats_overview.png
    :alt: Overview of the particles in the file
+
+In Python, the overview and plots of each field are available from
+``mcpl.stats_figures``, like these:
 
 .. image:: ../build/autogen/stats_pdgcode.png
    :width: 32%
@@ -206,14 +220,6 @@ important distributions, followed by plots of each field):
 .. image:: ../build/autogen/stats_uz.png
    :width: 32%
    :alt: Distribution of uz
-
-Or one can produce a PDF file like :download:`this one
-<../build/autogen/mcpltool_stats.pdf>` containing the plots by adding instead
-the ``--pdf`` flag:
-
-.. code:: console
-
-   $ mcpltool --stats --pdf example.mcpl
 
 .. _usage_cmdline-extract-file-contents-to-text-file:
 
@@ -241,7 +247,7 @@ The minimal ``mcpltool-c``
 
 The ``mcpl-core`` package provides a minimal version of ``mcpltool`` written
 in C, ``mcpltool-c`` (which was called ``mcpltool`` before MCPL 3.0.0). It is
-used in the same way, but can not show statistics or histograms, nor select or
-edit particles with expressions, and some options (like ``--dry-run``) are
-only available in ``mcpltool``. Its options are listed by ``mcpltool-c
---help``.
+used in the same way, but can not show statistics or histograms, nor pick or
+edit particles with expressions (only particles of one type, with
+``-pPDGCODE``), and some options (like ``--dry-run``) are only available in
+``mcpltool``. Its options are listed by ``mcpltool-c --help``.

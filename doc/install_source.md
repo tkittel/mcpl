@@ -39,9 +39,9 @@ installed in a similar manner):
 pip install mcpl
 ```
 
-The `mcpl` Python package only needs `numpy`. To also install the packages
-needed for the matplotlib or plotly plotting backends, use the extras `[plot]`
-(matplotlib), `[plotly]` (plotly) or `[all]` (both), for instance:
+The `mcpl` Python package only needs `numpy`. To also install matplotlib,
+which is needed for plots in windows and in .pdf, .png or .svg files, use the
+extra `[plot]` (or `[all]`), for instance:
 
 ```
 pip install "mcpl[plot]"

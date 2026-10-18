@@ -224,17 +224,17 @@ wavelengths use relativistic kinematics for neutrons, and the CODATA 2022
 values of the physical constants, which are available in the ``mcpl.constants``
 module.
 
-Selections and edits can also be given as strings, which is for instance
+Picks and edits can also be given as strings, which is for instance
 convenient when they are provided by the users of a script. They are evaluated
 efficiently on whole blocks, without using Python's ``eval()``:
 
 .. code:: python
 
    flt = mcpl.ParticleFilter(
-       "pdgcode == neutron && ekin < 25meV"
-       " && abs(x) <= 2mm" )
+       "pdgcode == neutron and ekin < 25meV"
+       " and abs(x) <= 2mm" )
    edit = mcpl.ParticleEdit(
-       "rotate_z(90deg), z += 10cm,"
+       "rotate_z(90deg);z += 10cm;"
        " wavelength = 1.8Aa" )
    for b in fin.particle_blocks:
        sel = b[ flt( b ) ]
@@ -330,18 +330,21 @@ userdata when extracting particles. A complete example is found in the file
 Statistics and plots
 --------------------
 
-The statistics and plots of ``mcpltool --stats`` (see :ref:`command
+The statistics and the overview plot of ``mcpltool -S`` (see :ref:`command
 line <usage_cmdline-extract-statistics-from-a-file>`) are also
-available from Python:
+available from Python, as are plots of each field:
 
 .. code:: python
 
    import mcpl
-   stats = mcpl.collect_stats( "myfile.mcpl" )
+   stats = mcpl.collect_stats( "myfile.mcpl.gz" )
    mcpl.dump_stats( stats )  # print summary
-   mcpl.plot_stats( stats )  # show plots
-   # Save plots in a file:
-   mcpl.plot_stats( stats, filename = "plots.pdf" )
+   mcpl.plot_stats( stats )  # show the overview plot
+   # Save the overview plot in a file:
+   mcpl.plot_stats( stats, filename = "overview.pdf" )
+   # All figures (the overview, and plots of each field):
+   figs = mcpl.stats_figures( stats )
+   mcpl.plotting.save( figs, "plots.pdf" )
 
 .. _usage_python_advanced-merging-and-other-file-operations:
 

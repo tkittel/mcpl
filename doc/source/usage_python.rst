@@ -140,6 +140,11 @@ copied, rotated 90 degrees around the z axis and moved 1 m along it:
        for block in fin.particle_blocks:
            fout.add_particles( block )
 
+With ``skip`` and ``limit``, only a range of the particles in the file is used
+(before they are picked and edited), like with the ``-s`` and ``-l`` options of
+``mcpltool``: ``mcpl.MCPLFile( "input.mcpl.gz", skip = 1000, limit = 500 )``
+gives (at most) 500 particles after the first 1000.
+
 .. _usage_python-merging-files:
 
 Merging files
@@ -193,14 +198,19 @@ shown, as a curve for each half of the x-y plane:
        split = "x > 0cm", range = (0, 90) )
    h.plot()  # or h.plot( filename = "angles.pdf" )
 
-And an overview plot of the particle data, like that of ``mcpltool -S -o`` on
-the :ref:`command line <usage_cmdline-extract-statistics-from-a-file>`, is
-made with (``plot_stats`` also works with earlier MCPL releases):
+The viewer of ``mcpltool -w`` (see the :ref:`command line
+<usage_cmdline-view-the-particles-interactively>`) is opened with
+``mcpl.view``, also in Jupyter, where it is a panel of ipywidgets (which needs
+the ``jupyter`` extra, ``pip install "mcpl-python[jupyter]"``). After
+``%matplotlib widget`` (the ipympl backend of matplotlib, also in the extra),
+the plots are interactive, for example for zooming:
 
 .. code:: python
 
+   %matplotlib widget
    import mcpl
-   mcpl.plot_stats( "myfile.mcpl.gz" )
+   mcpl.view( "myfile.mcpl.gz", pick = "pdgcode == neutron",
+              plots = [ "hypot(x,y)/cm;logy" ] )
 
 .. _usage_python-where-to-find-more-documentation:
 

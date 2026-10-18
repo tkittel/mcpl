@@ -304,34 +304,18 @@ def _latest_news( n = 4 ):
         out.write_text(txt)
 
 def _stats_outputs():
-    """Output of mcpltool -S for the example file of the repository: the
-    text summary, the overview plot (as PDF with -S -o, and as PNG for the
-    pages) and a few of the plots of each field. Only regenerated when the
-    example file changed."""
+    """Output of mcpltool -S for the example file of the repository (only
+    regenerated when the example file changed)."""
     import shutil
     example = _reporoot / 'examples' / 'example.mcpl'
     workdir = _autogendir / 'stats'
-    stamp = workdir / 'done_v2.txt'
+    stamp = workdir / 'done_v3.txt'
     if stamp.is_file() and stamp.stat().st_mtime > example.stat().st_mtime:
         return
     workdir.mkdir(exist_ok=True)
     shutil.copy( example, workdir / 'example.mcpl' )
     tool = [ sys.executable, '-m', 'mcpl' ]
     _cmd_output( 'stats_example.txt', tool + [ '-S', 'example.mcpl' ],
-                 cwd = workdir )
-    ( workdir / 'overview.pdf' ).unlink( missing_ok = True )
-    _cmd_output( 'stats_pdf.log',
-                 tool + [ '-S', '-o', 'overview.pdf', 'example.mcpl' ],
-                 cwd = workdir )
-    ( workdir / 'overview.pdf' ).replace( _autogendir / 'mcpltool_stats.pdf' )
-    code = ( 'import mcpl, mcpl.plotting as p;'
-             'figs = mcpl.stats_figures(mcpl.collect_stats("example.mcpl"));'
-             'save = lambda i, fn: p.save([figs[i]], fn, backend="matplotlib");'
-             f'save(0, {str(_autogendir/"stats_overview.png")!r});'
-             f'save(1, {str(_autogendir/"stats_pdgcode.png")!r});'
-             f'save(4, {str(_autogendir/"stats_x.png")!r});'
-             f'save(9, {str(_autogendir/"stats_uz.png")!r})' )
-    _cmd_output( 'stats_figures.log', [ sys.executable, '-c', code ],
                  cwd = workdir )
     stamp.write_text('done\n')
 
@@ -364,6 +348,50 @@ nitpick_ignore += [ ( 'c:identifier', t )
                               'size_t', 'wchar_t' ) ]
 _stats_outputs()
 
+def _viewer_outputs():
+    """Picture of the viewer of mcpltool -w (with matplotlib, drawn without a
+    display). Only regenerated when the example file or the Python code
+    changed."""
+    import shutil
+    example = _reporoot / 'examples' / 'example.mcpl'
+    sources = [ example, *( _reporoot / 'mcpl_python' / 'src' / 'mcpl' ).glob('*.py') ]
+    out = _autogendir / 'viewer.png'
+    if out.is_file() and out.stat().st_mtime > max( f.stat().st_mtime for f in sources ):
+        return
+    workdir = _autogendir / 'viewer'
+    workdir.mkdir(exist_ok=True)
+    shutil.copy( example, workdir / 'example.mcpl' )
+    code = ( 'import matplotlib; matplotlib.use("agg");'
+             'import matplotlib.pyplot as plt;'
+             'from mcpl._viewer import Viewer;'
+             'from mcpl._plotbackend_mpl_gui import MplViewer;'
+             'v = Viewer("example.mcpl",plots=["hypot(x,y)/cm;logy=1"]);'
+             'fig = plt.figure(figsize=(14,9));'
+             'g = MplViewer(v,fig); g.start(); v.wait(); g.refresh();'
+             f'fig.savefig({str(out)!r},dpi=70); v.stop()' )
+    _cmd_output( 'viewer.log', [ sys.executable, '-c', code ], cwd = workdir )
+
+_viewer_outputs()
+
+#The examples of expressions (also shown by mcpltool -p help, -E help and -H
+#help, and the viewer), on the usage_expressions page:
+def _expression_examples():
+    from mcpl._exprhelp import examples
+    titles = { 'pick' : 'Picks (``-p``)', 'edit' : 'Edits (``-E``)',
+               'hist' : 'Plots (``-H``)' }
+    parts = []
+    for topic, title in titles.items():
+        parts += [ title, '~' * len(title), '' ]
+        for group, note, rows in examples[topic]:
+            parts += [ f'**{group}**', '' ] + ( [ note, '' ] if note else [] )
+            for expr, what in rows:
+                parts += [ f'``{expr}``', f'   {what}', '' ]
+    content = '\n'.join(parts)
+    out = _autogendir / 'expression_examples.rst'
+    if not out.is_file() or out.read_text() != content:
+        out.write_text(content)
+_expression_examples()
+
 #The examples on the usage_cmdline page: each command is run (in a scratch
 #directory with a copy of the example file), and the command and its output
 #are shown, so the page is always up to date with the actual tool:
@@ -392,11 +420,11 @@ _cmdline_examples = [
                      ' example.mcpl slow.mcpl.gz' ), False ),
     ( 'forcemerge', ( 'mcpltool --forcemerge newfile2.mcpl.gz'
                       ' example.mcpl slow.mcpl.gz' ), False ),
-    ( 'hist', ( 'mcpltool -H "ekin/MeV;logx;split=pdgcode"'
+    ( 'hist', ( 'mcpltool -H "ekin/MeV;logx=1"'
                 ' -o cmdline_hist.png example.mcpl' ), True ),
-    ( 'hist_term', ( 'mcpltool -H "ekin/MeV;logx;split=pdgcode" -t'
+    ( 'hist_term', ( 'mcpltool -H "ekin/MeV;logx=1" -t'
                      ' example.mcpl' ), False ),
-    ( 'hist_print', ( 'mcpltool -H "ekin/eV;lethargy;bins=8;print"'
+    ( 'hist_print', ( 'mcpltool -H "ekin/eV;lethargy=1;bins=8;print=1"'
                       ' -p "pdgcode == neutron" example.mcpl' ), False ),
     ( 'text', 'mcpltool --text example.mcpl out.txt', False ),
 ]

@@ -146,7 +146,7 @@ by ``;``):
 
 .. code:: console
 
-   $ mcpltool -H "ekin/MeV;logx;split=pdgcode" example.mcpl
+   $ mcpltool -H "ekin/MeV;logx" example.mcpl
 
 .. image:: ../build/autogen/cmdline_hist.png
    :alt: Energy spectrum of each particle type
@@ -161,7 +161,8 @@ In terminals, such plots are shown in colour, unless the ``NO_COLOR``
 environment variable is set (or always, if ``FORCE_COLOR`` is set), which
 ``--color=always`` or ``--color=never`` overrides. With ``-o FILE``, plots are
 saved in a file, in the format given by the extension (``.png``, ``.pdf``,
-``.svg``, or ``.txt`` for plots drawn as text).
+``.svg``, or ``.txt`` for plots drawn as text). ``-H`` can be given several
+times, for several plots (with ``-o FILE.pdf``, a page for each).
 The expressions, and many more examples, are described on :doc:`a page of their
 own <usage_expressions>`.
 
@@ -200,29 +201,84 @@ distribution of their state parameters (also with ``-p``, ``-E``, ``-l`` and
 .. literalinclude:: ../build/autogen/stats_example.txt
    :language: none
 
-With ``-o FILE``, an overview plot of the most important distributions is
-saved in a file instead, like :download:`this PDF file
-<../build/autogen/mcpltool_stats.pdf>`:
+For plots of the particles, use the viewer (``-w``, see below) or histograms
+(``-H``).
+
+.. _usage_cmdline-view-the-particles-interactively:
+
+View the particles interactively
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With ``-w`` (``--view``), ``mcpltool`` opens a viewer, in a window (with Tk,
+the ``tkinter`` module of Python, and the plots drawn with matplotlib), or
+else in the terminal (always with ``-t``):
 
 .. code:: console
 
-   $ mcpltool -S -o overview.pdf example.mcpl
+   $ mcpltool -w -H "hypot(x,y)/cm;logy" example.mcpl
 
-.. image:: ../build/autogen/stats_overview.png
-   :alt: Overview of the particles in the file
+.. image:: ../build/autogen/viewer.png
+   :alt: The viewer of mcpltool
 
-In Python, the overview and plots of each field are available from
-``mcpl.stats_figures``, like these:
+It shows histograms of the particles (as for ``-H``) in groups, by default the
+spectra (energy, also per unit lethargy, wavelength, time and particle types)
+and the particle fields (in the window with an overview of each group: all its
+plots together, or for the correlations a correlation plot of the fields which
+vary, with the correlation coefficients of each pair). Below an overview, its settings choose which
+particles its plots show ("Display only": by default all, but the most common
+type for the correlations), whether they show a curve for each particle type
+("Display by", the default) or one curve, and the fields of the correlation plot.
+New plots are added to the group "Custom", where they can be reordered and
+removed; changing a plot of the other groups copies it there. In the window, the plots are cards, which are
+clicked to show them, dragged to reorder them (the custom ones), and removed
+with a right click (or Delete). The groups show their overview, and choosing a
+plot of a group expands it (and clicking on its overview again folds it); the
+custom plots are always shown. The other groups (the beam profiles along z, x
+and y, 3D plots and the correlations) are listed in grey in their places, and
+activated with a click (and deactivated with a right click on their overview).
+Each group adds plots of its own, and a plot in several groups is the same
+plot.
+With the shown plot are its title,
+its X, Y and Z axes (a quantity from the list, or any expression), its settings (such as
+logarithmic scales, also chosen by clicking on the colour bar of a 2D plot).
+"Advanced" shows instead the plot expression, which has the axes and settings,
+and "+ New plot" starts a new plot there.
+"Plot code" shows the ``mcpltool`` command and the Python code making the shown
+plot, and "New MCPL file..." (with the pick and edit) shows the code
+writing the picked and edited particles to a new file (and writes it).
+In the menu (m), "Open MCPL file..." (Ctrl+O or Alt+O) shows another file with the
+same plots, pick and edit, and the menu "Help" (h) describes the viewer and
+the expressions (as ``-p help``, ``-E help`` and ``-H help``), and MCPL itself
+(its version, website and where to get support). The particles are kept in memory (the cache, up to 500 MB of them),
+so that changes do not read the file again. The button at the right of the name
+of the file shows the memory used, in red when not all particles fit, and then
+the plots use only the first particles, those which fit (counted before the
+pick; new files always get all particles). The numbers of picked particles are
+then estimated for all particles (marked with ≈). Its menu says how many
+particles each amount of memory gives, or turns the cache off. In both
+viewers, the plots can be changed (Enter),
+reordered (Shift+Up or Shift+Down) and removed, further ones added (``a``, or
+``-H``, which can be given several times), and the particles of all plots can be
+changed in their fields: Skip and Limit (like ``-s`` and ``-l``), Pick and Edit
+(like ``-p`` and ``-E``). The plots are updated while the file is read. With
+``w``, the picked and edited particles are written to a new file, and ``h``
+shows the help.
 
-.. image:: ../build/autogen/stats_pdgcode.png
-   :width: 32%
-   :alt: Particle types
-.. image:: ../build/autogen/stats_x.png
-   :width: 32%
-   :alt: Distribution of x
-.. image:: ../build/autogen/stats_uz.png
-   :width: 32%
-   :alt: Distribution of uz
+With ``v``, the state of the viewer (the fields and the plots) is saved in a
+file, which ``-wFILE.json`` opens again. When the viewer is closed, the
+commands doing the same are printed, for instance to open the viewer like this
+again. With ``-wVIEW`` (or ``--view=VIEW``), the viewer starts with that view,
+e.g. ``-wekin``. With ``-wGROUPS``, it shows these groups, separated by commas,
+e.g. ``-wspectra,beamz`` for a beam along the z axis (see ``mcpltool
+--full-help``), which are also chosen with ``c`` in the viewer.
+
+The viewer in the terminal (always with ``-t``) uses the ``curses`` module of
+Python, which on Windows needs the ``windows-curses`` package (included in the
+``curses`` and ``all`` extras of ``mcpl-python``). With ``-B ascii``, it only
+uses ASCII characters, and ``--color=never`` turns off its colours (as for
+``-H``). With ``o``, it opens the current plot in a window, and with
+``g`` the whole viewer, in the same state (if matplotlib can show plots
+there).
 
 .. _usage_cmdline-extract-file-contents-to-text-file:
 

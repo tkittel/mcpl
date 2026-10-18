@@ -327,24 +327,18 @@ userdata when extracting particles. A complete example is found in the file
 
 .. _usage_python_advanced-statistics-and-plots:
 
-Statistics and plots
---------------------
+Statistics
+----------
 
-The statistics and the overview plot of ``mcpltool -S`` (see :ref:`command
-line <usage_cmdline-extract-statistics-from-a-file>`) are also
-available from Python, as are plots of each field:
+The statistics of ``mcpltool -S`` (see :ref:`command line
+<usage_cmdline-extract-statistics-from-a-file>`) are also available from
+Python (plots are made with ``mcpl.histogram`` and ``mcpl.view``):
 
 .. code:: python
 
    import mcpl
    stats = mcpl.collect_stats( "myfile.mcpl.gz" )
    mcpl.dump_stats( stats )  # print summary
-   mcpl.plot_stats( stats )  # show the overview plot
-   # Save the overview plot in a file:
-   mcpl.plot_stats( stats, filename = "overview.pdf" )
-   # All figures (the overview, and plots of each field):
-   figs = mcpl.stats_figures( stats )
-   mcpl.plotting.save( figs, "plots.pdf" )
 
 .. _usage_python_advanced-merging-and-other-file-operations:
 

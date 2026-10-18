@@ -30,6 +30,16 @@ characters ``" ' { } [ ] # $`` backtick or backslash. With ``mcpltool``, put
 them in double quotes, which works in all the usual shells on Unix and
 Windows.
 
+.. _usage_expressions-examples:
+
+Examples
+--------
+
+Some examples, from simple to advanced (which ``mcpltool -p help``, ``-E
+help`` and ``-H help`` also show, and the "?" buttons of the viewer):
+
+.. include:: ../build/autogen/expression_examples.rst
+
 .. _usage_expressions-particle-fields:
 
 Particle fields
@@ -61,6 +71,10 @@ Expressions use the same names for the particle fields as the Python API:
 | ``fileidx``             | Position of the particle in the file, counting from 0 (can not be edited)         | none (integer)          |
 +-------------------------+-----------------------------------------------------------------------------------+-------------------------+
 | ``wavelength``          | Wavelength of neutrons and gammas (calculated from ``ekin``)                      | length                  |
++-------------------------+-----------------------------------------------------------------------------------+-------------------------+
+| ``userdata.NAME``       | The field NAME of the userdata, in files with userdata (can not be edited), and   | none                    |
+|                         | ``userdata.NAME.at(INDEX)`` the values of fields with several values per          |                         |
+|                         | particle, counting from 0 (e.g. ``userdata.origdir.at(2)``)                       |                         |
 +-------------------------+-----------------------------------------------------------------------------------+-------------------------+
 
 The wavelength is only defined for neutrons and gammas, and it is an error to
@@ -98,8 +112,10 @@ Values which have units must always be given with units (except for a plain
 +--------------------------------------+--------------------------------------+
 
 Numbers followed by a unit, like ``25meV`` or ``1.8Aa`` (with or without a
-space), are values with units, and a power directly after a unit only applies
-to the unit (``4cm^2`` is 4 cm^2). Units are checked: values can only be added,
+space), are values with units (``ekin/2MeV`` is ``ekin/(2*MeV)``), and so are
+units on their own (``MeV`` is ``1MeV``). A power directly after a unit only
+applies to the unit (``4cm^2`` is 4 cm^2), and half powers are possible, as in
+``sqrt(ekin)/sqrt(eV)``. Units are checked: values can only be added,
 subtracted or compared if they have the same units (e.g. both are lengths,
 which can then be in different units, like ``x < 10mm + 2cm``), and values
 without units can not be combined with values with units:
@@ -117,8 +133,9 @@ without units can not be combined with values with units:
 
 Plain numbers can still be used as factors (``2*x``) and for the fields without
 units (``ux > 0.9``, ``weight *= 0.5``, ``pdgcode == 2112``). Dividing by a
-unit gives a value without units, which is how `histograms <#histograms>`__
-choose the units of their axes: ``ekin/eV`` is the kinetic energy in eV.
+unit gives a value without units: ``ekin/eV`` is the kinetic energy in eV, which
+is also how the unit of the axis of a `histogram <#histograms>`__ can be
+chosen.
 
 .. _usage_expressions-operators-functions-and-names:
 
@@ -131,7 +148,9 @@ Operators, functions and names
 +--------------------------------------+--------------------------------------+
 | Comparisons                          | ``==``, ``!=``, ``<``, ``<=``,       |
 |                                      | ``>``, ``>=`` (which can be chained, |
-|                                      | as in ``0 < x < 2cm``)               |
+|                                      | as in ``0 < x < 2cm``), and ``in``   |
+|                                      | or ``not in`` values, as in          |
+|                                      | ``pdgcode in (neutron,gamma)``       |
 +--------------------------------------+--------------------------------------+
 | Logic                                | ``and``, ``or``, ``not``             |
 +--------------------------------------+--------------------------------------+
@@ -139,27 +158,24 @@ Operators, functions and names
 |                                      | integers like ``16``, ``0x10`` or    |
 |                                      | ``0b10000``                          |
 +--------------------------------------+--------------------------------------+
-| Functions                            | ``sqrt``, ``abs``, ``floor``,        |
-|                                      | ``ceil``, ``exp``, ``log``,          |
-|                                      | ``log10``, ``sin``, ``cos``,         |
+| Functions                            | ``sqrt``, ``abs``, ``round``,        |
+|                                      | ``floor``, ``ceil``, ``exp``,        |
+|                                      | ``log``, ``log10``, ``sin``, ``cos``,|
 |                                      | ``tan``, ``asin``, ``acos``,         |
 |                                      | ``atan``, ``atan2(y,x)``,            |
 |                                      | ``hypot(a,b,...)``,                  |
 |                                      | ``min(a,b,...)``, ``max(a,b,...)``,  |
 |                                      | ``clamp(value,low,high)``,           |
-|                                      | ``mod(a,b)`` (integers),             |
-|                                      | ``angle_to(x,y,z)``                  |
+|                                      | ``mod(a,b)`` (integers), and for     |
+|                                      | vectors (see below) ``dot``,         |
+|                                      | ``cross`` and ``angle``              |
 +--------------------------------------+--------------------------------------+
 | Constants                            | ``pi``                               |
 +--------------------------------------+--------------------------------------+
 
 The function ``hypot`` takes two or more arguments, so ``hypot(x,y)`` is the
 distance from the z axis and ``hypot(x,y,z)`` the distance from the origin. The
-function ``angle_to(x,y,z)`` gives the angle between the direction of the
-particles and the vector (x,y,z), precisely also for very small angles (unlike
-``acos``). For instance, ``angle_to(0,0,1) < 1deg`` selects particles within 1
-degree of the z axis, and ``angle_to(x,y,z)`` is the angle between the
-direction and the position. The function ``mod(a,b)`` gives the remainder of
+function ``mod(a,b)`` gives the remainder of
 the division of two integers without units, so ``mod(fileidx,10) == 0`` picks
 every tenth particle in the file.
 
@@ -181,6 +197,39 @@ Name                               PDG code
 
 For instance, ``-p "pdgcode == neutron"`` picks the neutrons.
 
+.. _usage_expressions-vectors:
+
+Vectors
+-------
+
+The position, direction and polarisation of the particles are also vectors:
+``pos``, ``dir`` and ``pol``. Other vectors are written in parentheses, with
+two or three values which have the same units, as in ``(0,0,1)`` or
+``(0,0,1m)`` (a plain ``0`` fits any units). The values of a vector ``v`` are
+``v.x``, ``v.y`` and ``v.z``, or ``v.at(0)``, ``v.at(1)`` and ``v.at(2)``
+(counting from 0). The fields are simply aliases of these values: ``y`` is
+``pos.y`` (or ``pos.at(1)``), and ``uz`` is ``dir.z`` (or ``dir.at(2)``).
+
+Vectors can be added and subtracted, and multiplied and divided by numbers
+(with or without units). ``abs(v)`` is the length of a vector, ``v^2`` its
+length squared, ``dot(v,w)`` and ``cross(v,w)`` the dot and cross products
+(``cross`` only for 3D vectors), and ``angle(v,w)`` the angle between two
+vectors, which is precise also for very small angles (unlike ``acos`` of a dot
+product). Vectors can not be compared, which gives an error suggesting
+``abs(v)``. For instance:
+
+::
+
+   angle(dir,(0,0,1)) < 1deg             # within 1 degree of the z axis
+   abs(pos - (0,0,1m)) < 10cm            # within 10 cm of a point
+   d = pos - (0,0,1m); abs(d) < 10cm     # the same, with a variable
+   abs(cross(pos,dir)) < 1cm             # flying close to the origin
+   angle(pos,dir)/deg                    # (a plot) direction vs. position
+
+In edits, ``pos``, ``dir`` and ``pol`` can be assigned, as in ``pos += 50cm*dir``
+(moving the particles 50 cm along their directions) or ``dir = -dir``, and
+changing ``x`` changes ``pos`` and the other way around.
+
 .. _usage_expressions-selecting-particles:
 
 Picking particles
@@ -192,14 +241,24 @@ Picks are expressions which are true for the particles to pick:
 
    pdgcode == neutron and ekin < 25meV
    pdgcode == gamma and hypot(x,y) < 5cm
-   pdgcode == neutron and acos(uz) < 2deg
+   pdgcode == neutron and angle(dir,(0,0,1)) < 2deg
    x > 0 and 0 < z < 1m
    userflags & 0x10
    (userflags & 0xff) == 7 or time > 10us
-   not (pdgcode == neutron or pdgcode == gamma)
+   pdgcode not in (neutron,gamma)
+   abs(pdgcode) == muon
 
 Integers which are not 0 count as true, so ``userflags & 0x10`` picks the
 particles for which this bit is set in the userflags.
+
+Variables can be assigned before the condition, which comes last, with ``;``
+between them (as the statements of :ref:`edits
+<usage_expressions-editing-particles>`, but picks can not change the fields of
+the particles):
+
+::
+
+   r = hypot(x,y); r > 2cm and r < 5cm
 
 On the command line, ``-p`` can be used when showing particles, when
 extracting particles into a new file (``-e``), with ``-S`` and with ``-H``.
@@ -280,6 +339,31 @@ The statements are:
 |                         |                         | by multiples of 90      |
 |                         |                         | degrees are exact.      |
 +-------------------------+-------------------------+-------------------------+
+| ``rotate_around``       | (see below)             | Rotate them around any  |
+|                         |                         | axis through the        |
+|                         |                         | origin.                 |
++-------------------------+-------------------------+-------------------------+
+| ``rotate_frame``        | (see below)             | Rotate them from one    |
+|                         |                         | frame to another.       |
++-------------------------+-------------------------+-------------------------+
+
+The axis of ``rotate_around(axis,angle)`` is a :ref:`vector
+<usage_expressions-vectors>` (which does not need to be a unit vector), and the
+rotation is counter-clockwise when looking from the axis towards the origin.
+``rotate_frame(v,vout,u,uout)`` is given four vectors, and
+turns the direction of ``v`` into that of ``vout``, and ``u`` into ``uout``,
+for instance a beam direction and an "up" direction of one frame into those of
+another. The angle between ``v`` and ``u`` must be that between ``vout`` and
+``uout``, and ``v`` and ``u`` must not be parallel. For instance:
+
+.. code:: text
+
+   rotate_around((1,1,0),30deg)
+   rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))
+
+The first rotates by 30 degrees around the axis (1,1,0), and the second turns
+the z axis into the x axis while keeping the y axis (the same as
+``rotate_y(90deg)``).
 
 Since the statements are executed in order, ``x = -y;y = x`` sets both ``x``
 and ``y`` to ``-y``. A rotation around the z axis by 90 degrees can instead be
@@ -315,18 +399,22 @@ known to be compatible with the *stat:sum* entries.
 Histograms
 ----------
 
-Histograms show the values of an expression without units, so values with units
-are divided by a unit, which then becomes the unit of the axis (e.g.
-``ekin/eV`` or ``hypot(x,y)/mm``). With ``-H`` (``--hist``), ``mcpltool`` plots
-such histograms. The options of the histogram follow the expression, separated
+Histograms show the values of an expression. Values with units are shown in a
+suitable unit (like ``x [cm]``), unless divided by one (e.g. ``ekin/keV`` or
+``hypot(x,y)/mm``), and their ranges are given with units (``range=0cm:10cm``).
+Particles for which the wavelength is not defined are left out of histograms
+of it.
+With ``-H`` (``--hist``), ``mcpltool`` plots such histograms. The options of the histogram follow the expression, separated
 by ``;``:
 
 .. code:: shell
 
-   mcpltool -H "ekin/MeV;logx;split=pdgcode" example.mcpl
+   mcpltool -H "ekin/MeV;logx" example.mcpl
 
 This shows the kinetic energy spectrum with logarithmic bins, with a curve for
-each particle type. The options in the histogram string are:
+each particle type (as by default). The options in the histogram string are (those which are
+on or off are given as 1 or 0, as in ``logy=0``, and alone they are on, as in
+``logy``):
 
 +--------------------------------------+--------------------------------------+
 | Option                               |                                      |
@@ -339,16 +427,45 @@ each particle type. The options in the histogram string are:
 |                                      | values).                             |
 +--------------------------------------+--------------------------------------+
 | ``logx``, ``logy``                   | Logarithmic bins and x axis, or      |
-|                                      | logarithmic y axis.                  |
+|                                      | logarithmic y axis (and bins, for 2D |
+|                                      | histograms) (``=auto``: if suitable  |
+|                                      | for the values).                     |
++--------------------------------------+--------------------------------------+
+| ``logz=0``                           | Linear colour scale of 2D histograms |
+|                                      | (instead of the default logarithmic  |
+|                                      | one).                                |
++--------------------------------------+--------------------------------------+
+| ``equal``                            | The same scale on both axes of 2D    |
+|                                      | histograms of expressions with the   |
+|                                      | same units (e.g. ``x : y;equal``).   |
 +--------------------------------------+--------------------------------------+
 | ``lethargy``                         | Divide the contents by the bin       |
 |                                      | widths in lethargy, ln(E2/E1), as is |
 |                                      | usual for energy spectra (implies    |
 |                                      | ``logx``).                           |
 +--------------------------------------+--------------------------------------+
-| ``split=EXPR``                       | A curve for each value of the        |
-|                                      | expression, e.g. ``split=pdgcode``   |
-|                                      | or ``split=x > 0cm``.                |
+| ``display_by=EXPR``                  | A curve for each value of the        |
+|                                      | expression, by default ``pdgcode``   |
+|                                      | (a curve for each particle type),    |
+|                                      | e.g. ``display_by=x > 0cm``, or one  |
+|                                      | curve with ``display_by=single``.    |
++--------------------------------------+--------------------------------------+
+| ``groups=N``                         | The number of curves of              |
+|                                      | ``display_by`` (default 8), the      |
+|                                      | others are combined into one.        |
++--------------------------------------+--------------------------------------+
+| ``display_only=COND``                | Only show the particles for which    |
+|                                      | the condition is true, of those      |
+|                                      | picked: a condition as in picks, but |
+|                                      | only one, without variables (as the  |
+|                                      | options are separated by ``;``), or  |
+|                                      | a particle type, e.g.                |
+|                                      | ``display_only=ekin > 1MeV`` or      |
+|                                      | ``display_only=neutron``.            |
++--------------------------------------+--------------------------------------+
+| ``bar``, ``bar=N``                   | A bar chart of whole numbers, with   |
+|                                      | the 10 (or N) largest bars, e.g.     |
+|                                      | ``"pdgcode;bar"``.                   |
 +--------------------------------------+--------------------------------------+
 | ``unweighted``                       | Count particles rather than summing  |
 |                                      | their weights.                       |
@@ -381,11 +498,14 @@ And the options of ``mcpltool`` for histograms are:
 |                                      | with the backend for the format.     |
 +--------------------------------------+--------------------------------------+
 
-With more than one file, there is a curve for each file, and two expressions
+With more than one file, there is a curve for each file (unless
+``display_by`` is given), and two expressions
 separated by ``:`` give a 2D histogram, with the options ``xrange=LOW:HIGH``
 and ``yrange=LOW:HIGH`` for the ranges of the axes (e.g.
-``-H "x/cm : y/cm;xrange=-10:10"``). For instance, the neutron spectrum per
-unit lethargy, printed as a table:
+``-H "x/cm : y/cm;xrange=-10:10"``). Three expressions give a 3D plot of a
+sample of the particles, shown in windows (e.g. ``-H "x : y : z"``,
+with ``points=N`` for the number of points, by default 5000). For instance,
+the neutron spectrum per unit lethargy, printed as a table:
 
 .. literalinclude:: ../build/autogen/cmdline_hist_print.txt
    :language: console
@@ -413,7 +533,10 @@ More command line examples
    mcpltool -H "hypot(x,y)/mm;range=0:50" run.mcpl.gz
 
    # Angle to the z axis for each particle type:
-   mcpltool -H "acos(uz)/deg;range=0:90;split=pdgcode" \
+   mcpltool -H "acos(uz)/deg;range=0:90" run.mcpl.gz
+
+   # The same, above 1 MeV and as one curve:
+   mcpltool -H "acos(uz)/deg;display_only=ekin > 1MeV;display_by=single" \
      run.mcpl.gz
 
    # Azimuthal angle versus polar angle:
@@ -432,12 +555,12 @@ More command line examples
    mcpltool -H "weight;unweighted;logy" run.mcpl.gz
 
    # Spectra for particles with x > 0 and x < 0:
-   mcpltool -H "ekin/MeV;logx;split=x > 0cm" run.mcpl.gz
+   mcpltool -H "ekin/MeV;logx;display_by=x > 0cm" run.mcpl.gz
 
-   # Statistics and overview plot of gammas above 1 keV:
+   # Statistics and spectrum (in a PDF file) of gammas above 1 keV:
    mcpltool -S -p "pdgcode == gamma and ekin > 1keV" \
      run.mcpl.gz
-   mcpltool -S -o gammas.pdf run.mcpl.gz \
+   mcpltool -H "ekin;logx;logy" -o gammas.pdf run.mcpl.gz \
      -p "pdgcode == gamma and ekin > 1keV"
 
    # The first 20 neutrons with wavelength > 4 Aa:

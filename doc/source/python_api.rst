@@ -57,13 +57,15 @@ Statistics and histograms
 
 .. autofunction:: mcpl.collect_stats
 .. autofunction:: mcpl.dump_stats
-.. autofunction:: mcpl.stats_figures
-.. autofunction:: mcpl.plot_stats
-.. autoclass:: mcpl.Histogram
-.. autoclass:: mcpl.Histogram2D
 .. autofunction:: mcpl.histogram
 .. autofunction:: mcpl.histogram2d
 .. autofunction:: mcpl.plot_histograms
+
+The histograms which ``histogram`` and ``histogram2d`` return (their classes
+are not made directly):
+
+.. autoclass:: mcpl._histogram.Histogram
+.. autoclass:: mcpl._histogram.Histogram2D
 
 .. _python_api-plotting:
 

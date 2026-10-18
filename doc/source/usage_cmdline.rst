@@ -157,8 +157,11 @@ is not installed. With ``-t``, they are always shown in the terminal:
 .. literalinclude:: ../build/autogen/cmdline_hist_term.txt
    :language: none
 
-With ``-o FILE``, plots are saved in a file, in the format given by the
-extension (``.png``, ``.pdf``, ``.svg``, or ``.txt`` for plots drawn as text).
+In terminals, such plots are shown in colour, unless the ``NO_COLOR``
+environment variable is set (or always, if ``FORCE_COLOR`` is set), which
+``--color=always`` or ``--color=never`` overrides. With ``-o FILE``, plots are
+saved in a file, in the format given by the extension (``.png``, ``.pdf``,
+``.svg``, or ``.txt`` for plots drawn as text).
 The expressions, and many more examples, are described on :doc:`a page of their
 own <usage_expressions>`.
 

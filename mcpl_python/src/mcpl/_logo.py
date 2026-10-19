@@ -28,8 +28,12 @@ https://github.com/mctools/mcpl-logo/blob/main/png/logo/mcpl-logo-256h.png"""
 
 __all__ = []
 
+import functools
+
+
+@functools.cache
 def logo_png():
-    """The logo as PNG data"""
+    """The logo as PNG data (decoded once)"""
     import base64
     return base64.b64decode(_logo_base64)
 

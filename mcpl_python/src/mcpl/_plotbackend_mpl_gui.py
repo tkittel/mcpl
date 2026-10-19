@@ -98,6 +98,10 @@ class MplViewer:
         if self._scale_key(event):
             return
         k = _keymap.get(k,k)
+        #(Up and Down with any modifiers, e.g. shift+up, ctrl+up or super+up):
+        for arrow, key in ( ('+up','MoveUp'), ('+down','MoveDown') ):
+            if k.endswith(arrow):
+                k = key
         if k.startswith('shift+') and len(k) == 7:
             k = k[-1].upper()
         if self.key(k) == 'quit':
@@ -144,7 +148,9 @@ class MplViewer:
             v.select(v.current - 1)
         elif action == 'next':
             v.select(v.current + 1)
-        elif action in ( 'skip', 'limit', 'pick', 'edit', 'plot', 'write', 'change' ):
+        elif action in ( 'move_up', 'move_down' ):
+            v.move(-1 if action == 'move_up' else 1)
+        elif action in ( 'skip', 'limit', 'pick', 'edit', 'plot', 'write', 'state', 'change' ):
             self.editor = ui.editor_for(v,action)
         elif action == 'help':
             self.show_help = True
@@ -243,8 +249,7 @@ class MplViewer:
                 self._panel_axes = []
                 if v.views[v.current][0] == 'overview:multi':
                     #(the plots of the overview can be clicked):
-                    self._panel_axes = list(zip(self._plot_axes,
-                                                [ f'overview:{k}' for k in ui.overview_keys ]))
+                    self._panel_axes = list(zip(self._plot_axes,v.overview_keys()))
         figure = v.figure()
         if figure is not None and figure.title:
             self._text(0.5*(self._left+1.0),0.935,figure.title,ha='center',
@@ -268,8 +273,8 @@ class MplViewer:
         hint = ui.hint_line(ed,popup=True)
         lines.append( ( [ hint ], None ) )
         #(the commands doing the same are printed when the window is closed)
-        if ed is not None and ed.field == 'write':
-            lines.append( ( [ ('Write to: ','bold'), ('[' + ed.text + ']','bold') ], None ) )
+        if ed is not None and ed.field in ui.file_prompts:
+            lines.append( ( [ (ui.file_prompts[ed.field],'bold'), ('[' + ed.text + ']','bold') ], None ) )
         else:
             segs = []
             for action, label, keys, kpos in ui.actions:

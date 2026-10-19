@@ -111,12 +111,16 @@ Summary (-S, --stats):
                    Plotting backend for -o (see below).
 
 Viewer (-w, --view):
-  Shows an overview, a plot of each field, and the plots of -H, which can be
-  given more than once (e.g. -H "hypot(x,y)/cm;logy=1"), in a window with
-  matplotlib, or else in the terminal. -l, -s, -p and -E can be changed in the
-  viewer, and the particles can be written to a new file (press h for help).
+  Shows an overview and plots of the particles (histograms as for -H, which
+  can be changed, reordered and removed in the viewer, and further ones added,
+  also with -H, given more than once), in a window with matplotlib, or else in
+  the terminal. -l, -s, -p and -E can be changed in the viewer, and the
+  particles can be written to a new file (press h for help).
   -wVIEW, --view=VIEW
-                   The view shown first, e.g. -wekin or --view=ekin.
+                   The view shown first: overview, or a plot, e.g. -wekin.
+  -wFILE.json, --view=FILE.json, --view="{...}"
+                   The state of the viewer, saved in the viewer (press v), or
+                   as printed when the viewer is closed.
   -t, --term       Show the viewer in the terminal.
   -B, --backend NAME
                    Plotting backend of the viewer: matplotlib, unicode or ascii.

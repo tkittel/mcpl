@@ -1,18 +1,18 @@
-views: 21
+views: 20
 status: <b>example.mcpl: 1006/1006 particles (100.0%), Σw = 1006 (100.0%)</b><br><span style="color:#555"></span>
 overview as a grid: True plots: True
-buttons: ['overview:ekin', 'overview:wavelength', 'overview:direction', 'overview:position', 'overview:time', 'overview:pdgcode']
-view after the button of wavelength: overview:wavelength selected in the list: True single image: True
+buttons: ['ekin;logx=auto;logy=1;split=pdgcode', 'wavelength;logx=1;split=pdgcode', 'acos(uz)/deg;range=0:180;logy=1;split=pdgcode', 'x : y', 'time;logx=auto;logy=1', 'pdgcode;bar=auto']
+view after the button of wavelength: plot:wavelength;logx=1;split=pdgcode selected in the list: True single image: True
 plot changed by the edit: True polling thread alive: True
 status after the pick: <b>example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)</b><br><span style="color:#555"></span>
 message for an invalid edit: <span style="color:#c00">Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression &quot;x = 2&quot;</span>
 view: ekin/MeV;logx=1 field emptied: True
 This plot box shown: True 'ekin/MeV;logx=1'
 changed in the box: plot:ekin/keV;logx=1 current: plot:ekin/keV;logx=1 message: ''
-emptied, plot removed: polz box shown: False
-view selected: overview:direction
+emptied, plot removed: plot:polz box shown: True
+view selected: plot:acos(uz)/deg;range=0:180;logy=1;split=pdgcode
 suggested name: example_selected.mcpl.gz
 written: MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz
 next name: example_selected2.mcpl.gz
 help shown: True
-command: <code style="color:#555">$ mcpltool -e -p &quot;pdgcode == neutron&quot; example.mcpl example_selected.mcpl.gz</code>
+command: <code style="color:#555">$ mcpltool -e -p &quot;pdgcode == neutron&quot; example.mcpl example_selected2.mcpl.gz</code>

@@ -61,7 +61,7 @@ j._fields['pick'].value = 'pdgcode == neutron'
 v.wait()
 j.refresh()
 print('x range after the pick, zoom kept:', j._plot_axes[0].get_xlim())
-j._views.index = [ k for k, _ in v.views ].index('ekin')
+j._views.index = [ k for k, _ in v.views ].index('plot:ekin')
 print('x range of another view, not zoomed:', j._plot_axes[0].get_xlim() != (-50,50))
 j.close()
 

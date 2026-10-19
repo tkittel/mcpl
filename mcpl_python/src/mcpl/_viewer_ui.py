@@ -35,26 +35,27 @@ fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
 
 #The other actions: (action, label, keys, position of the key in the label):
 actions = ( ( 'write', 'Write file...', ( 'w', ), 0 ),
+            ( 'state', 'Save viewer state...', ( 'v', ), 0 ),
             ( 'help', 'Help', ( 'h', '?', 'F1' ), 0 ),
             ( 'quit', 'Quit', ( 'q', 'Q' ), 0 ) )
 
-#Keys of the plots of the overview, which are also views of their own (as
-#overview:KEY, in the order of the panels of the overview):
-overview_keys = ( 'ekin', 'wavelength', 'direction', 'position', 'time',
-                  'pdgcode' )
+#The actions asking for a file name, with the label of its field:
+file_prompts = { 'write' : 'Write to: ', 'state' : 'Save to: ' }
 
-#Keys of the views (in addition to clicking on them):
-view_keys = { 'previous' : 'Up', 'next' : 'Down' }
+#Keys of the views (in addition to clicking on them), as given by the front
+#ends: MoveUp and MoveDown are Up and Down with Shift, Ctrl, Alt or the
+#Windows/Command key (any of them, as window managers take some):
+view_keys = { 'Up' : 'previous', 'Down' : 'next', 'MoveUp' : 'move_up',
+              'MoveDown' : 'move_down' }
 
 def key_action( key ):
     """The action (or field to edit) of a key outside the fields (as given by
-    the front end: a character, or 'Up', 'Down' or 'F1'), or None"""
-    if key == view_keys['previous']:
-        return 'previous'
-    if key == view_keys['next']:
-        return 'next'
+    the front end: a character, or 'Up', 'Down', 'MoveUp', 'MoveDown', 'Enter'
+    or 'F1'), or None"""
+    if key in view_keys:
+        return view_keys[key]
     if key == 'Enter':
-        return 'change'#(of the shown added plot)
+        return 'change'#(of the shown plot)
     for f, _, k, _, _ in fields:
         if key == k:
             return f
@@ -78,7 +79,7 @@ def shortcut_text( name ):
         if a == name:
             return f'{label.rstrip(".")}: press {" or ".join(keys)}'
     if name == 'views':
-        return 'Views: click on one, or press Up and Down'
+        return 'Views: click on one, or press Up and Down (with Shift, Ctrl or Alt to move the plot)'
     if name == 'panel':
         return 'Click to show this plot on its own'
     return ''
@@ -109,13 +110,17 @@ def hint_line( editor, popup = False ):
     return field_hint, 'dim'
 
 help_text = '''\
-The viewer shows the particles of an MCPL file: an overview, a plot of each
-field of the particles, and the plots added with "Add plot" (or -H). Plots
-are updated while the file is read, and are complete when the reading is
-done.
+The viewer shows the particles of an MCPL file: an overview with the first
+plots, and each plot on its own. The plots are histograms of expressions (as
+for -H), which can be changed, removed and reordered, and further ones added.
+Plots are updated while the file is read, and are complete when the reading
+is done.
 
 Keys:
   Up, Down     Show the previous or next view (or click on a view).
+  Shift+Up, Shift+Down
+               Move the shown plot up or down (also with Ctrl, Alt or the
+               Windows or Command key instead of Shift).
   PgUp, PgDn   Scroll plots which are taller than the window (in the
                terminal).
   s, i         Skip particles at the start of the file, or limit the number
@@ -127,8 +132,10 @@ Keys:
                edited.
   a            Add a plot of an expression, with options as for -H, e.g.
                hypot(x,y)/cm;logy=1 (see mcpltool -H help).
-  Enter        Change the shown added plot (an empty text removes it).
+  Enter        Change the shown plot (an empty text removes it).
   w            Write the picked and edited particles to a new file.
+  v            Save the state of the viewer (the settings and plots) in a
+               file, which -wFILE.json (or --view=FILE.json) opens again.
   l, k         Log or linear scale of the y or x axis of the plot under the
                mouse (in a matplotlib window, as in matplotlib).
   h, ?, F1     Show this help.
@@ -166,12 +173,14 @@ def popup_rows( editor, maxrows ):
     return min( max( 0, editor.selected - rows + 1 ), n - rows ), rows
 
 def editor_for( viewer, action ):
-    """The LineEditor for an action (a field, 'write', or 'change' of the
-    shown added plot), or None if there is nothing to edit"""
+    """The LineEditor for an action (a field, 'write', 'state', or 'change' of
+    the shown plot), or None if there is nothing to edit"""
     if action in ( 'skip', 'limit', 'pick', 'edit', 'plot' ):
         return LineEditor(viewer,action)
     if action == 'write':
         return LineEditor(viewer,'write',viewer.suggested_filename())
+    if action == 'state':
+        return LineEditor(viewer,'state',viewer.suggested_state_filename())
     if action == 'change':
         key = viewer.views[viewer.current][0]
         if key.startswith('plot:'):
@@ -185,6 +194,9 @@ def apply_editor( viewer, editor ):
     if editor.field == 'write':
         ok, msg = viewer.try_write(editor.text.strip())
         return ok, msg if ok else f'Not written: {msg}', False
+    if editor.field == 'state':
+        ok, msg = viewer.try_save_state(editor.text.strip())
+        return ok, msg if ok else f'Not saved: {msg}', False
     if editor.replaces is not None:
         ok, msg = viewer.change_plot(editor.replaces,editor.text)
     else:
@@ -203,7 +215,7 @@ class LineEditor:
         self.text = ( replaces if replaces is not None else
                       viewer.field_text(field) if text is None else text )
         self.cursor = len(self.text)
-        self._hist = viewer.history(field) if field != 'write' else []
+        self._hist = [] if field in file_prompts else viewer.history(field)
         self._hpos = len(self._hist)
         self.choices = []#(completions shown, when Tab gives several)
         self.selected = 0#(index of the chosen one)
@@ -211,7 +223,7 @@ class LineEditor:
         self._recheck()
 
     def _recheck( self ):
-        if self.field == 'write':
+        if self.field in file_prompts:
             self.ok, self.message = bool(self.text.strip()), ''
         elif self.replaces is not None and not self.text.strip():
             self.ok, self.message = True, ''
@@ -220,7 +232,7 @@ class LineEditor:
 
     @property
     def hint( self ):
-        if self.field == 'write':
+        if self.field in file_prompts:
             return None
         return self.viewer.hint(self.field,self.text,self.cursor)
 
@@ -268,7 +280,7 @@ class LineEditor:
                 self.text = self._hist[self._hpos] if self._hpos < len(self._hist) else ''
                 self.cursor = len(self.text)
         elif key == 'Tab':
-            if self.field != 'write':
+            if self.field not in file_prompts:
                 self._complete()
         elif isinstance(key,str) and len(key) == 1 and ' ' <= key <= '~':
             self.text, self.cursor = t[:c] + key + t[c:], c + 1

@@ -41,14 +41,14 @@ print('views:', len(j._views.options))
 print('status:', j._status.value)
 #The overview, as a grid of its plots with buttons:
 print('overview as a grid:', j._right.children[1] is j._grid,
-      'plots:', all( i.value[:4] == b'\x89PNG' for i in j._panels.values() ))
+      'plots:', all( i.value[:4] == b'\x89PNG' for i, _ in j._panels ))
 print('buttons:', [ c.children[1].description for c in j._grid.children ])
 j._grid.children[1].children[1].click()
 print('view after the button of wavelength:', v.views[v.current][0],
       'selected in the list:', j._views.index == v.current,
       'single image:', j._right.children[1] is j._image)
 #An edit changes the plot shown (also with the polling thread running):
-j._views.index = [ k for k, _ in v.views ].index('ekin')
+j._views.index = [ k for k, _ in v.views ].index('plot:ekin')
 before = j._image.value
 j._fields['edit'].value = 'ekin += 1000MeV'
 v.wait()

@@ -37,7 +37,6 @@ from mcpldev._plotbackend_test import describe
 from mcpldev._plotbackend_text import AsciiBackend
 from mcpldev._plotbackend_text_gui import TextViewer, _ansi_segments
 from mcpldev._reader import MCPLFile, _FileView
-from mcpldev._stats import _PickedFile
 from mcpldev._viewer import Viewer
 from MCPLTestUtils.dirs import test_data_dir
 
@@ -47,18 +46,11 @@ ex = 'example.mcpl'
 def same( a, b ):
     return describe([a]) == describe([b])
 
-def stats_figures( skip, limit, pick, edit ):
-    """Figures of mcpltool -S for the options"""
-    fv = _FileView(MCPLFile(ex),skip,limit,
-                   mcpl.ParticleFilter(pick) if pick else None,
-                   mcpl.ParticleEdit(edit) if edit else None)
-    return mcpl.stats_figures(mcpl.collect_stats(_PickedFile(fv,None)))
-
 #The added plots of test_figures:
-_plots = [ 'ekin/MeV;logx=1;split=pdgcode', 'x/cm : y/cm;bins=10', 'pdgcode;bar=auto',
-           'wavelength;logy=1' ]
+_plots = [ 'ekin/MeV;logx=1;split=pdgcode', 'x/cm : y/cm;bins=10', 'wavelength;logy=1' ]
 
 def test_figures():
+    from mcpldev._viewer import _default_plots
     for skip, limit, pick, edit in ( (0,None,None,None),
                                      (0,None,'pdgcode == neutron',None),
                                      (100,500,'ekin > 1MeV','z += 1m'),
@@ -70,33 +62,86 @@ def test_figures():
         v.wait()
         keys = [ k for k, _ in v.views ]
         figs = { k : v.figure(i) for i, k in enumerate(keys) }
-        ref = stats_figures(skip,limit,pick,edit)
-        #(the viewer shows the pick and edit expressions as titles, as -H, since
-        #the numbers of the title of -S are in its status line):
+        #Each plot is as with mcpltool -H (with the pick and edit expressions
+        #as titles), and the overview has the first ones:
         title = '\n'.join( f'{w}: {e}' for w, e in (('pick',pick),('edit',edit)) if e )
-        for r in ref:
-            r.title = title or None
-        #(the overview, and the plots of each field):
-        refkeys = [ 'overview:multi' ] + [ k for k in keys
-                                          if ':' not in k ][:len(ref)-1]
-        ok = all( same(figs[k],r) for k, r in zip(refkeys,ref) )
-        #(each plot of the overview on its own):
-        ok &= all( figs[f'overview:{k}'].panels[0] is not None for k in
-                   ('ekin','wavelength','direction','position','time','pdgcode') )
-        figs = [ figs[k] for k in keys ]
-        #The added plots, as with mcpltool -H:
         src = _FileView(MCPLFile(ex),skip,limit,
                         mcpl.ParticleFilter(pick) if pick else None,
                         mcpl.ParticleEdit(edit) if edit else None)
-        hists = [ mcpl.histogram(src,p) for p in _plots ]
-        for h in hists:
+        ok, failed = True, []
+        for p in list(_default_plots) + _plots:
+            try:
+                h = mcpl.histogram(src,p)
+            except mcpl.MCPLError as e:
+                failed.append( ( p, str(e) ) )
+                ok &= str(e) in str(describe([figs[f'plot:{p}']]))
+                continue
             h.title = title or None
-        ok &= all( same(f,h.figure()) for f, h in zip(figs[-len(_plots):],hists) )
+            ok &= same(figs[f'plot:{p}'],h.figure())
+        ov = figs['overview:multi']
+        ok &= [ describe([mcpl.plotting.Figure(panels=[pn])]).split('\n',1)[1]
+                for pn in ov.panels ] == [
+                    describe([mcpl.plotting.Figure(panels=[ figs[k].panels[0] ])]).split('\n',1)[1]
+                    .replace(f"Panel {figs[k].panels[0].title!r}","Panel None",1)
+                    for k in v.overview_keys() ]
         print(f'skip={skip} limit={limit} pick={pick!r} edit={edit!r}:')
         print(f'   {v.status_lines()[0]}')
-        print(f'   {len(v.views)} views, same figures as mcpltool -S and -H: {ok}')
+        print(f'   {len(v.views)} views, same figures as mcpltool -H: {ok}')
+        for p, e in failed:
+            print(f'   plot {p!r} shows: {e}')
         assert ok
         v.stop()
+
+def test_state():
+    import json
+    import shlex
+    v = Viewer(ex)
+    v.multi_overview = True
+    print('state at the start:', v.state(), '| command:', v.commands()['view'])
+    v.select(2)
+    print('move up:', v.move(-1), 'down twice:', v.move(1), v.move(1), '| current:', v.views[v.current][0])
+    v.select(0)
+    print('move the overview:', v.move(1))
+    v.select(len(v.views)-1)
+    print('move the last down:', v.move(1))
+    v.change_plot('ekin','ekin/keV;logy=1')
+    v.change_plot('polx','')
+    v.set('plot','hypot(x,y)/cm')
+    v.set('pick','pdgcode != gamma')
+    v.set('limit','500')
+    print('state:', v.state())
+    print('state without the options:', v.state(full = False))
+    cmd = v.commands()['view']
+    print('command:', cmd)
+    args = shlex.split(cmd)
+    w = Viewer(ex,view=args[1].split('=',1)[1],pick=args[4],limit=500)
+    w.multi_overview = True
+    print('opened with the command: same state:', w.state() == v.state(),
+          '| current:', w.views[w.current][0])
+    fn = 'example_viewer.json'
+    print('suggested state file:', v.suggested_state_filename())
+    print('save:', v.try_save_state(fn))
+    print('save again:', v.try_save_state(fn))
+    print('suggested state file now:', v.suggested_state_filename())
+    print('saved:', json.loads(pathlib.Path(fn).read_text()) == v.state())
+    w = Viewer(ex,view=fn)
+    w.multi_overview = True
+    print('opened from the file: same state:', w.state() == v.state())
+    w = Viewer(ex,view=fn,limit=7,plots=['x;bins=5'])
+    print('arguments after the state:', w.field_text('limit'), w._s.plots[-1])
+    d = Viewer(ex,dry_run=True)
+    print('dry run:', d.try_save_state('dry.json'), pathlib.Path('dry.json').exists())
+    for view in ( 'x', ' x ', 'overview', 'pdgcode;bar = auto' ):
+        w = Viewer(ex,view=view)
+        print(f'view {view!r}:', w.views[w.current][0])
+    for bad in ( "{'foo':1}", '{"limit":"a"}', "{'plots':{'change':{'nope':'x'}}}",
+                 "{'plots':{'remove':['x;bins=7']}}", "{'plots':{'foo':[]}}",
+                 "{'plots':{'add':['x;bins=0']}}", "{bad", "[1]", "nope.json", 'nope' ):
+        try:
+            Viewer(ex,view=bad)
+            print(f'view {bad!r}: no error')
+        except mcpl.MCPLError as e:
+            print(f'view {bad!r}: {e}')
 
 def test_fields():
     v = Viewer(ex)
@@ -269,7 +314,7 @@ def test_terminal():
     print('   changed with Enter:', [ k for k, _ in v.views ][-1], 'current:', v.views[v.current][0])
     v, _ = run(['WAIT','a'] + list('ekin/MeV') + ['Enter','WAIT','Enter','Enter','WAIT'],show=False)
     print('   Enter twice keeps the plot:', [ k for k, _ in v.views ][-1], 'current:', v.views[v.current][0])
-    w = Viewer(ex,plots=['ekin/MeV'],view='plot:ekin/MeV')
+    w = Viewer(ex,plots=['ekin/MeV'],view='ekin/MeV')
     e = ui.editor_for(w,'change')
     print('   Enter on an added plot, editing:', repr(e.text), '| hint line when emptied:', end=' ')
     for _ in e.text:
@@ -280,6 +325,12 @@ def test_terminal():
     print('   removed with an empty text:', [ k for k, _ in v.views ][-1], 'current:', v.views[v.current][0])
     print('   Enter on another view, editing:', ui.editor_for(Viewer(ex),'change') is not None)
     run(['WAIT','h'],show=False)
+    #Moving the shown plot (Up and Down with Shift, Ctrl, Alt, ...):
+    v, _ = run(['WAIT','Down','Down','MoveUp','WAIT'],show=False)
+    print('   moved up:', v._s.plots[:3], 'current:', v.views[v.current][0])
+    before = set(pathlib.Path('.').glob('*.json'))
+    run(['WAIT','v','Enter','WAIT'],show=False)
+    print('   v saves the state in:', sorted( str(f) for f in set(pathlib.Path('.').glob('*.json')) - before ))
     v, _ = run(['WAIT','s','1','2','Esc','i','5','0','Enter','WAIT','p','Up','Esc'],show=False)
     print('   skip, limit:', repr(v.field_text('skip')), repr(v.field_text('limit')),
           v.status_lines()[0])
@@ -300,7 +351,7 @@ def test_terminal():
             break
     #With the ascii backend, only ASCII characters are shown:
     v, t = run(['WAIT','p'] + list('pdgcode == neu') + ['WAIT'],show=False,
-               backend=AsciiBackend(),view='overview:pdgcode')
+               backend=AsciiBackend(),view='pdgcode;bar=auto')
     text = t.s.last
     print('   ascii backend, only ASCII characters:', text.isascii(),
           '| selected view:', [ ln.strip() for ln in text.splitlines() if ln.startswith('>') ][:1])
@@ -321,6 +372,7 @@ def test_tool():
 test_figures()
 test_fields()
 test_reading()
+test_state()
 test_write()
 test_terminal()
 test_tool()

@@ -50,15 +50,15 @@ class JupyterViewer:
         self._status = w.HTML()
         self._image = w.Image(format='png',layout=w.Layout(width='100%'))
         #The overview as a grid of its plots, each with a button showing it on
-        #its own (images in ipywidgets can not be clicked):
-        self._panels = {}
+        #its own (images in ipywidgets can not be clicked), by position (the
+        #plots of the overview are the first ones, see Viewer.overview_keys):
+        self._panels = []
         cells = []
-        for k in ui.overview_keys:
+        for i in range(len(viewer.overview_keys())):
             img = w.Image(format='png',layout=w.Layout(width='100%'))
-            b = w.Button(description=dict(viewer.views).get(f'overview:{k}',k),
-                         layout=w.Layout(width='auto'))
-            b.on_click(lambda _, k=k : self._on_panel(k))
-            self._panels[k] = img
+            b = w.Button(layout=w.Layout(width='auto'))
+            b.on_click(lambda _, i=i : self._on_panel(self.v.overview_keys()[i]))
+            self._panels.append( ( img, b ) )
             cells.append(w.VBox([ img, b ]))
         self._grid = w.GridBox(cells,layout=w.Layout(
             width='100%',grid_template_columns='repeat(3,1fr)'))
@@ -97,6 +97,16 @@ class JupyterViewer:
                                 style={'description_width':'70px'})
         write = w.Button(description='Write file')
         write.on_click(self._on_write)
+        self._statefile = w.Text(value=viewer.suggested_state_filename(),
+                                 description='Save to:',
+                                 style={'description_width':'70px'})
+        save = w.Button(description='Save viewer state')
+        save.on_click(self._on_save_state)
+        moves = []
+        for label, delta in ( ('Move up',-1), ('Move down',1) ):
+            b = w.Button(description=label,layout=w.Layout(width='93px'))
+            b.on_click(lambda _, delta=delta : self._on_move(delta))
+            moves.append(b)
         names = w.Button(description='Names')
         names.on_click(self._on_names)
         helpb = w.Button(description='Help')
@@ -106,14 +116,19 @@ class JupyterViewer:
                                      layout=w.Layout(width='100%'))
         from ._logo import logo_png
         logo = w.Image(value=logo_png(),format='png',layout=w.Layout(width='190px'))
-        self.widget = w.VBox([ self._warning, w.HBox([ w.VBox([ logo, self._views ]), right ]),
+        self.widget = w.VBox([ self._warning, w.HBox([ w.VBox([ logo, self._views,
+                                                                  w.HBox(moves) ]), right ]),
                                *rows,
                                self._message, self._commands,
                                w.HBox([ self._filename, write, names, helpb ]),
+                               w.HBox([ self._statefile, save ]),
                                self._extra ])
         self._stop = threading.Event()
         self._thread = None
-        self._syncing = False
+        #(whether the widgets are being changed by the viewer, not the user, per
+        #thread, as the handlers of a change run in the thread changing the
+        #widget, which can be the polling thread while the user types):
+        self._local = threading.local()
         self._shown = {}#image -> (view key, figure) shown in it
         #(only one thread at a time draws with matplotlib):
         self._refreshing = threading.RLock()
@@ -148,8 +163,13 @@ class JupyterViewer:
                 self._on_panel(key)
                 return
 
+    def _on_move( self, delta ):
+        if self.v.move(delta):
+            self._sync_views()
+            self.refresh()
+
     def _on_panel( self, key ):
-        self.v.select_key(f'overview:{key}')
+        self.v.select_key(key)
         self._sync_views()
         self.refresh()
 
@@ -171,6 +191,14 @@ class JupyterViewer:
         self._message.value = '' if ok else f'<span style="color:#c00">{html.escape(msg)}</span>'
         self._sync_views()
         self.refresh()
+
+    @property
+    def _syncing( self ):
+        return getattr(self._local,'syncing',False)
+
+    @_syncing.setter
+    def _syncing( self, value ):
+        self._local.syncing = value
 
     def _set_quietly( self, widget, value ):
         #(without the handlers of the change):
@@ -196,8 +224,18 @@ class JupyterViewer:
         if ok:
             self._message.value = html.escape(msg)
             self._filename.value = self.v.suggested_filename()
+            self.refresh()#(the command shown has the next file name)
         else:
             self._message.value = f'<span style="color:#c00">Not written: {html.escape(msg)}</span>'
+
+    def _on_save_state( self, _ ):
+        ok, msg = self.v.try_save_state(self._statefile.value.strip())
+        if ok:
+            self._message.value = html.escape(msg)
+            self._statefile.value = self.v.suggested_state_filename()
+            self.refresh()
+        else:
+            self._message.value = f'<span style="color:#c00">Not saved: {html.escape(msg)}</span>'
 
     def _on_help( self, _ ):
         self._extra.value = ( '' if self._extra.value.startswith('<pre>The viewer')
@@ -234,9 +272,10 @@ class JupyterViewer:
             self._draw_figure(keys[self.v.current])
             shown = self._mplfig.canvas
         elif keys[self.v.current] == 'overview:multi':
-            for k, img in self._panels.items():
-                if f'overview:{k}' in keys:
-                    self._show(img,keys.index(f'overview:{k}'))
+            labels = dict(self.v.views)
+            for ( img, b ), k in zip(self._panels,self.v.overview_keys()):
+                b.description = labels[k]
+                self._show(img,keys.index(k))
             shown = self._grid
         else:
             self._show(self._image,self.v.current)
@@ -266,7 +305,7 @@ class JupyterViewer:
         if figure.title:
             fig.suptitle(figure.title,size=9)
         #(the plots of the overview can be clicked):
-        self._panel_axes = ( list(zip(self._plot_axes,ui.overview_keys))
+        self._panel_axes = ( list(zip(self._plot_axes,self.v.overview_keys()))
                              if key == 'overview:multi' else [] )
         fig.canvas.draw_idle()
         self._shown['mpl'] = ( key, figure )

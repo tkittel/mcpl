@@ -88,14 +88,15 @@ class _SplitValue:
     def __call__( self, block ):
         return self._v(block)
     def keys( self, values ):
-        """The distinct values (at most 1000)"""
+        """The distinct values (at most 1000), and the index of each value in
+        them"""
         if self._is_bool is None and len(values):
             self._is_bool = bool(np.all((values==0)|(values==1)))
-        keys = np.unique(values)
+        keys, index = np.unique(values,return_inverse=True)
         if len(keys) > 1000:
             raise MCPLError(f'Split expression "{self.expression}" has too many'
                             ' different values (more than 1000)')
-        return keys
+        return keys, index.ravel()
 
 def _split_label( split, key, unicode = False ):
     """Label of the curve of a value of the split expression (with symbols for
@@ -390,6 +391,20 @@ def _show_or_save( figures, filename, backend, options, terminal = False ):
     show(figures,backend=backend,terminal=terminal,**options)
     return None
 
+def _bin_index( v, edges, log ):
+    """The bins of the values v, which are within the edges (as for
+    np.histogram, the last bin includes the upper edge): from the even
+    spacing of the edges (in log for logarithmic bins), corrected with the
+    edges (so the rounding of the calculation does not matter)"""
+    n = len(edges) - 1
+    lo, hi = ( np.log(edges[0]), np.log(edges[-1]) ) if log else ( edges[0], edges[-1] )
+    x = np.log(v) if log else v
+    i = np.floor( ( x - lo ) * ( n / ( hi - lo ) ) ).astype(np.intp)
+    np.clip(i,0,n-1,out=i)
+    i -= v < edges[i]
+    i += ( v >= edges[i+1] ) & ( i < n - 1 )
+    return i
+
 def _make_edges( rng, bins, logx ):
     lo, hi = rng
     if logx:
@@ -628,21 +643,27 @@ class _Hist1DFiller(_Filler):
 
     def add( self, flabel, b ):
         edges, spl = self._edges, self._spl
+        n = len(edges) - 1
         ( v, ), w, defined = self._values(b)
         if spl is not None:
-            sv = np.asarray(spl(b),dtype=float)[defined]
-            keys = spl.keys(sv)
+            keys, kidx = spl.keys(np.asarray(spl(b),dtype=float)[defined])
         else:
-            sv, keys = None, [ None ]
-        for k in keys:
-            m = slice(None) if k is None else ( sv == k )
-            vk, wk = v[m], w[m]
-            a = self._acc.setdefault((flabel,k),[ np.zeros(len(edges)-1),
-                                                  np.zeros(len(edges)-1), 0.0, 0.0 ])
-            a[0] += np.histogram(vk,bins=edges,weights=wk)[0]
-            a[1] += np.histogram(vk,bins=edges,weights=wk*wk)[0]
-            a[2] += float(wk[vk<edges[0]].sum())
-            a[3] += float(wk[vk>edges[-1]].sum())
+            keys, kidx = [ None ], np.zeros(len(v),dtype=np.intp)
+        #(all curves at once: the sums by curve and bin, below and above):
+        nk = len(keys)
+        inside = ( v >= edges[0] ) & ( v <= edges[-1] )
+        flat = kidx[inside] * n + _bin_index(v[inside],edges,self._logx)
+        wi = w[inside]
+        sums = np.bincount(flat,weights=wi,minlength=nk*n).reshape(nk,n)
+        sums2 = np.bincount(flat,weights=wi*wi,minlength=nk*n).reshape(nk,n)
+        under, over = ( np.bincount(kidx[m],weights=w[m],minlength=nk)
+                        for m in ( v < edges[0], v > edges[-1] ) )
+        for j, k in enumerate(keys):
+            a = self._acc.setdefault((flabel,k),[ np.zeros(n), np.zeros(n), 0.0, 0.0 ])
+            a[0] += sums[j]
+            a[1] += sums2[j]
+            a[2] += float(under[j])
+            a[3] += float(over[j])
 
     def result( self ):
         edges, nbins, spl = self._edges, self._nbins, self._spl

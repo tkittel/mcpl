@@ -96,7 +96,8 @@ class _CursesScreen:
                        curses.KEY_F1 : 'F1', curses.KEY_PPAGE : 'PageUp',
                        curses.KEY_NPAGE : 'PageDown', 10 : 'Enter', 13 : 'Enter',
                        curses.KEY_ENTER : 'Enter', 27 : 'Esc', 9 : 'Tab',
-                       curses.KEY_RESIZE : 'Resize' }
+                       curses.KEY_RESIZE : 'Resize', curses.KEY_SR : 'MoveUp',
+                       curses.KEY_SF : 'MoveDown' }
     def size( self ):
         return self._w.getmaxyx()
     def clear( self ):
@@ -153,6 +154,16 @@ class _CursesScreen:
             clicked = bool( bstate & ( c.BUTTON1_CLICKED | c.BUTTON1_PRESSED
                                        | c.BUTTON1_RELEASED ) )
             return ( 'Mouse', x, y, clicked )
+        if k not in self._keys:
+            #(Up and Down with modifiers, which terminals give as keys named
+            #kUP3 to kUP7 and kDN3 to kDN7):
+            try:
+                name = c.keyname(k)
+            except ( c.error, ValueError ):
+                return None
+            for prefix, key in ( (b'kUP','MoveUp'), (b'kDN','MoveDown') ):
+                if name.startswith(prefix) and name[3:].isdigit():
+                    return key
         return self._keys.get(k)
 
 def _box_width( n, available, editing ):
@@ -230,7 +241,9 @@ class TextViewer:
         elif action == 'next':
             v.select(v.current + 1)
             self.scroll = 0
-        elif action in ( 'skip', 'limit', 'pick', 'edit', 'plot', 'write', 'change' ):
+        elif action in ( 'move_up', 'move_down' ):
+            v.move(-1 if action == 'move_up' else 1)
+        elif action in ( 'skip', 'limit', 'pick', 'edit', 'plot', 'write', 'state', 'change' ):
             self.editor = ui.editor_for(v,action)
         elif action == 'help':
             self.show_help = True
@@ -322,8 +335,8 @@ class TextViewer:
         #The actions (the commands doing the same are printed on quit):
         x = 1
         for action, label, keys, kpos in ui.actions:
-            if action == 'write' and self.editor is not None and self.editor.field == 'write':
-                part = 'Write to: '
+            if self.editor is not None and self.editor.field == action in ui.file_prompts:
+                part = ui.file_prompts[action]
                 s.put(y,x,part,'bold')
                 fw = _box_width( len(self.editor.text), w - x - len(part) - 4, True )
                 s.put(y,x+len(part),'[' + self.editor.text[-fw:].ljust(fw) + ']','reverse')

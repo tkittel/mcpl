@@ -20,11 +20,12 @@
 ################################################################################
 
 """The core of the viewer of mcpltool -w (and mcpl.view), shared by all its
-front ends: the settings (Skip, Limit, Pick, Edit and the added plots) with
-checking, history and completion, the views (the overview, a plot for each
-field and the added plots) and their figures, which are computed by reading
-the file in a background thread, the equivalent commands, and writing the
-picked and edited particles to a new file."""
+front ends: the settings (Skip, Limit, Pick, Edit and the plots) with
+checking, history and completion, the views (the overview with the first
+plots, and each plot) and their figures, which are computed by reading the
+file in a background thread, the state of the viewer (see state()), the
+equivalent commands, and writing the picked and edited particles to a new
+file."""
 
 __all__ = ['view']
 
@@ -45,6 +46,20 @@ _preview_max = 200000
 
 _fields = ( 'skip', 'limit', 'pick', 'edit', 'plot' )
 
+#The plots shown at the start, as histogram strings like those added with -H
+#or "Add plot", of which the first _noverview are shown together in the
+#overview (they can be changed, removed and reordered in the viewer):
+_default_plots = ( 'ekin;logx=auto;logy=1;split=pdgcode',
+                   'wavelength;logx=1;split=pdgcode',
+                   'acos(uz)/deg;range=0:180;logy=1;split=pdgcode',
+                   'x : y',
+                   'time;logx=auto;logy=1',
+                   'pdgcode;bar=auto',
+                   'userflags;bar=auto',
+                   'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time',
+                   'weight;unweighted=1', 'polx', 'poly', 'polz' )
+_noverview = 6
+
 def _update_points():
     """Particle counts at which figures are updated: 20k, 200k, 1M, 2M, 4M, ..."""
     yield from _update_counts
@@ -55,7 +70,7 @@ def _update_points():
 
 class _Settings:
     """What is shown: a range of particles in the file, picked and edited, and
-    the added plots (histogram strings)"""
+    the plots (histogram strings)"""
     def __init__( self, skip = 0, limit = None, pick = None, edit = None, plots = () ):
         self.skip, self.limit = skip, limit
         self.pick, self.edit = pick, edit#(ParticleFilter, ParticleEdit or None)
@@ -81,17 +96,9 @@ class Viewer:
         self._texts = { 'skip' : '', 'limit' : '', 'pick' : '', 'edit' : '',
                         'plot' : '' }
         self._history = { f : [] for f in _fields }
-        self._s = _Settings()
-        for field, value in ( ('skip',skip), ('limit',limit), ('pick',pick),
-                              ('edit',edit) ):
-            if value not in ( None, '', 0 ):
-                ok, msg = self.set(field, str(value), restart = False)
-                if not ok:
-                    raise MCPLError(msg)
-        for p in plots:
-            ok, msg = self.set('plot', p, restart = False)
-            if not ok:
-                raise MCPLError(msg)
+        self._s = _Settings(plots = _default_plots)
+        #(the default plot each plot comes from, if any, for state()):
+        self._origins = { p : p for p in _default_plots }
         self._lock = threading.Lock()
         self._figures = {}#view key -> Figure
         self._constants = {}#field -> text of the value all particles have
@@ -110,12 +117,39 @@ class Viewer:
         #multi_overview, see views):
         self.multi_overview = False
         self._current = None#(key of the view shown, None for the first)
-        if view is not None:
-            keys = [ k for k, _ in self.views ] + [ 'overview', 'overview:multi' ]
-            if view not in keys:
-                raise MCPLError(f'Unknown view "{view}" (the views are: '
-                                + ', '.join(keys[:-1]) + ')')
-            self._current = view
+        self._overview = None#(the overview figure, with what it was made from)
+        #The view argument is a view, or a state (see state()), which is applied
+        #before the other arguments (so these can change it):
+        state = _as_state(view)
+        if state is not None:
+            self._apply_state(state)
+            view = state.get('view')
+        for field, value in ( ('skip',skip), ('limit',limit), ('pick',pick),
+                              ('edit',edit) ):
+            if value not in ( None, '', 0 ):
+                self._set_or_raise(field,str(value))
+        for p in plots:
+            self._set_or_raise('plot',p)
+        self._current = self._view_key(view) if view else None
+
+    def _set_or_raise( self, field, text ):
+        ok, msg = self.set(field, text, restart = False)
+        if not ok:
+            raise MCPLError(msg)
+
+    def _view_key( self, view ):
+        """The key of a view given as overview or as a plot (histogram string)"""
+        if view in ( 'overview', 'overview:multi' ):
+            return 'overview'
+        try:
+            same = self._same_plot(view)
+        except MCPLError:
+            same = None
+        if same is None:
+            raise MCPLError(f'Unknown view "{view}" (the views are the overview and'
+                            ' the plots, given as overview or as the histogram'
+                            ' string of a plot, e.g. ekin)')
+        return f'plot:{same}'
 
     #Fields:
 
@@ -160,8 +194,8 @@ class Viewer:
         raise MCPLError(f'Unknown field "{field}"')
 
     def set( self, field, text, restart = True ):
-        """Apply the text of a field (restarting the reading, unless it was an
-        added plot): (ok, message)"""
+        """Apply the text of a field (restarting the reading): (ok, message). For
+        the plot field, the plot is added at the end (unless it is there)."""
         try:
             value = self._parse(field,text)
         except MCPLError as e:
@@ -196,19 +230,21 @@ class Viewer:
         return True, ''
 
     def change_plot( self, old, text ):
-        """Replace the added plot old (its histogram string) by the text, in its
-        place among the views, or remove it if the text is empty (restarting
-        the reading): (ok, message)"""
+        """Replace the plot old (its histogram string) by the text, in its place
+        among the views, or remove it if the text is empty (restarting the
+        reading): (ok, message)"""
         text = text.strip()
         plots = self._s.plots
         if old not in plots:
-            return False, f'No added plot "{old}"'
+            return False, f'No plot "{old}"'
         i = plots.index(old)
         if not text:
-            #(showing the view before it):
+            #(showing the view before it, or the next for the first):
             keys = [ k for k, _ in self.views ]
-            self._current = keys[ keys.index(f'plot:{old}') - 1 ]
+            k = keys.index(f'plot:{old}')
+            self._current = keys[ k - 1 if k > 0 else min( 1, len(keys) - 1 ) ]
             plots.pop(i)
+            self._origins.pop(old,None)
             self._restart()
             return True, ''
         try:
@@ -222,17 +258,36 @@ class Viewer:
         h = self._history['plot']
         if not h or h[-1] != text:
             h.append(text)
+        origin = self._origins.pop(old,None)
         if same is not None:
             plots.pop(i)#(the plot is already there)
         else:
             plots[i] = text
+            if origin is not None:
+                self._origins[text] = origin
         self._current = f'plot:{same or text}'
         self._restart()
         return True, ''
 
+    def move( self, delta ):
+        """Move the shown plot up (delta -1) or down (delta 1) in the list of
+        plots, whose first ones are shown in the overview: whether it moved"""
+        key = self.views[self.current][0]
+        plots = self._s.plots
+        if not key.startswith('plot:'):
+            return False
+        i = plots.index(key[5:])
+        j = i + delta
+        if not 0 <= j < len(plots):
+            return False
+        plots[i], plots[j] = plots[j], plots[i]
+        with self._lock:
+            self._updates += 1#(the figures are the same, in another order)
+        return True
+
     def _same_plot( self, text, plots = None ):
-        """The added plot (of plots, default all) giving the same histogram as
-        the text, or None"""
+        """The plot (of plots, default all) giving the same histogram as the
+        text, or None"""
         from ._histstring import _hist_key
         key = _hist_key(text)
         return next( ( p for p in ( self._s.plots if plots is None else plots )
@@ -288,18 +343,23 @@ class Viewer:
 
     @property
     def views( self ):
-        """The views, as a list of (key, label): the overview with all its plots
-        (only with multi_overview), each plot of the overview, a plot of each
-        field, and the added plots"""
+        """The views, as a list of (key, label): the overview with its plots
+        (only with multi_overview, see overview_keys), and each plot (with its
+        histogram string as label)"""
         res = [ ( 'overview:multi', 'overview' ) ] if self.multi_overview else []
-        res += [ ( f'overview:{k}', f'overview:{k}' ) for k in _overview_keys ]
         with self._lock:
             constants = self._constants
-        #(fields where all particles have the same value are marked):
-        res += [ ( f, f'{f} (all {constants[f]})' if f in constants else f )
-                 for f in _view_fields(self.filename) ]
-        res += [ ( f'plot:{p}', p ) for p in self._s.plots ]
+        #(plots of a field where all particles have the same value are marked):
+        for p in self._s.plots:
+            field = _plot_field(p)
+            res.append( ( f'plot:{p}', f'{p} (all {constants[field]})'
+                          if field in constants else p ) )
         return res
+
+    def overview_keys( self ):
+        """The keys of the views of the plots shown in the overview (in the
+        order of its panels)"""
+        return [ f'plot:{p}' for p in self._s.plots[:_noverview] ]
 
     @property
     def current( self ):
@@ -326,7 +386,19 @@ class Viewer:
         available"""
         key = self.views[self.current if index is None else index][0]
         with self._lock:
+            if key == 'overview:multi':
+                return self._overview_figure()
             return self._figures.get(key)
+
+    def _overview_figure( self ):
+        """The overview: the first plots together (made again only when the
+        figures or the plots changed, so the same figure is returned until
+        then)"""
+        keys = self.overview_keys()
+        made_from = ( self._figures, tuple(keys) )
+        if self._overview is None or self._overview[0] != made_from:
+            self._overview = ( made_from, _overview(self._figures,keys) )
+        return self._overview[1]
 
     def status_lines( self, weights = '\u03a3w' ):
         """The two status lines: the file, the numbers of particles and the sum
@@ -343,6 +415,89 @@ class Viewer:
             wpct = f'{100.0*w/wtot:.1f}%' if wtot else '-'
             first = f'{name}: {n}/{ntot} particles ({pct}), {weights} = {w:g} ({wpct})'
         return first, ( f'error: {error}' if error else progress )
+
+    #The state:
+
+    def state( self, full = True ):
+        """The state of the viewer, as a dict with what differs from the start:
+        skip, limit, pick and edit (unless full is False), the plots (with the
+        changes of the default plots: change, remove, add and order, which are
+        lists of histogram strings, except change, which maps default plots to
+        their new ones), and the view shown (if not the first). It is given as
+        the view argument to open the viewer in the same state."""
+        res = {}
+        if full:
+            for k in ( 'skip', 'limit' ):
+                if getattr(self._s,k):
+                    res[k] = getattr(self._s,k)
+            for k in ( 'pick', 'edit' ):
+                if self._texts[k]:
+                    res[k] = self._texts[k]
+        plots, origins = self._s.plots, self._origins
+        diff = {}
+        change = { o : p for p, o in origins.items() if p != o }
+        remove = [ d for d in _default_plots if d not in origins.values() ]
+        add = [ p for p in plots if p not in origins ]
+        #(the order is only given if it is not that of the defaults, followed
+        #by the added plots):
+        kept = { o : p for p, o in origins.items() }
+        expected = [ kept[d] for d in _default_plots if d in kept ] + add
+        for k, v in ( ('change',change), ('remove',remove), ('add',add),
+                      ('order',list(plots) if plots != expected else []) ):
+            if v:
+                diff[k] = v
+        if diff:
+            res['plots'] = diff
+        key = self.views[self.current][0]
+        if key != self.views[0][0]:
+            res['view'] = 'overview' if key == 'overview:multi' else key[5:]
+        return res
+
+    def _apply_state( self, state ):
+        """Apply the state (from _as_state) to the start (see state())"""
+        for k in ( 'skip', 'limit', 'pick', 'edit' ):
+            if state.get(k):
+                self._set_or_raise(k,str(state[k]))
+        plots = state.get('plots',{})
+        def find( text, what ):
+            try:
+                same = self._same_plot(text)
+            except MCPLError:
+                same = None
+            if same is None:
+                raise MCPLError(f'The viewer state {what} the plot "{text}", which is'
+                                ' not one of the plots')
+            return same
+        for old, new in plots.get('change',{}).items():
+            if not self.change_plot(find(old,'changes'),new)[0]:
+                self._set_or_raise('plot',new)#(for the message of the problem)
+        for old in plots.get('remove',[]):
+            self.change_plot(find(old,'removes'),'')
+        for p in plots.get('add',[]):
+            self._set_or_raise('plot',p)
+        order = [ find(p,'orders') for p in plots.get('order',[]) ]
+        if order:
+            #(the plots in the given order, followed by any others):
+            self._s.plots[:] = order + [ p for p in self._s.plots if p not in order ]
+        self._current = None
+
+    def suggested_state_filename( self ):
+        """<input>_viewer.json, or <input>_viewer2.json, ... if that exists"""
+        return _free_filename(self.filename,'_viewer','.json')
+
+    def try_save_state( self, filename ):
+        """Save the state (see state()) as JSON in a new file (never overwriting
+        existing files, and without writing in a dry run): (ok, message)"""
+        import json
+        if pathlib.Path(filename).exists():
+            return False, f'The file {filename} already exists'
+        if self._dry_run:
+            return True, f'Dry run: the viewer state was not saved in {filename}'
+        try:
+            pathlib.Path(filename).write_text(json.dumps(self.state(),indent=1) + '\n')
+        except OSError as e:
+            return False, f'Can not write {filename} ({e})'
+        return True, f'Saved the viewer state in {filename}'
 
     #Commands:
 
@@ -363,16 +518,24 @@ class Viewer:
         """Commands doing the same as the viewer: 'view' (opening the viewer in
         the same state) and 'extract' (writing the picked and edited
         particles to a new file)"""
+        import json
+
         from ._extract import _shell_arg
         prog, fn = self._progname, _shell_arg(self.filename) if ' ' in self.filename else self.filename
         opts = self._options()
-        key = self.views[self.current][0]
-        hists = []
-        for p in self._s.plots:
-            hists += [ '-H', _shell_arg(p) ]
-        first = self.views[0][0]
-        view = '-w' if key == first or key.startswith('plot:') else f'--view={key}'
-        return { 'view' : ' '.join([ prog, view ] + opts + hists + [ fn ]),
+        #The state beyond the options, as --view=VIEW, or as JSON with the
+        #strings in single quotes (see _as_state), in double quotes (which
+        #work in all shells, as the texts contain none of the characters which
+        #are special in some of them):
+        state = self.state(full = False)
+        if not state:
+            view = '-w'
+        elif list(state) == [ 'view' ]:
+            view = f'--view="{state["view"]}"'
+        else:
+            text = json.dumps(state,separators=(',',':')).replace('"',"'")
+            view = f'--view="{text}"'
+        return { 'view' : ' '.join([ prog, view ] + opts + [ fn ]),
                  'extract' : ' '.join([ prog, '-e' ] + opts + [ fn, self.suggested_filename() ]) }
 
     #Writing:
@@ -380,17 +543,7 @@ class Viewer:
     def suggested_filename( self ):
         """<input>_selected.mcpl.gz, or <input>_selected2.mcpl.gz, ... if that
         (or the same without .gz) exists"""
-        p = pathlib.Path(self.filename)
-        stem = p.name
-        for ext in ( '.gz', '.mcpl' ):
-            stem = stem.removesuffix(ext)
-        i = 1
-        while True:
-            name = f'{stem}_selected{i if i > 1 else ""}'
-            cands = [ p.with_name(name + '.mcpl.gz'), p.with_name(name + '.mcpl') ]
-            if not any( c.exists() for c in cands ):
-                return str(cands[0]) if p.parent != pathlib.Path('.') else cands[0].name
-            i += 1
+        return _free_filename(self.filename,'_selected','.mcpl.gz','.mcpl')
 
     def try_write( self, filename = None ):
         """As write, but returning (ok, message): the last line of the output,
@@ -456,8 +609,6 @@ class Viewer:
         return changed
 
     def _restart( self ):
-        if not hasattr(self,'_lock'):
-            return
         with self._lock:
             self._generation += 1
             self._job = ( self._generation, self._s.copy() )
@@ -588,20 +739,82 @@ class Viewer:
         self._publish(gen,figures=comp.figures(),constants=comp.constants(),progress='',
                       counts=counts)
 
+def _free_filename( filename, suffix, ext, *other_exts ):
+    """The name <input><suffix><ext> next to the file (without its extensions
+    .mcpl and .gz), or with 2, 3, ... after the suffix if that (or the same
+    with one of the other extensions) exists"""
+    p = pathlib.Path(filename)
+    stem = p.name
+    for e in ( '.gz', '.mcpl' ):
+        stem = stem.removesuffix(e)
+    i = 1
+    while True:
+        name = f'{stem}{suffix}{i if i > 1 else ""}'
+        cands = [ p.with_name(name + e) for e in ( ext, ) + other_exts ]
+        if not any( c.exists() for c in cands ):
+            return str(cands[0]) if p.parent != pathlib.Path('.') else cands[0].name
+        i += 1
+
 class _Cancelled(Exception):
     pass
 
-from ._viewer_ui import overview_keys as _overview_keys
+#The entries of the state (see Viewer.state), and of its changes of the plots:
+_state_keys = ( 'skip', 'limit', 'pick', 'edit', 'plots', 'view' )
+_state_plot_keys = ( 'change', 'remove', 'add', 'order' )
 
-
-def _view_fields( filename ):
-    """Names of the fields with a view (those of the per-field plots of
-    stats_figures, in the same order)"""
-    from ._stats import _possible_freq_stats, _possible_std_stats
-    return list(_possible_freq_stats) + list(_possible_std_stats)
+def _as_state( view ):
+    """The state given as the view argument of the viewer (a dict, its JSON
+    text, or the name of a .json file with it), or None if it is a view"""
+    import json
+    if view is None:
+        return None
+    if isinstance(view,dict):
+        state, where = view, 'The viewer state'
+    elif view.lstrip().startswith('{'):
+        #(as JSON, or with the strings in single quotes, which is easier on
+        #command lines, see Viewer.commands; the texts of the state can
+        #contain neither kind of quote):
+        text = view if '"' in view else view.replace("'",'"')
+        where = f'The viewer state "{view}"'
+        try:
+            state = json.loads(text)
+        except ValueError as e:
+            raise MCPLError(f'{where} is not valid JSON ({e})')
+    elif view.endswith('.json'):
+        where = f'The viewer state in {view}'
+        try:
+            state = json.loads(pathlib.Path(view).read_text())
+        except OSError as e:
+            raise MCPLError(f'Can not read the viewer state from {view} ({e})')
+        except ValueError as e:
+            raise MCPLError(f'{where} is not valid JSON ({e})')
+    else:
+        return None
+    def check( ok, what ):
+        if not ok:
+            raise MCPLError(f'{where} is not valid: {what}')
+    check(isinstance(state,dict),'it must be a JSON object, like {"pick":"pdgcode == neutron"}')
+    for k in state:
+        check(k in _state_keys,f'unknown entry "{k}" (the entries are: {", ".join(_state_keys)})')
+    for k in ( 'skip', 'limit' ):
+        check(isinstance(state.get(k,0),int),f'{k} must be a number')
+    for k in ( 'pick', 'edit', 'view' ):
+        check(isinstance(state.get(k,''),str),f'{k} must be a text')
+    plots = state.get('plots',{})
+    check(isinstance(plots,dict),'plots must be a JSON object')
+    for k, v in plots.items():
+        check(k in _state_plot_keys,f'unknown entry "{k}" of plots (the entries are:'
+              f' {", ".join(_state_plot_keys)})')
+        if k == 'change':
+            check(isinstance(v,dict) and all( isinstance(x,str) for x in v.values() ),
+                  'the change of plots must be a JSON object of texts')
+        else:
+            check(isinstance(v,list) and all( isinstance(x,str) for x in v ),
+                  f'the {k} of plots must be a list of texts')
+    return state
 
 def _make_filler( text, pick ):
-    """Histogram filler of an added plot (a histogram string)"""
+    """Histogram filler of a plot (a histogram string)"""
     from ._histogram import _filler_for
     from ._histstring import _parse_hist
     o = _parse_hist(text)
@@ -609,81 +822,107 @@ def _make_filler( text, pick ):
         raise MCPLError('The histogram option print can not be used in the viewer')
     return _filler_for(o,pick = pick)
 
+def _plot_field( text ):
+    """The field if the plot (a histogram string) is of exactly one field
+    (e.g. "z" or "weight;unweighted=1"), else None"""
+    from ._expressions import _Expr
+    from ._histstring import _parse_hist
+    exprs = _parse_hist(text)['exprs']
+    return _Expr(exprs[0]).field if len(exprs) == 1 else None
+
+#Fields for which it is noted when all particles have the same value:
+_const_fields = ( 'pdgcode', 'userflags', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz',
+                  'time', 'weight', 'polx', 'poly', 'polz' )
+
+def _overview( figures, keys ):
+    """The overview: the plots of the views with the keys together (as far as
+    they are available), with the title of the plots"""
+    from .plotting import Figure, Panel, Text
+    figs = [ figures.get(k) for k in keys ]
+    if all( f is None for f in figs ):
+        return None
+    panels = []
+    for f in figs:
+        panel = copy.copy(f.panels[0]) if f is not None else Panel( items = [ Text('') ] )
+        panel.title = None#(the title of the plots is that of the overview)
+        panels.append(panel)
+    title = next( ( f.title for f in figs if f is not None ), None )
+    return Figure( title = title, nrows = 2, ncols = 3, panels = panels )
+
 class _Computation:
-    """The statistics and added plots for the views, from the blocks given to
-    add1 (first pass) and add2 (second pass, after start2)"""
+    """The plots for the views, and the fields where all particles have the
+    same value, from the blocks given to add1 (first pass) and add2 (second
+    pass, after start2). A plot which fails (e.g. one without values) shows
+    the problem, without stopping the others."""
     def __init__( self, f, settings ):
-        from ._stats import _StatsAccumulator
         self._settings = settings
-        self._f = _HeaderView(f,settings)
-        self._stats = _StatsAccumulator(self._f)
-        self._plots = [ ( p, _make_filler(p,None) ) for p in settings.plots ]
+        self._errors = {}#(plot -> the problem)
+        self._plots = []
+        for p in settings.plots:
+            h = self._guard(p,_make_filler,p,None)
+            self._plots.append( ( p, h ) )
+        self._lims = { f : [ None, None ] for f in _const_fields }
+
+    def _guard( self, p, fct, *args ):
+        """fct(*args), or None if the plot p failed (noting the problem)"""
+        if p in self._errors:
+            return None
+        try:
+            return fct(*args)
+        except MCPLError as e:
+            self._errors[p] = str(e)
+            return None
+
     def add1( self, b ):
-        if self._stats.needs_pass1:
-            self._stats.add1(b)
-        for _, h in self._plots:
-            if h.needs_range:
-                h.add_range(None,b)
+        for p, h in self._plots:
+            if h is not None and h.needs_range:
+                self._guard(p,h.add_range,None,b)
+
     def start2( self, n ):
-        self._stats.start2(n)
-        for _, h in self._plots:
-            if h.needs_range:
-                h.start_fill()
+        for p, h in self._plots:
+            if h is not None and h.needs_range:
+                self._guard(p,h.start_fill)
+
     def add2( self, b ):
-        self._stats.add2(b)
-        for _, h in self._plots:
-            h.add(None,b)
+        from ._numpy import np
+        for p, h in self._plots:
+            if h is not None:
+                self._guard(p,h.add,None,b)
+        for field, lim in self._lims.items():
+            v = np.asarray(getattr(b,field))
+            lo, hi = float(v.min()), float(v.max())
+            lim[0] = lo if lim[0] is None else min( lim[0], lo )
+            lim[1] = hi if lim[1] is None else max( lim[1], hi )
+
     def constants( self ):
         """The fields where all particles have the same value, with the value
         (as text, with its unit)"""
+        from ._expressions import _expr_field_dims, _expr_unit_hints
         res = {}
-        for field, st in self._stats.result().items():
-            if not isinstance(st,dict):
-                continue
-            if 'unique_values' in st:
-                if len(st['unique_values']) == 1:
-                    res[field] = f'{int(st["unique_values"][0])}'
-            elif st.get('min') is not None and st.get('min') == st.get('max'):
-                unit = st.get('unit')
-                res[field] = f'{st["min"]:g}' + ( f' {unit}' if unit else '' )
+        for field, ( lo, hi ) in self._lims.items():
+            if lo is not None and lo == hi:
+                unit = _expr_unit_hints.get(_expr_field_dims.get(field))
+                res[field] = f'{lo:g}' + ( f' {unit}' if unit else '' )
         return res
 
     def figures( self ):
-        from ._statsplot import stats_figures
-        stats = copy.deepcopy(self._stats.result())
-        figs = stats_figures(stats)
-        res = {}
-        keys = ( ['overview:multi'] if 'overview' in stats else [] ) + [
-            k for k in _view_fields(None) if k in stats ]
-        #(all with the titles of mcpltool -H, the pick and edit expressions,
-        #since the file and the numbers are in the status lines):
+        """The figures of the plots (with the pick and edit expressions as
+        titles, as for mcpltool -H)"""
+        from .plotting import Figure, Panel, Text
         s = self._settings
         title = '\n'.join( f'{what}: {e.expression}' for what, e in
-                           (('pick',s.pick),('edit',s.edit)) if e is not None )
-        for k, fig in zip(keys,figs):
-            fig.title = title or None
-            res[k] = fig
-        #(and each plot of the overview on its own):
-        from .plotting import Figure
-        ov = res.get('overview:multi')
-        for k, panel in zip(_overview_keys,ov.panels if ov else []):
-            res[f'overview:{k}'] = Figure( title = ov.title, panels = [ panel ] )
+                           (('pick',s.pick),('edit',s.edit)) if e is not None ) or None
+        res = {}
         for p, h in self._plots:
-            hist = copy.deepcopy(h.result())
-            hist.title = title or None
+            hist = self._guard(p,h.result) if h is not None else None
+            if hist is None:
+                res[f'plot:{p}'] = Figure( title = title, panels = [ Panel( xlabel = p,
+                                           items = [ Text(self._errors[p]) ] ) ] )
+                continue
+            hist = copy.deepcopy(hist)
+            hist.title = title
             res[f'plot:{p}'] = hist.figure()
         return res
-
-class _HeaderView:
-    """The header information of the file, with the pick and edit of the
-    settings (for the titles of the overview, as for mcpltool -S)"""
-    _viewer = True
-    def __init__( self, f, settings ):
-        self._f = f
-        self.pick = settings.pick.expression if settings.pick else ''
-        self.edit = settings.edit.expression if settings.edit else None
-    def __getattr__( self, name ):
-        return getattr(self._f,name)
 
 def _preview( f, settings, blocks ):
     """Figures from the blocks kept in memory (both passes over them)"""
@@ -710,13 +949,14 @@ def _parse_count( text ):
 
 def view( filename, pick = None, edit = None, skip = 0, limit = None,
           plots = (), view = None, backend = None, terminal = False ):
-    """Show the particles of a file in the viewer: an overview, a plot of each
-    field, and the plots (histogram strings, as for mcpltool -H, e.g.
-    "hypot(x,y)/cm;logy=1"), for the particles in a range of the file (after
-    skipping skip particles, at most limit particles), picked with pick and
-    then edited with edit (expressions, or ParticleFilter and ParticleEdit
-    objects), which can all be changed in the viewer. view is the view shown
-    first (e.g. 'ekin'). In Jupyter, the viewer is a panel of ipywidgets
+    """Show the particles of a file in the viewer: an overview and plots
+    (histograms as for mcpltool -H, to which the plots, histogram strings like
+    "hypot(x,y)/cm;logy=1", are added), for the particles in a range of the
+    file (after skipping skip particles, at most limit particles), picked with
+    pick and then edited with edit (expressions, or ParticleFilter and
+    ParticleEdit objects), which can all be changed in the viewer. view is the
+    view shown first ('overview', or a plot, e.g. 'ekin'), or a state of the
+    viewer (as saved in the viewer, a .json file, or a dict). In Jupyter, the viewer is a panel of ipywidgets
     (which is returned), and otherwise it is shown in a window with
     matplotlib, or in the terminal (always with terminal=True, or with the
     given plotting backend), until it is closed."""

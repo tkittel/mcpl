@@ -23,6 +23,7 @@
 
 __all__ = []
 
+import functools
 from typing import ClassVar
 
 from ._common import _determine_version
@@ -213,15 +214,22 @@ def logo_height( fig ):
     the matplotlib figure"""
     return ( _logo_inches + 2 * _logo_margin ) / fig.get_figheight()
 
-def add_logo( fig, left = False ):
-    """Add the MCPL logo to the top right (or left) corner of the matplotlib
-    figure"""
+@functools.cache
+def _logo_image():
+    """The MCPL logo as an image for matplotlib (decoded once, read-only)"""
     import io
 
     import matplotlib.image
 
     from ._logo import logo_png
     img = matplotlib.image.imread(io.BytesIO(logo_png()))
+    img.flags.writeable = False
+    return img
+
+def add_logo( fig, left = False ):
+    """Add the MCPL logo to the top right (or left) corner of the matplotlib
+    figure"""
+    img = _logo_image()
     fw, fh = fig.get_figwidth(), fig.get_figheight()
     w = _logo_inches * img.shape[1] / img.shape[0]
     x = _logo_margin / fw if left else 1 - ( w + _logo_margin ) / fw

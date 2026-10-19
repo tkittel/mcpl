@@ -326,7 +326,7 @@ def test_canonical():
     #Normalised forms of expressions (from their parsed forms), which must be
     #valid expressions giving the same values, and their own normalised forms:
     from mcpldev._expressions import _expr_canonical
-    from mcpldev._histogram import _hist_key
+    from mcpldev._histstring import _hist_key
     with mcpl.MCPLFile(example_file) as f:
         b = next(iter(f.particle_blocks))
     for e in ( 'ekin/MeV', '(ekin) / MeV', '(x**2+y^2)/cm^2', '2.5e-3MeV*ekin/MeV^2',

@@ -233,7 +233,7 @@ class Viewer:
     def _same_plot( self, text, plots = None ):
         """The added plot (of plots, default all) giving the same histogram as
         the text, or None"""
-        from ._histogram import _hist_key
+        from ._histstring import _hist_key
         key = _hist_key(text)
         return next( ( p for p in ( self._s.plots if plots is None else plots )
                        if _hist_key(p) == key ), None )
@@ -602,7 +602,8 @@ def _view_fields( filename ):
 
 def _make_filler( text, pick ):
     """Histogram filler of an added plot (a histogram string)"""
-    from ._histogram import _filler_for, _parse_hist
+    from ._histogram import _filler_for
+    from ._histstring import _parse_hist
     o = _parse_hist(text)
     if o['print']:
         raise MCPLError('The histogram option print can not be used in the viewer')

@@ -14,6 +14,7 @@ Modules of the mcpl package and their imports from the package:
   layer   1 : _userdata            <- _common, _numpy
   layer   2 : _blocks              <- _common, _numpy, _physics
   layer   2 : _expressions         <- _common, _exprsyntax, _numpy, _physics
+  layer   3 : _histstring          <- _common, _expressions
   layer   3 : _reader              <- _blocks, _common, _expressions, _messages, _numpy, _scipp, _statsum, _userdata
   layer   3 : _records             <- _blocks, _common, _numpy, _physics
   layer   4 : _writer              <- _blocks, _common, _expressions, _messages, _numpy, _reader, _records, _statsum, _userdata
@@ -23,7 +24,7 @@ Modules of the mcpl package and their imports from the package:
   layer   6 : _plotbackend         <- _common, _messages
   layer   6 : _stats               <- _common, _expressions, _messages, _numpy, _physics, _reader
   layer   7 : plotting             <- _plotbackend
-  layer   8 : _histogram           <- _common, _expressions, _numpy, _reader, plotting
+  layer   8 : _histogram           <- _common, _expressions, _histstring, _numpy, _reader, plotting
   layer   8 : _plotbackend_mpl     <- _common, _logo, _numpy, _plotbackend, plotting
   layer   8 : _plotbackend_test    <- _numpy, _plotbackend, plotting
   layer   8 : _plotbackend_text    <- _numpy, _physics, _plotbackend, _termcolor, plotting
@@ -31,8 +32,8 @@ Modules of the mcpl package and their imports from the package:
   layer   9 : _plotbackend_text_gui <- _common, _plotbackend_text, _termcolor, _viewer_ui
   layer   9 : _statsplot           <- _common, _expressions, _histogram, _numpy, _physics, _plotbackend, _stats, plotting
   layer   9 : _viewer_jupyter      <- _common, _exprhelp, _logo, _plotbackend_mpl, _viewer_ui
-  layer  10 : _clistats            <- _common, _histogram, _plotbackend, _reader, _stats, _statsplot
-  layer  10 : _viewer              <- _blocks, _common, _expressions, _exprhelp, _extract, _histogram, _plotbackend, _reader, _stats, _statsplot, _viewer_jupyter, _viewer_ui, plotting
+  layer  10 : _clistats            <- _common, _histogram, _histstring, _plotbackend, _reader, _stats, _statsplot
+  layer  10 : _viewer              <- _blocks, _common, _expressions, _exprhelp, _extract, _histogram, _histstring, _plotbackend, _reader, _stats, _statsplot, _viewer_jupyter, _viewer_ui, plotting
   layer  11 : _cli                 <- _clistats, _common, _examples, _expressions, _exprhelp, _extract, _fileops, _messages, _physics, _plotbackend, _reader, _viewer, _viewer_ui
   layer top : __init__             <- _blocks, _common, _fileops, _messages, _reader, _statsum, _writer, constants
   layer top : __main__             <- _cli

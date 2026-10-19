@@ -92,7 +92,8 @@ def mcpltool_stats(filename,skip,limit,pick,edit,outfn,backend,bad):
 
 def mcpltool_hist(filelist,histstr,skip,limit,pick,edit,outfn,backend,terminal,bad,
                   color=None):
-    from ._histogram import _histogram, _parse_hist
+    from ._histogram import _histogram
+    from ._histstring import _parse_hist
     if not filelist:
         bad("No input file specified")
     try:

@@ -57,6 +57,7 @@ layers = {
     '_exprsyntax' : 1,
     '_expressions' : 2,
     '_records' : 3,
+    '_histstring' : 3,
     '_reader' : 3,
     '_writer' : 4,
     '_fileops' : 5,

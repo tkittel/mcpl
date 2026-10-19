@@ -1,5 +1,5 @@
 skip=0 limit=None pick=None edit=None:
-   example.mcpl: 1006/1006 particles (100.0%), Σw = 1006 (100.0%)
+   example.mcpl: 1006 particles, Σw = 1006
    23 views, same figures as mcpltool -H: True
 skip=0 limit=None pick='pdgcode == neutron' edit=None:
    example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
@@ -52,14 +52,14 @@ Up from the first wraps to: angle_to( | Esc closes without inserting: None '' []
 unknown view: Unknown view "foo" (the views are the overview and the plots, given as overview or as the histogram string of a plot, e.g. ekin)
 invalid pick: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 1"
 view shown first: ('plot:ekin', 'ekin')
-('example.mcpl: 1006/1006 particles (100.0%), Σw = 1006 (100.0%)', '')
+('example.mcpl: 1006 particles, Σw = 1006', '')
 set('pick','pdgcode == gamma'): True, ('example.mcpl: 239/1006 particles (23.8%), Σw = 239 (23.8%)', '')
 set('skip','1000'): True, ('example.mcpl: 0/6 particles (0.0%), Σw = 0 (0.0%)', 'error: no particles picked')
 set('limit','3'): True, ('example.mcpl: 0/3 particles (0.0%), Σw = 0 (0.0%)', 'error: no particles picked')
 set('pick','x > 1km'): True, ('example.mcpl: 0/3 particles (0.0%), Σw = 0 (0.0%)', 'error: no particles picked')
-set('pick',''): True, ('example.mcpl: 3/3 particles (100.0%), Σw = 3 (100.0%)', '')
-set('skip','0'): True, ('example.mcpl: 3/3 particles (100.0%), Σw = 3 (100.0%)', '')
-set('limit',''): True, ('example.mcpl: 1006/1006 particles (100.0%), Σw = 1006 (100.0%)', '')
+set('pick',''): True, ('example.mcpl: 3 particles, Σw = 3', '')
+set('skip','0'): True, ('example.mcpl: 3 particles, Σw = 3', '')
+set('limit',''): True, ('example.mcpl: 1006 particles, Σw = 1006', '')
 views after adding plots: ['plot:time/ms;logx=1', 'plot:ekin/MeV'] current: plot:time/ms;logx=1
 limit 1e3: 1e3 mcpltool --view="{'plots':{'add':['time/ms;logx=1','ekin/MeV']},'view':'time/ms;logx=1'}" -l1000 example.mcpl
 history of pick: ['pdgcode == gamma', 'x > 1km']
@@ -164,7 +164,7 @@ To open the viewer like this again:
    | 
    |  [Write file...]  [Save viewer state...]  [Help]  [Quit]
 ==> keys ['WAIT', 'e', 'x', ' ', '=', ' ', '2', 'WAIT']:
-   |                             example.mcpl: 1006/1006 particles (100.0%), Σw = 1006 (100.0%)
+   |                             example.mcpl: 1006 particles, Σw = 1006
    | ▸ ekin;logx=auto;logy;spli
    |   wavelength;logx;split=pd  (weights per bin)
    |   acos(uz)/deg;range=0:180       106 ┤                       ⢠⠤⠴⠒⠒⠋⠉⢧
@@ -221,7 +221,7 @@ To open the viewer like this again:
 ==> keys ['WAIT', 'v', 'Enter', 'WAIT']:
    v saves the state in: ['example_viewer2.json']
 ==> keys ['WAIT', 's', '1', '2', 'Esc', 'i', '5', '0', 'Enter', 'WAIT', 'p', 'Up', 'Esc']:
-   skip, limit: '' '50' example.mcpl: 50/50 particles (100.0%), Σw = 50 (100.0%)
+   skip, limit: '' '50' example.mcpl: 50 particles, Σw = 50
 ==> keys ['WAIT', ('Mouse', 2, 3, True), 'WAIT']:
    view after clicking on line 3: plot:acos(uz)/deg;range=0:180;logy;split=pdgcode
 ==> keys ['WAIT', 'p', 'x', 'Ctrl-C', 'p', 'y']:

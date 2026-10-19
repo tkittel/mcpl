@@ -1,5 +1,5 @@
 axes of the overview: 7
-status: ['example.mcpl: 1006/1006 particles (100.0%), Σw = 1006 (100.0%)']
+status: ['example.mcpl: 1006 particles, Σw = 1006']
 pick being edited: 'pdgcode == neutron' True neutron  PDG code 2112
 status after the pick: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
 view: plot:acos(uz)/deg;range=0:180;logy;split=pdgcode axes: 1

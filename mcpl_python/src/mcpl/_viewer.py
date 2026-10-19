@@ -409,6 +409,10 @@ class Viewer:
         name = pathlib.Path(self.filename).name
         if counts is None:
             first = f'{name}: {self._ntotal} particles'
+        elif self._s.pick is None:
+            #(all particles of the range are used, so only the numbers):
+            n, _, w, _ = counts
+            first = f'{name}: {n} particles, {weights} = {w:g}'
         else:
             n, ntot, w, wtot = counts
             pct = f'{100.0*n/ntot:.1f}%' if ntot else '-'

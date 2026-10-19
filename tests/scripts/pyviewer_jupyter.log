@@ -1,5 +1,5 @@
 views: 20
-status: <b>example.mcpl: 1006/1006 particles (100.0%), Σw = 1006 (100.0%)</b><br><span style="color:#555"></span>
+status: <b>example.mcpl: 1006 particles, Σw = 1006</b><br><span style="color:#555"></span>
 overview as a grid: True plots: True
 buttons: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto']
 view after the button of wavelength: plot:wavelength;logx;split=pdgcode selected in the list: True single image: True

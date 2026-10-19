@@ -62,7 +62,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
-  mcpltool -H "ekin/MeV;logx=1;split=pdgcode" file.mcpl.gz
+  mcpltool -H "ekin/MeV;logx;split=pdgcode" file.mcpl.gz
   mcpltool -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   mcpltool -S file.mcpl.gz
 
@@ -102,7 +102,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
-  mcpltool -H "ekin/MeV;logx=1;split=pdgcode" file.mcpl.gz
+  mcpltool -H "ekin/MeV;logx;split=pdgcode" file.mcpl.gz
   mcpltool -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   mcpltool -S file.mcpl.gz
 

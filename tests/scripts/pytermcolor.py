@@ -121,13 +121,16 @@ def test_stripped():
                               for p in fig.panels )
                 if ( has2d or curves ) and opt == 'unicode':
                     #(2D maps are drawn with half blocks, two cells per
-                    #character, and several curves as lines of braille dots,
-                    #but everything else is the same):
+                    #character, and several curves are lines of braille dots,
+                    #without colour with their markers along them, but
+                    #everything else is the same):
                     if has2d:
                         print('   half blocks:', '\u2580' in col and '\u2580' not in plain)
                     if curves:
-                        print('   braille lines:', any( 0x2800 < ord(ch) <= 0x28ff for ch in col )
-                              and not any( 0x2800 < ord(ch) <= 0x28ff for ch in plain ))
+                        braille = [ any( 0x2800 < ord(ch) <= 0x28ff for ch in t )
+                                    for t in ( col, plain ) ]
+                        print('   braille lines:', all(braille), '| markers only without colour:',
+                              '\u25cb' in plain and '\u25cb' not in ansi.sub('',col))
                     assert not same
                 else:
                     assert same

@@ -73,6 +73,8 @@ _unicode = _Chars(
 #Bits of the dots of braille characters (U+2800 + bits), for the left and
 #right columns of dots, from the top:
 _braille_bits = ( ( 0x01, 0x02, 0x04, 0x40 ), ( 0x08, 0x10, 0x20, 0x80 ) )
+#Characters between the markers along curves of braille dots without colour:
+_marker_step = 8
 
 _ansi_re = re.compile('\x1b\\[[0-9;]*m')
 
@@ -343,9 +345,9 @@ class _TextBackend(PlotBackend):
                     k = min( nlev, max( 0, units - row * nlev ) )
                     if k:
                         grid[h-1-row][j] = self._p(c.fill[k],rgb)
-        elif self._braille and self._nc:
-            #In colour, the curves are drawn as lines with braille
-            #characters (of 2x4 dots):
+        elif self._use_braille(steps):
+            #The curves are drawn as lines with braille characters (of 2x4
+            #dots), in colour, or else with different line styles:
             self._draw_braille(panel,steps,lo,hi,ncols,height,grid)
         else:
             #A marker symbol for each curve (for bins with contents, drawing
@@ -367,22 +369,34 @@ class _TextBackend(PlotBackend):
                 out.append( f'{self._p(c.fill[-1],self._curve_color(steps[0],0))}'
                             f' {labels[0]}' )
             else:
-                braille = self._braille and self._nc
-                line = '\u2501\u2501'#(for the lines of braille dots)
+                braille = self._use_braille(steps)
                 entries = []#(text, visible width)
                 for k,s in enumerate(steps):
                     if s.label is not None:
-                        sym = line if braille else self._marker(s,k)
+                        sym = self._line_sample(s,k) if braille else self._marker(s,k)
                         entries.append( ( f'{self._p(sym,self._curve_color(s,k))} {s.label}',
                                           len(sym) + 1 + len(s.label) ) )
                 width = max( len(_ansi_re.sub('',ln)) for ln in out )
                 out += _legend_columns(entries,width)
         return out
 
+    def _use_braille( self, steps ):
+        """Whether several curves are drawn as lines of braille dots"""
+        return self._braille
+
+    def _line_sample( self, s, k ):
+        """The legend symbol of the k'th curve drawn with braille dots: a piece
+        of line (with its marker, without colour)"""
+        if self._nc:
+            return '\u2501\u2501'
+        return f'\u2812{self._marker(s,k)}\u2812'
+
     def _draw_braille( self, panel, steps, lo, hi, ncols, height, grid ):
         """Draw the curves on the grid as lines of braille dots (2 by 4 per
         character). Characters with dots of several curves get the average of
-        their colours."""
+        their colours, and without colour, the curves have their markers along
+        them (every _marker_step characters, staggered, so the markers of the
+        curves are not on the same columns)."""
         h = self._height
         nx, ny = 2 * ncols, 4 * h
         cells = {}#(row,col) -> [dot bits, indices of the curves]
@@ -390,6 +404,7 @@ class _TextBackend(PlotBackend):
             e = cells.setdefault( ( h - 1 - y // 4, x // 2 ), [ 0, set() ] )
             e[0] |= _braille_bits[x % 2][3 - y % 4]
             e[1].add(k)
+        markers = []#(row, column, symbol) of the markers along the curves
         for k, s in enumerate(steps):
             v = self._columns(s.edges,s.values,lo,hi,panel.logx,nx)
             ok = np.isfinite(v) & ( v > 0 )
@@ -408,10 +423,15 @@ class _TextBackend(PlotBackend):
                 for yy in ( range(min(prev,y),max(prev,y)+1) if prev is not None else ( y, ) ):
                     dot(k,x,yy)
                 prev = y
+                offset = ( 2 + 3 * k ) % _marker_step
+                if not self._nc and x % 2 == 0 and ( x // 2 ) % _marker_step == offset:
+                    markers.append( ( h - 1 - y // 4, x // 2, self._marker(s,k) ) )
         for (r,c), (bits, ks) in cells.items():
             rgbs = [ self._curve_color(steps[k],k) for k in sorted(ks) ]
             rgb = tuple( round( sum( x[i] for x in rgbs ) / len(rgbs) ) for i in range(3) )
             grid[r][c] = self._p(chr(0x2800 + bits),rgb)
+        for r, c, sym in markers:
+            grid[r][c] = sym
 
     def _marker( self, item, k ):
         """Marker symbol of the k'th StepHist of a panel (by position, so the

@@ -21,19 +21,22 @@
 
 """Histogram strings, as in mcpltool -H: an expression (or two separated by
 ":" for 2D histograms), followed by options NAME=VALUE separated by ";", like
-"ekin/MeV;logx=1;bins=50"."""
+"ekin/MeV;logx;bins=50"."""
 
 __all__ = []
 
 from ._common import MCPLError
 from ._expressions import _dimstr, _range_value
 
-#Options of histogram strings ("EXPR;logx=1;bins=50"), always as NAME=VALUE,
-#with the kinds of their values (bool: 1 or 0, auto: also auto):
+#Options of histogram strings ("EXPR;logx;bins=50"), as NAME=VALUE, with the
+#kinds of their values (bool: 1 or 0, auto: also auto):
 _hist_options = { 'bins' : 'bins', 'range' : 'range', 'xrange' : 'range',
                   'yrange' : 'range', 'logx' : 'auto', 'logy' : 'auto',
                   'lethargy' : 'bool', 'split' : 'expr', 'groups' : 'count',
                   'bar' : 'count', 'unweighted' : 'bool', 'print' : 'bool' }
+#The values of the options given without a value (as "logy" or "bar"):
+_hist_implied = { 'logx' : '1', 'logy' : '1', 'lethargy' : '1', 'unweighted' : '1',
+                  'print' : '1', 'bar' : 'auto' }
 #(words for booleans, which are written 1 or 0):
 _bool_words = ( 'true', 'false', 'on', 'off', 'yes', 'no' )
 
@@ -74,7 +77,7 @@ def _hist_defaults( exprs ):
 def _parse_hist( text ):
     """Parse a histogram string: an expression (or two separated by ":" for 2D
     histograms), followed by options NAME=VALUE separated by ";", like
-    "ekin/MeV;logx=1;bins=50" or "x/cm : y/cm;xrange=-10:10". Returns a
+    "ekin/MeV;logx;bins=50" or "x/cm : y/cm;xrange=-10:10". Returns a
     dict with the expressions (a list of one or two), and the options (with
     defaults for those not given)."""
     from ._expressions import _check_chars
@@ -98,9 +101,10 @@ def _parse_hist( text ):
                             f' in "{text}"')
         seen.add(name)
         kind = _hist_options[name]
-        if not ( eq and value ):
-            example = f'{name}=1 (or {name}=0)' if kind in ( 'bool', 'auto' ) else f'{name}=...'
-            raise MCPLError(f'Histogram option "{name}" needs a value, like {example},'
+        if not eq and name in _hist_implied:
+            value = _hist_implied[name]
+        elif not ( eq and value ):
+            raise MCPLError(f'Histogram option "{name}" needs a value, like {name}=...,'
                             f' in "{text}"')
         if kind in ( 'bool', 'auto' ):
             res[name] = _hist_bool(name,value,text,auto = kind == 'auto')
@@ -198,7 +202,7 @@ def _hist_key( text ):
         if v is None or v is False:
             continue
         if v is True:
-            parts.append(f'{name}=auto' if name == 'bar' else f'{name}=1')
+            parts.append(name)#(the implied value, see _hist_implied)
         elif v == 'auto':
             parts.append(f'{name}=auto')
         elif name == 'split':

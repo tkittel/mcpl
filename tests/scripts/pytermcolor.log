@@ -17,12 +17,12 @@ no colours: 'X'
 256 colour codes of black, white, grey, red: [16, 231, 244, 196]
 unicode 1D: colours used: True, same text without them: True
 unicode split: colours used: True, same text without them: False
-   braille lines: True
+   braille lines: True | markers only without colour: True
 unicode 2D: colours used: True, same text without them: False
    half blocks: True
 unicode overview: colours used: True, same text without them: False
    half blocks: True
-   braille lines: True
+   braille lines: True | markers only without colour: True
 ascii 1D: colours used: True, same text without them: True
 ascii split: colours used: True, same text without them: True
 ascii 2D: colours used: True, same text without them: True

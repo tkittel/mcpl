@@ -36,12 +36,21 @@ parsed 'mod(fileidx,10) == 0': fields ['fileidx'], names ['fileidx', 'mod'], can
 random expressions: 428 of 428 valid ones have equivalent normalised forms
 exp(2,3): exp(..) takes one argument in expression "exp(2,3)"
 cos(ux,2): cos(..) takes one argument in expression "cos(ux,2)"
-histogram 'ekin/MeV;logx=1;bins=50': 'ekin/MeV;bins=50;logx=1'
-histogram 'ekin / MeV ; bins=50 ;logx=1': 'ekin/MeV;bins=50;logx=1'
-histogram '(ekin)/MeV;bins=50;logx=1': 'ekin/MeV;bins=50;logx=1'
+histogram 'ekin/MeV;logx=1;bins=50': 'ekin/MeV;bins=50;logx'
+histogram 'ekin / MeV ; bins=50 ;logx=1': 'ekin/MeV;bins=50;logx'
+histogram '(ekin)/MeV;bins=50;logx=1': 'ekin/MeV;bins=50;logx'
 histogram 'x/cm : y/cm;xrange=-1:1': 'x/cm:y/cm;xrange=-1.0:1.0'
 histogram 'x/cm:y/cm;xrange=-1.0:1': 'x/cm:y/cm;xrange=-1.0:1.0'
 histogram 'ekin/MeV;split=pdgcode==22': 'ekin/MeV;split=pdgcode==22'
+histogram 'ekin;logy': 'ekin;logy'
+histogram 'ekin;logy=1': 'ekin;logy'
+histogram 'ekin;logy=0': 'ekin'
+histogram 'pdgcode;bar': 'pdgcode;bar'
+histogram 'pdgcode;bar=auto': 'pdgcode;bar'
+histogram 'x;lethargy;unweighted': 'x;lethargy;unweighted'
+histogram 'x;bins': Histogram option "bins" needs a value, like bins=..., in "x;bins"
+histogram 'x;split': Histogram option "split" needs a value, like split=..., in "x;split"
+histogram 'x;groups': Histogram option "groups" needs a value, like groups=..., in "x;groups"
 angle_to(x,y,z)/deg of the first particles: [14.360296 22.479602  5.704463]
 angle between (1,1e-06,0) and (1,0,0): 1e-06 (acos of dot product: 1.00004e-06)
 angle between (1,1e-09,0) and (1,0,0): 1e-09 (acos of dot product: 0)

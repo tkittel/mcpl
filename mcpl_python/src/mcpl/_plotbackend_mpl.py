@@ -177,10 +177,16 @@ class Backend(PlotBackend):
                 pos = list(range(len(item.values)))
                 colors = [ f'C{c%10}' for c in item.colors ] if item.colors else None
                 if item.horizontal:
-                    ax.barh(pos,item.values,color=colors)
-                    ax.set_yticks(pos)
-                    ax.set_yticklabels(item.labels,fontsize='small')
-                    ax.invert_yaxis()
+                    #(each label above its bar, inside the plot, so long labels
+                    #do not need a margin, and never cover a bar):
+                    import matplotlib.transforms
+                    ax.barh([ p + 0.2 for p in pos ],item.values,height=0.5,color=colors)
+                    tr = matplotlib.transforms.blended_transform_factory(ax.transAxes,ax.transData)
+                    for p, label in zip(pos,item.labels):
+                        ax.text(0.01,p - 0.25,label,transform=tr,ha='left',va='center',
+                                fontsize='small',clip_on=True)
+                    ax.set_yticks([])
+                    ax.set_ylim(len(pos) - 0.4,-0.6)
                 else:
                     ax.bar(pos,item.values,width=0.7,linewidth=0,color=colors)
                     ax.set_xticks(pos)

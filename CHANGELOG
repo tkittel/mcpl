@@ -431,7 +431,7 @@ v2.2.9  (work in progress)
         overlay=True (e.g. to compare simulations).
       * New mcpltool -H (--hist) option for histograms of expressions, with
         options NAME=VALUE separated by ";" (see mcpltool -H help), e.g.
-        mcpltool -H "ekin;logx=1" -p "pdgcode == neutron" FILE, also for 2D
+        mcpltool -H "ekin;logx" -p "pdgcode == neutron" FILE, also for 2D
         histograms and bar charts. Plots are shown in a window (matplotlib)
         or in the terminal (with -t), or saved with -o FILE. mcpl.histogram
         also accepts these strings.

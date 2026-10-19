@@ -231,10 +231,10 @@ _hints = (
       'range of the second expression of a 2D histogram (default: all values, e.g. yrange=-10cm:10cm)' ),
     ( 'histoptions', 'logx=1|0|auto',
       'logarithmic x axis',
-      'logarithmic binning and x axis (e.g. "ekin/MeV;logx=1", or logx=auto if suitable for the values)' ),
+      'logarithmic binning and x axis (e.g. "ekin/MeV;logx", or logx=auto if suitable for the values)' ),
     ( 'histoptions', 'logy=1|0|auto',
       'logarithmic y axis',
-      'logarithmic y axis, or scale of the bars of bar charts (logy=auto if suitable for the values, the default for bar charts)' ),
+      'logarithmic y axis, or scale of the bars of bar charts (logy=auto if suitable for the values)' ),
     ( 'histoptions', 'lethargy=1|0',
       'per unit lethargy (implies logx=1)',
       'divide by the bin widths in lethargy, so 1/E spectra are flat (implies logx=1)' ),
@@ -246,7 +246,7 @@ _hints = (
       'the number of curves of split, the others are combined into one (default: auto, which is 8)' ),
     ( 'histoptions', 'bar=N|auto|0',
       'bars of distinct values',
-      'a bar chart, with a bar for each value (which must be whole numbers), for the N largest ones, the others are combined into one (auto: 10, e.g. "pdgcode;bar=auto" or "round(x/cm);bar=auto")' ),
+      'a bar chart, with a bar for each value (which must be whole numbers), for the N largest ones, the others are combined into one (auto: 10, e.g. "pdgcode;bar" or "round(x/cm);bar")' ),
     ( 'histoptions', 'unweighted=1|0',
       'count particles',
       'count particles instead of summing their weights' ),
@@ -254,7 +254,7 @@ _hints = (
       'print contents instead of plotting',
       'print the contents of the histogram instead of plotting it' ),)
 
-_group_titles = { 'histoptions' : 'Options (after the expression, separated by ";"; options which are on or off are given as 1 or 0)',
+_group_titles = { 'histoptions' : 'Options (after the expression, separated by ";"; options which are on or off are given as 1 or 0, and logx, logy, lethargy, unweighted and print alone mean =1, and bar alone bar=auto)',
                   'fields' : 'Fields of the particles',
                   'constants' : 'Constants',
                   'particles' : 'Particle names (PDG codes)',
@@ -286,7 +286,7 @@ by options NAME=VALUE separated by ";", e.g.
   -H "ekin;logx=auto;split=pdgcode"
   -H "wavelength/Aa;bins=100;range=0:10"
   -H "x : y;xrange=-10cm:10cm;yrange=-10cm:10cm"
-  -H "pdgcode;bar=auto"
+  -H "pdgcode;bar"
 Values with units are shown in a suitable unit, unless divided by one (as in
 wavelength/Aa). Particles for which the wavelength is not defined are left
 out. The expressions are written as for -p (see -p help).''',

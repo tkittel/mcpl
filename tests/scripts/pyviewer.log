@@ -10,7 +10,7 @@ skip=100 limit=500 pick='ekin > 1MeV' edit='z += 1m':
 skip=0 limit=None pick='mod(fileidx,3) == 0' edit='weight *= 2':
    example.mcpl: 336/1006 particles (33.4%), Σw = 672 (66.8%)
    23 views, same figures as mcpltool -H: True
-views: plot:ekin;logx=auto;logy=1;split=pdgcode, plot:wavelength;logx=1;split=pdgcode, plot:acos(uz)/deg;range=0:180;logy=1;split=pdgcode, plot:x : y, plot:time;logx=auto;logy=1, plot:pdgcode;bar=auto, plot:userflags;bar=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted=1, plot:polx, plot:poly, plot:polz
+views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:acos(uz)/deg;range=0:180;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:userflags;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz
 check('skip','10'): (True, '')
 check('skip','x'): (False, 'Skip must be a number of particles')
 check('limit','all'): (True, '')
@@ -68,8 +68,8 @@ command extract: mcpltool -e example.mcpl example_selected.mcpl.gz
 commands of the overview: {'view': 'mcpltool --view="{\'plots\':{\'add\':[\'time/ms;logx=1\',\'ekin/MeV\']}}" example.mcpl', 'extract': 'mcpltool -e example.mcpl example_selected.mcpl.gz'}
 same pick, written differently: (True, '') restarted: False 'pdgcode==neutron'
 limit 1e3 then 1000: (True, '') (True, '') restarts: 1
-same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy=1;split=pdgcode', 'wavelength;logx=1;split=pdgcode', 'acos(uz)/deg;range=0:180;logy=1;split=pdgcode', 'x : y', 'time;logx=auto;logy=1', 'pdgcode;bar=auto', 'userflags;bar=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted=1', 'polx', 'poly', 'polz', 'ekin/MeV;logx=1;bins=50'] current: plot:ekin/MeV;logx=1;bins=50
-changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy=1;split=pdgcode', 'wavelength;logx=1;split=pdgcode', 'acos(uz)/deg;range=0:180;logy=1;split=pdgcode', 'x : y', 'time;logx=auto;logy=1', 'pdgcode;bar=auto', 'userflags;bar=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted=1', 'polx', 'poly', 'polz', 'ekin/MeV;logx=1;bins=50']
+same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'ekin/MeV;logx=1;bins=50'] current: plot:ekin/MeV;logx=1;bins=50
+changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'ekin/MeV;logx=1;bins=50']
 unchanged: (True, '') ['plot:time/ms;logx=1', 'plot:ekin/MeV'] current: plot:ekin/MeV
 change to keV: (True, '') ['plot:time/ms;logx=1', 'plot:ekin/keV'] current: plot:ekin/keV
 change to an existing plot: (True, '') ['plot:polz', 'plot:time/ms;logx=1']
@@ -77,12 +77,12 @@ invalid change: (False, 'Unknown name "foo" in expression "foo" (particle fields
 unknown plot: (False, 'No plot "nope"')
 remove: (True, '') ['plot:polz'] current: plot:polz
 state at the start: {} | command: mcpltool -w example.mcpl
-move up: True down twice: True True | current: plot:wavelength;logx=1;split=pdgcode
+move up: True down twice: True True | current: plot:wavelength;logx;split=pdgcode
 move the overview: False
 move the last down: False
-state: {'limit': 500, 'pick': 'pdgcode != gamma', 'plots': {'change': {'ekin': 'ekin/keV;logy=1'}, 'remove': ['polx'], 'add': ['hypot(x,y)/cm'], 'order': ['ekin;logx=auto;logy=1;split=pdgcode', 'acos(uz)/deg;range=0:180;logy=1;split=pdgcode', 'wavelength;logx=1;split=pdgcode', 'x : y', 'time;logx=auto;logy=1', 'pdgcode;bar=auto', 'userflags;bar=auto', 'ekin/keV;logy=1', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted=1', 'poly', 'polz', 'hypot(x,y)/cm']}, 'view': 'hypot(x,y)/cm'}
-state without the options: {'plots': {'change': {'ekin': 'ekin/keV;logy=1'}, 'remove': ['polx'], 'add': ['hypot(x,y)/cm'], 'order': ['ekin;logx=auto;logy=1;split=pdgcode', 'acos(uz)/deg;range=0:180;logy=1;split=pdgcode', 'wavelength;logx=1;split=pdgcode', 'x : y', 'time;logx=auto;logy=1', 'pdgcode;bar=auto', 'userflags;bar=auto', 'ekin/keV;logy=1', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted=1', 'poly', 'polz', 'hypot(x,y)/cm']}, 'view': 'hypot(x,y)/cm'}
-command: mcpltool --view="{'plots':{'change':{'ekin':'ekin/keV;logy=1'},'remove':['polx'],'add':['hypot(x,y)/cm'],'order':['ekin;logx=auto;logy=1;split=pdgcode','acos(uz)/deg;range=0:180;logy=1;split=pdgcode','wavelength;logx=1;split=pdgcode','x : y','time;logx=auto;logy=1','pdgcode;bar=auto','userflags;bar=auto','ekin/keV;logy=1','x','y','z','ux','uy','uz','time','weight;unweighted=1','poly','polz','hypot(x,y)/cm']},'view':'hypot(x,y)/cm'}" -l500 -p "pdgcode != gamma" example.mcpl
+state: {'limit': 500, 'pick': 'pdgcode != gamma', 'plots': {'change': {'ekin': 'ekin/keV;logy=1'}, 'remove': ['polx'], 'add': ['hypot(x,y)/cm'], 'order': ['ekin;logx=auto;logy;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin/keV;logy=1', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'poly', 'polz', 'hypot(x,y)/cm']}, 'view': 'hypot(x,y)/cm'}
+state without the options: {'plots': {'change': {'ekin': 'ekin/keV;logy=1'}, 'remove': ['polx'], 'add': ['hypot(x,y)/cm'], 'order': ['ekin;logx=auto;logy;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin/keV;logy=1', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'poly', 'polz', 'hypot(x,y)/cm']}, 'view': 'hypot(x,y)/cm'}
+command: mcpltool --view="{'plots':{'change':{'ekin':'ekin/keV;logy=1'},'remove':['polx'],'add':['hypot(x,y)/cm'],'order':['ekin;logx=auto;logy;split=pdgcode','acos(uz)/deg;range=0:180;logy;split=pdgcode','wavelength;logx;split=pdgcode','x : y','time;logx=auto;logy','pdgcode;bar;logy=auto','userflags;bar;logy=auto','ekin/keV;logy=1','x','y','z','ux','uy','uz','time','weight;unweighted','poly','polz','hypot(x,y)/cm']},'view':'hypot(x,y)/cm'}" -l500 -p "pdgcode != gamma" example.mcpl
 opened with the command: same state: True | current: plot:hypot(x,y)/cm
 suggested state file: example_viewer.json
 save: (True, 'Saved the viewer state in example_viewer.json')
@@ -94,8 +94,8 @@ arguments after the state: 7 x;bins=5
 dry run: (True, 'Dry run: the viewer state was not saved in dry.json') False
 view 'x': plot:x
 view ' x ': plot:x
-view 'overview': plot:ekin;logx=auto;logy=1;split=pdgcode
-view 'pdgcode;bar = auto': plot:pdgcode;bar=auto
+view 'overview': plot:ekin;logx=auto;logy;split=pdgcode
+view 'pdgcode;bar = auto ; logy=auto': plot:pdgcode;bar;logy=auto
 view "{'foo':1}": The viewer state "{'foo':1}" is not valid: unknown entry "foo" (the entries are: skip, limit, pick, edit, plots, view)
 view '{"limit":"a"}': The viewer state "{"limit":"a"}" is not valid: limit must be a number
 view "{'plots':{'change':{'nope':'x'}}}": The viewer state changes the plot "nope", which is not one of the plots
@@ -123,13 +123,13 @@ To open the viewer like this again:
   mcpltool -w -l100 example.mcpl
 ==> keys ['WAIT', 'p', 'p', 'd', 'g', 'c', 'o', 'd', 'e', ' ', '=', '=', ' ', 'n', 'e', 'u', 'Tab', 'Enter', 'WAIT', 'Down', 'Down', 'Down', 'WAIT']:
    |                             example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   |   ekin;logx=auto;logy=1;sp
-   |   wavelength;logx=1;split=                               pick: pdgcode == neutron
+   |   ekin;logx=auto;logy;spli
+   |   wavelength;logx;split=pd                               pick: pdgcode == neutron
    |   acos(uz)/deg;range=0:180  (y: y [cm])
    | ▸ x : y                        57.69 ┤       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   time;logx=auto;logy=1              │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   pdgcode;bar=auto (all 21           │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-   |   userflags;bar=auto (all            │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   time;logx=auto;logy                │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   pdgcode;bar;logy=auto (a           │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+   |   userflags;bar;logy=auto            │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   ekin                               │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   x                                  │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   y                                  │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
@@ -138,7 +138,7 @@ To open the viewer like this again:
    |   uy                                 │▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀
    |   uz                                 │▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀
    |   time                               │▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   weight;unweighted=1 (all           │▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   weight;unweighted (all 1           │▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   polx (all 0)                       │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   poly (all 0)                       │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   polz (all 0)                       │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
@@ -160,18 +160,18 @@ To open the viewer like this again:
    |  Limit: [all]
    |  Pick: [pdgcode == neutron]
    |  Edit: [no changes]
-   |  Add plot: [e.g. hypot(x,y)/cm;logy=1]
+   |  Add plot: [e.g. hypot(x,y)/cm;logy]
    | 
    |  [Write file...]  [Save viewer state...]  [Help]  [Quit]
 ==> keys ['WAIT', 'e', 'x', ' ', '=', ' ', '2', 'WAIT']:
    |                             example.mcpl: 1006/1006 particles (100.0%), Σw = 1006 (100.0%)
-   | ▸ ekin;logx=auto;logy=1;sp
-   |   wavelength;logx=1;split=  (weights per bin)
+   | ▸ ekin;logx=auto;logy;spli
+   |   wavelength;logx;split=pd  (weights per bin)
    |   acos(uz)/deg;range=0:180       106 ┤                       ⢠⠤⠴⠒⠒⠋⠉⢧
    |   x : y                              │                   ⣀⣀⡖⠒⠋      ⢸
-   |   time;logx=auto;logy=1              │                  ⢠⠇          ⠈⠉⢹
-   |   pdgcode;bar=auto                   │                  ⢸         ⣀⣀⣀⣀⣸⡄
-   |   userflags;bar=auto (all            │                  ⢸       ⡤⠤⠇   ⠘⣧⣤⡄
+   |   time;logx=auto;logy                │                  ⢠⠇          ⠈⠉⢹
+   |   pdgcode;bar;logy=auto              │                  ⢸         ⣀⣀⣀⣀⣸⡄
+   |   userflags;bar;logy=auto            │                  ⢸       ⡤⠤⠇   ⠘⣧⣤⡄
    |   ekin                               │                ⢠⠤⠼      ⢠⠇        ⡇
    |   x                                  │              ⣀⣀⡞        ⢸         ⡧⠤⡄
    |   y                                  │              ⡇          ⢸         ⡇ ⢹⠤⢤
@@ -180,7 +180,7 @@ To open the viewer like this again:
    |   uy                                 │              ⡇        ⢸                ⡧⠤⡄ ⡞  ⠉⠉⡇
    |   uz                                 │           ⢰⠋⠉⠁        ⢸                ⠉⠉⡏⠉⠁    ⠧⠤⡄
    |   time                               │         ⢰⠒⠚           ⢸                  ⡇        ⢹⣀⣀
-   |   weight;unweighted=1 (all           │         ⢸             ⡏                  ⡇          ⢸
+   |   weight;unweighted (all 1           │         ⢸             ⡏                  ⡇          ⢸
    |   polx (all 0)                       │         ⢸             ⡇                  ⡇          ⢸⡀
    |   poly (all 0)                       │         ⡏             ⡇                  ⡇           ⡇
    |   polz (all 0)                       │         ⡇             ⡇        ⢠⠏⠉⡇      ⡇           ⠉⠉⡇   ⢠⠏⠉⡇    ⡏⠉
@@ -202,7 +202,7 @@ To open the viewer like this again:
    |  Limit: [all]
    |  Pick: [all particles]
    |  Edit: [no changes]
-   |  Add plot: [e.g. hypot(x,y)/cm;logy=1]
+   |  Add plot: [e.g. hypot(x,y)/cm;logy]
    | 
    |  [Write file...]  [Save viewer state...]  [Help]  [Quit]
 ==> keys ['WAIT', 'a', 'h', 'y', 'p', 'o', 't', '(', 'x', ',', 'y', ')', '/', 'c', 'm', ';', 'l', 'o', 'Tab', 'y', '=', '1', 'Enter', 'WAIT']:
@@ -217,13 +217,13 @@ To open the viewer like this again:
    Enter on another view, editing: True
 ==> keys ['WAIT', 'h']:
 ==> keys ['WAIT', 'Down', 'Down', 'MoveUp', 'WAIT']:
-   moved up: ['ekin;logx=auto;logy=1;split=pdgcode', 'acos(uz)/deg;range=0:180;logy=1;split=pdgcode', 'wavelength;logx=1;split=pdgcode'] current: plot:acos(uz)/deg;range=0:180;logy=1;split=pdgcode
+   moved up: ['ekin;logx=auto;logy;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode', 'wavelength;logx;split=pdgcode'] current: plot:acos(uz)/deg;range=0:180;logy;split=pdgcode
 ==> keys ['WAIT', 'v', 'Enter', 'WAIT']:
    v saves the state in: ['example_viewer2.json']
 ==> keys ['WAIT', 's', '1', '2', 'Esc', 'i', '5', '0', 'Enter', 'WAIT', 'p', 'Up', 'Esc']:
    skip, limit: '' '50' example.mcpl: 50/50 particles (100.0%), Σw = 50 (100.0%)
 ==> keys ['WAIT', ('Mouse', 2, 3, True), 'WAIT']:
-   view after clicking on line 3: plot:acos(uz)/deg;range=0:180;logy=1;split=pdgcode
+   view after clicking on line 3: plot:acos(uz)/deg;range=0:180;logy;split=pdgcode
 ==> keys ['WAIT', 'p', 'x', 'Ctrl-C', 'p', 'y']:
    Ctrl-C quits like q, while editing a field: '' running: False
 ==> keys ['WAIT', 'a', 'e', 'Tab', 'Down']:
@@ -235,7 +235,7 @@ To open the viewer like this again:
    | │exp(      exponential (a without unit)│
    | └──────────────────────────────────────┘
 ==> keys ['WAIT', 'p', 'p', 'd', 'g', 'c', 'o', 'd', 'e', ' ', '=', '=', ' ', 'n', 'e', 'u', 'WAIT']:
-   ascii backend, only ASCII characters: True | selected view: ['> pdgcode;bar=auto             p (2212) (0.99%) |# 10']
+   ascii backend, only ASCII characters: True | selected view: ['> pdgcode;bar;logy=auto        p (2212) (0.99%) |# 10']
 ANSI segments: [('ab', None, None), ('cd', 1, None), ('e', None, None), ('f', 2, 1)]
 mcpltool -w -S: exit code 1
    | ERROR: -w and -S can not be used together.

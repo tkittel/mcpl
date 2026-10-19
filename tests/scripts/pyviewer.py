@@ -131,7 +131,7 @@ def test_state():
     print('arguments after the state:', w.field_text('limit'), w._s.plots[-1])
     d = Viewer(ex,dry_run=True)
     print('dry run:', d.try_save_state('dry.json'), pathlib.Path('dry.json').exists())
-    for view in ( 'x', ' x ', 'overview', 'pdgcode;bar = auto' ):
+    for view in ( 'x', ' x ', 'overview', 'pdgcode;bar = auto ; logy=auto' ):
         w = Viewer(ex,view=view)
         print(f'view {view!r}:', w.views[w.current][0])
     for bad in ( "{'foo':1}", '{"limit":"a"}', "{'plots':{'change':{'nope':'x'}}}",
@@ -351,7 +351,7 @@ def test_terminal():
             break
     #With the ascii backend, only ASCII characters are shown:
     v, t = run(['WAIT','p'] + list('pdgcode == neu') + ['WAIT'],show=False,
-               backend=AsciiBackend(),view='pdgcode;bar=auto')
+               backend=AsciiBackend(),view='pdgcode;bar;logy=auto')
     text = t.s.last
     print('   ascii backend, only ASCII characters:', text.isascii(),
           '| selected view:', [ ln.strip() for ln in text.splitlines() if ln.startswith('>') ][:1])

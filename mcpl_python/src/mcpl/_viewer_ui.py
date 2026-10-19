@@ -31,11 +31,11 @@ fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
            ( 'limit', 'Limit', 'i', 1, 'all' ),
            ( 'pick', 'Pick', 'p', 0, 'all particles' ),
            ( 'edit', 'Edit', 'e', 0, 'no changes' ),
-           ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy=1' ) )
+           ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy' ) )
 
 #The other actions: (action, label, keys, position of the key in the label):
 actions = ( ( 'write', 'Write file...', ( 'w', ), 0 ),
-            ( 'state', 'Save viewer state...', ( 'v', ), 0 ),
+            ( 'state', 'Save viewer state...', ( 'v', ), 5 ),
             ( 'help', 'Help', ( 'h', '?', 'F1' ), 0 ),
             ( 'quit', 'Quit', ( 'q', 'Q' ), 0 ) )
 
@@ -131,7 +131,7 @@ Keys:
                mcpltool -E help). The particles are picked before they are
                edited.
   a            Add a plot of an expression, with options as for -H, e.g.
-               hypot(x,y)/cm;logy=1 (see mcpltool -H help).
+               hypot(x,y)/cm;logy (see mcpltool -H help).
   Enter        Change the shown plot (an empty text removes it).
   w            Write the picked and edited particles to a new file.
   v            Save the state of the viewer (the settings and plots) in a

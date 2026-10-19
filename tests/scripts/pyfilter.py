@@ -411,8 +411,13 @@ def test_canonical():
         except mcpl.MCPLError as e:
             print(f'{bad}: {e}')
     for h in ( 'ekin/MeV;logx=1;bins=50', 'ekin / MeV ; bins=50 ;logx=1', '(ekin)/MeV;bins=50;logx=1',
-               'x/cm : y/cm;xrange=-1:1', 'x/cm:y/cm;xrange=-1.0:1', 'ekin/MeV;split=pdgcode==22' ):
-        print(f'histogram {h!r}: {_hist_key(h)!r}')
+               'x/cm : y/cm;xrange=-1:1', 'x/cm:y/cm;xrange=-1.0:1', 'ekin/MeV;split=pdgcode==22',
+               'ekin;logy', 'ekin;logy=1', 'ekin;logy=0', 'pdgcode;bar', 'pdgcode;bar=auto',
+               'x;lethargy;unweighted', 'x;bins', 'x;split', 'x;groups' ):
+        try:
+            print(f'histogram {h!r}: {_hist_key(h)!r}')
+        except mcpl.MCPLError as e:
+            print(f'histogram {h!r}: {e}')
 
 if __name__ == '__main__':
     test_canonical()

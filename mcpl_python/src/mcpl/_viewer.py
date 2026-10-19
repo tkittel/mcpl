@@ -49,15 +49,15 @@ _fields = ( 'skip', 'limit', 'pick', 'edit', 'plot' )
 #The plots shown at the start, as histogram strings like those added with -H
 #or "Add plot", of which the first _noverview are shown together in the
 #overview (they can be changed, removed and reordered in the viewer):
-_default_plots = ( 'ekin;logx=auto;logy=1;split=pdgcode',
-                   'wavelength;logx=1;split=pdgcode',
-                   'acos(uz)/deg;range=0:180;logy=1;split=pdgcode',
+_default_plots = ( 'ekin;logx=auto;logy;split=pdgcode',
+                   'wavelength;logx;split=pdgcode',
+                   'acos(uz)/deg;range=0:180;logy;split=pdgcode',
                    'x : y',
-                   'time;logx=auto;logy=1',
-                   'pdgcode;bar=auto',
-                   'userflags;bar=auto',
+                   'time;logx=auto;logy',
+                   'pdgcode;bar;logy=auto',
+                   'userflags;bar;logy=auto',
                    'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time',
-                   'weight;unweighted=1', 'polx', 'poly', 'polz' )
+                   'weight;unweighted', 'polx', 'poly', 'polz' )
 _noverview = 6
 
 def _update_points():
@@ -824,7 +824,7 @@ def _make_filler( text, pick ):
 
 def _plot_field( text ):
     """The field if the plot (a histogram string) is of exactly one field
-    (e.g. "z" or "weight;unweighted=1"), else None"""
+    (e.g. "z" or "weight;unweighted"), else None"""
     from ._expressions import _Expr
     from ._histstring import _parse_hist
     exprs = _parse_hist(text)['exprs']
@@ -951,7 +951,7 @@ def view( filename, pick = None, edit = None, skip = 0, limit = None,
           plots = (), view = None, backend = None, terminal = False ):
     """Show the particles of a file in the viewer: an overview and plots
     (histograms as for mcpltool -H, to which the plots, histogram strings like
-    "hypot(x,y)/cm;logy=1", are added), for the particles in a range of the
+    "hypot(x,y)/cm;logy", are added), for the particles in a range of the
     file (after skipping skip particles, at most limit particles), picked with
     pick and then edited with edit (expressions, or ParticleFilter and
     ParticleEdit objects), which can all be changed in the viewer. view is the

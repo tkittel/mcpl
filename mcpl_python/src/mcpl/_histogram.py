@@ -238,7 +238,7 @@ class BarHistogram(_Plot):
     def __init__( self, expression, weighted, title ):
         super().__init__(weighted,title)
         self.expression = expression
-        self.logy = 'auto'
+        self.logy = False
         self.note = None
         self.colors = {}
         self.contents = {}
@@ -250,8 +250,8 @@ class BarHistogram(_Plot):
 
     def panel( self, logy = None ):
         """Panel (see mcpl.plotting) with the bars, with a logarithmic scale of
-        the bars if logy is True (or 'auto', the default, if suitable for the
-        values)."""
+        the bars if logy is True (or 'auto', if suitable for the values; default
+        is the logy option of the histogram string, see histogram())."""
         labels = list(self.contents)
         return _bars_panel([ self._plot_label(lbl) for lbl in labels ],
                            [ self.contents[lbl] for lbl in labels ],
@@ -480,7 +480,7 @@ def histogram( files, expression, pick = None, bins = 'auto', range = None,
 
     The options can also be given in the expression, as in the histogram
     strings of mcpltool -H (see mcpltool -H help), e.g.
-    "ekin/eV;logx=1;lethargy=1;bins=50;logy=1", which can also have two
+    "ekin/eV;logx;lethargy;bins=50;logy", which can also have two
     expressions for a 2D histogram (see histogram2d()).
     """
     given = { 'bins' : None if bins == 'auto' else bins, 'range' : range,

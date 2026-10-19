@@ -387,7 +387,16 @@ class Viewer:
     @property
     def current( self ):
         """Index of the view shown"""
+        return self._current_of([ k for k, _ in self.views ])
+
+    @property
+    def current_key( self ):
+        """Key of the view shown"""
         keys = [ k for k, _ in self.views ]
+        return keys[self._current_of(keys)]
+
+    def _current_of( self, keys ):
+        """Index of the view shown among the views with the keys"""
         key = self._current
         if key in ( 'overview', 'overview:multi' ) and not self.multi_overview:
             key = keys[0]
@@ -404,10 +413,11 @@ class Viewer:
         if key in [ k for k, _ in self.views ]:
             self._current = key
 
-    def figure( self, index = None ):
-        """Figure of a view (default the current one), or None if not yet
-        available"""
-        key = self.views[self.current if index is None else index][0]
+    def figure( self, index = None, key = None ):
+        """Figure of a view (with the index or key, default the current one),
+        or None if not yet available"""
+        if key is None:
+            key = self.views[self.current if index is None else index][0]
         with self._lock:
             if key == 'overview:multi':
                 return self._overview_figure()

@@ -182,7 +182,7 @@ class JupyterViewer:
             self._set_quietly(self._fields['plot'],'')
 
     def _on_change( self, change ):
-        key = self.v.views[self.v.current][0]
+        key = self.v.current_key
         if self._syncing or not key.startswith('plot:'):
             return
         self._show_result(*self.v.change_plot(key[5:],change['new']))
@@ -249,9 +249,9 @@ class JupyterViewer:
         with self._refreshing:
             self._refresh()
 
-    def _show( self, image, index ):
+    def _show( self, image, key ):
         #(the figure itself is kept, so a new one is always noticed):
-        key, fig = self.v.views[index][0], self.v.figure(index)
+        fig = self.v.figure(key = key)
         old = self._shown.get(image)
         if fig is not None and ( old is None or old[0] != key or old[1] is not fig ):
             image.value = _png(fig)
@@ -263,28 +263,29 @@ class JupyterViewer:
                                f'<span style="color:#555">{html.escape(second)}</span>' )
         c = self.v.commands()
         self._commands.value = f'<code style="color:#555">$ {html.escape(c["extract"])}</code>'
-        keys = [ k for k, _ in self.v.views ]
-        key = keys[self.v.current]
+        #(with the views and the key of the shown one taken once, as the user
+        #can change them while this runs in the polling thread):
+        labels = dict(self.v.views)
+        key = self.v.current_key
         self._change.layout.display = None if key.startswith('plot:') else 'none'
         if key.startswith('plot:') and self._change.value != key[5:]:
             self._set_quietly(self._change,key[5:])
         if self._mplfig is not None:
-            self._draw_figure(keys[self.v.current])
+            self._draw_figure(key)
             shown = self._mplfig.canvas
-        elif keys[self.v.current] == 'overview:multi':
-            labels = dict(self.v.views)
+        elif key == 'overview:multi':
             for ( img, b ), k in zip(self._panels,self.v.overview_keys()):
-                b.description = labels[k]
-                self._show(img,keys.index(k))
+                b.description = labels.get(k,k[5:])
+                self._show(img,k)
             shown = self._grid
         else:
-            self._show(self._image,self.v.current)
+            self._show(self._image,key)
             shown = self._image
         if self._right.children[1] is not shown:
             self._right.children = ( self._status, shown )
 
     def _draw_figure( self, key ):
-        fig, figure = self._mplfig, self.v.figure()
+        fig, figure = self._mplfig, self.v.figure(key = key)
         old = self._shown.get('mpl')
         if figure is None or ( old is not None and old[0] == key and old[1] is figure ):
             return

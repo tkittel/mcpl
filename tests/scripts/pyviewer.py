@@ -334,11 +334,13 @@ class FakeScreen:
         return '\n'.join( ''.join(r).rstrip() for r in self.grid ).rstrip()
 
 def test_terminal():
-    def run( keys, show = True, backend = None, **kw ):
+    def run( keys, show = True, backend = None, window = None, **kw ):
         v = Viewer(ex,**kw)
         s = FakeScreen(keys)
         s.viewer = v
         t = TextViewer(v,s,backend)
+        if window is not None:
+            t.open_window = window
         t.run()
         print(f'==> keys {keys}:')
         if show:
@@ -370,6 +372,17 @@ def test_terminal():
     #Moving the shown plot (Up and Down with Shift, Ctrl, Alt, ...):
     v, _ = run(['WAIT','Down','Down','MoveUp','WAIT'],show=False)
     print('   moved up:', v._s.plots[:3], 'current:', v.views[v.current][0])
+    #m shows the plot in a matplotlib window (here with a function which only
+    #notes the figure, so no window is opened in tests):
+    shown = []
+    v, t = run(['WAIT','Down','m','WAIT'],show=False,window=shown.append)
+    print('   m shows the plot in a window:', len(shown), shown[0].panels[0].xlabel,
+          '| the plot shown:', v.views[v.current][0])
+    def fail( figure ):
+        raise mcpl.MCPLError('The matplotlib plotting backend can not show plots here')
+    _, t = run(['WAIT','m'],show=False,window=fail)
+    print('   without a display:', next( ln.strip() for f in t.s.frames for ln in f.splitlines()
+                                            if 'Not shown' in ln ))
     #c changes the collection of plots (the field starts with the current one):
     v, _ = run(['WAIT','c'] + ['Backspace'] * 7 + list('beamx') + ['Enter','WAIT'],show=False)
     print('   c changes the collection:', v.field_text('collection'), v.views[v.current][0])

@@ -40,6 +40,9 @@ actions = ( ( 'write', 'Write file...', ( 'w', ), 0 ),
             ( 'help', 'Help', ( 'h', '?', 'F1' ), 0 ),
             ( 'quit', 'Quit', ( 'q', 'Q' ), 0 ) )
 
+#The actions of the terminal only (as the others, shown after them):
+terminal_actions = ( ( 'window', 'Matplotlib window', ( 'm', ), 0 ), )
+
 #The actions asking for a file name, with the label of its field:
 file_prompts = { 'write' : 'Write to: ', 'state' : 'Save to: ' }
 
@@ -49,10 +52,10 @@ file_prompts = { 'write' : 'Write to: ', 'state' : 'Save to: ' }
 view_keys = { 'Up' : 'previous', 'Down' : 'next', 'MoveUp' : 'move_up',
               'MoveDown' : 'move_down' }
 
-def key_action( key ):
+def key_action( key, terminal = False ):
     """The action (or field to edit) of a key outside the fields (as given by
     the front end: a character, or 'Up', 'Down', 'MoveUp', 'MoveDown', 'Enter'
-    or 'F1'), or None"""
+    or 'F1'), or None (with the actions of the terminal if terminal is set)"""
     if key in view_keys:
         return view_keys[key]
     if key == 'Enter':
@@ -60,7 +63,7 @@ def key_action( key ):
     for f, _, k, _, _ in fields:
         if key == k:
             return f
-    for a, _, keys, _ in actions:
+    for a, _, keys, _ in actions + ( terminal_actions if terminal else () ):
         if key in keys:
             return a
     return None
@@ -76,7 +79,7 @@ def shortcut_text( name ):
     for f, label, k, _, _ in fields:
         if f == name:
             return f'{label}: press {k} to edit (Enter applies, Tab completes, Up/Down for earlier texts, Esc cancels)'
-    for a, label, keys, _ in actions:
+    for a, label, keys, _ in actions + terminal_actions:
         if a == name:
             return f'{label.rstrip(".")}: press {" or ".join(keys)}'
     if name == 'views':
@@ -141,6 +144,8 @@ Keys:
                file, which -wFILE.json (or --view=FILE.json) opens again.
   l, k         Log or linear scale of the y or x axis of the plot under the
                mouse (in a matplotlib window, as in matplotlib).
+  m            Show the plot in a matplotlib window (in the terminal; the
+               window shows the plot as it is, and stays open).
   h, ?, F1     Show this help.
   q            Quit (the commands doing the same are then printed).
 

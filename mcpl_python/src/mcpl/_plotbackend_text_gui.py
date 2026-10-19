@@ -173,6 +173,28 @@ def _box_width( n, available, editing ):
     want = max( 30, n + 1 ) if editing else n
     return max( 1, min( want, max( 10, available ) ) )
 
+def _show_in_window( figure ):
+    """Show the figure in a matplotlib window, in a new Python process (so the
+    terminal viewer goes on, and the window stays open when it is closed),
+    which gets the figure through its standard input (so no file is written)"""
+    import json
+    import pickle
+    import subprocess
+    import sys
+
+    from ._plotbackend import _show_backend
+    _show_backend('matplotlib')#(an MCPLError if matplotlib can not show plots here)
+    code = ( f'import pickle, sys; sys.path[:0] = {json.dumps(sys.path)};'
+             f' from {__package__}.plotting import show;'
+             ' show([pickle.load(sys.stdin.buffer)], backend="matplotlib")' )
+    #(in its own session, so Ctrl-C in the terminal does not close the window,
+    #and without output, which would mess up the terminal):
+    p = subprocess.Popen([ sys.executable, '-c', code ], stdin = subprocess.PIPE,
+                         stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL,
+                         start_new_session = True)
+    p.stdin.write(pickle.dumps(figure))
+    p.stdin.close()
+
 class TextViewer:
     """The viewer in a terminal (on a screen, see _CursesScreen)"""
     def __init__( self, viewer, screen, backend = None ):
@@ -187,6 +209,8 @@ class TextViewer:
         self.hover = None
         self.show_help = False
         self.scroll = 0
+        #(shows a figure in a matplotlib window, replaced in tests):
+        self.open_window = _show_in_window
         self._regions = []#(y, x0, x1, what) of the clickable things
 
     def run( self ):
@@ -230,7 +254,7 @@ class TextViewer:
         if k == 'PageUp':
             self.scroll = max( 0, self.scroll - 5 )
             return None
-        return self._do( ui.key_action(k) )
+        return self._do( ui.key_action(k,terminal = True) )
 
     def _do( self, action ):
         v = self.v
@@ -246,11 +270,26 @@ class TextViewer:
         elif action in ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot', 'write', 'state',
                          'change' ):
             self.editor = ui.editor_for(v,action)
+        elif action == 'window':
+            self._window()
         elif action == 'help':
             self.show_help = True
         elif action == 'quit':
             return 'quit'
         return None
+
+    def _window( self ):
+        """Show the plot in a matplotlib window (with open_window)"""
+        figure = self.v.figure()
+        if figure is None:
+            self.message = 'Not shown: there is no plot yet'
+            return
+        try:
+            self.open_window(figure)
+        except MCPLError as e:
+            self.message = f'Not shown: {e}'
+            return
+        self.message = 'The plot is shown in a matplotlib window'
 
     def _apply( self ):
         done, self.message, replot = ui.apply_editor(self.v,self.editor)
@@ -335,7 +374,7 @@ class TextViewer:
         y += 1
         #The actions (the commands doing the same are printed on quit):
         x = 1
-        for action, label, keys, kpos in ui.actions:
+        for action, label, keys, kpos in ui.actions + ui.terminal_actions:
             if self.editor is not None and self.editor.field == action in ui.file_prompts:
                 part = ui.file_prompts[action]
                 s.put(y,x,part,'bold')

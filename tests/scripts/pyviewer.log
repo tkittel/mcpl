@@ -176,7 +176,7 @@ To open the viewer like this again:
    |  Collection: [default]
    |  Add plot: [e.g. hypot(x,y)/cm;logy]
    | 
-   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]
+   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Matplotlib window]
 ==> keys ['WAIT', 'e', 'x', ' ', '=', ' ', '2', 'WAIT']:
    |                             example.mcpl: 1006 particles, Σw = 1006
    | ▸ ekin;logx=auto;logy;spli
@@ -218,7 +218,7 @@ To open the viewer like this again:
    |  Collection: [default]
    |  Add plot: [e.g. hypot(x,y)/cm;logy]
    | 
-   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]
+   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Matplotlib window]
 ==> keys ['WAIT', 'a', 'h', 'y', 'p', 'o', 't', '(', 'x', ',', 'y', ')', '/', 'c', 'm', ';', 'l', 'o', 'Tab', 'y', '=', '1', 'Enter', 'WAIT']:
    views: plot:hypot(x,y)/cm;logy=1 current: plot:hypot(x,y)/cm;logy=1
 ==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'k', 'e', 'V', 'Enter', 'WAIT']:
@@ -232,6 +232,10 @@ To open the viewer like this again:
 ==> keys ['WAIT', 'h']:
 ==> keys ['WAIT', 'Down', 'Down', 'MoveUp', 'WAIT']:
    moved up: ['ekin;logx=auto;logy;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode', 'wavelength;logx;split=pdgcode'] current: plot:acos(uz)/deg;range=0:180;logy;split=pdgcode
+==> keys ['WAIT', 'Down', 'm', 'WAIT']:
+   m shows the plot in a window: 1 wavelength [m] (n/γ only) | the plot shown: plot:wavelength;logx;split=pdgcode
+==> keys ['WAIT', 'm']:
+   without a display: Not shown: The matplotlib plotting backend can not show plots here
 ==> keys ['WAIT', 'c', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'b', 'e', 'a', 'm', 'x', 'Enter', 'WAIT']:
    c changes the collection: beamx plot:y : z
 ==> keys ['WAIT', 'v', 'Enter', 'WAIT']:

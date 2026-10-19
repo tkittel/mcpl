@@ -15,7 +15,6 @@ Figure 1 (1x1): 'A figure'
   Panel None xlabel=None ylabel=None 
     Text 'Hello'
 printing backend shows: None
-printing backend shows: 'example.mcpl: 1006 particles, sum(weights) = 1006'
    formats: ['txt']
 ==> set_default_backend(PrintingBackend object):
 [object] printing backend shows: 'A figure'
@@ -23,7 +22,6 @@ Figure 1 (1x1): 'A figure'
   Panel None xlabel=None ylabel=None 
     Text 'Hello'
 [object] printing backend shows: None
-[object] printing backend shows: 'example.mcpl: 1006 particles, sum(weights) = 1006'
    formats: ['txt']
 ==> set_default_backend(None):
    available backends: ['matplotlib', 'unicode', 'ascii', 'printing']
@@ -62,4 +60,3 @@ save(fig, 'auto'): MCPLError: The file name auto has no extension (the extension
    |     1003 ┤███████████████████████
    |          │███████████████████████
    |          │███████████████████████
-plot_stats with set_backend created ['stats.txt'], with warnings: ['DeprecationWarning: The set_backend parameter of plot_stats is deprecated, use matplotlib_backend instead']

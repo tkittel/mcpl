@@ -41,6 +41,7 @@ from mcpldev._plotbackend_text import AsciiBackend, UnicodeBackend
 from mcpldev._termcolor import _code256, _ncolors, _paint
 from mcpldev.plotting import Hist2D, StepHist
 from MCPLTestUtils.dirs import test_data_dir
+from MCPLTestUtils.plots import example_figures
 
 example_file = test_data_dir.joinpath('example.mcpl')
 
@@ -104,7 +105,7 @@ def test_stripped():
     h1 = mcpl.histogram(example_file,'ekin/MeV;logx=1;bins=20')
     hs = mcpl.histogram(example_file,'ekin/MeV;logx=1;split=pdgcode;bins=20')
     h2 = mcpl.histogram(example_file,'x/cm : y/cm;bins=10')
-    stats = mcpl.stats_figures(mcpl.collect_stats(example_file))[0]
+    stats = example_figures(mcpl,example_file)[0]
     cases = ( ('1D',h1.figure()), ('split',hs.figure()), ('2D',h2.figure()),
               ('overview',stats) )
     with environ(COLORTERM='truecolor'):

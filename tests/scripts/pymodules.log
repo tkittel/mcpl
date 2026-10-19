@@ -23,7 +23,7 @@ Modules of the mcpl package and their imports from the package:
   layer   5 : _extract             <- _messages, _reader, _writer
   layer   5 : _fileops             <- _common, _expressions, _messages, _reader, _statsum, _writer
   layer   6 : _plotbackend         <- _common, _messages
-  layer   6 : _stats               <- _common, _expressions, _messages, _numpy, _particles, _physics, _reader
+  layer   6 : _stats               <- _common, _expressions, _messages, _numpy, _physics, _reader
   layer   7 : plotting             <- _plotbackend
   layer   8 : _histogram           <- _common, _expressions, _histstring, _numpy, _particles, _reader, plotting
   layer   8 : _plotbackend_mpl     <- _common, _logo, _numpy, _plotbackend, plotting
@@ -31,14 +31,13 @@ Modules of the mcpl package and their imports from the package:
   layer   8 : _plotbackend_text    <- _numpy, _particles, _physics, _plotbackend, _termcolor, plotting
   layer   9 : _plotbackend_mpl_gui <- _plotbackend_mpl, _viewer_ui
   layer   9 : _plotbackend_text_gui <- _common, _plotbackend_text, _termcolor, _viewer_ui
-  layer   9 : _statsplot           <- _common, _expressions, _histogram, _numpy, _physics, _plotbackend, _stats, plotting
   layer   9 : _viewer_jupyter      <- _common, _exprhelp, _logo, _plotbackend_mpl, _viewer_ui
-  layer  10 : _clistats            <- _common, _histogram, _histstring, _plotbackend, _reader, _stats, _statsplot
+  layer  10 : _clistats            <- _common, _histogram, _histstring, _plotbackend, _reader, _stats, plotting
   layer  10 : _viewer              <- _blocks, _common, _expressions, _exprhelp, _extract, _histogram, _histstring, _numpy, _plotbackend, _reader, _viewer_jupyter, plotting
   layer  11 : _cli                 <- _clistats, _common, _examples, _expressions, _exprhelp, _extract, _fileops, _messages, _particles, _plotbackend, _reader, _viewer, _viewer_ui
   layer top : __init__             <- _blocks, _common, _fileops, _messages, _reader, _statsum, _writer, constants
   layer top : __main__             <- _cli
-  layer top : mcpl                 <- _blocks, _cli, _common, _fileops, _reader, _stats, _statsplot, _statsum
+  layer top : mcpl                 <- _blocks, _cli, _common, _fileops, _reader, _stats, _statsum
 numpy is imported by: _numpy
 matplotlib is imported by: _plotbackend_mpl, _plotbackend_mpl_gui
 scipp is imported by: _scipp
@@ -46,7 +45,7 @@ ipywidgets is imported by: _viewer_jupyter
 IPython is imported by: _viewer, _viewer_jupyter
 curses is imported by: _plotbackend_text_gui
 matplotlib, scipp, ipywidgets, IPython, curses are only imported inside functions
-mcpl.__all__ has 37 names, provided by:
+mcpl.__all__ has 36 names, provided by:
   _common              : MCPLError
   _messages            : use_logging
   _statsum             : encode_stat_sum, is_valid_stat_sum_key
@@ -55,8 +54,7 @@ mcpl.__all__ has 37 names, provided by:
   _reader              : MCPLFile
   _writer              : MCPLOutFile, gzip_file
   _fileops             : can_merge, convert2ascii, create_outfile_mpi, dump_file, forcemerge_files, merge_files, merge_inplace, merge_outfiles_mpi, name_helper, repair
-  _stats               : collect_stats, dump_stats
+  _stats               : collect_stats, dump_stats, plot_stats
   _histogram           : BarHistogram, Histogram, Histogram2D, histogram, histogram2d, plot_histograms
-  _statsplot           : plot_stats, stats_figures
   _viewer              : view
   _cli                 : app_mcpltool, app_pymcpltool

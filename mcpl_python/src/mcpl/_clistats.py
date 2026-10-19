@@ -71,71 +71,81 @@ def _option_names( cls ):
     import inspect
     return set(inspect.signature(cls).parameters)
 
-def mcpltool_stats(filename,skip,limit,pick,edit,outfn,backend,bad):
+def mcpltool_stats(filename,skip,limit,pick,edit,bad):
     from ._stats import _PickedFile, dump_stats
     f = _view(filename,skip,limit,pick,edit)
     if MCPLFile(filename).nparticles == 0:
         bad("Can not calculate statistics for an empty file")
     if f.nparticles == 0:
         bad("Can not calculate statistics when no particles are picked")
-    f = _PickedFile(f,None)
-    if not outfn:
-        dump_stats(f)
-        return
-    from ._statsplot import plot_stats
-    try:
-        files = plot_stats(f,filename=outfn,backend=_plot_backend(outfn,backend,False))
-    except MCPLError as e:
-        bad(str(e))
-    if files:
-        print('Created ' + ', '.join(files))
+    dump_stats(_PickedFile(f,None))
 
-def mcpltool_hist(filelist,histstr,skip,limit,pick,edit,outfn,backend,terminal,bad,
+def mcpltool_hist(filelist,hists,skip,limit,pick,edit,outfn,backend,terminal,bad,
                   color=None):
+    """The histograms of -H (which can be given several times): printed (with
+    the print option), or plotted (in a file with -o, with a page or file for
+    each, or else shown)"""
     from ._histogram import _histogram
     from ._histstring import _parse_hist
     if not filelist:
         bad("No input file specified")
-    try:
-        o = _parse_hist(histstr)
-    except MCPLError as e:
-        bad(str(e))
-    if o['print'] and ( outfn or backend or terminal or color ):
-        bad("The histogram option print can not be used together with -o, -B,"
-            " -t or --color.")
-    exprs = o['exprs']
-    #Unless the number of bins is given, it is chosen automatically, with at
-    #most the resolution of the plot (if the backend has one, like the text
-    #backends, whose plots are then fitted to the bins):
-    bk, maxbins = None, None
-    if not o['print']:
+    opts = []
+    for histstr in hists:
         try:
-            bk = _plot_backend(outfn,backend,terminal,color)
+            opts.append(_parse_hist(histstr))
         except MCPLError as e:
             bad(str(e))
-        if o['bins'] is None:
-            res = bk.resolution()
-            if res is not None:
-                maxbins = tuple(res) if len(exprs) == 2 else res[0]
+        if opts[-1]['print'] and ( outfn or backend or terminal or color ):
+            bad("The histogram option print can not be used together with -o, -B,"
+                " -t or --color.")
     sources = [ _view(fn,skip,limit,pick,edit) for fn in filelist ]
-    try:
-        h = _histogram(sources,o,_maxbins=maxbins)
-    except MCPLError as e:
-        bad(str(e))
-    title = [ f'{what}: {e.expression}' for what, e in (('pick',pick),
-                                                         ('edit',edit))
-              if e is not None ]
-    if title:
-        h.title = '\n'.join(title)
-    if o['print']:
-        print(h.to_text())
-        return
-    try:
-        if maxbins is not None and hasattr(bk,'_fit_resolution'):
-            #(draw the bins exactly, with a whole number of columns each):
-            bk._fit_resolution(h._display_bins)
-        files = h.plot(filename=outfn,backend=bk)
-    except MCPLError as e:
-        bad(str(e))
-    if files:
-        print('Created ' + ', '.join(files))
+    title = '\n'.join( f'{what}: {e.expression}' for what, e in (('pick',pick),
+                                                                ('edit',edit))
+                       if e is not None ) or None
+    figures = []#(plotted together at the end, in a file or in windows, with the
+                #numbers of bins to fit the plot to, see below)
+    bk = None
+    for o in opts:
+        #Unless the number of bins is given, it is chosen automatically, with
+        #at most the resolution of the plot (if the backend has one, like the
+        #text backends, whose plots are then fitted to the bins):
+        maxbins = None
+        if not o['print']:
+            try:
+                bk = _plot_backend(outfn,backend,terminal,color)
+            except MCPLError as e:
+                bad(str(e))
+            res = bk.resolution() if o['bins'] is None else None
+            if res is not None:
+                maxbins = tuple(res) if len(o['exprs']) == 2 else res[0]
+        try:
+            h = _histogram(sources,o,_maxbins=maxbins)
+        except MCPLError as e:
+            bad(str(e))
+        if title:
+            h.title = title
+        if o['print']:
+            print(h.to_text())
+        elif outfn or not hasattr(bk,'_fit_resolution'):
+            figures.append( ( h.figure(), h._display_bins if maxbins is not None else None ) )
+        else:
+            #(in the terminal, each is drawn when it is ready, with the bins
+            #drawn exactly, with a whole number of columns each):
+            if maxbins is not None:
+                bk._fit_resolution(h._display_bins)
+            try:
+                h.plot(backend=bk)
+            except MCPLError as e:
+                bad(str(e))
+    if figures:
+        from .plotting import save, show
+        if len(figures) == 1 and figures[0][1] is not None and hasattr(bk,'_fit_resolution'):
+            bk._fit_resolution(figures[0][1])#(as in the terminal, see above)
+        figures = [ f for f, _ in figures ]
+        try:
+            if outfn:
+                print('Created ' + ', '.join(save(figures,outfn,backend=bk)))
+            else:
+                show(figures,backend=bk)
+        except MCPLError as e:
+            bad(str(e))

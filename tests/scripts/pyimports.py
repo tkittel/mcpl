@@ -70,7 +70,7 @@ print(json.dumps(mods))
 
 #Modules of the mcpl package with optional functionality, which must only be
 #imported when needed:
-optional_modules = ( '_expressions', '_stats', '_statsplot', '_histogram',
+optional_modules = ( '_expressions', '_stats', '_histogram',
                      '_clistats', '_cli', '_userdata', '_scipp',
                      'plotting', '_plotbackend', '_plotbackend_mpl',
                      '_plotbackend_test', '_plotbackend_text' )

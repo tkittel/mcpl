@@ -240,9 +240,9 @@ ANSI segments: [('ab', None, None), ('cd', 1, None), ('e', None, None), ('f', 2,
 mcpltool -w -S: exit code 1
    | ERROR: -w and -S can not be used together.
 mcpltool -w -o x.pdf: exit code 1
-   | ERROR: -o can only be used with -S or -H.
-mcpltool -H x/cm -H y/cm: exit code 1
-   | ERROR: -H specified more than once (several plots are only possible with -w)
+   | ERROR: -o can only be used with -H.
+mcpltool -H x/cm -H y/cm: exit code 0
+   | (weights per bin)
 mcpltool -w -B ascii: exit code 1
    | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
 mcpltool --view=foo: exit code 1

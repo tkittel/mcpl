@@ -71,7 +71,6 @@ layers = {
     '_plotbackend_text' : 8,
     '_stats' : 6,
     '_histogram' : 8,
-    '_statsplot' : 9,
     '_plotbackend_mpl_gui' : 9,
     '_plotbackend_text_gui' : 9,
     '_viewer_jupyter' : 9,

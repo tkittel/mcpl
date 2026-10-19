@@ -22,8 +22,8 @@
 
 # NEEDS: numpy
 
-# Test histograms (mcpl.histogram, mcpl.histogram2d, mcpl.plot_histograms),
-# the figures of plot_stats, and mcpltool --hist, using the plotting backend
+# Test histograms (mcpl.histogram, mcpl.histogram2d, mcpl.plot_histograms)
+# and mcpltool --hist, using the plotting backend
 # for tests (which prints descriptions of the figures).
 
 import contextlib
@@ -84,10 +84,6 @@ def test_histograms():
             print(f'histogram{args} {kwargs}: no error')
         except mcpl.MCPLError as e:
             print(f'histogram{args} {kwargs}: {e}')
-
-def test_stats_figures():
-    show(mcpl.stats_figures(mcpl.collect_stats(example_file)))
-    show(mcpl.stats_figures(mcpl.collect_stats(example_file,pick='pdgcode == electron')))
 
 def test_overlay():
     hn = mcpl.histogram(example_file, 'ekin/MeV', pick='pdgcode == neutron',
@@ -207,12 +203,14 @@ def test_cmdline():
         tool(*bad)
 
 def test_cmdline_more():
-    #Plots of statistics, and saving files, with the test backend (which
-    #describes the figures), and argument errors:
+    #Statistics, saving files with the test backend (which describes the
+    #figures), several histograms, and argument errors:
     ex = str(example_file)
     tool('-S','-o','stats.txt','-B','test','-p','pdgcode == gamma',ex)
     tool('-S','-s1000','-E','x = 1cm',ex)
     tool('-H','x/cm;bins=3','-o','hist.txt','-B','test',ex)
+    tool('-H','x/cm;bins=2;print','-H','pdgcode;bar=2;print',ex)
+    tool('-H','x/cm;bins=3','-H','pdgcode;bar','-o','twohists.txt','-B','test',ex)
     for bad in ( ['-p','neutron',ex], ['-p2112',ex], ['-p',' gamma ',ex],
                  ['-p'], ['-lX',ex], ['-l',ex],
                  ['-p','x > 0','-p','x < 1cm',ex], ['--pdf',ex], ['--gui',ex],
@@ -307,7 +305,6 @@ def test_bars_groups_domains():
 test_units()
 test_bars_groups_domains()
 test_histograms()
-test_stats_figures()
 test_overlay()
 test_cmdline()
 test_cmdline_more()

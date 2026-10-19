@@ -25,13 +25,11 @@
 # Test the selection of plotting backends (by name, with set_default_backend,
 # and automatically, for showing plots or for saving them in files of a
 # format), custom backends registered with register_backend, Backend objects,
-# backend options, the deprecated set_backend parameter of plot_stats, and the
-# -B, -t and -o options of mcpltool.
+# backend options, and the -B, -t and -o options of mcpltool.
 
 import os
 import subprocess
 import sys
-import warnings
 
 import mcpldev as mcpl
 from mcpldev.plotting import Backend, Figure, Panel, Text
@@ -100,7 +98,6 @@ def test_default():
         mcpl.plotting.show(fig)
         mcpl.plotting.show(fig, backend='test')#explicit backend wins
         mcpl.histogram(example_file, 'ekin/MeV', bins=5).plot()
-        mcpl.plot_stats(mcpl.collect_stats(example_file))
         print(f'   formats: {mcpl.plotting.formats()}')
     obj = PrintingBackend()
     expect_error('Backend object with options',
@@ -140,17 +137,8 @@ def test_tool_backends():
         for line in rv.stdout.splitlines()[:4]:
             print(f'   | {line}')
 
-def test_deprecated_set_backend():
-    with warnings.catch_warnings(record=True) as wlist:
-        warnings.simplefilter('always')
-        files = mcpl.plot_stats(example_file, filename='stats.txt', backend='test',
-                                set_backend='agg')
-    print(f'plot_stats with set_backend created {files}, with warnings:'
-          f' {[ f"{w.category.__name__}: {w.message}" for w in wlist ]}')
-
 if __name__ == '__main__':
     test_registry()
     test_default()
     test_automatic()
     test_tool_backends()
-    test_deprecated_set_backend()

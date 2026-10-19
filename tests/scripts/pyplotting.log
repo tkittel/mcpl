@@ -13,70 +13,63 @@ Figure 1 (2x2): 'Example'
   Panel 'Text' xlabel=None ylabel=None 
     Text 'No data'
 save() created ['figs.txt'], with 11 lines
-Figure 1 (2x3): 'example.mcpl: 1006 particles, sum(weights) = 1006'
-  Panel 'Kinetic energy' xlabel='ekin [MeV]' ylabel=None logx logy xlim=[0.00139345,9724.96]
-    StepHist label='n (2112)' color=0 bins=100 edges=[0.00139345,9724.96] sum=726 max=38 nonzero_bins=73
-    StepHist label='γ (22)' color=8 bins=100 edges=[0.00139345,9724.96] sum=239 max=17 nonzero_bins=34
-    StepHist label='e⁻ (11)' color=1 bins=100 edges=[0.00139345,9724.96] sum=15 max=2 nonzero_bins=13
-    StepHist label='p (2212)' color=4 bins=100 edges=[0.00139345,9724.96] sum=10 max=3 nonzero_bins=7
-    StepHist label='e⁺ (-11)' color=3 bins=100 edges=[0.00139345,9724.96] sum=8 max=2 nonzero_bins=7
-    StepHist label='other' color=9 bins=100 edges=[0.00139345,9724.96] sum=8 max=1 nonzero_bins=8
-  Panel 'Wavelength (n/γ only)' xlabel='wavelength [Aa]' ylabel=None logx xlim=[3.46826e-06,0.0574461]
-    StepHist label='n (2112)' color=0 bins=100 edges=[1.16712e-06,0.007662] sum=726 max=38 nonzero_bins=73
-    StepHist label='γ (22)' color=8 bins=100 edges=[1.27491e-06,8.89765] sum=239 max=17 nonzero_bins=34
-  Panel 'Direction' xlabel='angle to z axis [degrees]' ylabel=None logy xlim=[0,180]
-    StepHist label='n (2112)' color=0 bins=90 edges=[0,180] sum=726 max=34 nonzero_bins=42
-    StepHist label='γ (22)' color=8 bins=90 edges=[0,180] sum=239 max=14 nonzero_bins=44
-    StepHist label='e⁻ (11)' color=1 bins=90 edges=[0,180] sum=15 max=2 nonzero_bins=14
-    StepHist label='p (2212)' color=4 bins=90 edges=[0,180] sum=10 max=3 nonzero_bins=6
-    StepHist label='e⁺ (-11)' color=3 bins=90 edges=[0,180] sum=8 max=2 nonzero_bins=7
-    StepHist label='other' color=9 bins=90 edges=[0,180] sum=8 max=2 nonzero_bins=7
-  Panel 'Position' xlabel='x [cm]' ylabel='y [cm]' 
-    Hist2D shape=(80, 80) x=[-24.3934,23.8971] y=[-22.9871,28.0675] sum=879 logz=True
-  Panel 'Time' xlabel='time [ms]' ylabel=None logx logy
-    StepHist label=None color=None bins=100 edges=[7.01658e-07,0.00166018] sum=1006 max=170 nonzero_bins=90
-  Panel 'Particle types' xlabel=None ylabel=None logx
+Figure 1 (2x3): 'Overview of example.mcpl'
+  Panel None xlabel='ekin [eV]' ylabel='weights per bin' logx logy xlim=[1393.45,9.72496e+09]
+    StepHist label='n (2112)' color=0 bins=30 edges=[1393.45,9.72496e+09] sum=726 max=106 nonzero_bins=26
+    StepHist label='γ (22)' color=8 bins=30 edges=[1393.45,9.72496e+09] sum=239 max=46 nonzero_bins=13
+    StepHist label='e⁻ (11)' color=1 bins=30 edges=[1393.45,9.72496e+09] sum=15 max=3 nonzero_bins=10
+    StepHist label='p (2212)' color=4 bins=30 edges=[1393.45,9.72496e+09] sum=10 max=3 nonzero_bins=4
+    StepHist label='e⁺ (-11)' color=3 bins=30 edges=[1393.45,9.72496e+09] sum=8 max=2 nonzero_bins=5
+    StepHist label='π⁺ (211)' color=2 bins=30 edges=[1393.45,9.72496e+09] sum=5 max=1 nonzero_bins=5
+    StepHist label='π⁻ (-211)' color=7 bins=30 edges=[1393.45,9.72496e+09] sum=2 max=1 nonzero_bins=2
+    StepHist label='nu_mu (14)' color=9 bins=30 edges=[1393.45,9.72496e+09] sum=1 max=1 nonzero_bins=1
+  Panel None xlabel='acos(uz)/deg' ylabel='weights per bin' logy xlim=[0,180]
+    StepHist label='n (2112)' color=0 bins=30 edges=[0,180] sum=726 max=81 nonzero_bins=15
+    StepHist label='γ (22)' color=8 bins=30 edges=[0,180] sum=239 max=31 nonzero_bins=15
+    StepHist label='e⁻ (11)' color=1 bins=30 edges=[0,180] sum=15 max=3 nonzero_bins=10
+    StepHist label='p (2212)' color=4 bins=30 edges=[0,180] sum=10 max=4 nonzero_bins=5
+    StepHist label='e⁺ (-11)' color=3 bins=30 edges=[0,180] sum=8 max=3 nonzero_bins=6
+    StepHist label='π⁺ (211)' color=2 bins=30 edges=[0,180] sum=5 max=2 nonzero_bins=4
+    StepHist label='π⁻ (-211)' color=7 bins=30 edges=[0,180] sum=2 max=1 nonzero_bins=2
+    StepHist label='nu_mu (14)' color=9 bins=30 edges=[0,180] sum=1 max=1 nonzero_bins=1
+  Panel None xlabel='x [cm]' ylabel='y [cm]' 
+    Hist2D shape=(10, 10) x=[-60.0882,65.8944] y=[-61.3354,57.6935] sum=1006 logz=True
+  Panel None xlabel='time [s]' ylabel='weights per bin' logx logy xlim=[7.01658e-10,1.66018e-06]
+    StepHist label=None color=0 bins=30 edges=[7.01658e-10,1.66018e-06] sum=1006 max=247 nonzero_bins=29
+  Panel None xlabel='weights' ylabel='pdgcode' logx
     Bars 'n (2112) (72.17%)'=726, 'γ (22) (23.76%)'=239, 'e⁻ (11) (1.49%)'=15, 'p (2212) (0.99%)'=10, 'e⁺ (-11) (0.80%)'=8, 'π⁺ (211) (0.50%)'=5, 'π⁻ (-211) (0.20%)'=2, 'nu_mu (14) (0.10%)'=1 (horizontal)
+  Panel None xlabel='x [cm]' ylabel='weights per bin' xlim=[-60.0882,65.8944]
+    StepHist label=None color=0 bins=30 edges=[-60.0882,65.8944] sum=1006 max=313 nonzero_bins=28
 Figure 2 (1x1): None
-  Panel 'pdgcode' xlabel=None ylabel=None 
-    Bars '2112\n(n)\n72.17%'=726, '22\n(γ)\n23.76%'=239, '11\n(e⁻)\n1.49%'=15, '2212\n(p)\n0.99%'=10, '-11\n(e⁺)\n0.80%'=8, '211\n(π⁺)\n0.50%'=5, '-211\n(π⁻)\n0.20%'=2, '14\n(nu_mu)\n0.10%'=1
+  Panel None xlabel='ekin [eV]' ylabel='weights per bin' logx logy xlim=[1393.45,9.72496e+09]
+    StepHist label='n (2112)' color=0 bins=30 edges=[1393.45,9.72496e+09] sum=726 max=106 nonzero_bins=26
+    StepHist label='γ (22)' color=8 bins=30 edges=[1393.45,9.72496e+09] sum=239 max=46 nonzero_bins=13
+    StepHist label='e⁻ (11)' color=1 bins=30 edges=[1393.45,9.72496e+09] sum=15 max=3 nonzero_bins=10
+    StepHist label='p (2212)' color=4 bins=30 edges=[1393.45,9.72496e+09] sum=10 max=3 nonzero_bins=4
+    StepHist label='e⁺ (-11)' color=3 bins=30 edges=[1393.45,9.72496e+09] sum=8 max=2 nonzero_bins=5
+    StepHist label='π⁺ (211)' color=2 bins=30 edges=[1393.45,9.72496e+09] sum=5 max=1 nonzero_bins=5
+    StepHist label='π⁻ (-211)' color=7 bins=30 edges=[1393.45,9.72496e+09] sum=2 max=1 nonzero_bins=2
+    StepHist label='nu_mu (14)' color=9 bins=30 edges=[1393.45,9.72496e+09] sum=1 max=1 nonzero_bins=1
 Figure 3 (1x1): None
-  Panel 'userflags' xlabel=None ylabel=None 
-    Bars '0\n(0x00000000)\n100.00%'=1006
+  Panel None xlabel='acos(uz)/deg' ylabel='weights per bin' logy xlim=[0,180]
+    StepHist label='n (2112)' color=0 bins=30 edges=[0,180] sum=726 max=81 nonzero_bins=15
+    StepHist label='γ (22)' color=8 bins=30 edges=[0,180] sum=239 max=31 nonzero_bins=15
+    StepHist label='e⁻ (11)' color=1 bins=30 edges=[0,180] sum=15 max=3 nonzero_bins=10
+    StepHist label='p (2212)' color=4 bins=30 edges=[0,180] sum=10 max=4 nonzero_bins=5
+    StepHist label='e⁺ (-11)' color=3 bins=30 edges=[0,180] sum=8 max=3 nonzero_bins=6
+    StepHist label='π⁺ (211)' color=2 bins=30 edges=[0,180] sum=5 max=2 nonzero_bins=4
+    StepHist label='π⁻ (-211)' color=7 bins=30 edges=[0,180] sum=2 max=1 nonzero_bins=2
+    StepHist label='nu_mu (14)' color=9 bins=30 edges=[0,180] sum=1 max=1 nonzero_bins=1
 Figure 4 (1x1): None
-  Panel 'ekin [MeV]' xlabel='min=0.00139345, max=9724.96, mean=52.165, rms=548.838, integral=1006\n(0.895% of weights outside plot range)' ylabel=None xlim=[0.00139345,1149.84]
-    StepHist label=None color=None bins=201 edges=[0.00139345,1149.84] sum=997 max=856 nonzero_bins=40
+  Panel None xlabel='x [cm]' ylabel='y [cm]' 
+    Hist2D shape=(10, 10) x=[-60.0882,65.8944] y=[-61.3354,57.6935] sum=1006 logz=True
 Figure 5 (1x1): None
-  Panel 'x [cm]' xlabel='min=-60.0882, max=65.8944, mean=-0.248153, rms=12.0726, integral=1006\n(6.36% of weights outside plot range)' ylabel=None xlim=[-24.3934,23.8971]
-    StepHist label=None color=None bins=201 edges=[-24.3934,23.8971] sum=942 max=48 nonzero_bins=172
+  Panel None xlabel='time [s]' ylabel='weights per bin' logx logy xlim=[7.01658e-10,1.66018e-06]
+    StepHist label=None color=0 bins=30 edges=[7.01658e-10,1.66018e-06] sum=1006 max=247 nonzero_bins=29
 Figure 6 (1x1): None
-  Panel 'y [cm]' xlabel='min=-61.3354, max=57.6935, mean=2.54021, rms=12.7636, integral=1006\n(7.46% of weights outside plot range)' ylabel=None xlim=[-22.9871,28.0675]
-    StepHist label=None color=None bins=201 edges=[-22.9871,28.0675] sum=931 max=62 nonzero_bins=177
+  Panel None xlabel='weights' ylabel='pdgcode' logx
+    Bars 'n (2112) (72.17%)'=726, 'γ (22) (23.76%)'=239, 'e⁻ (11) (1.49%)'=15, 'p (2212) (0.99%)'=10, 'e⁺ (-11) (0.80%)'=8, 'π⁺ (211) (0.50%)'=5, 'π⁻ (-211) (0.20%)'=2, 'nu_mu (14) (0.10%)'=1 (horizontal)
 Figure 7 (1x1): None
-  Panel 'z [cm]' xlabel='min=20, max=20, mean=20, rms=0, integral=1006' ylabel=None xlim=[19,21]
-    StepHist label=None color=None bins=201 edges=[19,21] sum=1006 max=1006 nonzero_bins=1
-Figure 8 (1x1): None
-  Panel 'ux' xlabel='min=-0.994109, max=0.995773, mean=0.0216263, rms=0.487791, integral=1006\n(0.199% of weights outside plot range)' ylabel=None xlim=[-0.953957,0.995773]
-    StepHist label=None color=None bins=201 edges=[-0.953957,0.995773] sum=1004 max=16 nonzero_bins=199
-Figure 9 (1x1): None
-  Panel 'uy' xlabel='min=-0.994904, max=0.979886, mean=-0.00868233, rms=0.47584, integral=1006\n(1.09% of weights outside plot range)' ylabel=None xlim=[-0.960362,0.942998]
-    StepHist label=None color=None bins=201 edges=[-0.960362,0.942998] sum=995 max=13 nonzero_bins=199
-Figure 10 (1x1): None
-  Panel 'uz' xlabel='min=-0.734438, max=0.999994, mean=0.690676, rms=0.240955, integral=1006\n(3.38% of weights outside plot range)' ylabel=None xlim=[0.208767,0.999994]
-    StepHist label=None color=None bins=201 edges=[0.208767,0.999994] sum=972 max=18 nonzero_bins=191
-Figure 11 (1x1): None
-  Panel 'time [ms]' xlabel='min=7.01658e-07, max=0.00166018, mean=5.04828e-05, rms=0.00010785, integral=1006\n(3.78% of weights outside plot range)' ylabel=None xlim=[7.01658e-07,0.000266182]
-    StepHist label=None color=None bins=201 edges=[7.01658e-07,0.000266182] sum=968 max=305 nonzero_bins=137
-Figure 12 (1x1): None
-  Panel 'weight (unweighted)' xlabel='min=1, max=1, mean=1, rms=0, integral=1006' ylabel=None xlim=[0,2]
-    StepHist label=None color=None bins=201 edges=[0,2] sum=1006 max=1006 nonzero_bins=1
-Figure 13 (1x1): None
-  Panel 'polx' xlabel='min=0, max=0, mean=0, rms=0, integral=1006' ylabel=None xlim=[-1,1]
-    StepHist label=None color=None bins=201 edges=[-1,1] sum=1006 max=1006 nonzero_bins=1
-Figure 14 (1x1): None
-  Panel 'poly' xlabel='min=0, max=0, mean=0, rms=0, integral=1006' ylabel=None xlim=[-1,1]
-    StepHist label=None color=None bins=201 edges=[-1,1] sum=1006 max=1006 nonzero_bins=1
-Figure 15 (1x1): None
-  Panel 'polz' xlabel='min=0, max=0, mean=0, rms=0, integral=1006' ylabel=None xlim=[-1,1]
-    StepHist label=None color=None bins=201 edges=[-1,1] sum=1006 max=1006 nonzero_bins=1
-plot_stats with pdf parameter created ['stats.txt'], with warnings: ['DeprecationWarning: The pdf parameter of plot_stats is deprecated, use filename instead']
+  Panel None xlabel='x [cm]' ylabel='weights per bin' xlim=[-60.0882,65.8944]
+    StepHist label=None color=0 bins=30 edges=[-60.0882,65.8944] sum=1006 max=313 nonzero_bins=28
+plot_stats: MCPLError: plot_stats is no longer available: use mcpl.view(FILE) for an interactive overview of a file, or mcpl.histogram(FILE,EXPR).plot() for single plots

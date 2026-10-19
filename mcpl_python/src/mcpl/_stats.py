@@ -21,15 +21,14 @@
 
 """Statistics of the particles in MCPL files."""
 
-__all__ = ['collect_stats', 'dump_stats']
+__all__ = ['collect_stats', 'dump_stats', 'plot_stats']
 
 import os
 
 from ._common import MCPLError
 from ._messages import _warning
 from ._numpy import np
-from ._particles import _wavelength_pdgcodes
-from ._physics import _pdg_database, wavelength_from_ekin
+from ._physics import _pdg_database
 from ._reader import MCPLFile
 
 
@@ -128,116 +127,6 @@ class _StatCollector:
 
 _possible_std_stats = ['ekin','x','y','z','ux','uy','uz','time','weight','polx','poly','polz']
 _possible_freq_stats = ['pdgcode','userflags']
-
-def _bin_indices(v,edges,log=False):
-    """Bin indices of the values with the same results as numpy.histogram
-    (the last bin includes the upper edge), and -1 for values outside the
-    bins. The edges are equidistant (in log scale if log is True), so the
-    indices are calculated directly from the values (which is much faster
-    than the binary search used by numpy.histogram for logarithmic bins),
-    and then corrected against the actual edges for rounding errors. Only
-    values inside the bins are used in calculations, so no floating point
-    exceptions are triggered (e.g. by the logarithm of values <= 0)."""
-    nb = len(edges) - 1
-    lo, hi = edges[0], edges[-1]
-    res = np.full(len(v),-1,dtype=np.intp)
-    inside = ( v >= lo ) & ( v <= hi )
-    vi = v[inside]
-    t = ( np.log(vi/lo) / np.log(hi/lo) ) if log else ( (vi-lo)/(hi-lo) )
-    i = np.minimum( (t*nb).astype(np.intp), nb - 1 )
-    i -= ( vi < edges[i] ) & ( i > 0 )
-    i += ( vi >= edges[i+1] ) & ( i < nb - 1 )
-    res[inside] = i
-    return res
-
-class _Overview:
-    """Collects histograms for the overview page of plot_stats: kinetic
-    energies, wavelengths and polar angles (to the z axis) by particle type,
-    positions in the x-y plane, and times."""
-    maxtypes = 50#further types are merged into 'other'
-    def __init__(self,collected_stats,ranges,nbins):
-        needed = ('ekin','x','y','uz','time')
-        self.enabled = all( s in collected_stats for s in needed )
-        if not self.enabled:
-            return
-        self.nbins = nbins
-        self.ekin_bins, self.ekin_log = self._bins(collected_stats['ekin'])
-        self.time_bins, self.time_log = self._bins(collected_stats['time'])
-        self.theta_bins = np.linspace(0.0,180.0,91)
-        self.wl_bins = {}
-        if self.ekin_log:
-            for pdg in _wavelength_pdgcodes:
-                self.wl_bins[pdg] = np.sort(wavelength_from_ekin(self.ekin_bins,pdg))
-        self.xy_range = [ranges['x'],ranges['y']]
-        self.ekin, self.theta, self.wl, self.sumw = {}, {}, {}, {}
-        self.time = np.zeros(len(self.time_bins)-1)
-        self.xy = np.zeros((80,80))
-    @staticmethod
-    def _bins(sc):
-        """Bins covering all values, logarithmic for positive values spanning
-        more than two decades."""
-        vmin, vmax = sc['min'], sc['max']
-        if vmin > 0.0 and vmax > 100.0 * vmin:
-            return np.geomspace(vmin,vmax,101), True
-        if not vmin < vmax:
-            vmin, vmax = vmin - 1.0, vmax + 1.0
-        return np.linspace(vmin,vmax,101), False
-    def _key(self,pdg):
-        return pdg if ( pdg in self.ekin or len(self.ekin) < self.maxtypes ) else None
-    def add(self,pb):
-        w = pb.weight
-        #Histograms filled with bincount on bin indices (for several histograms
-        #at once, using combined indices):
-        def fill(idx_list,shape,weights):
-            ok = np.logical_and.reduce([ i >= 0 for i in idx_list ])
-            flat = np.ravel_multi_index([ i[ok] for i in idx_list ],shape)
-            return np.bincount(flat,weights=weights[ok],
-                               minlength=int(np.prod(shape))).reshape(shape)
-        self.time += fill([_bin_indices(pb.time,self.time_bins,self.time_log)],
-                          (len(self.time_bins)-1,),w)
-        xedges = np.linspace(*self.xy_range[0],81)
-        yedges = np.linspace(*self.xy_range[1],81)
-        self.xy += fill([_bin_indices(pb.x,xedges,False),
-                         _bin_indices(pb.y,yedges,False)],(80,80),w)
-        pdgs, itype = np.unique(pb.pdgcode,return_inverse=True)
-        itype = itype.reshape(-1)
-        ntypes = len(pdgs)
-        h_ekin = fill([itype,_bin_indices(pb.ekin,self.ekin_bins,self.ekin_log)],
-                      (ntypes,len(self.ekin_bins)-1),w)
-        theta = np.degrees(np.arccos(np.clip(pb.uz,-1.0,1.0)))
-        h_theta = fill([itype,_bin_indices(theta,self.theta_bins,False)],
-                       (ntypes,len(self.theta_bins)-1),w)
-        sumw = np.bincount(itype,weights=w,minlength=ntypes)
-        for j,pdg in enumerate(pdgs):
-            key = self._key(int(pdg))
-            if key not in self.ekin:
-                self.ekin[key] = np.zeros(len(self.ekin_bins)-1)
-                self.theta[key] = np.zeros(len(self.theta_bins)-1)
-                self.sumw[key] = 0.0
-            self.sumw[key] += float(sumw[j])
-            self.ekin[key] += h_ekin[j]
-            self.theta[key] += h_theta[j]
-            if key in self.wl_bins:
-                #The wavelength bins are the (sorted) wavelengths of the energy
-                #bin edges, and the wavelength decreases with the energy, so the
-                #wavelength histogram is the energy histogram reversed:
-                self.wl[key] = self.wl.get(key,0.0) + h_ekin[j][::-1]
-    def result(self,ntypes=5):
-        #Show the ntypes most common types, and merge the rest into 'other':
-        keys = sorted(self.sumw,key=lambda k : (-self.sumw[k],str(k)))
-        shown, rest = keys[:ntypes], keys[ntypes:]
-        def merged(hists):
-            res = { k : hists[k] for k in shown if k is not None }
-            if rest or None in shown:
-                res['other'] = sum( hists[k] for k in rest + [ k for k in shown if k is None ] )
-            return res
-        return { 'ekin_bins' : self.ekin_bins, 'ekin_log' : self.ekin_log,
-                 'ekin' : merged(self.ekin),
-                 'theta_bins' : self.theta_bins, 'theta' : merged(self.theta),
-                 'wl_bins' : self.wl_bins, 'wl' : self.wl,
-                 'time_bins' : self.time_bins, 'time_log' : self.time_log,
-                 'time' : self.time,
-                 'xy' : self.xy, 'xy_range' : self.xy_range }
 
 def collect_stats(mcplfile,stats='all',bin_data=True,pick=None):
     """Efficiently collect statistics from an entire file. Returns dictionary
@@ -351,10 +240,6 @@ class _StatsAccumulator:
         self._ranges = ranges
         self._hists={}
         self._outside={}
-        ov = _Overview(self.collected_stats,ranges,nbins) if self._bin_data else None
-        if ov and not ov.enabled:
-            ov = None
-        self._ov = ov
         self._freq_uc={s: (np.asarray([],dtype=int),np.asarray([],dtype=float)) for s in self._freq}
         self._sumw = 0.0
         self.needs_weight_sum = self._weight_sum is None and not self.needs_pass2
@@ -385,8 +270,6 @@ class _StatsAccumulator:
             out = ( vals < ranges[s][0] ) | ( vals > ranges[s][1] )
             outside[s] = outside.get(s,0.0) + float( np.count_nonzero(out)
                                                      if w is None else w[out].sum() )
-        if self._ov:
-            self._ov.add(pb)
         self._sumw += pb.weight.sum()
 
     def add_weights(self,pb):
@@ -446,9 +329,7 @@ class _StatsAccumulator:
         results = { 'file':{'type':'fileinfo','integral':weight_sum,'nparticles':self._n,
                             'stat_sum':dict(mcplfile.stat_sum),
                             'filename':os.path.basename(os.fsdecode(mcplfile._filename))} }
-        if self._ov:
-            results['overview'] = self._ov.result()
-        if isinstance(mcplfile,_PickedFile) or getattr(mcplfile,'_viewer',False):
+        if isinstance(mcplfile,_PickedFile):
             if mcplfile.pick:
                 results['file']['pick'] = mcplfile.pick
             if getattr(mcplfile,'edit',None):
@@ -476,6 +357,13 @@ class _StatsAccumulator:
 
 _freq_alt_descr =  {'pdgcode': _pdg_database,
                     'userflags':lambda x : f'0x{x:08x}'}
+
+def plot_stats(*args, **kwargs):
+    """No longer available: raises MCPLError, which tells what to use instead
+    (mcpl.view or mcpl.histogram)."""
+    raise MCPLError('plot_stats is no longer available: use mcpl.view(FILE) for an'
+                    ' interactive overview of a file, or mcpl.histogram(FILE,EXPR).plot()'
+                    ' for single plots')
 
 def dump_stats(stats):
     """Format and print provided statistics object to stdout. The stats object is

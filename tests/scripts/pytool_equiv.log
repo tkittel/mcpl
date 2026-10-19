@@ -499,7 +499,7 @@ mcpltool --extract a1.mcpl out.mcpl --pick x > 10m: MCPL: Successfully extracted
    same as with the Python API: True
 Results of selection and edit as expected: True
 mcpltool --extract a1.mcpl out.mcpl --pick ekin=1MeV: exit code 1
-   | ERROR: Syntax error in expression "ekin=1MeV" (use == for comparisons)
+   | ERROR: Syntax error in expression "ekin=1MeV", after "ekin": unexpected "=" (use == for comparisons)
    | 
    | Run with -h or --help for usage information
 mcpltool --extract a1.mcpl out.mcpl --pick foo>1: exit code 1

@@ -60,15 +60,31 @@ def _expr_check_ops( expr ):
             raise MCPLError(f'Use "{alt}" instead of "{op}" in expressions (e.g.'
                             f' "{example}"), in expression "{expr}"')
 
-def _expr_parse( expr, mode = 'eval' ):
+def _expr_parse( expr, mode = 'eval', context = None ):
     """Parse an expression (mode 'eval') or an edit statement (mode 'exec') to
-    a tree of ast nodes, with _ExprParser"""
+    a tree of ast nodes, with _ExprParser. For a statement of an edit, context
+    is (the edit, the position of the statement in it), for messages."""
     _expr_check_ops(expr)
     try:
         return _ExprParser(expr).parse(mode)
-    except _ExprSyntaxError:
-        hint = ' (use == for comparisons)' if mode == 'eval' and '=' in expr else ''
-        raise MCPLError(f'Syntax error in expression "{expr}"{hint}') from None
+    except _ExprSyntaxError as e:
+        text, pos = ( expr, e.pos ) if context is None else ( context[0], context[1] + e.pos )
+        hint = ( ' (use == for comparisons)'
+                 if mode == 'eval' and re.search(r'(?<![=<>!])=(?!=)',expr) else '' )
+        raise MCPLError(f'Syntax error in expression "{text}", {_expr_where(text,pos)}:'
+                        f' {e.what}{hint}') from None
+
+def _expr_where( expr, pos ):
+    """Where the position pos in the expression is, for messages: at the start,
+    at the end, or after the text before it (the end of it, if it is long)"""
+    before = expr[:pos].rstrip()
+    if not before:
+        return 'at the start'
+    if not expr[pos:].strip():
+        return 'at the end'
+    if len(before) > 30:
+        before = '...' + before[-27:]
+    return f'after "{before}"'
 
 class _Unit(ast.expr):
     """A unit with a power (e.g. cm^2) in a parsed expression, standing for its
@@ -76,7 +92,11 @@ class _Unit(ast.expr):
     _fields = ( 'unit', 'power' )
 
 class _ExprSyntaxError(Exception):
-    pass
+    """A syntax error at the position pos of the expression, with a short
+    description (what)"""
+    def __init__( self, pos, what ):
+        super().__init__(what)
+        self.pos, self.what = pos, what
 
 #The operators, with their nodes, for the parser and the writer, and their
 #precedences (higher binds tighter):
@@ -120,26 +140,46 @@ class _ExprParser:
         skip = ( tokenize.NEWLINE, tokenize.NL, tokenize.ENDMARKER, tokenize.INDENT,
                  tokenize.DEDENT )
         kinds = { tokenize.OP : 'op', tokenize.NAME : 'name', tokenize.NUMBER : 'number' }
+        #(the tokens, with their positions in the expression, which has no
+        #newlines):
+        self._pos = []
         try:
             for t in tokenize.generate_tokens(io.StringIO(expr).readline):
                 if t.type in skip:
                     continue
                 if t.type not in kinds:
-                    raise _ExprSyntaxError
+                    raise _ExprSyntaxError(t.start[1],f'"{t.string}" can not be used here')
                 self._toks.append( ( kinds[t.type], t.string ) )
-        except ( tokenize.TokenError, SyntaxError ):
-            raise _ExprSyntaxError from None
+                self._pos.append(t.start[1])
+        except tokenize.TokenError:
+            #(with parentheses which do not match: an unmatched ")", or else a
+            #missing one at the end):
+            depth = 0
+            for ( kind, t ), pos in zip(self._toks,self._pos):
+                depth += { '(' : 1, ')' : -1 }.get(t,0) if kind == 'op' else 0
+                if depth < 0:
+                    raise _ExprSyntaxError(pos,'unexpected ")"') from None
+            raise _ExprSyntaxError(len(expr),'")" is missing') from None
+        except SyntaxError as e:
+            raise _ExprSyntaxError(max( 0, ( e.offset or 1 ) - 1 ),'invalid text') from None
         self._i = 0
 
     def parse( self, mode ):
         node = self._statement() if mode == 'exec' else self._expression()
         if self._i != len(self._toks):
-            raise _ExprSyntaxError
+            kind, s = self._peek()
+            missing = kind in ( 'name', 'number' ) or ( kind, s ) == ( 'op', '(' )
+            raise self._error('an operator is missing' if missing else f'unexpected "{s}"')
         if mode == 'exec':
             return ast.Module( body = [ node ], type_ignores = [] )
         return ast.Expression( body = node )
 
     #Tokens:
+
+    def _error( self, what ):
+        """The syntax error at the next token (or at the end)"""
+        pos = self._pos[self._i] if self._i < len(self._pos) else len(self._expr)
+        return _ExprSyntaxError(pos,what)
 
     def _peek( self, k = 0 ):
         i = self._i + k
@@ -147,7 +187,7 @@ class _ExprParser:
 
     def _take( self ):
         if self._i >= len(self._toks):
-            raise _ExprSyntaxError
+            raise self._error('a value is missing')
         self._i += 1
         return self._toks[self._i-1]
 
@@ -160,7 +200,9 @@ class _ExprParser:
 
     def _expect( self, kind, string ):
         if not self._accept(kind,string):
-            raise _ExprSyntaxError
+            t = self._peek()
+            raise self._error(f'"{string}" is missing' if t[0] is None
+                              else f'"{string}" is expected, not "{t[1]}"')
 
     #Statements (of edits):
 
@@ -239,6 +281,9 @@ class _ExprParser:
         return self._power()
 
     def _primary( self ):
+        if self._i >= len(self._toks):
+            raise self._error('a value is missing')
+        err = self._error('a value is expected, not "{}"')
         kind, s = self._take()
         if kind == 'number':
             return ast.Constant( value = self._number(s) )
@@ -247,7 +292,8 @@ class _ExprParser:
             self._expect('op',')')
             return node
         if kind != 'name' or s in ( 'and', 'or', 'not' ):
-            raise _ExprSyntaxError
+            err.what = err.what.format(s)
+            raise err
         if s in _expr_units:
             self._i -= 1
             return self._unit()
@@ -281,6 +327,9 @@ class _ExprParser:
         sign = 1
         while ( op := self._accept('op','-','+') ):
             sign = -sign if op == '-' else sign
+        err = self._error('the power of a unit must be a number, like cm^2 or cm^(1/2)')
+        if self._i >= len(self._toks):
+            raise err
         kind, s = self._take()
         if kind == 'number':
             v = self._number(s)
@@ -288,7 +337,7 @@ class _ExprParser:
             v = self._constant(self._expression())
             self._expect('op',')')
         else:
-            raise _ExprSyntaxError
+            raise err
         v = sign * v
         if 2 * v != round(2 * v):
             raise MCPLError('Units can only have whole or half powers (like cm^2 or'

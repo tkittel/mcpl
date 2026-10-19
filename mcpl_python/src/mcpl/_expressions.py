@@ -168,8 +168,8 @@ def _expr_canonical( expr, edit = False ):
     expr = _expr_normalise(expr)
     if not edit:
         return _Expr(expr).canonical
-    return ';'.join( _expr_unparse(_expr_parse(part, mode = 'exec'))
-                      for part in ParticleEdit._split(expr) )
+    return ';'.join( _expr_unparse(_expr_parse(part, mode = 'exec', context = ( expr, pos )))
+                     for part, pos in ParticleEdit._split(expr,positions = True) )
 
 class _Expr:
     """A parsed (and checked) expression of a value or condition: the common
@@ -792,8 +792,8 @@ class ParticleEdit:
                                 ' (fields which can be assigned are: '
                                 + ', '.join(self._assignable) + ', and other'
                                 ' lowercase names can be used for variables)')
-        for part in self._split(expression):
-            tree = _expr_parse(part, mode = 'exec')
+        for part, pos in self._split(expression,positions = True):
+            tree = _expr_parse(part, mode = 'exec', context = ( expression, pos ))
             stmt = tree.body[0] if len(tree.body) == 1 else None
             if ( isinstance(stmt,ast.Expr) and isinstance(stmt.value,ast.Call)
                  and isinstance(stmt.value.func,ast.Name)
@@ -872,9 +872,11 @@ class ParticleEdit:
         return ( fname, angle )
 
     @staticmethod
-    def _split( expr ):
-        parts, depth, cur = [], 0, ''
-        for c in expr:
+    def _split( expr, positions = False ):
+        """The statements of an edit (with their positions in it, if
+        positions is set)"""
+        parts, depth, start = [], 0, 0
+        for i, c in enumerate(expr):
             if c in '([':
                 depth += 1
             elif c in ')]':
@@ -883,15 +885,13 @@ class ParticleEdit:
                 raise MCPLError('Separate the statements of edits with ";"'
                                 f' (not ",") in "{expr}"')
             if c == ';' and depth == 0:
-                parts.append(cur)
-                cur = ''
-            else:
-                cur += c
-        parts.append(cur)
-        parts = [ p.strip() for p in parts if p.strip() ]
+                parts.append( ( expr[start:i], start ) )
+                start = i + 1
+        parts.append( ( expr[start:], start ) )
+        parts = [ ( p.strip(), pos + len(p) - len(p.lstrip()) ) for p, pos in parts if p.strip() ]
         if not parts:
             raise MCPLError('Empty edit expression')
-        return parts
+        return parts if positions else [ p for p, _ in parts ]
 
     @property
     def expression( self ):

@@ -655,7 +655,7 @@ mcpltool -H x/cm -o hist.png -d example.mcpl: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool -p x > 0; example.mcpl: exit code 1
-   | ERROR: Syntax error in expression "x > 0;"
+   | ERROR: Syntax error in expression "x > 0;", after "x > 0": unexpected ";"
    | 
    | Run with -h or --help for usage information
 mcpltool -p x > "1" example.mcpl: exit code 1

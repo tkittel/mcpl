@@ -22,7 +22,7 @@ mcpltool --dry-run --extract --edit weight *= 2 --keep-statsum a1.mcpl out.mcpl:
    | MCPL: Would extract 30 / 30 particles from a1.mcpl into out.mcpl
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --extract --pick ekin < 1 meV + a1.mcpl out.mcpl: exit code 1, real run did not change files
-   | ERROR: Syntax error in expression "ekin < 1 meV +"
+   | ERROR: Syntax error in expression "ekin < 1 meV +", at the end: a value is missing
    | 
    | Run with -h or --help for usage information
 mcpltool --dry-run --extract a1.mcpl a2.mcpl: exit code 1, real run did not change files

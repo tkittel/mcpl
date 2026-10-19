@@ -351,6 +351,19 @@ def test_canonical():
             mcpl.ParticleFilter(bad)
         except mcpl.MCPLError as e:
             print(f'{bad}: {e}')
+    #Syntax errors say where the problem is (also in edits, in the whole edit):
+    for bad in ( 'x > 1cm and', 'x > > 1cm', '(x > 1cm', 'ekin < 1MeV)', 'sqrt(x',
+                 'x > 1cm and and y < 1cm', 'f(1,)', 'not', 'x ? 1',
+                 'hypot(x,y) > 3cm or (ekin < 25meV and pdgcode == neutron and time >' ):
+        try:
+            mcpl.ParticleFilter(bad)
+        except mcpl.MCPLError as e:
+            print(f'{bad}: {e}')
+    for bad in ( 'z += 1cm; x = ', 'x = 2cm;  y + ;z=1cm', 'rotate_x(90deg;x=1cm' ):
+        try:
+            mcpl.ParticleEdit(bad)
+        except mcpl.MCPLError as e:
+            print(f'{bad}: {e}')
     for e in ( 'pdgcode==neutron and (ekin<1MeV)', 'not (x > 1cm) or y<0',
                '(x>0 or y>0) and z>0', 'ekin < 4cm^2*1MeV/cm^2' ):
         k = _expr_canonical(e)

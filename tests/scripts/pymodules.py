@@ -46,6 +46,7 @@ layers = {
     '_common' : 0,
     '_messages' : 0,
     '_particles' : 0,
+    '_stdviews' : 0,
     '_viewer_ui' : 0,
     '_logo' : 0,
     '_exprhelp' : 1,

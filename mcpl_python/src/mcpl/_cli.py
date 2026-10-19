@@ -110,6 +110,9 @@ Viewer (-w, --view):
   also with -H, given more than once), in a window with matplotlib, or else in
   the terminal. -l, -s, -p and -E can be changed in the viewer, and the
   particles can be written to a new file (press h for help).
+  -wNAME, --view=NAME
+                   Start from the plots of a collection (press c in the viewer
+                   to change it): COLLECTIONS.
   -wVIEW, --view=VIEW
                    The view shown first: overview, or a plot, e.g. -wekin.
   -wFILE.json, --view=FILE.json, --view="{...}"
@@ -172,8 +175,10 @@ def _mcpltool_usage(progname,errmsg=None,full=False):
         print("Run with -h or --help for usage information")
         sys.exit(1)
     msg = _full_help if full else _short_help
+    from ._stdviews import _collections
     print(msg.strip().replace('PROGNAME',progname)
-          .replace('PROGPADS',' '*len(progname)))
+          .replace('PROGPADS',' '*len(progname))
+          .replace('COLLECTIONS',', '.join(_collections)))
     sys.exit(0)
 
 def _topic_help(topic):

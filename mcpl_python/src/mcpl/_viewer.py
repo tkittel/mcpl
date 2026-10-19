@@ -35,6 +35,7 @@ import re
 import threading
 
 from ._common import MCPLError
+from ._stdviews import _collections, _default_collection
 
 #Numbers of particles read after which the figures are updated (and then every
 #further _update_step particles):
@@ -44,20 +45,10 @@ _update_step = 2000000
 #before the ranges of the plots are known):
 _preview_max = 200000
 
-_fields = ( 'skip', 'limit', 'pick', 'edit', 'plot' )
+_fields = ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot' )
 
-#The plots shown at the start, as histogram strings like those added with -H
-#or "Add plot", of which the first _noverview are shown together in the
-#overview (they can be changed, removed and reordered in the viewer):
-_default_plots = ( 'ekin;logx=auto;logy;split=pdgcode',
-                   'wavelength;logx;split=pdgcode',
-                   'acos(uz)/deg;range=0:180;logy;split=pdgcode',
-                   'x : y',
-                   'time;logx=auto;logy',
-                   'pdgcode;bar;logy=auto',
-                   'userflags;bar;logy=auto',
-                   'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time',
-                   'weight;unweighted', 'polx', 'poly', 'polz' )
+#(the plots of the viewer start as those of a collection, see _stdviews, of
+#which the first _noverview are shown together in the overview):
 _noverview = 6
 
 def _update_points():
@@ -96,9 +87,9 @@ class Viewer:
         self._texts = { 'skip' : '', 'limit' : '', 'pick' : '', 'edit' : '',
                         'plot' : '' }
         self._history = { f : [] for f in _fields }
-        self._s = _Settings(plots = _default_plots)
-        #(the default plot each plot comes from, if any, for state()):
-        self._origins = { p : p for p in _default_plots }
+        self._s = _Settings()
+        self._origins = {}
+        self._use_collection(_default_collection)
         self._lock = threading.Lock()
         self._figures = {}#view key -> Figure
         self._constants = {}#field -> text of the value all particles have
@@ -118,8 +109,11 @@ class Viewer:
         self.multi_overview = False
         self._current = None#(key of the view shown, None for the first)
         self._overview = None#(the overview figure, with what it was made from)
-        #The view argument is a view, or a state (see state()), which is applied
-        #before the other arguments (so these can change it):
+        #The view argument is the name of a collection of plots, a view, or a
+        #state (see state()), which is applied before the other arguments (so
+        #these can change it):
+        if view in _collections:
+            view = { 'collection' : view }
         state = _as_state(view)
         if state is not None:
             self._apply_state(state)
@@ -131,6 +125,16 @@ class Viewer:
         for p in plots:
             self._set_or_raise('plot',p)
         self._current = self._view_key(view) if view else None
+
+    def _use_collection( self, name ):
+        """Start from the plots of the collection (keeping the plots which were
+        added, but not the changes of the plots of the previous collection)"""
+        added = [ p for p in self._s.plots if p not in self._origins ]
+        self._collection = name
+        self._base = _collections[name][1]
+        #(the plot of the collection each plot comes from, if any, for state()):
+        self._origins = { p : p for p in self._base }
+        self._s.plots = list(self._base) + [ p for p in added if p not in self._origins ]
 
     def _set_or_raise( self, field, text ):
         ok, msg = self.set(field, text, restart = False)
@@ -155,6 +159,8 @@ class Viewer:
 
     def field_text( self, field ):
         """Current text of a field (as last set)"""
+        if field == 'collection':
+            return self._collection
         return self._texts[field] if field != 'plot' else ''
 
     def check( self, field, text ):
@@ -191,6 +197,12 @@ class Viewer:
                 raise MCPLError('Give an expression to plot, e.g. ekin/MeV')
             _make_filler(text,None)#(checks the expressions and options)
             return text
+        if field == 'collection':
+            text = text or _default_collection
+            if text not in _collections:
+                raise MCPLError(f'Unknown collection of plots "{text}" (the collections'
+                                f' are: {", ".join(_collections)})')
+            return text
         raise MCPLError(f'Unknown field "{field}"')
 
     def set( self, field, text, restart = True ):
@@ -210,6 +222,11 @@ class Viewer:
             if same is None:
                 self._s.plots.append(text)
             self._current = f'plot:{same or text}'
+        elif field == 'collection':
+            if value == self._collection:
+                return True, ''
+            self._use_collection(value)
+            self._current = None
         else:
             #(the reading is not restarted for the same value, e.g. an
             #expression written differently):
@@ -306,6 +323,9 @@ class Viewer:
         m = re.search(r'[A-Za-z_][A-Za-z0-9_]*$', text[:cursor])
         start = m.start() if m else cursor
         prefix = m.group(0) if m else ''
+        if field == 'collection':
+            return 0, [ ( name, descr ) for name, ( descr, _ ) in _collections.items()
+                        if name.startswith(text[:cursor].strip()) ]
         if field not in ( 'pick', 'edit', 'plot' ):
             return start, []
         options = field == 'plot' and ';' in text[:start]
@@ -330,6 +350,9 @@ class Viewer:
         """Short description of the name at the cursor, as "name  description",
         or None"""
         from ._exprhelp import _short_hint
+        if field == 'collection':
+            name = text.strip()
+            return f'{name}  {_collections[name][0]}' if name in _collections else None
         cursor = len(text) if cursor is None else cursor
         m = re.search(r'[A-Za-z_][A-Za-z0-9_]*$', text[:cursor])
         if not m:
@@ -424,12 +447,16 @@ class Viewer:
 
     def state( self, full = True ):
         """The state of the viewer, as a dict with what differs from the start:
-        skip, limit, pick and edit (unless full is False), the plots (with the
-        changes of the default plots: change, remove, add and order, which are
-        lists of histogram strings, except change, which maps default plots to
-        their new ones), and the view shown (if not the first). It is given as
-        the view argument to open the viewer in the same state."""
+        skip, limit, pick and edit (unless full is False), the collection of
+        plots (see _stdviews, if not the default one), the plots (with the
+        changes of the plots of the collection: change, remove, add and order,
+        which are lists of histogram strings, except change, which maps plots
+        of the collection to their new ones), and the view shown (if not the
+        first). It is given as the view argument to open the viewer in the
+        same state."""
         res = {}
+        if self._collection != _default_collection:
+            res['collection'] = self._collection
         if full:
             for k in ( 'skip', 'limit' ):
                 if getattr(self._s,k):
@@ -440,12 +467,12 @@ class Viewer:
         plots, origins = self._s.plots, self._origins
         diff = {}
         change = { o : p for p, o in origins.items() if p != o }
-        remove = [ d for d in _default_plots if d not in origins.values() ]
+        remove = [ d for d in self._base if d not in origins.values() ]
         add = [ p for p in plots if p not in origins ]
         #(the order is only given if it is not that of the defaults, followed
         #by the added plots):
         kept = { o : p for p, o in origins.items() }
-        expected = [ kept[d] for d in _default_plots if d in kept ] + add
+        expected = [ kept[d] for d in self._base if d in kept ] + add
         for k, v in ( ('change',change), ('remove',remove), ('add',add),
                       ('order',list(plots) if plots != expected else []) ):
             if v:
@@ -459,6 +486,8 @@ class Viewer:
 
     def _apply_state( self, state ):
         """Apply the state (from _as_state) to the start (see state())"""
+        if state.get('collection'):
+            self._set_or_raise('collection',state['collection'])
         for k in ( 'skip', 'limit', 'pick', 'edit' ):
             if state.get(k):
                 self._set_or_raise(k,str(state[k]))
@@ -536,6 +565,8 @@ class Viewer:
             view = '-w'
         elif list(state) == [ 'view' ]:
             view = f'--view="{state["view"]}"'
+        elif list(state) == [ 'collection' ]:
+            view = f'-w{state["collection"]}'
         else:
             text = json.dumps(state,separators=(',',':')).replace('"',"'")
             view = f'--view="{text}"'
@@ -763,7 +794,7 @@ class _Cancelled(Exception):
     pass
 
 #The entries of the state (see Viewer.state), and of its changes of the plots:
-_state_keys = ( 'skip', 'limit', 'pick', 'edit', 'plots', 'view' )
+_state_keys = ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plots', 'view' )
 _state_plot_keys = ( 'change', 'remove', 'add', 'order' )
 
 def _as_state( view ):
@@ -802,7 +833,7 @@ def _as_state( view ):
         check(k in _state_keys,f'unknown entry "{k}" (the entries are: {", ".join(_state_keys)})')
     for k in ( 'skip', 'limit' ):
         check(isinstance(state.get(k,0),int),f'{k} must be a number')
-    for k in ( 'pick', 'edit', 'view' ):
+    for k in ( 'pick', 'edit', 'collection', 'view' ):
         check(isinstance(state.get(k,''),str),f'{k} must be a text')
     plots = state.get('plots',{})
     check(isinstance(plots,dict),'plots must be a JSON object')
@@ -959,8 +990,10 @@ def view( filename, pick = None, edit = None, skip = 0, limit = None,
     file (after skipping skip particles, at most limit particles), picked with
     pick and then edited with edit (expressions, or ParticleFilter and
     ParticleEdit objects), which can all be changed in the viewer. view is the
-    view shown first ('overview', or a plot, e.g. 'ekin'), or a state of the
-    viewer (as saved in the viewer, a .json file, or a dict). In Jupyter, the viewer is a panel of ipywidgets
+    name of a collection of plots to start from (e.g. 'beamz', see mcpltool
+    --full-help), the view shown first ('overview', or a plot, e.g. 'ekin'),
+    or a state of the viewer (as saved in the viewer, a .json file, or a
+    dict). In Jupyter, the viewer is a panel of ipywidgets
     (which is returned), and otherwise it is shown in a window with
     matplotlib, or in the terminal (always with terminal=True, or with the
     given plotting backend), until it is closed."""

@@ -50,7 +50,8 @@ def same( a, b ):
 _plots = [ 'ekin/MeV;logx=1;split=pdgcode', 'x/cm : y/cm;bins=10', 'wavelength;logy=1' ]
 
 def test_figures():
-    from mcpldev._viewer import _default_plots
+    from mcpldev._stdviews import _collections
+    _default_plots = _collections['default'][1]
     for skip, limit, pick, edit in ( (0,None,None,None),
                                      (0,None,'pdgcode == neutron',None),
                                      (100,500,'ekin > 1MeV','z += 1m'),
@@ -91,6 +92,47 @@ def test_figures():
             print(f'   plot {p!r} shows: {e}')
         assert ok
         v.stop()
+
+def test_collections():
+    import shlex
+
+    from mcpldev._stdviews import _collections, _default_collection
+    assert _default_collection in _collections
+    #The names of the collections can never be views (plots), as they are not
+    #valid expressions or plots (so -wNAME can be either):
+    for name in _collections:
+        for check in ( mcpl.ParticleValue, mcpl.ParticleFilter ):
+            try:
+                check(name)
+            except mcpl.MCPLError:
+                continue
+            raise AssertionError(f'collection name {name!r} is a valid expression')
+        assert not Viewer(ex).check('plot',name)[0], f'collection name {name!r} is a valid plot'
+    #All plots of all collections work:
+    for name, ( descr, plots ) in _collections.items():
+        assert len(set(plots)) == len(plots)
+        for p in plots:
+            mcpl.histogram(ex,p)
+        print(f'collection {name}: {descr}, {len(plots)} plots, first: {plots[0]!r}')
+    v = Viewer(ex,view='beamz',plots=['x;bins=5'])
+    print('-wbeamz:', v.field_text('collection'), [ k for k, _ in v.views ][:2],
+          '| state:', v.state(), '| command:', v.commands()['view'])
+    v.change_plot('x : y','x/mm : y/mm')
+    print('changed:', v.state(full = False))
+    print('check:', v.check('collection','beam'), v.check('collection',''))
+    print('completions:', v.complete('collection','beam'), '| hint:', v.hint('collection','beamx'))
+    g = v._generation
+    print('same collection:', v.set('collection','beamz'), 'restarted:', v._generation != g)
+    print('switched:', v.set('collection','shielding'), [ k for k, _ in v.views ][:2],
+          'added plot kept:', v._s.plots[-1], '| state:', v.state(full = False))
+    arg = shlex.split(v.commands()['view'])[1]
+    w = Viewer(ex,view=arg.split('=',1)[1] if arg.startswith('--') else arg[2:])
+    print('opened with the command: same state:', w.state() == v.state())
+    for bad in ( "{'collection':'nope'}", "{'collection':3}" ):
+        try:
+            Viewer(ex,view=bad)
+        except mcpl.MCPLError as e:
+            print(f'view {bad!r}: {e}')
 
 def test_state():
     import json
@@ -328,6 +370,9 @@ def test_terminal():
     #Moving the shown plot (Up and Down with Shift, Ctrl, Alt, ...):
     v, _ = run(['WAIT','Down','Down','MoveUp','WAIT'],show=False)
     print('   moved up:', v._s.plots[:3], 'current:', v.views[v.current][0])
+    #c changes the collection of plots (the field starts with the current one):
+    v, _ = run(['WAIT','c'] + ['Backspace'] * 7 + list('beamx') + ['Enter','WAIT'],show=False)
+    print('   c changes the collection:', v.field_text('collection'), v.views[v.current][0])
     before = set(pathlib.Path('.').glob('*.json'))
     run(['WAIT','v','Enter','WAIT'],show=False)
     print('   v saves the state in:', sorted( str(f) for f in set(pathlib.Path('.').glob('*.json')) - before ))
@@ -372,6 +417,7 @@ def test_tool():
 test_figures()
 test_fields()
 test_reading()
+test_collections()
 test_state()
 test_write()
 test_terminal()

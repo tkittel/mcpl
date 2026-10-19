@@ -4,6 +4,7 @@ Modules of the mcpl package and their imports from the package:
   layer   0 : _messages            <- -
   layer   0 : _numpy               <- -
   layer   0 : _particles           <- -
+  layer   0 : _stdviews            <- -
   layer   0 : _viewer_ui           <- -
   layer   0 : constants            <- -
   layer   1 : _exprhelp            <- _particles
@@ -33,8 +34,8 @@ Modules of the mcpl package and their imports from the package:
   layer   9 : _plotbackend_text_gui <- _common, _plotbackend_text, _termcolor, _viewer_ui
   layer   9 : _viewer_jupyter      <- _common, _exprhelp, _logo, _plotbackend_mpl, _viewer_ui
   layer  10 : _clistats            <- _common, _histogram, _histstring, _plotbackend, _reader, _stats, plotting
-  layer  10 : _viewer              <- _blocks, _common, _expressions, _exprhelp, _extract, _histogram, _histstring, _numpy, _plotbackend, _reader, _viewer_jupyter, plotting
-  layer  11 : _cli                 <- _clistats, _common, _examples, _expressions, _exprhelp, _extract, _fileops, _messages, _particles, _plotbackend, _reader, _viewer, _viewer_ui
+  layer  10 : _viewer              <- _blocks, _common, _expressions, _exprhelp, _extract, _histogram, _histstring, _numpy, _plotbackend, _reader, _stdviews, _viewer_jupyter, plotting
+  layer  11 : _cli                 <- _clistats, _common, _examples, _expressions, _exprhelp, _extract, _fileops, _messages, _particles, _plotbackend, _reader, _stdviews, _viewer, _viewer_ui
   layer top : __init__             <- _blocks, _common, _fileops, _messages, _reader, _statsum, _writer, constants
   layer top : __main__             <- _cli
   layer top : mcpl                 <- _blocks, _cli, _common, _fileops, _reader, _stats, _statsum

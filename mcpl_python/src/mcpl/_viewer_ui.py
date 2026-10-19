@@ -31,6 +31,7 @@ fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
            ( 'limit', 'Limit', 'i', 1, 'all' ),
            ( 'pick', 'Pick', 'p', 0, 'all particles' ),
            ( 'edit', 'Edit', 'e', 0, 'no changes' ),
+           ( 'collection', 'Collection', 'c', 0, 'default' ),
            ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy' ) )
 
 #The other actions: (action, label, keys, position of the key in the label):
@@ -102,7 +103,7 @@ def hint_line( editor, popup = False ):
                           for i, (n, _) in enumerate(editor.choices) ), 'dim'
     if editor.replaces is not None and not editor.text.strip():
         return 'Enter: remove this plot   Esc: cancel', 'dim'
-    tab = '  (Tab: complete)' if editor.field in ( 'pick', 'edit', 'plot' ) else ''
+    tab = '  (Tab: complete)' if editor.field in ( 'pick', 'edit', 'collection', 'plot' ) else ''
     if not editor.ok and editor.message:
         return editor.message + tab, 'error'
     if editor.hint:
@@ -132,6 +133,8 @@ Keys:
                edited.
   a            Add a plot of an expression, with options as for -H, e.g.
                hypot(x,y)/cm;logy (see mcpltool -H help).
+  c            Choose the collection of plots to start from (Tab lists them),
+               e.g. beamz for a beam along the z axis (added plots are kept).
   Enter        Change the shown plot (an empty text removes it).
   w            Write the picked and edited particles to a new file.
   v            Save the state of the viewer (the settings and plots) in a
@@ -175,7 +178,7 @@ def popup_rows( editor, maxrows ):
 def editor_for( viewer, action ):
     """The LineEditor for an action (a field, 'write', 'state', or 'change' of
     the shown plot), or None if there is nothing to edit"""
-    if action in ( 'skip', 'limit', 'pick', 'edit', 'plot' ):
+    if action in ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot' ):
         return LineEditor(viewer,action)
     if action == 'write':
         return LineEditor(viewer,'write',viewer.suggested_filename())

@@ -243,7 +243,8 @@ class TextViewer:
             self.scroll = 0
         elif action in ( 'move_up', 'move_down' ):
             v.move(-1 if action == 'move_up' else 1)
-        elif action in ( 'skip', 'limit', 'pick', 'edit', 'plot', 'write', 'state', 'change' ):
+        elif action in ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot', 'write', 'state',
+                         'change' ):
             self.editor = ui.editor_for(v,action)
         elif action == 'help':
             self.show_help = True

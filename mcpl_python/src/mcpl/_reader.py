@@ -31,6 +31,7 @@ from ._blocks import (
     _EditedParticleBlock,
     _nonfinite_masks,
     _surely_finite,
+    record_dtype,
 )
 from ._common import MCPLError, _output_bytearray_raw
 from ._messages import _warning
@@ -173,29 +174,15 @@ class MCPLFile:
                         del self._hdr['stat_sum']
 
         #prepare dtype for reading 1 particle:
-        fp = 'f4' if self.opt_singleprec else 'f8'
-        fields = []
-        if self.opt_polarisation:
-            fields += [('polx',fp),('poly',fp),('polz',fp)]
-        fields += [('x',fp),('y',fp),('z',fp),
-                   ('uve1',fp),('uve2',fp),('uve3',fp),#packed unit vector and ekin
-
-        ('t',fp)]
-        if not self.opt_universalweight:
-            fields += [('w',fp)]
-        if not self.opt_universalpdgcode:
-            fields += [('pdg','i4')]
-        if self.opt_userflags:
-            fields += [('uf','u4')]
-        fields = [(str(f[0]),str(f[1])) for f in fields]#workaround for https://github.com/numpy/numpy/issues/2407
-        udinfo = None
+        udinfo, uddtype = None, None
         if self.userdata_layout is not None:
             #(userdata is a structured field, which is not unpacked until used):
             from ._userdata import userdata_dtype
-            fields += [('ud',userdata_dtype(self.userdata_layout))]
-            udinfo = ( self.userdata_layout,
-                       userdata_dtype(self.userdata_layout).newbyteorder(self.endianness) )
-        self._pdt = np.dtype(fields).newbyteorder(self.endianness)
+            uddtype = userdata_dtype(self.userdata_layout)
+            udinfo = ( self.userdata_layout, uddtype.newbyteorder(self.endianness) )
+        self._pdt = record_dtype(self.opt_singleprec,self.opt_polarisation,
+                                 self.opt_universalweight,self.opt_universalpdgcode,
+                                 self.opt_userflags,uddtype).newbyteorder(self.endianness)
 
         #Init position and caches (don't read first block yet):
         self._ipos = 0

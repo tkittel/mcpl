@@ -15,7 +15,8 @@ Modules of the mcpl package and their imports from the package:
   layer   2 : _blocks              <- _common, _numpy, _physics
   layer   2 : _expressions         <- _common, _exprsyntax, _numpy, _physics
   layer   3 : _reader              <- _blocks, _common, _expressions, _messages, _numpy, _scipp, _statsum, _userdata
-  layer   4 : _writer              <- _blocks, _common, _expressions, _messages, _numpy, _physics, _reader, _statsum, _userdata
+  layer   3 : _records             <- _blocks, _common, _numpy, _physics
+  layer   4 : _writer              <- _blocks, _common, _expressions, _messages, _numpy, _reader, _records, _statsum, _userdata
   layer   5 : _examples            <- _common, _messages, _numpy, _writer
   layer   5 : _extract             <- _messages, _reader, _writer
   layer   5 : _fileops             <- _common, _expressions, _messages, _reader, _statsum, _writer

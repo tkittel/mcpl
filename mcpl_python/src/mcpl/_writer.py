@@ -24,7 +24,6 @@
 
 __all__ = ['MCPLOutFile', 'gzip_file']
 
-import math
 import os
 import pathlib
 
@@ -39,8 +38,16 @@ from ._blocks import (
 from ._common import MCPLError, _native_endianness
 from ._messages import _error, _info, _warning
 from ._numpy import np
-from ._physics import ekin_from_wavelength
 from ._reader import MCPLFile
+from ._records import (
+    _Columns,
+    _fields_all,
+    _fields_vector,
+    _int_field,
+    _raise_first_failure,
+    _RecordFormat,
+    collect_fields,
+)
 from ._statsum import (
     _parse_statsum,
     _parse_statsum_comment,
@@ -89,14 +96,6 @@ class MCPLOutFile:
     API). The header settings of an existing file can be copied with
     transfer_metadata(..).
     """
-
-    _fields_vector = ( ('position', ('x','y','z')),
-                       ('direction', ('ux','uy','uz')),
-                       ('polarisation', ('polx','poly','polz')) )
-    _fields_scalar = ('ekin','wavelength','time','weight','pdgcode','userflags')
-    _fields_all = frozenset( [ v for v,_ in _fields_vector ]
-                             + [ c for _,cs in _fields_vector for c in cs ]
-                             + list(_fields_scalar) )
 
     def __init__( self, filename, *, sourcename = None, comments = None,
                   blobs = None, stat_sum = None, opt_userflags = False,
@@ -170,7 +169,7 @@ class MCPLOutFile:
         self._nparticles = 0
         self._statsuminfo = {}#key -> [position of comment data in file, value]
         self._pending = []
-        self._pdt = None
+        self._format = None#(see _fmt)
         self._fh = _DryRunHandle() if self._dry_run else open(filename,'wb')  # noqa: SIM115
         if sourcename is not None:
             self.hdr_set_srcname(sourcename)
@@ -542,26 +541,19 @@ class MCPLOutFile:
         if source.userdata_layout is not None:
             self.enable_userdata(source.userdata_layout)
 
-    def _particle_dtype(self):
-        if self._pdt is None:
-            fp = 'f4' if self._opt_singleprec else 'f8'
-            fields = []
-            if self._opt_polarisation:
-                fields += [('polx',fp),('poly',fp),('polz',fp)]
-            fields += [('x',fp),('y',fp),('z',fp),
-                       ('uve1',fp),('uve2',fp),('uve3',fp),
-                       ('t',fp)]
-            if not self._opt_universalweight:
-                fields += [('w',fp)]
-            if not self._opt_universalpdgcode:
-                fields += [('pdg','i4')]
-            if self._opt_userflags:
-                fields += [('uf','u4')]
-            if self._udlayout is not None:
-                fields += [('ud',self._userdata_dtype())]
-            self._pdt = np.dtype(fields)
-            assert self._pdt.itemsize == self.particlesize
-        return self._pdt
+    def _fmt(self):
+        """The format of the particle records (fixed when the header is
+        written)"""
+        if self._format is not None:
+            return self._format
+        fmt = _RecordFormat(self._opt_singleprec,self._opt_polarisation,
+                            self._opt_universalweight,self._opt_universalpdgcode,
+                            self._opt_userflags,
+                            self._userdata_dtype() if self._udlayout is not None else None)
+        assert fmt.dtype.itemsize == self.particlesize
+        if not self._hdr_notwritten:
+            self._format = fmt
+        return fmt
 
     def _write_header(self):
         import struct
@@ -615,7 +607,7 @@ class MCPLOutFile:
         self._fh.flush()
         self._statsuminfo = statsuminfo
         self._hdr_notwritten = False
-        self._particle_dtype()
+        self._fmt()
 
     def _update_statsum_on_disk(self, key, comment, value):
         pos = self._statsuminfo[key][0]
@@ -639,157 +631,12 @@ class MCPLOutFile:
             return
         pending, self._pending = self._pending, []
         cols = list(zip(*pending))
-        self._write_records( self._pack( len(pending),
+        self._write_records( self._fmt().pack( len(pending),
                                          dict(zip(self._pending_keys,cols)),
                                          validate = False ) )
 
     _pending_keys = ('x','y','z','ux','uy','uz','polx','poly','polz',
                      'ekin','time','weight','pdgcode','userflags')
-
-    def _collect_fields(self, fields):
-        unknown = set(fields) - MCPLOutFile._fields_all
-        if unknown:
-            raise TypeError('Unknown particle field(s): '
-                            + ', '.join(sorted(unknown)))
-        cols = {}
-        for vecname, compnames in MCPLOutFile._fields_vector:
-            if vecname in fields:
-                if any( c in fields for c in compnames ):
-                    raise MCPLError(f'Do not specify both {vecname} and any'
-                                    ' of ' + ', '.join(compnames))
-                v = np.asarray(fields[vecname],dtype=float)
-                if v.shape[-1:] != (3,) or v.ndim > 2:
-                    raise MCPLError(f'{vecname} must have shape (3,) or (N,3)')
-                for i,c in enumerate(compnames):
-                    cols[c] = v[...,i]
-            else:
-                for c in compnames:
-                    if c in fields:
-                        cols[c] = np.asarray(fields[c],dtype=float)
-        for c in ('ekin','wavelength','time','weight'):
-            if c in fields:
-                cols[c] = np.asarray(fields[c],dtype=float)
-        for c,lo,hi in (('pdgcode',-2147483648,2147483647),
-                        ('userflags',0,4294967295)):
-            if c in fields:
-                v = np.asarray(fields[c])
-                if v.dtype.kind not in 'iub':
-                    vi = v.astype(np.int64)
-                    if not np.array_equal(vi,v):
-                        raise MCPLError(f'{c} must be integers')
-                    v = vi
-                if v.size and ( v.min() < lo or v.max() > hi ):
-                    raise MCPLError(f'{c} out of range')
-                cols[c] = v.astype(np.int64)
-        for c,v in cols.items():
-            if v.ndim > 1:
-                raise MCPLError(f'{c} must be a scalar or a 1D array')
-        lengths = { len(v) for v in cols.values() if v.ndim == 1 }
-        lengths.discard(1)
-        if len(lengths) > 1:
-            raise MCPLError('Inconsistent lengths of particle field arrays')
-        return cols, (lengths.pop() if lengths else 1)
-
-    def _pack(self, n, cols, validate = True, packed_ekindir = None):
-        """Serialise particle data (dictionary of scalars or arrays of length n)
-        into structured array, exactly like the C library."""
-        def col(name,default=0.0):
-            v = cols.get(name)
-            if v is None:
-                return np.full(n,default)
-            return np.broadcast_to(np.asarray(v,dtype=float),(n,))
-        ux, uy, uz = col('ux'), col('uy'), col('uz')
-        ekin = col('ekin')
-        if validate:
-            self._validate(n,col)
-        arr = np.empty(n,dtype=self._particle_dtype())
-        if packed_ekindir is not None:
-            arr['uve1'], arr['uve2'], arr['uve3'] = packed_ekindir
-        else:
-            #Adaptive Projection Packing (see mcpl_unitvect_pack_adaptproj):
-            absx, absy = np.abs(ux), np.abs(uy)
-            project = np.abs(uz) < np.fmax(absx,absy)
-            with np.errstate(divide='ignore'):
-                invz = np.where(uz != 0.0, 1.0 / np.where(uz != 0.0, uz, 1.0), np.inf)
-            proj_x = project & (absx >= absy)
-            proj_y = project & ~(absx >= absy)
-            arr['uve1'] = np.where(proj_x, invz, ux)
-            arr['uve2'] = np.where(proj_y, invz, uy)
-            arr['uve3'] = np.copysign( ekin,
-                                       np.where(proj_x, ux,
-                                                np.where(proj_y, uy, uz)) )
-        if self._opt_polarisation:
-            arr['polx'], arr['poly'], arr['polz'] = col('polx'), col('poly'), col('polz')
-        arr['x'], arr['y'], arr['z'] = col('x'), col('y'), col('z')
-        arr['t'] = col('time')
-        if not self._opt_universalweight:
-            arr['w'] = col('weight')
-        if not self._opt_universalpdgcode:
-            v = cols.get('pdgcode')
-            arr['pdg'] = 0 if v is None else np.broadcast_to(v,(n,))
-        if self._opt_userflags:
-            v = cols.get('userflags')
-            arr['uf'] = 0 if v is None else np.broadcast_to(v,(n,))
-        if self._udlayout is not None:
-            #(the callers always give the userdata for files with userdata):
-            v = cols.get('userdata')
-            arr['ud'] = ( np.zeros(n,dtype=self._userdata_dtype())
-                          if v is None else v )
-        return arr
-
-    def _validate(self, n, col):
-        """Raise MCPLError for the first invalid particle (and its first failed
-        check), like the C library does. The particle fields are given as
-        col(name) arrays of length n."""
-        cols = _Columns(n,col)
-        checks = [ ( m, f'attempting to add particle with NaN or infinite {name}' )
-                   for name, m in _nonfinite_masks(cols,self._opt_polarisation,
-                                                   not self._opt_universalweight).items() ]
-        ux, uy, uz, ekin = col('ux'), col('uy'), col('uz'), col('ekin')
-        with np.errstate(invalid='ignore'):
-            checks.append( ( np.abs( ux * ux + uy * uy + uz * uz - 1.0 ) > 1.0e-5,
-                             'attempting to add particle with non-unit direction vector' ) )
-            checks.append( ( ekin < 0.0,
-                             'attempting to add particle with negative kinetic energy' ) )
-        if self._opt_singleprec:
-            fields = [ ('position',('x','y','z')) ]
-            if self._opt_polarisation:
-                fields.append( ('polarisation',('polx','poly','polz')) )
-            fields += [ ('kinetic energy',('ekin',)), ('time',('time',)) ]
-            if not self._opt_universalweight:
-                fields.append( ('weight',('weight',)) )
-            for name, cs in fields:
-                with np.errstate(over='ignore',invalid='ignore'):
-                    m = np.logical_or.reduce([ np.isfinite(col(c))
-                                               & ~np.isfinite(col(c).astype(np.float32))
-                                               for c in cs ])
-                checks.append( ( m, ( f'attempting to add particle with {name} too'
-                                      ' large for single precision storage' ) ) )
-        _raise_first_failure(checks)
-
-    def _validate_one(self, v, ekin, time, weight):
-        """Like _validate, for a single particle with values given as Python
-        floats (v being the position, direction and polarisation), which is
-        much faster than numpy for single values."""
-        x, y, z, ux, uy, uz, polx, poly, polz = v
-        groups = [ ('position',(x,y,z)), ('direction',(ux,uy,uz)) ]
-        if self._opt_polarisation:
-            groups.append( ('polarisation',(polx,poly,polz)) )
-        groups += [ ('kinetic energy',(ekin,)), ('time',(time,)) ]
-        if not self._opt_universalweight:
-            groups.append( ('weight',(weight,)) )
-        for name, vals in groups:
-            if not all( math.isfinite(e) for e in vals ):
-                raise MCPLError(f'attempting to add particle with NaN or infinite {name}')
-        if abs( ux * ux + uy * uy + uz * uz - 1.0 ) > 1.0e-5:
-            raise MCPLError('attempting to add particle with non-unit direction vector')
-        if ekin < 0.0:
-            raise MCPLError('attempting to add particle with negative kinetic energy')
-        if self._opt_singleprec:
-            for name, vals in groups:
-                if name != 'direction' and any( abs(e) >= _float32_overflow for e in vals ):
-                    raise MCPLError(f'attempting to add particle with {name} too'
-                                    ' large for single precision storage')
 
     def add_particles(self, particles = None, **fields):
         """Add block of particles. Particle data is specified with keyword
@@ -847,8 +694,8 @@ class MCPLOutFile:
             if udarr is not None:
                 udarr = _broadcast_userdata(udarr,len(b))
             if fields:
-                ocols, _ = self._collect_fields(fields)
-                self._resolve_wavelength(ocols, ocols.get('pdgcode', b.pdgcode))
+                ocols, _ = collect_fields(fields)
+                self._fmt().resolve_wavelength(ocols, ocols.get('pdgcode', b.pdgcode))
                 b = _EditedParticleBlock(b,ocols)
             if self._flt is not None:
                 keep = self._flt(b)
@@ -862,12 +709,12 @@ class MCPLOutFile:
             return
         if udarr is None:
             self._check_userdata_given('add_particles')
-        cols, n = self._collect_fields(fields)
+        cols, n = collect_fields(fields)
         if udarr is not None:
             if n == 1:
                 n = len(udarr)
             udarr = _broadcast_userdata(udarr,n)
-        self._resolve_wavelength(cols, cols.get('pdgcode'))
+        self._fmt().resolve_wavelength(cols, cols.get('pdgcode'))
         if self._flt is not None or self._edt is not None:
             defaults = { 'pdgcode' : self._opt_universalpdgcode,
                          'weight' : self._opt_universalweight }
@@ -884,12 +731,12 @@ class MCPLOutFile:
             cols = { f : getattr(blk,f) for f in _block_fields if f in cols }
             if self._edt is not None:
                 cols.update(self._edt(blk))
-                self._resolve_wavelength(cols, cols.get('pdgcode'))
+                self._fmt().resolve_wavelength(cols, cols.get('pdgcode'))
         if udarr is not None:
             cols['userdata'] = udarr
         if self._hdr_notwritten:
             self._write_header()
-        arr = self._pack(n,cols)
+        arr = self._fmt().pack(n,cols)
         self._flush_pending()
         self._write_records(arr)
 
@@ -937,12 +784,12 @@ class MCPLOutFile:
             return
         if self._hdr_notwritten:
             self._write_header()
-        unknown = set(fields) - MCPLOutFile._fields_all
+        unknown = set(fields) - _fields_all
         if unknown:
             raise TypeError('Unknown particle field(s): '
                             + ', '.join(sorted(unknown)))
         vals = []
-        for vecname, compnames in MCPLOutFile._fields_vector:
+        for vecname, compnames in _fields_vector:
             if vecname in fields:
                 if any( c in fields for c in compnames ):
                     raise MCPLError(f'Do not specify both {vecname} and any'
@@ -959,28 +806,16 @@ class MCPLOutFile:
             cols = { 'wavelength' : float(fields['wavelength']) }
             if 'ekin' in fields:
                 cols['ekin'] = fields['ekin']
-            self._resolve_wavelength(cols, pdgcode if 'pdgcode' in fields else None)
+            self._fmt().resolve_wavelength(cols, pdgcode if 'pdgcode' in fields else None)
             ekin = float(cols['ekin'])
         else:
             ekin = float(fields.get('ekin',0.0))
         time, weight = float(fields.get('time',0.0)), float(fields.get('weight',0.0))
-        self._validate_one(vals,ekin,time,weight)
+        self._fmt().validate_one(vals,ekin,time,weight)
         vals += [ ekin, time, weight, pdgcode, userflags ]
         self._pending.append(vals)
         if len(self._pending) >= self._blocklength:
             self._flush_pending()
-
-    def _resolve_wavelength(self, cols, pdgcode):
-        if 'wavelength' not in cols:
-            return
-        if 'ekin' in cols:
-            raise MCPLError('Do not specify both ekin and wavelength')
-        if pdgcode is None:
-            pdgcode = self._opt_universalpdgcode
-        if not np.all( np.isin( pdgcode, (2112,22) ) ):
-            raise MCPLError('wavelength can only be specified for neutrons'
-                            ' (pdgcode 2112) and gammas (pdgcode 22)')
-        cols['ekin'] = ekin_from_wavelength( cols.pop('wavelength'), pdgcode )
 
     def _transfer(self, block, sel, overrides = None):
         udarr = None
@@ -1015,7 +850,7 @@ class MCPLOutFile:
                             ' file with a different userdata layout')
         ocols = {}
         if overrides:
-            ocols, no = self._collect_fields(overrides)
+            ocols, no = collect_fields(overrides)
             if no not in (1,n):
                 raise MCPLError('Inconsistent lengths of particle field arrays')
             ocols = { k : np.broadcast_to(v,(n,)) for k,v in ocols.items() }
@@ -1025,7 +860,7 @@ class MCPLOutFile:
             self._write_header()
         pdgcode = ocols['pdgcode'] if 'pdgcode' in ocols else block.pdgcode[sel]
         weight = ocols['weight'] if 'weight' in ocols else block.weight[sel]
-        self._resolve_wavelength(ocols, pdgcode)
+        self._fmt().resolve_wavelength(ocols, pdgcode)
         #Checks like in mcpl_transfer_last_read_particle (for the first
         #particle failing any of them):
         checks = []
@@ -1050,7 +885,7 @@ class MCPLOutFile:
                                   f' NaN or infinite {name}' ) ) )
         _raise_first_failure(checks)
         src_singleprec = ( data.dtype['x'].itemsize == 4 )
-        if not ocols and block._fmtversion != 2 and data.dtype == self._particle_dtype():
+        if not ocols and block._fmtversion != 2 and data.dtype == self._fmt().dtype:
             #Particle data is encoded in exactly the same manner in source and
             #target, so simply transfer the bytes:
             arr = data
@@ -1071,7 +906,7 @@ class MCPLOutFile:
                 #Reuse packed ekin+direction from the source, to avoid
                 #potentially lossy unpacking+packing:
                 packed = ( data['uve1'], data['uve2'], data['uve3'] )
-            arr = self._pack(n,cols,packed_ekindir = packed)
+            arr = self._fmt().pack(n,cols,packed_ekindir = packed)
         self._flush_pending()
         self._write_records(arr)
 
@@ -1139,15 +974,6 @@ def gzip_file(filename):
     _info(f'Compressed file into {bn}.gz')
     return True
 
-class _Columns:
-    """Block-like view of particle fields given by col(name)"""
-    def __init__( self, n, col ):
-        self._n, self._col = n, col
-    def __len__( self ):
-        return self._n
-    def __getattr__( self, name ):
-        return self._col(name)
-
 def _broadcast_userdata( udarr, n ):
     if len(udarr) == n:
         return udarr
@@ -1159,31 +985,3 @@ def _decode( b ):
     """Decode bytes from the header like MCPLFile does"""
     return b.decode('utf-8','replace')
 
-#Doubles which become infinite when converted to single precision (they round
-#up to 2^128, since the largest single precision number has an odd mantissa):
-_float32_overflow = float.fromhex('0x1.ffffffp+127')
-
-def _int_field( name, v, lo, hi ):
-    """Integer value of a single particle field (like the checks of integer
-    arrays in _collect_fields)."""
-    if not isinstance(v,(int,np.integer)):
-        f = float(v)
-        if not f.is_integer():
-            raise MCPLError(f'{name} must be integers')
-        v = f
-    v = int(v)
-    if not ( lo <= v <= hi ):
-        raise MCPLError(f'{name} out of range')
-    return v
-
-def _raise_first_failure( checks ):
-    """Raise MCPLError for the first particle failing any of the checks (masks
-    and messages, which can also be functions of the particle index), with the
-    message of the first check it fails."""
-    checks = [ ( np.asarray(m,dtype=bool), msg ) for m, msg in checks ]
-    failing = [ int(np.argmax(m)) for m, _ in checks if m.any() ]
-    if not failing:
-        return
-    i = min(failing)
-    msg = next( msg for m, msg in checks if m.ndim and m[i] or not m.ndim and m )
-    raise MCPLError( msg(i) if callable(msg) else msg )

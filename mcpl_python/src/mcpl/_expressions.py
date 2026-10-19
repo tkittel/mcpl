@@ -40,8 +40,8 @@ from ._exprsyntax import (
     _Unit,
 )
 from ._numpy import np
+from ._particles import _particle_names, _wavelength_pdgcodes
 from ._physics import (
-    _particle_names,
     _pdg_label,
     _pdg_name,
     ekin_from_wavelength,
@@ -58,7 +58,7 @@ _expr_field_dims = { 'x' : _dim_L, 'y' : _dim_L, 'z' : _dim_L,
 _expr_wl_unit = 1e-8#wavelengths are in Aa in the Python API
 #Fields which are only defined for some particles: the field and the values
 #for which they are defined:
-_expr_field_domains = { 'wavelength' : ( 'pdgcode', ( 2112, 22 ) ) }
+_expr_field_domains = { 'wavelength' : ( 'pdgcode', _wavelength_pdgcodes ) }
 #Labels and short names of the values of fields (for labels in plots and
 #tables, with symbols for plots if unicode is set, see _pdg_symbols):
 _expr_value_names = { 'pdgcode' : ( _pdg_label, _pdg_name ) }
@@ -313,7 +313,7 @@ class _ExprEvaluator:
         return q
     def _check_wavelength( self ):
         pdg = np.asarray(self.name('pdgcode').v)
-        bad = ~np.isin(pdg,(2112,22))
+        bad = ~np.isin(pdg,_wavelength_pdgcodes)
         if self.active is not None:
             bad &= self.active
         if np.any(bad):
@@ -981,7 +981,7 @@ class ParticleEdit:
     def _set_wavelength( self, ev, wl, modified ):
         """Set kinetic energy from wavelength (given in cm)"""
         pdg = np.asarray(ev.name('pdgcode').v)
-        if not np.all( np.isin( pdg, (2112,22) ) ):
+        if not np.all( np.isin( pdg, _wavelength_pdgcodes ) ):
             raise MCPLError('wavelength can only be assigned to neutrons'
                             ' (pdgcode 2112) and gammas (pdgcode 22)'
                             f' in expression "{self._expr}"')

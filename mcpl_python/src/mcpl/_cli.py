@@ -38,7 +38,7 @@ from ._fileops import (
     repair,
 )
 from ._messages import _ForcePrinting, _info
-from ._physics import _particle_names
+from ._particles import _particle_names
 from ._reader import MCPLFile
 
 _short_help = """

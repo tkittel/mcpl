@@ -28,6 +28,7 @@ import os
 from ._common import MCPLError
 from ._messages import _warning
 from ._numpy import np
+from ._particles import _wavelength_pdgcodes
 from ._physics import _pdg_database, wavelength_from_ekin
 from ._reader import MCPLFile
 
@@ -165,7 +166,7 @@ class _Overview:
         self.theta_bins = np.linspace(0.0,180.0,91)
         self.wl_bins = {}
         if self.ekin_log:
-            for pdg in (2112,22):
+            for pdg in _wavelength_pdgcodes:
                 self.wl_bins[pdg] = np.sort(wavelength_from_ekin(self.ekin_bins,pdg))
         self.xy_range = [ranges['x'],ranges['y']]
         self.ekin, self.theta, self.wl, self.sumw = {}, {}, {}, {}

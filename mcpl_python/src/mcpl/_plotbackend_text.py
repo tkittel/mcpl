@@ -34,7 +34,8 @@ import sys
 from typing import ClassVar
 
 from ._numpy import np
-from ._physics import _ascii_symbols, _pdg_symbols
+from ._particles import _pdg_symbols
+from ._physics import _ascii_symbols
 from ._plotbackend import PlotBackend
 from ._termcolor import _check_setting, _curve_rgb, _map_rgb, _ncolors, _paint
 from .plotting import Bars, Hist2D, StepHist, Text, _map_texts

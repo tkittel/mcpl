@@ -27,6 +27,8 @@ __all__ = []
 
 import textwrap
 
+from ._particles import _particle_help
+
 #(group, name, short description, long description):
 _hints = (
     ( 'fields', 'x',
@@ -80,39 +82,9 @@ _hints = (
     ( 'constants', 'pi',
       'pi (no unit)',
       'pi = 3.14159... (no unit: e.g. atan2(y,x) > pi/2)' ),
-    ( 'particles', 'neutron',
-      'PDG code 2112',
-      'the PDG code of neutrons, 2112 (e.g. pdgcode == neutron)' ),
-    ( 'particles', 'antineutron',
-      'PDG code -2112',
-      'the PDG code of antineutrons, -2112 (e.g. pdgcode == antineutron)' ),
-    ( 'particles', 'proton',
-      'PDG code 2212',
-      'the PDG code of protons, 2212 (e.g. pdgcode == proton)' ),
-    ( 'particles', 'antiproton',
-      'PDG code -2212',
-      'the PDG code of antiprotons, -2212 (e.g. pdgcode == antiproton)' ),
-    ( 'particles', 'electron',
-      'PDG code 11',
-      'the PDG code of electrons, 11 (e.g. pdgcode == electron)' ),
-    ( 'particles', 'positron',
-      'PDG code -11',
-      'the PDG code of positrons, -11 (e.g. pdgcode == positron)' ),
-    ( 'particles', 'antielectron',
-      'PDG code -11',
-      'the PDG code of positrons (same as positron), -11 (e.g. pdgcode == antielectron)' ),
-    ( 'particles', 'muon',
-      'PDG code 13',
-      'the PDG code of muons (negative), 13 (e.g. pdgcode == muon)' ),
-    ( 'particles', 'antimuon',
-      'PDG code -13',
-      'the PDG code of antimuons (positive muons), -13 (e.g. pdgcode == antimuon)' ),
-    ( 'particles', 'gamma',
-      'PDG code 22',
-      'the PDG code of gammas (photons), 22 (e.g. pdgcode == gamma)' ),
-    ( 'particles', 'photon',
-      'PDG code 22',
-      'the PDG code of photons (same as gamma), 22 (e.g. pdgcode == photon)' ),
+    *( ( 'particles', name, f'PDG code {pdg}',
+         f'the PDG code of {descr}, {pdg} (e.g. pdgcode == {name})' )
+       for name, pdg, descr in _particle_help ),
     ( 'units', 'meV',
       'energy unit, 1e-9 MeV',
       'unit of energy: 1meV = 1e-9 MeV (e.g. ekin < 25meV)' ),

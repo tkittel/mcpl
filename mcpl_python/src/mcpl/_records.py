@@ -30,6 +30,7 @@ import math
 from ._blocks import _nonfinite_masks, record_dtype
 from ._common import MCPLError
 from ._numpy import np
+from ._particles import _wavelength_pdgcodes
 from ._physics import ekin_from_wavelength
 
 #The particle fields which can be given when writing particles:
@@ -162,7 +163,7 @@ class _RecordFormat:
             raise MCPLError('Do not specify both ekin and wavelength')
         if pdgcode is None:
             pdgcode = self.universalpdgcode
-        if not np.all( np.isin( pdgcode, (2112,22) ) ):
+        if not np.all( np.isin( pdgcode, _wavelength_pdgcodes ) ):
             raise MCPLError('wavelength can only be specified for neutrons'
                             ' (pdgcode 2112) and gammas (pdgcode 22)')
         cols['ekin'] = ekin_from_wavelength( cols.pop('wavelength'), pdgcode )

@@ -41,6 +41,7 @@ from ._histstring import (
     _hist_with_args,
 )
 from ._numpy import np
+from ._particles import _pdg_colors
 from ._reader import MCPLFile
 
 
@@ -319,12 +320,9 @@ def _with_unit( expression, unit, note = None ):
     label = f'{expression} [{unit}]' if unit else expression
     return f'{label} {note}' if note else label
 
-#Fixed colours (indices in the colour cycles of the backends, which are those
-#of matplotlib) of the values of some fields, so particle types have the same
-#colours in all plots, with neutrons, gammas and electrons as close as possible
-#to the colours of their tracks in the MCPL logo (blue, yellow and orange):
-_fixed_colors = { 'pdgcode' : { 2112 : 0, 22 : 8, 11 : 1, -11 : 3, 2212 : 4,
-                                13 : 5, -13 : 6, 211 : 2, -211 : 7 } }
+#Fixed colours of the values of some fields, so particle types have the same
+#colours in all plots (see _particles):
+_fixed_colors = { 'pdgcode' : _pdg_colors }
 #(colours of other values):
 _other_colors = ( 9, )
 

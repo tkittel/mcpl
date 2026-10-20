@@ -30,17 +30,20 @@ Modules of the mcpl package and their imports from the package:
   layer   8 : _plotbackend_mpl     <- _common, _logo, _numpy, _plotbackend, plotting
   layer   8 : _plotbackend_test    <- _numpy, _plotbackend, plotting
   layer   8 : _plotbackend_text    <- _numpy, _particles, _physics, _plotbackend, _termcolor, plotting
-  layer   9 : _plotbackend_mpl_gui <- _plotbackend_mpl, _viewer_ui
   layer   9 : _plotbackend_text_gui <- _common, _plotbackend, _plotbackend_text, _termcolor, _viewer_ui
   layer   9 : _viewer_jupyter      <- _common, _exprhelp, _logo, _plotbackend_mpl, _viewer_ui
+  layer   9 : _viewer_widgets      <- _plotbackend_mpl, _viewer_ui
   layer  10 : _clistats            <- _common, _histogram, _histstring, _plotbackend, _reader, _stats, plotting
   layer  10 : _viewer              <- _blocks, _common, _expressions, _exprhelp, _extract, _histogram, _histstring, _numpy, _plotbackend, _reader, _stdviews, _viewer_jupyter, plotting
+  layer  10 : _viewer_tk           <- _logo, _viewer_ui, _viewer_widgets
   layer  11 : _cli                 <- _clistats, _common, _examples, _expressions, _exprhelp, _extract, _fileops, _histogram, _histstring, _messages, _particles, _plotbackend, _reader, _stdviews, _viewer, _viewer_ui
+  layer  11 : _plotbackend_mpl_gui <- _plotbackend_mpl, _viewer_tk, _viewer_ui, _viewer_widgets
   layer top : __init__             <- _blocks, _common, _fileops, _messages, _reader, _statsum, _writer, constants
   layer top : __main__             <- _cli
   layer top : mcpl                 <- _blocks, _cli, _common, _fileops, _reader, _stats, _statsum
 numpy is imported by: _numpy
-matplotlib is imported by: _plotbackend_mpl, _plotbackend_mpl_gui
+matplotlib is imported by: _plotbackend_mpl, _plotbackend_mpl_gui, _viewer_tk
+tkinter is imported by: _viewer_tk
 scipp is imported by: _scipp
 ipywidgets is imported by: _viewer_jupyter
 IPython is imported by: _viewer, _viewer_jupyter

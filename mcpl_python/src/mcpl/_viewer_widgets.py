@@ -1,0 +1,266 @@
+
+################################################################################
+##                                                                            ##
+##  This file is part of MCPL (see https://mctools.github.io/mcpl/)           ##
+##                                                                            ##
+##  Copyright 2015-2026 MCPL developers.                                      ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+"""The common part of the viewers with the widgets of a GUI toolkit (Tk, see
+_viewer_tk): what happens when the fields, the views and the actions are
+used, independent of the toolkit. The plot is a matplotlib figure, embedded
+in the window by the toolkit."""
+
+__all__ = []
+
+from . import _viewer_ui as ui
+
+
+class WidgetViewer:
+    """The viewer in a window with the widgets of a GUI toolkit. A subclass
+    for the toolkit creates the widgets (the list of views, the status, the
+    plot, a text field for each field of _viewer_ui.fields, chosen from a menu
+    for those of _viewer_ui.menu_fields, a field for the text of the shown
+    plot, a line for the check of the field being edited or a message, and
+    buttons for _viewer_ui.actions), implements the methods marked as such
+    below, and calls the on_* methods when they are used. The viewer core is
+    v, and fig is the matplotlib figure of the plot."""
+
+    def __init__( self, viewer, fig ):
+        from ._plotbackend_mpl import FigurePane
+        self.v, self.fig = viewer, fig
+        viewer.multi_overview = True#(the overview with all its plots)
+        self.pane = FigurePane(fig,( 0.08, 0.98, 0.09, 0.93 ),title_space=0.05,
+                               title_y=0.98)
+        self._histories = {}#field -> ui.History, while it is edited
+        self.closed = False
+
+    #To implement for the toolkit:
+
+    def show_views( self, labels, current ):
+        """Show the labels of the views, with the one shown selected"""
+        raise NotImplementedError
+
+    def show_status( self, first, second ):
+        """Show the two status lines (see Viewer.status_lines)"""
+        raise NotImplementedError
+
+    def show_field( self, field, text ):
+        """Set the text of the field (without calling on_field_edited)"""
+        raise NotImplementedError
+
+    def show_plot_field( self, text ):
+        """Set the text of the field of the shown plot, or disable it if text
+        is None (the shown view is not a plot)"""
+        raise NotImplementedError
+
+    def show_line( self, text, style ):
+        """Show the line below the fields, with the style 'normal', 'dim',
+        'ok' or 'error' (see _viewer_ui.hint_line)"""
+        raise NotImplementedError
+
+    def show_check( self, field, ok ):
+        """Mark the text of the field being edited as valid or not (ok is None
+        for no mark)"""
+        raise NotImplementedError
+
+    def draw_plot( self ):
+        """Redraw the canvas of the figure (it changed)"""
+        raise NotImplementedError
+
+    def focus_field( self, field ):
+        """Move the keyboard focus to the text field (field is 'shown_plot' for
+        the field of the shown plot)"""
+        raise NotImplementedError
+
+    def ask_file( self, action ):
+        """Ask for the name of the file to write ('write') or to save the state
+        of the viewer in ('state'), and call on_file with it"""
+        raise NotImplementedError
+
+    def show_help( self ):
+        """Show ui.help_text"""
+        raise NotImplementedError
+
+    def close_window( self ):
+        """Close the window (on_close is then called)"""
+        raise NotImplementedError
+
+    #Called by the toolkit:
+
+    def start( self ):
+        self.v.start()
+        for field, *_ in ui.fields:
+            self.show_field(field,self.v.field_text(field))
+        self.refresh()
+
+    def on_timer( self ):
+        """To be called regularly (e.g. every 0.2 s), while the file is read"""
+        if not self.closed and self.v.poll():
+            self.refresh()
+
+    def on_close( self ):
+        if not self.closed:
+            self.closed = True
+            self.v.stop()
+
+    def on_select( self, index ):
+        self.v.select(index)
+        self.refresh()
+
+    def on_move( self, delta ):
+        if self.v.move(delta):
+            self.refresh()
+
+    def on_click( self, event ):
+        """A click in the figure (a matplotlib event): on a plot of the overview,
+        it is shown on its own"""
+        key = self.pane.view_at(event)
+        if key is not None:
+            self.v.select_key(key)
+            self.refresh()
+
+    def on_field_edited( self, field, text ):
+        """The text of the field was changed by the user (field is
+        'shown_plot' for the field of the shown plot): it is checked"""
+        if field == 'shown_plot':
+            ok, msg = ui.check_text(self.v,'plot',text,replaces = self._shown_plot())
+            hint = self.v.hint('plot',text) if text.strip() else None
+        else:
+            ok, msg = ui.check_text(self.v,field,text)
+            hint = None if field in ui.menu_fields else self.v.hint(field,text)
+        self.show_check(field,ok)
+        if not ok and msg:
+            self.show_line(msg,'error')
+        elif hint:
+            self.show_line('hint: ' + hint,'dim')
+        elif field == 'shown_plot' and not text.strip():
+            self.show_line('Enter: remove this plot   Esc: cancel','dim')
+        else:
+            self.show_line(ui.field_hint('plot' if field == 'shown_plot' else field),'dim')
+
+    def on_field_apply( self, field, text ):
+        """The text of the field is applied (Enter, or chosen in a menu).
+        Returns whether it was applied."""
+        if field == 'shown_plot':
+            done, msg, replot = ui.apply_text(self.v,'plot',text,replaces = self._shown_plot())
+        else:
+            done, msg, replot = ui.apply_text(self.v,field,text)
+        if done:
+            self._histories.pop(field,None)
+            self.show_check(field,None)
+            if field != 'shown_plot':
+                #(the added plot is shown, so the field is emptied):
+                self.show_field(field,'' if field == 'plot' else self.v.field_text(field))
+        self.show_line(msg,'normal' if done else 'error')
+        self.refresh(plot = replot)
+        return done
+
+    def on_field_cancel( self, field ):
+        """The editing of the field is cancelled (Esc): its text is restored"""
+        self._histories.pop(field,None)
+        self.show_check(field,None)
+        self.show_line('','normal')
+        if field == 'shown_plot':
+            self.show_plot_field(self._shown_plot())
+        else:
+            self.show_field(field,'' if field == 'plot' else self.v.field_text(field))
+
+    def on_history( self, field, delta ):
+        """The text after moving delta in the earlier texts of the field (Up and
+        Down), or None"""
+        name = 'plot' if field == 'shown_plot' else field
+        h = self._histories.setdefault(field,ui.History(self.v,name))
+        return h.step(delta)
+
+    def on_complete( self, field, text, cursor ):
+        """Tab completion in the field (see ui.complete_text)"""
+        return ui.complete_text(self.v,'plot' if field == 'shown_plot' else field,text,cursor)
+
+    def menu_choices( self, field ):
+        """The values of a field of ui.menu_fields, as (value, description)"""
+        return self.v.complete(field,'')[1]
+
+    def on_key( self, key ):
+        """A key pressed outside the text fields (with the names of
+        _viewer_ui, e.g. 'Up', 'MoveDown' or 'p')"""
+        action = ui.key_action(key)
+        if action is None:
+            return
+        if action in ( 'previous', 'next' ):
+            self.on_select(self.v.current + ( -1 if action == 'previous' else 1 ))
+        elif action in ( 'move_up', 'move_down' ):
+            self.on_move( -1 if action == 'move_up' else 1 )
+        elif action == 'change':
+            if self._shown_plot() is not None:
+                self.focus_field('shown_plot')
+        elif action in ui.file_prompts:
+            self.ask_file(action)
+        elif action == 'help':
+            self.show_help()
+        elif action == 'quit':
+            self.close_window()
+        else:
+            self.focus_field(action)
+
+    def on_action( self, action ):
+        """A button of ui.actions was pressed"""
+        self.on_key(next( a[2][0] for a in ui.actions if a[0] == action ))
+
+    def on_file( self, action, filename ):
+        """The file name asked for by ask_file (None if cancelled)"""
+        if filename:
+            done, msg, _ = ui.apply_text(self.v,action,filename)
+            self.show_line(msg,'normal' if done else 'error')
+            self.refresh(plot = False)
+
+    def suggested_filename( self, action ):
+        return ( self.v.suggested_filename() if action == 'write'
+                 else self.v.suggested_state_filename() )
+
+    #The common part:
+
+    def _shown_plot( self ):
+        """The plot string of the shown view, if it is a plot (else None)"""
+        key = self.v.current_key
+        return key[5:] if key.startswith('plot:') else None
+
+    def refresh( self, plot = True ):
+        """Show the views, the status and (if plot is set) the plot"""
+        v = self.v
+        self.show_views([ label for _, label in v.views ],v.current)
+        self.show_status(*v.status_lines())
+        self.show_plot_field(self._shown_plot())
+        if plot and self.pane.show(v):
+            self.draw_plot()
+
+def run_with_ctrl_c( run, close ):
+    """Run the GUI (run() returns when the window is closed), with Ctrl-C in the
+    terminal closing the window (close()). This uses a handler of SIGINT,
+    since a KeyboardInterrupt in a callback of the GUI toolkit is only
+    reported by some (e.g. Tk). The handler runs when Python code runs (with
+    the timer of the viewer, at the latest)."""
+    import signal
+    import threading
+    main = threading.current_thread() is threading.main_thread()
+    old = signal.signal(signal.SIGINT,lambda *args : close()) if main else None
+    try:
+        run()
+    except KeyboardInterrupt:
+        close()
+    finally:
+        if main:
+            signal.signal(signal.SIGINT,old)

@@ -1,0 +1,139 @@
+==> start, and the end of the reading
+   field skip: ''
+   field limit: ''
+   field collection: 'default'
+   field pick: ''
+   field edit: ''
+   field plot: ''
+   views: 20 views, shown: 'overview'
+   status: example.mcpl: 1006 particles, Σw = 1006
+   shown plot field: None
+   plot: 7 axes
+==> typing in the pick field: invalid, then valid with a hint
+   check of pick: False
+   line (error): Unknown name "neu" in expression "pdgcode == neu" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+   check of pick: True
+   line (dim): hint: neutron  PDG code 2112
+==> applying an invalid pick, then a valid one
+   line (error): Syntax error in expression "pdgcode = 1", after "pdgcode": unexpected "=" (use == for comparisons)
+   check of pick: None
+   field pick: 'pdgcode == neutron'
+   line (normal): 
+   views: 20 views, shown: 'overview'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: None
+   plot: 7 axes
+==> Esc in the edit field restores its text
+   check of edit: False
+   line (error): Syntax error in expression "x +=", at the end: a value is missing
+   check of edit: None
+   line (normal): 
+   field edit: ''
+==> earlier texts of the pick field (Up and Down)
+   up: 'pdgcode == neutron' | down: ''
+==> Tab completion
+   ('ekin < 1MeV and e', 17, [('ekin', 'kinetic energy (an energy)'), ('electron', 'PDG code 11'), ('eV', 'energy unit, 1e-6 MeV'), ('exp(', 'exponential (a without unit)')])
+==> the collection is chosen from a menu
+   choices: ['default', 'beamz', 'beamx', 'beamy', 'shielding']
+   check of collection: True
+   line (dim): Up/Down: choose   Enter: apply   Esc: cancel
+   check of collection: None
+   field collection: 'beamz'
+   line (normal): 
+   views: 13 views, shown: 'overview'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: None
+   plot: 10 axes
+   check of collection: None
+   field collection: 'default'
+   line (normal): 
+   views: 20 views, shown: 'overview'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: None
+   plot: 7 axes
+==> adding a plot (the field is emptied, and the plot shown)
+   check of plot: None
+   field plot: ''
+   line (normal): 
+   views: 21 views, shown: 'hypot(x,y)/cm;logy'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: hypot(x,y)/cm;logy
+   plot: 1 axes
+==> changing the shown plot, and removing it (empty text)
+   check of shown_plot: True
+   line (dim): Enter: remove this plot   Esc: cancel
+   check of shown_plot: None
+   line (normal): 
+   views: 21 views, shown: 'hypot(x,y)/mm;logy'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: hypot(x,y)/mm;logy
+   plot: 1 axes
+   check of shown_plot: None
+   line (normal): 
+   views: 20 views, shown: 'polz (all 0)'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: polz
+   plot: 1 axes
+==> keys outside the fields
+  key Down:
+   views: 20 views, shown: 'polz (all 0)'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: polz
+   plot: 1 axes
+  key MoveDown:
+   views: 20 views, shown: 'polz (all 0)'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: polz
+   plot: 1 axes
+  key Up:
+   views: 20 views, shown: 'poly (all 0)'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: poly
+   plot: 1 axes
+  key P:
+   focus: pick
+   views: 20 views, shown: 'poly (all 0)'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: poly
+   plot: 1 axes
+  key Enter:
+   focus: shown_plot
+   views: 20 views, shown: 'poly (all 0)'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: poly
+   plot: 1 axes
+  key w:
+   asked for a file to write, suggested: example_selected.mcpl.gz
+   views: 20 views, shown: 'poly (all 0)'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: poly
+   plot: 1 axes
+  key v:
+   asked for a file to state, suggested: example_viewer.json
+   views: 20 views, shown: 'poly (all 0)'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: poly
+   plot: 1 axes
+  key ?:
+   help shown: 41 lines
+   views: 20 views, shown: 'poly (all 0)'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: poly
+   plot: 1 axes
+==> the file names (the suggested one is written, the same again is refused)
+   line (normal): MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz
+   line (error): Not written: The file example_selected.mcpl.gz already exists
+   written: ['example_selected.mcpl.gz']
+==> a click on a plot of the overview shows it on its own
+   views: 20 views, shown: 'overview'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: None
+   plot: 7 axes
+   views: 20 views, shown: 'angle_to(0,0,1)/deg;logy;split=pdgcode'
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: angle_to(0,0,1)/deg;logy;split=pdgcode
+   plot: 1 axes
+==> the buttons of the actions, and quit
+   help shown: 41 lines
+   window closed
+closed: True

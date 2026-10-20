@@ -52,17 +52,17 @@ v.wait()
 j.refresh()
 print('interactive figure shown:', j._right.children[1] is j._mplfig.canvas,
       'warning:', repr(j._warning.value))
-print('axes of the overview:', len(j._plot_axes), 'clickable:', len(j._panel_axes))
-click(j._mplfig,j._plot_axes[3])
+print('axes of the overview:', len(j._pane.axes), 'clickable:', len(j._pane._panels))
+click(j._mplfig,j._pane.axes[3])
 print('view after clicking the 4th plot:', v.views[v.current][0],
       'selected in the list:', j._views.index == v.current)
-j._plot_axes[0].set_xlim(-50,50)#(a zoom)
+j._pane.axes[0].set_xlim(-50,50)#(a zoom)
 j._fields['pick'].value = 'pdgcode == neutron'
 v.wait()
 j.refresh()
-print('x range after the pick, zoom kept:', j._plot_axes[0].get_xlim())
+print('x range after the pick, zoom kept:', j._pane.axes[0].get_xlim())
 j._views.index = [ k for k, _ in v.views ].index('plot:ekin')
-print('x range of another view, not zoomed:', j._plot_axes[0].get_xlim() != (-50,50))
+print('x range of another view, not zoomed:', j._pane.axes[0].get_xlim() != (-50,50))
 j.close()
 
 #The matplotlib window (on a figure without a window):
@@ -73,11 +73,11 @@ m = MplViewer(v,fig)
 m.start()
 v.wait()
 m.refresh(plot=True)
-m._plot_axes[0].set_xscale('log')#(as changed by the user)
-m._plot_axes[0].set_xlim(1,100)
+m._pane.axes[0].set_xscale('log')#(as changed by the user)
+m._pane.axes[0].set_xlim(1,100)
 v.set('limit','500')
 v.wait()
 m.refresh(plot=True)
-print('window, after changing the limit:', m._plot_axes[0].get_xscale(),
-      m._plot_axes[0].get_xlim())
+print('window, after changing the limit:', m._pane.axes[0].get_xscale(),
+      m._pane.axes[0].get_xlim())
 m._on_close(None)

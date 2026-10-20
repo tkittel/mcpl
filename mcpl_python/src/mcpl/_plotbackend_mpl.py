@@ -276,6 +276,77 @@ def draw_in_box( fig, figure, left, right, bottom, top, fontsize = None ):
     with matplotlib.rc_context(rc):
         return Backend.__new__(Backend).draw_in(fig,gs[0,0],figure)
 
+class FigurePane:
+    """The plot of a view of a viewer (see mcpl._viewer.Viewer) in a box of a
+    matplotlib figure, for the viewers with matplotlib figures (in a window,
+    in Jupyter with ipympl, and with Tk). It is only drawn again when the
+    figure of the view changed, keeps the zoom when the same view is drawn
+    again, and knows the plots of the overview (which can be clicked). The box
+    is (left, right, bottom, top) in figure coordinates, with title_space less
+    at the top for plots with a title, which is drawn at title_y. The font size
+    of the plots is fontsize (or overview_fontsize for several plots), if
+    given."""
+    def __init__( self, fig, box, title_space = 0.05, title_y = None,
+                  title_size = 10, fontsize = None, overview_fontsize = None ):
+        self.fig, self._box = fig, box
+        self._title_space, self._title_y = title_space, title_y
+        self._title_size = title_size
+        self._fontsize, self._overview_fontsize = fontsize, overview_fontsize
+        self.axes = []#(all axes of the plot, also those of colour bars)
+        self._title = None
+        self._key = self._figure = None#(the view and figure drawn)
+        self._panels = []#(axes, view key) of the plots of the overview
+
+    def show( self, viewer, key = None ):
+        """Draw the figure of the view with the key (default the shown one) if
+        it changed since it was drawn. Returns whether it was drawn."""
+        key = viewer.current_key if key is None else key
+        figure = viewer.figure(key = key)
+        if figure is None:
+            if key == self._key:
+                return False
+            self.clear()
+            return True
+        if key == self._key and figure is self._figure:
+            return False
+        old_axes, old_key = self.axes, self._key
+        self.clear()
+        left, right, bottom, top = self._box
+        if figure.title:
+            top -= self._title_space
+        several = len(figure.panels) > 1
+        self.axes = draw_in_box(self.fig,figure,left,right,bottom,top,
+                                fontsize = ( self._overview_fontsize if several
+                                             and self._overview_fontsize else self._fontsize ))
+        if key == old_key:
+            keep_zoom(old_axes,self.axes)
+        if figure.title:
+            y = self._title_y if self._title_y is not None else self._box[3]
+            self._title = self.fig.text(0.5*(left+right),y,figure.title,ha='center',
+                                        va='top',size=self._title_size)
+        #(the first axes are those of the plots, in order, see draw_in):
+        self._panels = ( list(zip(self.axes,viewer.overview_keys()))
+                         if key == 'overview:multi' else [] )
+        self._key, self._figure = key, figure
+        return True
+
+    def clear( self ):
+        """Remove the plot (so the next show() draws it again)"""
+        for ax in self.axes:
+            ax.remove()
+        if self._title is not None:
+            self._title.remove()
+        self.axes, self._title, self._panels = [], None, []
+        self._key = self._figure = None
+
+    def view_at( self, event ):
+        """The key of the view of the plot of the overview under the mouse (of
+        a matplotlib mouse event), or None"""
+        for ax, key in self._panels:
+            if event.inaxes is ax:
+                return key
+        return None
+
 def widget_figure( widget_class ):
     """A matplotlib figure for a panel of ipywidgets (for the viewer in
     Jupyter), if the backend of matplotlib (ipympl) gives figures which are

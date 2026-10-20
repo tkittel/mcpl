@@ -19,10 +19,10 @@
 ##                                                                            ##
 ################################################################################
 
-"""The viewer in a matplotlib window. The window shows the views on the left,
-the status and the plot on the right, and the fields and actions at the
-bottom, all handled with the keys and the mouse as in the terminal (see
-_viewer_ui)."""
+"""The viewer in a window: with Tk if possible (see _viewer_tk), or else in a
+matplotlib window (MplViewer), which shows the views on the left, the status
+and the plot on the right, and the fields and actions at the bottom, all
+handled with the keys and the mouse as in the terminal (see _viewer_ui)."""
 
 __all__ = []
 
@@ -48,19 +48,17 @@ class MplViewer:
     _nlines = 8#(lines of the bottom panel)
 
     def __init__( self, viewer, fig ):
-        from ._plotbackend_mpl import Backend
+        from ._plotbackend_mpl import FigurePane
         self.v, self.fig = viewer, fig
         viewer.multi_overview = True#(the overview with all its plots, see _on_click)
-        self._panel_axes = []#(axes of the overview, with the keys of their views)
-        self._bk = Backend.__new__(Backend)#(only for draw_in)
+        self._pane = FigurePane(fig,( self._left + 0.07, 0.98, self._bottom + 0.06, 0.9 ),
+                                title_space=0.04,title_y=0.935)
         self.editor = None
         self.message = ''
         self.hover = None
         self.show_help = False
         self._artists = []#(texts of the views and the bottom panel)
         self._targets = []#(text, what) of the clickable texts
-        self._plot_axes = []
-        self._plot_key = None#(view key of the plot axes)
         self.closed = False
         canvas = fig.canvas
         mgr = getattr(canvas,'manager',None)
@@ -117,7 +115,7 @@ class MplViewer:
         keys = ( matplotlib.rcParams['keymap.xscale']
                  + matplotlib.rcParams['keymap.yscale'] )
         if ( event.key not in keys or self.editor is not None or self.show_help
-             or event.inaxes not in self._plot_axes ):
+             or event.inaxes not in self._pane.axes ):
             return False
         key_press_handler(event,self.fig.canvas)
         return True
@@ -166,9 +164,9 @@ class MplViewer:
         return replot
 
     def _target( self, event ):
-        for ax, key in self._panel_axes:
-            if event.inaxes is ax:
-                return ( 'panel', key )
+        key = self._pane.view_at(event)
+        if key is not None:
+            return ( 'panel', key )
         for t, what in self._targets:
             if t.get_visible() and t.contains(event)[0]:
                 return what
@@ -208,15 +206,8 @@ class MplViewer:
         for a in self._artists:
             a.remove()
         self._artists, self._targets = [], []
-        old_axes, old_key = [], None
-        if plot or self.show_help:
-            for ax in self._plot_axes:
-                ax.remove()
-            old_axes, old_key = self._plot_axes, self._plot_key
-            self._plot_axes = []
-            self._panel_axes = []
-            self._plot_key = None
         if self.show_help:
+            self._pane.clear()
             self._text(0.02,self._top,ui.help_text,va='top',family='monospace',size=9)
             self._text(0.02,0.02,'(press any key)',color='0.5')
             fig.canvas.draw_idle()
@@ -236,25 +227,7 @@ class MplViewer:
         self._text(self._left,0.985,first,weight='bold',va='top',size=10)
         self._text(self._left,0.955,second,va='top',size=9,color='0.3')
         if plot:
-            figure = v.figure()
-            if figure is not None:
-                from matplotlib.gridspec import GridSpec
-                gs = GridSpec(1,1,figure=fig,left=self._left+0.07,right=0.98,
-                              top=0.86 if figure.title else 0.9,
-                              bottom=self._bottom+0.06)
-                self._plot_axes = self._bk.draw_in(fig,gs[0,0],figure)
-                self._plot_key = v.views[v.current][0]
-                if self._plot_key == old_key:
-                    from ._plotbackend_mpl import keep_zoom
-                    keep_zoom(old_axes,self._plot_axes)
-                self._panel_axes = []
-                if v.views[v.current][0] == 'overview:multi':
-                    #(the plots of the overview can be clicked):
-                    self._panel_axes = list(zip(self._plot_axes,v.overview_keys()))
-        figure = v.figure()
-        if figure is not None and figure.title:
-            self._text(0.5*(self._left+1.0),0.935,figure.title,ha='center',
-                       va='top',size=10)
+            self._pane.show(v)
         #The bottom panel, in lines of monospace text:
         #(each line a list of groups of segments, which can be clicked):
         lines = []
@@ -376,6 +349,16 @@ class MplViewer:
             y -= lh
 
 def run_viewer( viewer, backend = None ):
+    """Run the viewer in a window: with Tk if it can show windows here (see
+    _viewer_tk), or else in a matplotlib window (see MplViewer)"""
+    from . import _viewer_tk
+    root = _viewer_tk._root()
+    if root is not None:
+        _viewer_tk.run_viewer(viewer,root)
+    else:
+        run_mpl_viewer(viewer)
+
+def run_mpl_viewer( viewer ):
     """Run the viewer in a matplotlib window"""
     import matplotlib.pyplot as plt
     fig = plt.figure(figsize=(14,9))
@@ -386,22 +369,11 @@ def run_viewer( viewer, backend = None ):
     except AttributeError:
         pass
     gui = MplViewer(viewer,fig)
-    #Ctrl-C in the terminal quits, like q. It is handled with a handler of
-    #SIGINT closing the window, since a KeyboardInterrupt in a callback of
-    #the GUI toolkit is only reported by some (e.g. Tk). The handler runs when
-    #Python code runs, at the latest with the timer of the viewer.
-    import signal
-    import threading
-    def on_sigint( *args ):
-        plt.close(fig)
-    main = threading.current_thread() is threading.main_thread()
-    old = signal.signal(signal.SIGINT,on_sigint) if main else None
-    try:
+    from ._viewer_widgets import run_with_ctrl_c
+    def run():
         gui.start()
         plt.show()
-    except KeyboardInterrupt:
-        plt.close(fig)
+    try:
+        run_with_ctrl_c(run,lambda : plt.close(fig))
     finally:
-        if main:
-            signal.signal(signal.SIGINT,old)
         gui._on_close(None)

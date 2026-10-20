@@ -63,9 +63,13 @@ class JupyterViewer:
         self._grid = w.GridBox(cells,layout=w.Layout(
             width='100%',grid_template_columns='repeat(3,1fr)'))
         #The interactive figure, with ipympl:
-        from ._plotbackend_mpl import widget_figure
+        from ._plotbackend_mpl import FigurePane, widget_figure
         self._mplfig = widget_figure(w.DOMWidget)
-        self._plot_axes, self._panel_axes, self._plot_key = [], [], None
+        #(the plots are below the title, with smaller fonts than in a window,
+        #more so for several plots, as the overview):
+        self._pane = None if self._mplfig is None else FigurePane(
+            self._mplfig,( 0.08, 0.98, 0.08, 0.92 ),title_space=0.06,title_y=0.98,
+            title_size=9,fontsize=9,overview_fontsize=7)
         self._warning = w.HTML()
         if self._mplfig is not None:
             self._mplfig.canvas.mpl_connect('button_press_event',self._on_click)
@@ -168,10 +172,9 @@ class JupyterViewer:
             self.refresh()
 
     def _on_click( self, event ):
-        for ax, key in self._panel_axes:
-            if event.inaxes is ax:
-                self._on_panel(key)
-                return
+        key = self._pane.view_at(event)
+        if key is not None:
+            self._on_panel(key)
 
     def _on_move( self, delta ):
         if self.v.move(delta):
@@ -230,22 +233,19 @@ class JupyterViewer:
             self._syncing = False
 
     def _on_write( self, _ ):
-        ok, msg = self.v.try_write(self._filename.value.strip())
-        if ok:
-            self._message.value = html.escape(msg)
-            self._filename.value = self.v.suggested_filename()
-            self.refresh()#(the command shown has the next file name)
-        else:
-            self._message.value = f'<span style="color:#c00">Not written: {html.escape(msg)}</span>'
+        self._write_or_save('write',self._filename,self.v.suggested_filename)
 
     def _on_save_state( self, _ ):
-        ok, msg = self.v.try_save_state(self._statefile.value.strip())
-        if ok:
+        self._write_or_save('state',self._statefile,self.v.suggested_state_filename)
+
+    def _write_or_save( self, action, field, suggested ):
+        done, msg, _ = ui.apply_text(self.v,action,field.value)
+        if done:
             self._message.value = html.escape(msg)
-            self._statefile.value = self.v.suggested_state_filename()
-            self.refresh()
+            field.value = suggested()
+            self.refresh()#(the command shown has the next file name)
         else:
-            self._message.value = f'<span style="color:#c00">Not saved: {html.escape(msg)}</span>'
+            self._message.value = f'<span style="color:#c00">{html.escape(msg)}</span>'
 
     def _on_help( self, _ ):
         self._extra.value = ( '' if self._extra.value.startswith('<pre>The viewer')
@@ -281,7 +281,8 @@ class JupyterViewer:
         if key.startswith('plot:') and self._change.value != key[5:]:
             self._set_quietly(self._change,key[5:])
         if self._mplfig is not None:
-            self._draw_figure(key)
+            if self._pane.show(self.v,key):
+                self._mplfig.canvas.draw_idle()
             shown = self._mplfig.canvas
         elif key == 'overview:multi':
             for ( img, b ), k in zip(self._panels,self.v.overview_keys()):
@@ -293,33 +294,6 @@ class JupyterViewer:
             shown = self._image
         if self._right.children[1] is not shown:
             self._right.children = ( self._status, shown )
-
-    def _draw_figure( self, key ):
-        fig, figure = self._mplfig, self.v.figure(key = key)
-        old = self._shown.get('mpl')
-        if figure is None or ( old is not None and old[0] == key and old[1] is figure ):
-            return
-        from ._plotbackend_mpl import draw_in_box, keep_zoom
-        old_axes, old_key = self._plot_axes, self._plot_key
-        for ax in old_axes:
-            ax.remove()
-        for t in list(fig.texts):
-            t.remove()
-        #The plots are below the title, with smaller fonts than in a window
-        #(more so for several plots, as the overview):
-        self._plot_axes = draw_in_box(fig,figure,left=0.08,right=0.98,bottom=0.08,
-                                      top=0.86 if figure.title else 0.92,
-                                      fontsize=7 if len(figure.panels) > 1 else 9)
-        self._plot_key = key
-        if key == old_key:
-            keep_zoom(old_axes,self._plot_axes)
-        if figure.title:
-            fig.suptitle(figure.title,size=9)
-        #(the plots of the overview can be clicked):
-        self._panel_axes = ( list(zip(self._plot_axes,self.v.overview_keys()))
-                             if key == 'overview:multi' else [] )
-        fig.canvas.draw_idle()
-        self._shown['mpl'] = ( key, figure )
 
 def _png( figure ):
     """The figure drawn with matplotlib, as PNG data"""

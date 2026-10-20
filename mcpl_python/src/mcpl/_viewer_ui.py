@@ -235,21 +235,71 @@ def editor_for( viewer, action ):
             return LineEditor(viewer,'plot',replaces=key[5:])
     return None
 
-def apply_editor( viewer, editor ):
-    """Apply the text of the editor (Enter): (done, message, replot), where
-    done tells whether the editing is over, message is to be shown (an error,
+#The functions below are the behaviour of the fields, for all front ends
+#(with a LineEditor, or with the text fields of a GUI toolkit):
+
+def check_text( viewer, field, text, replaces = None ):
+    """Check of the text of a field while it is typed, as (ok, message): the
+    field is a field of the viewer, a file prompt, or 'plot' with replaces
+    (the plot changed by the text, which an empty text removes)"""
+    if field in file_prompts:
+        return bool(text.strip()), ''
+    if replaces is not None and not text.strip():
+        return True, ''
+    return viewer.check(field,text)
+
+def apply_text( viewer, field, text, replaces = None ):
+    """Apply the text of a field (see check_text): (done, message, replot),
+    where done tells whether it was applied, message is to be shown (an error,
     or the result of writing a file) and replot whether the plots changed"""
-    if editor.field == 'write':
-        ok, msg = viewer.try_write(editor.text.strip())
+    if field == 'write':
+        ok, msg = viewer.try_write(text.strip())
         return ok, msg if ok else f'Not written: {msg}', False
-    if editor.field == 'state':
-        ok, msg = viewer.try_save_state(editor.text.strip())
+    if field == 'state':
+        ok, msg = viewer.try_save_state(text.strip())
         return ok, msg if ok else f'Not saved: {msg}', False
-    if editor.replaces is not None:
-        ok, msg = viewer.change_plot(editor.replaces,editor.text)
+    if replaces is not None:
+        ok, msg = viewer.change_plot(replaces,text)
     else:
-        ok, msg = viewer.set(editor.field,editor.text)
+        ok, msg = viewer.set(field,text)
     return ok, msg, ok
+
+def complete_text( viewer, field, text, cursor ):
+    """Tab completion of the name at the cursor: (text, cursor, choices,
+    start), with the name completed in the text as far as it is the same for
+    all completions, and the completions to choose from if there are several
+    (as (name, description), for the name starting at start)"""
+    import os
+    if field in file_prompts:
+        return text, cursor, [], cursor
+    start, cands = viewer.complete(field,text,cursor)
+    if not cands:
+        return text, cursor, [], start
+    names = [ n for n, _ in cands ]
+    common = os.path.commonprefix(names)
+    if len(cands) == 1 or len(common) > cursor - start:
+        insert = names[0] if len(cands) == 1 else common
+        text, cursor = text[:start] + insert + text[cursor:], start + len(insert)
+    return text, cursor, ( cands if len(cands) > 1 else [] ), start
+
+class History:
+    """The earlier texts of a field (none for the file prompts), shown with Up
+    and Down (step -1 and 1), after which comes an empty text"""
+    def __init__( self, viewer, field ):
+        self._hist = [] if field in file_prompts else viewer.history(field)
+        self._pos = len(self._hist)
+
+    def step( self, delta ):
+        """The text after moving delta in the history, or None if there is no
+        history"""
+        if not self._hist:
+            return None
+        self._pos = max( 0, min( len(self._hist), self._pos + delta ) )
+        return self._hist[self._pos] if self._pos < len(self._hist) else ''
+
+def apply_editor( viewer, editor ):
+    """Apply the text of the editor (Enter), see apply_text"""
+    return apply_text(viewer,editor.field,editor.text,editor.replaces)
 
 class LineEditor:
     """Editing of the text of a field with keys (for the front ends without
@@ -263,8 +313,7 @@ class LineEditor:
         self.text = ( replaces if replaces is not None else
                       viewer.field_text(field) if text is None else text )
         self.cursor = len(self.text)
-        self._hist = [] if field in file_prompts else viewer.history(field)
-        self._hpos = len(self._hist)
+        self._hist = History(viewer,field)
         self.choices = []#(completions shown, when Tab gives several)
         self.selected = 0#(index of the chosen one)
         self.choice_start = 0#(position in the text of the name they complete)
@@ -277,12 +326,7 @@ class LineEditor:
         self._recheck()
 
     def _recheck( self ):
-        if self.field in file_prompts:
-            self.ok, self.message = bool(self.text.strip()), ''
-        elif self.replaces is not None and not self.text.strip():
-            self.ok, self.message = True, ''
-        else:
-            self.ok, self.message = self.viewer.check(self.field,self.text)
+        self.ok, self.message = check_text(self.viewer,self.field,self.text,self.replaces)
 
     @property
     def hint( self ):
@@ -339,13 +383,14 @@ class LineEditor:
         elif key == 'Delete':
             self.text = t[:c] + t[c+1:]
         elif key in ( 'Up', 'Down' ):
-            if self._hist:
-                self._hpos = max( 0, min( len(self._hist), self._hpos + ( -1 if key == 'Up' else 1 ) ) )
-                self.text = self._hist[self._hpos] if self._hpos < len(self._hist) else ''
-                self.cursor = len(self.text)
+            text = self._hist.step( -1 if key == 'Up' else 1 )
+            if text is not None:
+                self.text, self.cursor = text, len(text)
         elif key == 'Tab':
-            if self.field not in file_prompts:
-                self._complete()
+            self.text, self.cursor, choices, start = complete_text(self.viewer,self.field,
+                                                                   self.text,self.cursor)
+            if choices:
+                self.choices, self.selected, self.choice_start = choices, 0, start
         elif isinstance(key,str) and len(key) == 1 and ' ' <= key <= '~':
             self.text, self.cursor = t[:c] + key + t[c:], c + 1
         else:
@@ -353,17 +398,3 @@ class LineEditor:
         self._recheck()
         return None
 
-    def _complete( self ):
-        import os
-        start, cands = self.viewer.complete(self.field,self.text,self.cursor)
-        if not cands:
-            return
-        names = [ n for n, _ in cands ]
-        common = os.path.commonprefix(names)
-        t, c = self.text, self.cursor
-        if len(cands) == 1 or len(common) > c - start:
-            insert = names[0] if len(cands) == 1 else common
-            self.text = t[:start] + insert + t[c:]
-            self.cursor = start + len(insert)
-        if len(cands) > 1:
-            self.choices, self.selected, self.choice_start = cands, 0, start

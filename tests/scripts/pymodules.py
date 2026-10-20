@@ -72,9 +72,11 @@ layers = {
     '_plotbackend_text' : 8,
     '_stats' : 6,
     '_histogram' : 8,
-    '_plotbackend_mpl_gui' : 9,
+    '_plotbackend_mpl_gui' : 11,
     '_plotbackend_text_gui' : 9,
     '_viewer_jupyter' : 9,
+    '_viewer_widgets' : 9,
+    '_viewer_tk' : 10,
     '_viewer' : 10,
     '_clistats' : 10,
     '_cli' : 11,
@@ -87,7 +89,8 @@ public_submodules = ['constants', 'plotting']
 
 allowed_external_imports = {
     'numpy' : ['_numpy'],
-    'matplotlib' : ['_plotbackend_mpl', '_plotbackend_mpl_gui'],
+    'matplotlib' : ['_plotbackend_mpl', '_plotbackend_mpl_gui', '_viewer_tk'],
+    'tkinter' : ['_viewer_tk'],
     'scipp' : ['_scipp'],
     'ipywidgets' : ['_viewer_jupyter'],
     'IPython' : ['_viewer', '_viewer_jupyter'],

@@ -88,7 +88,7 @@ key('escape')
 def key_at( k, ax ):
     x, y = ax.transAxes.transform((0.5,0.5))
     fig.canvas.callbacks.process('key_press_event',KeyEvent('key_press_event',fig.canvas,k,x,y))
-ax = g._plot_axes[0]
+ax = g._pane.axes[0]
 key_at('l',ax)
 key_at('k',ax)
 print('scales after l and k over the plot:', ax.get_yscale(), ax.get_xscale(),
@@ -111,8 +111,8 @@ print('view after clicking on it:', v.views[v.current][0])
 v.select(0)
 g.refresh()
 fig.canvas.draw()
-print('view:', v.views[v.current][0], 'clickable plots:', [ k for _, k in g._panel_axes ])
-ax = g._panel_axes[3][0]
+print('view:', v.views[v.current][0], 'clickable plots:', [ k for _, k in g._pane._panels ])
+ax = g._pane._panels[3][0]
 bb = ax.get_window_extent()
 ev = MouseEvent('button_press_event',fig.canvas,(bb.x0+bb.x1)/2,(bb.y0+bb.y1)/2,button=1)
 fig.canvas.callbacks.process('button_press_event',ev)

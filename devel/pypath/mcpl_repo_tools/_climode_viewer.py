@@ -30,8 +30,10 @@ _modes = {
                     'jupyter', ( 'notebook', 'ipywidgets', 'ipympl' ) ),
     'nb-basic' : ( 'Classic Jupyter Notebook, without ipympl',
                    'jupyter', ( 'notebook', 'ipywidgets' ) ),
-    'mpl' : ( 'Matplotlib window (mcpltool -w -B matplotlib)',
-              [ '-w', '-B', 'matplotlib' ], () ),
+    'tk' : ( 'Window with Tk (mcpltool -w -B matplotlib, if tkinter works)',
+             [ '-w', '-B', 'matplotlib' ], ( 'tkinter', ) ),
+    'mpl' : ( 'Matplotlib window (the fallback of the window without Tk)',
+              'mpl', () ),
     'term' : ( 'Terminal (mcpltool -w -t)', [ '-w', '-t' ], ( 'curses', ) ),
     'term-nocol' : ( 'Terminal without colours (mcpltool -w -t --color=never)',
                        [ '-w', '-t', '--color=never' ], ( 'curses', ) ),
@@ -88,6 +90,18 @@ def main( parser ):
     if args.MODE == 'term-8col':
         #(a terminal type with 8 colours, for curses):
         env['TERM'] = 'xterm'
+    if how == 'mpl':
+        #(the viewer in a matplotlib window, and what mcpltool prints when it
+        #is closed):
+        code = ( 'import sys; from mcpl._viewer import Viewer;'
+                 ' from mcpl._viewer_ui import closing_text;'
+                 ' from mcpl._plotbackend_mpl_gui import run_mpl_viewer;'
+                 ' v = Viewer(sys.argv[1]); run_mpl_viewer(v); print(closing_text(v))' )
+        how = [ '-c', code ]
+        rv = _run_child( [ sys.executable, *how, args.FILE ], env = env )
+        if rv:
+            raise SystemExit(rv)
+        return
     #(the file as given, run here, so the commands printed by the viewer are
     #those the user would type):
     rv = _run_child( [ sys.executable, '-m', 'mcpl', *how, args.FILE ], env = env )

@@ -35,7 +35,7 @@ import re
 import threading
 
 from ._common import MCPLError
-from ._stdviews import _collections, _default_collection
+from ._stdviews import _collections, _default_collection, _item, _plot_item
 
 #Numbers of particles read after which the figures are updated (and then every
 #further _update_step particles):
@@ -89,6 +89,7 @@ class Viewer:
         self._history = { f : [] for f in _fields }
         self._s = _Settings()
         self._origins = {}
+        self._meta = {}#histogram string -> (title, group) of the plots with them
         self._use_collection(_default_collection)
         self._lock = threading.Lock()
         self._figures = {}#view key -> Figure
@@ -130,11 +131,16 @@ class Viewer:
         """Start from the plots of the collection (keeping the plots which were
         added, but not the changes of the plots of the previous collection)"""
         added = [ p for p in self._s.plots if p not in self._origins ]
+        items = [ _plot_item(i) for i in _collections[name][1] ]
         self._collection = name
-        self._base = _collections[name][1]
+        self._base = [ p for p, _, _ in items ]
+        self._base_meta = { p : ( t, g ) for p, t, g in items if ( t, g ) != ( None, None ) }
         #(the plot of the collection each plot comes from, if any, for state()):
         self._origins = { p : p for p in self._base }
-        self._s.plots = list(self._base) + [ p for p in added if p not in self._origins ]
+        added = [ p for p in added if p not in self._origins ]
+        self._meta = { **{ p : self._meta[p] for p in added if p in self._meta },
+                       **self._base_meta }
+        self._s.plots = list(self._base) + added
 
     def _set_or_raise( self, field, text ):
         ok, msg = self.set(field, text, restart = False)
@@ -262,6 +268,7 @@ class Viewer:
             self._current = keys[ k - 1 if k > 0 else min( 1, len(keys) - 1 ) ]
             plots.pop(i)
             self._origins.pop(old,None)
+            self._meta.pop(old,None)
             self._restart()
             return True, ''
         try:
@@ -276,12 +283,17 @@ class Viewer:
         if not h or h[-1] != text:
             h.append(text)
         origin = self._origins.pop(old,None)
+        meta = self._meta.pop(old,None)#(the title and group stay with the plot)
         if same is not None:
             plots.pop(i)#(the plot is already there)
+            if meta is not None and same not in self._meta:
+                self._meta[same] = meta
         else:
             plots[i] = text
             if origin is not None:
                 self._origins[text] = origin
+            if meta is not None:
+                self._meta[text] = meta
         self._current = f'plot:{same or text}'
         self._restart()
         return True, ''
@@ -301,6 +313,92 @@ class Viewer:
         with self._lock:
             self._updates += 1#(the figures are the same, in another order)
         return True
+
+    def move_to( self, plot, index ):
+        """Move the plot (its histogram string) to the index in the list of
+        plots: whether it moved"""
+        plots = self._s.plots
+        if plot not in plots:
+            return False
+        i = plots.index(plot)
+        index = max( 0, min( len(plots) - 1, index ) )
+        if index == i:
+            return False
+        plots.insert(index,plots.pop(i))
+        with self._lock:
+            self._updates += 1#(the figures are the same, in another order)
+        return True
+
+    def set_title( self, plot, title ):
+        """Set the title of the plot (its histogram string), shown instead of it
+        in the viewers with windows, or remove it (an empty title): (ok,
+        message)"""
+        return self._set_meta(plot,0,title,'title')
+
+    def set_group( self, plot, group ):
+        """Set the group of the plot (where it is listed in the viewers with
+        windows), or remove it (an empty group): (ok, message)"""
+        return self._set_meta(plot,1,group,'group')
+
+    def _set_meta( self, plot, i, text, what ):
+        if plot not in self._s.plots:
+            return False, f'No plot "{plot}"'
+        text = text.strip()
+        if text and not text.isprintable():
+            return False, f'The {what} must be a text on one line'
+        meta = list(self._meta.get(plot,( None, None )))
+        meta[i] = text or None
+        if meta == [ None, None ]:
+            self._meta.pop(plot,None)
+        else:
+            self._meta[plot] = tuple(meta)
+        with self._lock:
+            self._updates += 1#(the figures are the same)
+        return True, ''
+
+    def plot_info( self, key ):
+        """What the viewers with windows show of the view with the key (see
+        views), as a dict: the title (if given), the name shown (the title, or
+        else its expressions), the histogram string, the group (or None), the
+        badges (short texts for its options) and the value all particles have
+        (for a plot of a field where they all have the same value, else
+        None)"""
+        from ._histstring import _parse_hist
+        if not key.startswith('plot:'):
+            return { 'title' : None, 'name' : 'Overview', 'plot' : None, 'group' : None,
+                     'badges' : [ f'{len(self.overview_keys())} plots' ], 'constant' : None }
+        p = key[5:]
+        title, group = self._meta.get(p,( None, None ))
+        o = _parse_hist(p)
+        with self._lock:
+            figure = self._figures.get(key)
+            constants = self._constants
+        #(the log scales chosen with auto are known when the plot is made):
+        panel = figure.panels[0] if figure is not None and figure.panels else None
+        logx = panel.logx if panel is not None else o['logx'] is True
+        logy = panel.logy if panel is not None else o['logy'] is True
+        badges = []
+        if len(o['exprs']) == 2:
+            badges.append('2D')
+        if o['bar']:
+            #(the bars are horizontal, with their log scale on x):
+            badges.append('bars')
+            if logx:
+                badges.append('log')
+        elif logx or logy:
+            badges.append( 'log' if logx and logy else 'log x' if logx else 'log y' )
+        if o['lethargy']:
+            badges.append('lethargy')
+        if o['split']:
+            badges.append( 'by particle' if o['split'] == 'pdgcode' else f'by {o["split"]}' )
+        if o['unweighted']:
+            badges.append('counts')
+        if o['range'] or o['xrange'] or o['yrange']:
+            badges.append('range')
+        field = _plot_field(p)
+        return { 'title' : title, 'name' : title or ' : '.join(o['exprs']), 'plot' : p,
+                 'group' : group, 'badges' : badges,
+                 'constant' : constants.get(field) if field else None }
 
     def _same_plot( self, text, plots = None ):
         """The plot (of plots, default all) giving the same histogram as the
@@ -475,15 +573,20 @@ class Viewer:
                 if self._texts[k]:
                     res[k] = self._texts[k]
         plots, origins = self._s.plots, self._origins
+        meta = lambda p : self._meta.get(p,( None, None ))
         diff = {}
-        change = { o : p for p, o in origins.items() if p != o }
+        #(changes of plots, or of their titles or groups, as plot items with
+        #all their titles and groups, see _stdviews):
+        change = { o : _item(p,*meta(p)) for p, o in origins.items()
+                   if p != o or meta(p) != self._base_meta.get(o,( None, None )) }
         remove = [ d for d in self._base if d not in origins.values() ]
         add = [ p for p in plots if p not in origins ]
         #(the order is only given if it is not that of the defaults, followed
         #by the added plots):
         kept = { o : p for p, o in origins.items() }
         expected = [ kept[d] for d in self._base if d in kept ] + add
-        for k, v in ( ('change',change), ('remove',remove), ('add',add),
+        for k, v in ( ('change',change), ('remove',remove),
+                      ('add',[ _item(p,*meta(p)) for p in add ]),
                       ('order',list(plots) if plots != expected else []) ):
             if v:
                 diff[k] = v
@@ -511,13 +614,24 @@ class Viewer:
                 raise MCPLError(f'The viewer state {what} the plot "{text}", which is'
                                 ' not one of the plots')
             return same
-        for old, new in plots.get('change',{}).items():
+        def set_meta( plot, title, group ):
+            #(the title and group of the plot are those of its item):
+            p = self._same_plot(plot)
+            if ( title, group ) == ( None, None ):
+                self._meta.pop(p,None)
+            else:
+                self._meta[p] = ( title, group )
+        for old, item in plots.get('change',{}).items():
+            new, title, group = _plot_item(item)
             if not self.change_plot(find(old,'changes'),new)[0]:
                 self._set_or_raise('plot',new)#(for the message of the problem)
+            set_meta(new,title,group)
         for old in plots.get('remove',[]):
             self.change_plot(find(old,'removes'),'')
-        for p in plots.get('add',[]):
+        for item in plots.get('add',[]):
+            p, title, group = _plot_item(item)
             self._set_or_raise('plot',p)
+            set_meta(p,title,group)
         order = [ find(p,'orders') for p in plots.get('order',[]) ]
         if order:
             #(the plots in the given order, followed by any others):
@@ -637,13 +751,16 @@ class Viewer:
             self._thread.join()
             self._thread = None
 
+    @property
+    def reading( self ):
+        """Whether the file is being read (for the current settings)"""
+        with self._lock:
+            return not ( self._job is None and self._seen_gen == self._generation )
+
     def wait( self ):
         """Wait until the current reading is done (for tests and scripts)"""
         import time
-        while True:
-            with self._lock:
-                if self._job is None and self._seen_gen == self._generation:
-                    return
+        while self.reading:
             time.sleep(0.01)
 
     def poll( self ):
@@ -851,11 +968,20 @@ def _as_state( view ):
         check(k in _state_plot_keys,f'unknown entry "{k}" of plots (the entries are:'
               f' {", ".join(_state_plot_keys)})')
         if k == 'change':
-            check(isinstance(v,dict) and all( isinstance(x,str) for x in v.values() ),
-                  'the change of plots must be a JSON object of texts')
+            check(isinstance(v,dict),'the change of plots must be a JSON object')
+            items = list(v.values())
         else:
-            check(isinstance(v,list) and all( isinstance(x,str) for x in v ),
-                  f'the {k} of plots must be a list of texts')
+            check(isinstance(v,list),f'the {k} of plots must be a list')
+            items = v
+        if k in ( 'change', 'add' ):
+            #(plot items, see _stdviews):
+            for item in items:
+                try:
+                    _plot_item(item)
+                except ( TypeError, ValueError ) as e:
+                    check(False,f'in the {k} of plots, {e}')
+        else:
+            check(all( isinstance(x,str) for x in items ),f'the {k} of plots must be a list of texts')
     return state
 
 def _make_filler( text, pick ):

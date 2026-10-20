@@ -276,6 +276,38 @@ def draw_in_box( fig, figure, left, right, bottom, top, fontsize = None ):
     with matplotlib.rc_context(rc):
         return Backend.__new__(Backend).draw_in(fig,gs[0,0],figure)
 
+def thumbnail_png( figure, width, height ):
+    """The figure drawn as a small PNG image of width x height pixels, without
+    texts, ticks, legends and colour bars (for the lists of plots of the
+    viewers with windows)"""
+    import io
+
+    from matplotlib.figure import Figure
+    dpi = 50
+    fig = Figure(figsize=( width / dpi, height / dpi ),dpi=dpi)
+    axs = fig.subplots(figure.nrows,figure.ncols,squeeze=False)
+    Backend.__new__(Backend)._draw_axes(fig,list(axs.flat),figure)
+    for ax in list(fig.axes):
+        if ax not in axs.flat:#(colour bars)
+            ax.remove()
+            continue
+        ax.set_title('')
+        ax.set_xlabel('')
+        ax.set_ylabel('')
+        ax.tick_params(left=False,bottom=False,labelleft=False,labelbottom=False,
+                       which='both')
+        ax.grid(False)
+        for t in list(ax.texts):
+            t.remove()
+        if ax.get_legend() is not None:
+            ax.get_legend().remove()
+    for t in list(fig.texts):
+        t.remove()
+    fig.subplots_adjust(left=0.03,right=0.97,bottom=0.04,top=0.96,wspace=0.1,hspace=0.1)
+    out = io.BytesIO()
+    fig.savefig(out,format='png',dpi=dpi)
+    return out.getvalue()
+
 class FigurePane:
     """The plot of a view of a viewer (see mcpl._viewer.Viewer) in a box of a
     matplotlib figure, for the viewers with matplotlib figures (in a window,

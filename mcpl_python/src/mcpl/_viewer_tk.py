@@ -84,16 +84,8 @@ class TkViewer(WidgetViewer):
         from ._logo import logo_png
         self._logo = tk.PhotoImage(data=base64.b64encode(logo_png())).subsample(3)
         ttk.Label(left,image=self._logo).pack(anchor='w',pady=(0,6))
-        self._views = tk.Listbox(left,width=34,activestyle='none',exportselection=False,
-                                 takefocus=0,highlightthickness=0)
-        self._views.pack(fill='y',expand=True)
-        self._views.bind('<<ListboxSelect>>',self._on_view)
-        moves = ttk.Frame(left)
-        moves.pack(fill='x',pady=(6,0))
-        for label, delta in ( ( 'Move up', -1 ), ( 'Move down', 1 ) ):
-            ttk.Button(moves,text=label,takefocus=0,
-                       command=lambda d=delta : self.on_move(d)).pack(side='left',expand=True,fill='x')
-        self._hover(self._views,'views')
+        self._cards = _CardList(left,self)
+        self._hover(self._cards.canvas,'views')
         #The status and the plot (on the right):
         main = ttk.Frame(root,padding=(0,6,6,0))
         main.grid(row=0,column=1,sticky='nsew')
@@ -151,7 +143,18 @@ class TkViewer(WidgetViewer):
         #emptied):
         frame = ttk.Frame(bottom)
         frame.grid(row=len(ui.field_rows),column=0,sticky='ew',pady=1)
-        ttk.Label(frame,text='Shown plot:').pack(side='left',padx=(0,4))
+        #(and its title, shown in the list of plots):
+        ttk.Label(frame,text='Title:').pack(side='left',padx=(0,4))
+        t = ttk.Entry(frame,width=28)
+        t.pack(side='left')
+        self._placeholders[t] = 'the name in the list of plots'
+        t.bind('<Return>',lambda _e : self._on_title_enter(t))
+        t.bind('<KP_Enter>',lambda _e : self._on_title_enter(t))
+        t.bind('<Escape>',lambda _e : self._on_title_escape())
+        t.bind('<FocusIn>',lambda _e : self._on_title_focus(t),'+')
+        t.bind('<FocusOut>',lambda _e : self._on_entry_unfocus(t),'+')
+        self._title = t
+        ttk.Label(frame,text='Shown plot:').pack(side='left',padx=(12,4))
         w = ttk.Entry(frame,width=60)
         w.pack(side='left',fill='x',expand=True)
         self._bind_entry(w,'shown_plot')
@@ -175,14 +178,8 @@ class TkViewer(WidgetViewer):
 
     #Implementation of WidgetViewer:
 
-    def show_views( self, labels, current ):
-        lb = self._views
-        if list(lb.get(0,'end')) != labels:
-            lb.delete(0,'end')
-            lb.insert('end',*labels)
-        lb.selection_clear(0,'end')
-        lb.selection_set(current)
-        lb.see(current)
+    def show_views( self, cards, current ):
+        self._cards.show(cards,current)
 
     def show_status( self, first, second ):
         self._status[0].configure(text=first)
@@ -196,18 +193,18 @@ class TkViewer(WidgetViewer):
             return
         self._set_text(w,text)
 
-    def show_plot_field( self, text ):
-        w = self._entries['shown_plot']
-        if text is None:
-            w.configure(state='normal')
-            w.delete(0,'end')
-            w.configure(state='disabled')
-        elif str(w['state']) == 'disabled' or self.root.focus_get() is not w:
-            #(not while it is edited):
-            w.configure(state='normal')
-            if w.get() != text:
+    def show_plot_field( self, text, title ):
+        for w, value in ( ( self._entries['shown_plot'], text ), ( self._title, title ) ):
+            if text is None:
+                w.configure(state='normal')
+                self._showing.discard(w)
                 w.delete(0,'end')
-                w.insert(0,text)
+                w.configure(state='disabled')
+            elif str(w['state']) == 'disabled' or self.root.focus_get() is not w:
+                #(not while it is edited):
+                w.configure(state='normal')
+                if self._text(w) != ( value or '' ) or ( not value and w not in self._showing ):
+                    self._set_text(w,value or '')
 
     def show_line( self, text, style ):
         self._line.configure(text=text,foreground=_colors.get(style,_colors['normal']))
@@ -270,10 +267,21 @@ class TkViewer(WidgetViewer):
         if not self.closed:
             self.root.after(200,self._tick)
 
-    def _on_view( self, _event ):
-        sel = self._views.curselection()
-        if sel and sel[0] != self.v.current:
-            self.on_select(sel[0])
+    def _on_title_enter( self, w ):
+        self.on_title(self._text(w))
+        self.canvas.get_tk_widget().focus_set()
+        return 'break'
+
+    def _on_title_escape( self ):
+        self.canvas.get_tk_widget().focus_set()
+        self.refresh(plot = False)
+        return 'break'
+
+    def _on_title_focus( self, w ):
+        if w in self._showing:
+            self._set_text(w,'')
+        self.show_line('Enter: set the title (an empty title shows the expressions)'
+                       '   Esc: cancel','dim')
 
     def _on_menu( self, field, choices ):
         i = self._entries[field].current()
@@ -453,6 +461,195 @@ class TkViewer(WidgetViewer):
         if self._popup is not None:
             self._popup[2].destroy()
             self._popup = None
+
+#The heights of the cards of _CardList, and its colours:
+_card_heights = { 'card' : 64, 'small' : 30, 'header' : 26 }
+_card_colors = { 'bg' : '#eef1f5', 'card' : '#ffffff', 'selected' : '#e2ebf6',
+                 'border' : '#d5dbe3', 'accent' : '#2f5f8f', 'text' : '#1d2733',
+                 'dim' : '#7a8594', 'badge' : '#dfe7f1' }
+
+def _elided( text, font, width ):
+    """The text, shortened with ... at the end to fit the width (in pixels)
+    with the font"""
+    if font.measure(text) <= width:
+        return text
+    while text and font.measure(text + '\u2026') > width:
+        text = text[:-1]
+    return text.rstrip() + '\u2026'
+
+class _CardList:
+    """The views as cards on a canvas which can be scrolled: a small image of
+    the plot, its name and badges (see Viewer.plot_info), or a smaller card
+    for a plot of a field where all particles have the same value, under the
+    headers of their groups (which can be folded), with the shown one
+    selected. A card is clicked to show it, and dragged to move it (also
+    into another group)."""
+    width, thumb = 300, ( 84, 50 )
+
+    def __init__( self, parent, viewer ):
+        tk, ttk = _tk()
+        self.tv = viewer
+        frame = ttk.Frame(parent)
+        frame.pack(fill='both',expand=True)
+        self.canvas = tk.Canvas(frame,width=self.width+12,background=_card_colors['bg'],
+                                highlightthickness=0)
+        bar = ttk.Scrollbar(frame,orient='vertical',command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=bar.set)
+        bar.pack(side='right',fill='y')
+        self.canvas.pack(side='left',fill='both',expand=True)
+        self.folded = set()#(the groups which are folded)
+        self._images = {}#PNG data -> PhotoImage (kept, as Tk needs them)
+        self._shown = None#(what is drawn, to only draw it again when changed)
+        self._slots = []#(top, bottom, kind, what): 'card' (index, key, group) or 'header' (group)
+        self._drag = None#(the key of the card dragged, and where it started)
+        c = self.canvas
+        c.bind('<ButtonPress-1>',self._on_press)
+        c.bind('<B1-Motion>',self._on_motion)
+        c.bind('<ButtonRelease-1>',self._on_release)
+        #(scrolling with the wheel, as given by Windows and macOS, or X11):
+        c.bind('<MouseWheel>',lambda e : c.yview_scroll(-1 if e.delta > 0 else 1,'units'))
+        c.bind('<Button-4>',lambda _e : c.yview_scroll(-1,'units'))
+        c.bind('<Button-5>',lambda _e : c.yview_scroll(1,'units'))
+
+    def _image( self, key ):
+        tk, _ttk = _tk()
+        import base64
+        png = self.tv.thumbnail(key,*self.thumb)
+        if png is None:
+            return None
+        if png not in self._images:
+            if len(self._images) > 200:#(the images of plots shown before)
+                self._images = { k : v for k, v in self._images.items() if k in self._used }
+            self._images[png] = tk.PhotoImage(data=base64.b64encode(png))
+        self._used.add(png)
+        return self._images[png]
+
+    def show( self, cards, current ):
+        """Draw the cards (see WidgetViewer.cards), with the one with the index
+        current selected (if anything changed)"""
+        self._used = set()
+        images = [ self._image(c['key']) if c['constant'] is None else None for c in cards ]
+        shown = ( repr(cards), current, tuple(sorted(self.folded)),
+                  tuple( id(i) for i in images ) )
+        if shown == self._shown:
+            return
+        new_current = self._shown is None or self._shown[1] != current
+        self._shown = shown
+        c, col = self.canvas, _card_colors
+        c.delete('all')
+        self._slots = []
+        y, group = 6, False#(False: before the first header)
+        selected = None#(where the shown card is, if it is a new one)
+        for i, ( card, img ) in enumerate(zip(cards,images)):
+            if card['plot'] is not None and card['group'] != group:
+                group = card['group']
+                self._header(y,group)
+                y += _card_heights['header']
+            if card['plot'] is not None and group in self.folded and i != current:
+                continue
+            kind = 'small' if card['constant'] is not None else 'card'
+            h = _card_heights[kind]
+            self._card(y,h,card,img,i == current)
+            self._slots.append( ( y, y + h, 'card', ( i, card['key'], card['group'] ) ) )
+            if i == current and new_current:
+                selected = ( y, y + h )
+            y += h + 6
+        #(the card adding a plot):
+        self._rect(4,y,self.width,y+34,12,outline=col['border'],dash=(3,3),fill='')
+        c.create_text(self.width/2,y+17,text='+  Add plot',fill=col['accent'],
+                      font=self.tv._bold)
+        self._slots.append( ( y, y + 34, 'add', None ) )
+        y += 40
+        c.configure(scrollregion=( 0, 0, self.width + 8, y ))
+        if selected is not None:
+            #(the selected card is scrolled into view):
+            top, bottom = c.canvasy(0), c.canvasy(c.winfo_height())
+            if selected[0] < top or selected[1] > bottom:
+                c.yview_moveto(max( 0.0, ( selected[0] - 40 ) / y ))
+
+    def _rect( self, x0, y0, x1, y1, r, **kw ):
+        pts = [ x0+r, y0, x1-r, y0, x1, y0, x1, y0+r, x1, y1-r, x1, y1,
+                x1-r, y1, x0+r, y1, x0, y1, x0, y1-r, x0, y0+r, x0, y0 ]
+        return self.canvas.create_polygon(pts,smooth=True,**kw)
+
+    def _header( self, y, group ):
+        mark = '\u25b8' if group in self.folded else '\u25be'
+        self.canvas.create_text(8,y+13,anchor='w',fill=_card_colors['dim'],
+                                text=f'{mark}  {( group or "More plots" ).upper()}',
+                                font=( self.tv._bold.cget('family'), 8, 'bold' ))
+        self._slots.append( ( y, y + _card_heights['header'], 'header', group ) )
+
+    def _card( self, y, h, card, img, selected ):
+        c, col = self.canvas, _card_colors
+        self._rect(4,y,self.width,y+h,12,fill=col['selected'] if selected else col['card'],
+                   outline=col['accent'] if selected else col['border'],width=2 if selected else 1)
+        if card['constant'] is not None:
+            c.create_text(16,y+h/2,anchor='w',fill=col['dim'],
+                          text=f'{card["name"]}  \u00b7  all {card["constant"]}')
+            return
+        x = 14
+        if img is not None:
+            c.create_image(x,y+h/2,image=img,anchor='w')
+        x += self.thumb[0] + 12
+        c.create_text(x,y+20,anchor='w',fill=col['text'],font=self.tv._bold,
+                      text=_elided(card['name'],self.tv._bold,self.width-x-22))
+        for b in card['badges']:
+            w = 10 + 6.5 * len(b)
+            self._rect(x,y+34,x+w,y+52,8,fill=col['badge'],outline='')
+            c.create_text(x+w/2,y+43,text=b,fill=col['accent'],
+                          font=( self.tv._bold.cget('family'), 8 ))
+            x += w + 5
+        if card['plot'] is not None:
+            c.create_text(self.width-10,y+h/2,text='\u2807',fill=col['border'])#(drag handle)
+
+    def _slot( self, event ):
+        y = self.canvas.canvasy(event.y)
+        return next( ( s for s in self._slots if s[0] <= y < s[1] + 6 ), None )
+
+    def _on_press( self, event ):
+        s = self._slot(event)
+        self._drag = None
+        if s is not None and s[2] == 'card' and s[3][1].startswith('plot:'):
+            self._drag = ( s[3][1], event.y, False )
+
+    def _on_motion( self, event ):
+        if self._drag is not None and abs( event.y - self._drag[1] ) > 6:
+            key, y0, _ = self._drag
+            self._drag = ( key, y0, True )
+            #(a line where the card would go):
+            self.canvas.delete('drop')
+            s = self._slot(event)
+            if s is not None:
+                self.canvas.create_line(4,s[0]-3,self.width,s[0]-3,fill=_card_colors['accent'],
+                                        width=3,tags='drop')
+
+    def _on_release( self, event ):
+        drag, self._drag = self._drag, None
+        self.canvas.delete('drop')
+        s = self._slot(event)
+        if drag is not None and drag[2]:
+            if s is None:
+                return
+            if s[2] == 'card':
+                #(the plots come after the overview among the views):
+                index, group = s[3][0] - 1, s[3][2]
+            elif s[2] == 'header':
+                group = s[3]
+                index = next( ( x[3][0] - 1 for x in self._slots if x[2] == 'card'
+                                and x[0] > s[0] ), len(self.tv.v.overview_keys()) )
+            else:
+                index, group = len(self.tv.cards()), None
+            self.tv.on_drop(drag[0],index,group)
+            return
+        if s is None:
+            return
+        if s[2] == 'header':
+            self.folded ^= { s[3] }
+            self.tv.refresh(plot = False)
+        elif s[2] == 'card':
+            self.tv.on_select(s[3][0])
+        elif s[2] == 'add':
+            self.tv.focus_field('plot')
 
 def _root():
     """A Tk root window, or None if Tk can not show windows here (no tkinter,

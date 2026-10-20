@@ -47,14 +47,18 @@ class FakeToolkit(WidgetViewer):
         super().__init__(viewer,fig)
         self.state = {}
 
-    def show_views( self, labels, current ):
-        self.state['views'] = f'{len(labels)} views, shown: {labels[current]!r}'
+    def show_views( self, cards, current ):
+        c = cards[current]
+        self.state['views'] = ( f'{len(cards)} views, shown: {c["name"]!r} ({c["plot"]},'
+                                f' group {c["group"]}, badges {c["badges"]})' )
+        self.state['constant fields'] = [ c['name'] for c in cards if c['constant'] is not None ]
+        self.state['thumbnails'] = sum( self.thumbnail(c['key'],84,50) is not None for c in cards )
 
     def show_status( self, first, second ):
         self.state['status'] = first
 
-    def show_plot_field( self, text ):
-        self.state['shown plot field'] = text
+    def show_plot_field( self, text, title ):
+        self.state['shown plot field'] = ( text, title )
 
     def draw_plot( self ):
         self.state['plot'] = f'{len(self.pane.axes)} axes'
@@ -148,6 +152,11 @@ ax = t.pane._panels[2][0]
 bb = ax.get_window_extent()
 t.on_click(MouseEvent('button_press_event',t.fig.canvas,(bb.x0+bb.x1)/2,(bb.y0+bb.y1)/2,button=1))
 t.shown()
+step('the title of the shown plot, and dragging its card into another group')
+t.on_title('Angle to the beam')
+t.on_drop(v.current_key,0,'Mine')
+t.shown()
+print('   state:', v.state(full = False))
 step('the buttons of the actions, and quit')
 t.on_action('help')
 t.on_action('quit')

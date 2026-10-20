@@ -46,12 +46,14 @@ class WidgetViewer:
         self.pane = FigurePane(fig,( 0.08, 0.98, 0.09, 0.93 ),title_space=0.05,
                                title_y=0.98)
         self._histories = {}#field -> ui.History, while it is edited
+        self._thumbnails = {}#view key -> (figure, PNG data, time)
         self.closed = False
 
     #To implement for the toolkit:
 
-    def show_views( self, labels, current ):
-        """Show the labels of the views, with the one shown selected"""
+    def show_views( self, cards, current ):
+        """Show the views as cards (see cards()), with the one shown (the
+        index current) selected"""
         raise NotImplementedError
 
     def show_status( self, first, second ):
@@ -62,9 +64,10 @@ class WidgetViewer:
         """Set the text of the field (without calling on_field_edited)"""
         raise NotImplementedError
 
-    def show_plot_field( self, text ):
-        """Set the text of the field of the shown plot, or disable it if text
-        is None (the shown view is not a plot)"""
+    def show_plot_field( self, text, title ):
+        """Set the texts of the fields of the shown plot (its histogram string
+        and its title), or disable them if text is None (the shown view is
+        not a plot)"""
         raise NotImplementedError
 
     def show_line( self, text, style ):
@@ -133,6 +136,45 @@ class WidgetViewer:
             self.v.select_key(key)
             self.refresh()
 
+    def on_title( self, text ):
+        """The title of the shown plot is set (an empty text removes it)"""
+        plot = self._shown_plot()
+        if plot is not None:
+            ok, msg = self.v.set_title(plot,text)
+            self.show_line(msg,'normal' if ok else 'error')
+            self.refresh(plot = False)
+
+    def on_drop( self, key, index, group ):
+        """A card was dragged: its plot (of the view with the key) is moved to
+        the index in the list of plots, and into the group (None for none)"""
+        plot = key[5:]
+        self.v.move_to(plot,index)
+        self.v.set_group(plot,group or '')
+        self.refresh(plot = False)
+
+    def cards( self ):
+        """The views as cards: the plot_info of the viewer (see
+        Viewer.plot_info), with the key of the view"""
+        return [ { 'key' : key, **self.v.plot_info(key) } for key, _ in self.v.views ]
+
+    def thumbnail( self, key, width, height ):
+        """A small image of the plot of the view, as PNG data (or None if
+        there is no plot yet). While the file is read, it is drawn again at
+        most every 2 seconds."""
+        import time
+
+        from ._plotbackend_mpl import thumbnail_png
+        figure = self.v.figure(key = key)
+        old = self._thumbnails.get(key)
+        if figure is None:
+            return old[1] if old else None
+        if old is not None and ( old[0] is figure
+                                 or ( time.monotonic() - old[2] < 2 and self.v.reading ) ):
+            return old[1]
+        png = thumbnail_png(figure,width,height)
+        self._thumbnails[key] = ( figure, png, time.monotonic() )
+        return png
+
     def on_field_edited( self, field, text ):
         """The text of the field was changed by the user (field is
         'shown_plot' for the field of the shown plot): it is checked"""
@@ -175,7 +217,7 @@ class WidgetViewer:
         self.show_check(field,None)
         self.show_line('','normal')
         if field == 'shown_plot':
-            self.show_plot_field(self._shown_plot())
+            self.refresh(plot = False)
         else:
             self.show_field(field,'' if field == 'plot' else self.v.field_text(field))
 
@@ -241,9 +283,10 @@ class WidgetViewer:
     def refresh( self, plot = True ):
         """Show the views, the status and (if plot is set) the plot"""
         v = self.v
-        self.show_views([ label for _, label in v.views ],v.current)
+        self.show_views(self.cards(),v.current)
         self.show_status(*v.status_lines())
-        self.show_plot_field(self._shown_plot())
+        shown = self._shown_plot()
+        self.show_plot_field(shown,v.plot_info(f'plot:{shown}')['title'] if shown else None)
         if plot and self.pane.show(v):
             self.draw_plot()
 

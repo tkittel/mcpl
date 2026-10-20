@@ -20,58 +20,97 @@
 ################################################################################
 
 """The collections of plots of the viewer: each has a name, a short
-description and the plots (histogram strings, as for -H) the viewer starts
-with, of which the first ones are shown together in the overview. The
-collection is chosen with -wNAME (or in the viewer), and the state of the
-viewer is saved as the changes of the plots of its collection.
+description and the plots the viewer starts with, of which the first ones are
+shown together in the overview. The collection is chosen with -wNAME (or in
+the viewer), and the state of the viewer is saved as the changes of the plots
+of its collection.
+
+The plots are plot items, as in the state of the viewer: a histogram string
+(as for -H), or a dict with it as "plot", and optionally a "title" (shown
+instead of the histogram string, in the viewers with windows) and a "group"
+(where the plot is listed there).
 
 The names are not valid expressions (which is tested), so -wNAME can be
 either a collection or a view."""
 
 __all__ = []
 
+_item_keys = ( 'plot', 'title', 'group' )
+
+def _plot_item( item ):
+    """The (plot, title, group) of a plot item (title and group are None if
+    not given), or TypeError or ValueError if it is not a valid plot item"""
+    if isinstance(item,str):
+        return item, None, None
+    if not isinstance(item,dict):
+        raise TypeError('a plot must be a histogram string, or a JSON object with it'
+                         ' as "plot", and optionally a "title" and a "group"')
+    for k, v in item.items():
+        if k not in _item_keys:
+            raise ValueError(f'unknown entry "{k}" of a plot (the entries are:'
+                             f' {", ".join(_item_keys)})')
+        if not isinstance(v,str) or not v.strip() or not v.isprintable():
+            raise ValueError(f'the {k} of a plot must be a text on one line')
+    if 'plot' not in item:
+        raise ValueError('a plot without its histogram string ("plot")')
+    return item['plot'].strip(), *( item[k].strip() if k in item else None
+                                    for k in ( 'title', 'group' ) )
+
+def _item( plot, title = None, group = None ):
+    """The plot item of the plot (see _plot_item): its histogram string if it
+    has no title and group"""
+    if title is None and group is None:
+        return plot
+    return { k : v for k, v in ( ( 'title', title ), ( 'plot', plot ), ( 'group', group ) )
+             if v is not None }
+
 #The angles of the directions to the axis of a beam along z, x or y (with
 #the two components across the beam):
 def _beam( axis, a, b ):
     div_a, div_b = f'atan2(u{a},u{axis})/deg', f'atan2(u{b},u{axis})/deg'
     vector = ','.join( '1' if c == axis else '0' for c in 'xyz' )
-    return ( f'{a} : {b}',
-             f'{div_a} : {div_b}',
-             f'{a} : {div_a}',
-             f'{b} : {div_b}',
-             'ekin;logx=auto;logy;split=pdgcode',
-             'wavelength;split=pdgcode',
-             f'hypot({a},{b})',
-             f'angle_to({vector})/deg;logy',
-             'time;logx=auto;logy',
-             'pdgcode;bar;logy=auto',
-             f'{axis}',
-             'weight;unweighted;logy' )
+    beam = 'Profiles and divergences'
+    return ( _item(f'{a} : {b}','Beam profile',beam),
+             _item(f'{div_a} : {div_b}','Divergences',beam),
+             _item(f'{a} : {div_a}',f'Phase space {a}',beam),
+             _item(f'{b} : {div_b}',f'Phase space {b}',beam),
+             _item('ekin;logx=auto;logy;split=pdgcode','Energy spectrum','Spectra'),
+             _item('wavelength;split=pdgcode','Wavelength','Spectra'),
+             _item(f'hypot({a},{b})','Distance from the axis','Other'),
+             _item(f'angle_to({vector})/deg;logy',f'Angle to the {axis} axis','Other'),
+             _item('time;logx=auto;logy','Time','Other'),
+             _item('pdgcode;bar;logy=auto','Particle types','Other'),
+             _item(f'{axis}',f'Position {axis}','Other'),
+             _item('weight;unweighted;logy','Weights','Other') )
 
 _collections = {
-    'default' : ( 'an overview of all particle fields',
-                  ( 'ekin;logx=auto;logy;split=pdgcode',
-                    'wavelength;logx;split=pdgcode',
-                    'angle_to(0,0,1)/deg;logy;split=pdgcode',
-                    'x : y',
-                    'time;logx=auto;logy',
-                    'pdgcode;bar;logy=auto',
-                    'userflags;bar;logy=auto',
-                    'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time',
-                    'weight;unweighted', 'polx', 'poly', 'polz' ) ),
+    'default' : ( 'an overview of all particle fields', (
+        _item('ekin;logx=auto;logy;split=pdgcode','Energy spectrum','Main plots'),
+        _item('wavelength;logx;split=pdgcode','Wavelength','Main plots'),
+        _item('angle_to(0,0,1)/deg;logy;split=pdgcode','Angle to the z axis','Main plots'),
+        _item('x : y','Position x-y','Main plots'),
+        _item('time;logx=auto;logy','Time','Main plots'),
+        _item('pdgcode;bar;logy=auto','Particle types','Main plots'),
+        _item('userflags;bar;logy=auto','User flags','Fields'),
+        *( _item(f,t,'Fields') for f, t in (
+            ( 'ekin', 'Energy' ), ( 'x', 'Position x' ), ( 'y', 'Position y' ),
+            ( 'z', 'Position z' ), ( 'ux', 'Direction x' ), ( 'uy', 'Direction y' ),
+            ( 'uz', 'Direction z' ), ( 'time', 'Time (linear)' ),
+            ( 'weight;unweighted', 'Weights' ), ( 'polx', 'Polarisation x' ),
+            ( 'poly', 'Polarisation y' ), ( 'polz', 'Polarisation z' ) ) ) ) ),
     'beamz' : ( 'a beam along the z axis: profiles and divergences', _beam('z','x','y') ),
     'beamx' : ( 'a beam along the x axis: profiles and divergences', _beam('x','y','z') ),
     'beamy' : ( 'a beam along the y axis: profiles and divergences', _beam('y','z','x') ),
-    'shielding' : ( 'spectra, directions and weights of all particle types',
-                    ( 'pdgcode;bar;logy=auto',
-                      'ekin;logx=auto;logy;split=pdgcode',
-                      'ekin;lethargy;logy;split=pdgcode',
-                      'angle_to(0,0,1)/deg;logy;split=pdgcode',
-                      'time;logx=auto;logy;split=pdgcode',
-                      'weight;logx=auto;logy;unweighted;split=pdgcode',
-                      'x : y',
-                      'hypot(x,y);logy;split=pdgcode',
-                      'wavelength;logx;split=pdgcode' ) ),
+    'shielding' : ( 'spectra, directions and weights of all particle types', (
+        _item('pdgcode;bar;logy=auto','Particle types','Main plots'),
+        _item('ekin;logx=auto;logy;split=pdgcode','Energy spectrum','Main plots'),
+        _item('ekin;lethargy;logy;split=pdgcode','Lethargy spectrum','Main plots'),
+        _item('angle_to(0,0,1)/deg;logy;split=pdgcode','Angle to the z axis','Main plots'),
+        _item('time;logx=auto;logy;split=pdgcode','Time','Main plots'),
+        _item('weight;logx=auto;logy;unweighted;split=pdgcode','Weights','Main plots'),
+        _item('x : y','Position x-y','More plots'),
+        _item('hypot(x,y);logy;split=pdgcode','Distance from the z axis','More plots'),
+        _item('wavelength;logx;split=pdgcode','Wavelength','More plots') ) ),
 }
 
 _default_collection = 'default'

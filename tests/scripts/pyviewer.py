@@ -50,8 +50,8 @@ def same( a, b ):
 _plots = [ 'ekin/MeV;logx=1;split=pdgcode', 'x/cm : y/cm;bins=10', 'wavelength;logy=1' ]
 
 def test_figures():
-    from mcpldev._stdviews import _collections
-    _default_plots = _collections['default'][1]
+    from mcpldev._stdviews import _collections, _plot_item
+    _default_plots = [ _plot_item(i)[0] for i in _collections['default'][1] ]
     for skip, limit, pick, edit in ( (0,None,None,None),
                                      (0,None,'pdgcode == neutron',None),
                                      (100,500,'ekin > 1MeV','z += 1m'),
@@ -108,12 +108,16 @@ def test_collections():
                 continue
             raise AssertionError(f'collection name {name!r} is a valid expression')
         assert not Viewer(ex).check('plot',name)[0], f'collection name {name!r} is a valid plot'
-    #All plots of all collections work:
-    for name, ( descr, plots ) in _collections.items():
-        assert len(set(plots)) == len(plots)
-        for p in plots:
+    #All plots of all collections work (they are plot items, with titles and
+    #groups):
+    from mcpldev._stdviews import _plot_item
+    for name, ( descr, items ) in _collections.items():
+        plots = [ _plot_item(i) for i in items ]
+        assert len({ p for p, _, _ in plots }) == len(plots)
+        for p, _, _ in plots:
             mcpl.histogram(ex,p)
-        print(f'collection {name}: {descr}, {len(plots)} plots, first: {plots[0]!r}')
+        groups = list(dict.fromkeys( g for _, _, g in plots ))
+        print(f'collection {name}: {descr}, {len(plots)} plots, first: {plots[0]!r}, groups: {groups}')
     v = Viewer(ex,view='beamz',plots=['x;bins=5'])
     print('-wbeamz:', v.field_text('collection'), [ k for k, _ in v.views ][:2],
           '| state:', v.state(), '| command:', v.commands()['view'])
@@ -131,6 +135,27 @@ def test_collections():
     #(a state given as a dict, as in the Python API):
     w = Viewer(ex,view=v.state())
     print('opened with the state as a dict: same state:', w.state() == v.state())
+    #Titles and groups of the plots, kept when they are changed, and in the
+    #state (as plot items):
+    t = Viewer(ex)
+    t.set('plot','hypot(x,y)/cm;logy')
+    print('titles:', t.set_title('hypot(x,y)/cm;logy','Radius'), t.set_group('hypot(x,y)/cm;logy','Mine'),
+          t.set_title('x : y','Beam spot'), t.set_title('x : y','a\nb'), t.set_title('nope','x'))
+    t.change_plot('x : y','x/mm : y/mm')
+    print('info of a changed plot:', t.plot_info('plot:x/mm : y/mm'))
+    print('info of a plot of the collection:', t.plot_info('plot:polx'))
+    t.set_title('polx','')
+    print('info of a plot with its title removed:', t.plot_info('plot:polx'))
+    print('moved:', t.move_to('hypot(x,y)/cm;logy',0), t._s.plots[:2])
+    st = t.state()
+    print('state:', st)
+    print('opened with it: same state:', Viewer(ex,view=st).state() == st)
+    for bad in ( "{'plots':{'add':[{'title':'A'}]}}", "{'plots':{'add':[{'plot':'x','color':'red'}]}}",
+                 "{'plots':{'add':[3]}}", "{'plots':{'change':{'x : y':{'plot':'x','title':''}}}}" ):
+        try:
+            Viewer(ex,view=bad)
+        except mcpl.MCPLError as e:
+            print(f'view {bad!r}: {e}')
     for bad in ( "{'collection':'nope'}", "{'collection':3}" ):
         try:
             Viewer(ex,view=bad)

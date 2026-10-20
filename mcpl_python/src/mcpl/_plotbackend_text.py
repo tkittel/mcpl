@@ -39,7 +39,7 @@ from ._particles import _pdg_symbols
 from ._physics import _ascii_symbols
 from ._plotbackend import PlotBackend
 from ._termcolor import _check_setting, _curve_rgb, _map_rgb, _ncolors, _paint
-from .plotting import Bars, Hist2D, StepHist, Text, _map_texts
+from .plotting import Bars, Hist2D, StepHist, Text, _line_style, _map_texts
 
 
 class _Chars:
@@ -156,6 +156,11 @@ class _TextBackend(PlotBackend):
 
     def _curve_color( self, item, k ):
         return _curve_rgb( item.color if item.color is not None else k )
+
+    @staticmethod
+    def _curve_style( item, k ):
+        """Line style of a curve (see _line_style)"""
+        return _line_style( item.color if item.color is not None else k )[1]
 
     def resolution( self ):
         return ( self._width - _ylw - 3, self._height )
@@ -396,7 +401,8 @@ class _TextBackend(PlotBackend):
         """The legend symbol of the k'th curve drawn with braille dots: a piece
         of line (with its marker, without colour)"""
         if self._nc:
-            return '\u2501\u2501'
+            return { 'solid' : '\u2501\u2501', 'dashed' : '\u2501 \u2501',
+                     'dotted' : '\u2505\u2505' }[self._curve_style(s,k)]
         return f'\u2812{self._marker(s,k)}\u2812'
 
     def _draw_braille( self, panel, steps, lo, hi, ncols, height, grid ):
@@ -422,14 +428,19 @@ class _TextBackend(PlotBackend):
             near[1:] |= ok[:-1]
             near[:-1] |= ok[1:]
             draw = near & np.isfinite(v) & ( v >= 0 ) if not panel.logy else ok
+            #(gaps of dashed and dotted lines, in columns of dots):
+            style = self._curve_style(s,k)
+            gap = ( ( lambda x : ( x // 4 ) % 2 ) if style == 'dashed' else
+                    ( lambda x : x % 2 ) if style == 'dotted' else ( lambda x : False ) )
             prev = None
             for x in range(nx):
                 if not draw[x]:
                     prev = None
                     continue
                 y = min( ny - 1, int( float(height(v[x])) * 4 ) )
-                for yy in ( range(min(prev,y),max(prev,y)+1) if prev is not None else ( y, ) ):
-                    dot(k,x,yy)
+                if not gap(x):
+                    for yy in ( range(min(prev,y),max(prev,y)+1) if prev is not None else ( y, ) ):
+                        dot(k,x,yy)
                 prev = y
                 offset = ( 2 + 3 * k ) % _marker_step
                 if not self._nc and x % 2 == 0 and ( x // 2 ) % _marker_step == offset:

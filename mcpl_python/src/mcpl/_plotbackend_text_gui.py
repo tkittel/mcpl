@@ -370,7 +370,7 @@ class TextViewer:
             return
         views = v.views
         lw = min( max( len(label) for _, label in views ) + 4, max( 12, w // 4 ) )
-        nbottom = len(ui.fields) + 5
+        nbottom = len(ui.field_rows) + 5
         top = max( 3, h - nbottom )
         #The views (from the second line, below the first status line):
         for i, (_, label) in enumerate(views[:max(0,top-1)]):
@@ -386,9 +386,14 @@ class TextViewer:
         #The fields:
         popup = None#(line and column of the name completed, if any)
         y = top
-        for field, label, key, kpos, empty in ui.fields:
+        x = 1
+        fieldinfo = { f[0] : f for f in ui.fields }
+        for field, label, key, kpos, empty in ( fieldinfo[f] for row in ui.field_rows for f in row ):
             a, b, c = ui.labelled(label,kpos)
-            x = 1
+            first = field == next( row for row in ui.field_rows if field in row )[0]
+            if first and field != ui.field_rows[0][0]:
+                y, x = y + 1, 1
+            x0 = x
             for part, style in ( (a,'normal'), (b,'key'), (c+': ','normal') ):
                 s.put(y,x,part,style)
                 x += len(part)
@@ -401,15 +406,18 @@ class TextViewer:
                 s.put(y,x,'[' + shown.ljust(fw) + ']','reverse')
                 if ed.choices:
                     popup = ( y, x + 1 + max( 0, ed.choice_start - start ) )
-                cx = x + 1 + ed.cursor - start
-                s.put(y,cx,( text[ed.cursor] if ed.cursor < len(text) else ' ' ),'bold')
+                if not ed.menu:#(the cursor, see ui.LineEditor)
+                    cx = x + 1 + ed.cursor - start
+                    s.put(y,cx,( text[ed.cursor] if ed.cursor < len(text) else ' ' ),'bold')
                 marks = ( '+', 'x' ) if self.ascii else ( '\u2713', '\u2717' )
                 s.put(y,x+fw+3,marks[0] if ed.ok else marks[1],'ok' if ed.ok else 'error')
             else:
                 s.put(y,x,'[' + ( text or empty )[:fw] + ']',
                       'normal' if text else 'dim')
-            self._regions.append( ( y, 1, w - 1, field ) )
-            y += 1
+            x += fw + ( 5 if ed else 2 )
+            self._regions.append( ( y, x0, x - 1, field ) )
+            x += 2
+        y += 1
         #Hint, or message of the check, or completions:
         line, style = ui.hint_line(self.editor,popup=True)
         s.put(y,1,line,style)

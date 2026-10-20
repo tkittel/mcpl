@@ -44,8 +44,8 @@ class MplViewer:
     #Layout (in figure coordinates):
     _left = 0.17
     _top = 0.92#(below the logo)
-    _bottom = 0.30
-    _nlines = 10#(lines of the bottom panel)
+    _bottom = 0.24
+    _nlines = 8#(lines of the bottom panel)
 
     def __init__( self, viewer, fig ):
         from ._plotbackend_mpl import Backend
@@ -256,20 +256,31 @@ class MplViewer:
             self._text(0.5*(self._left+1.0),0.935,figure.title,ha='center',
                        va='top',size=10)
         #The bottom panel, in lines of monospace text:
+        #(each line a list of groups of segments, which can be clicked):
         lines = []
-        for field, label, key, kpos, empty in ui.fields:
-            ed = self.editor if self.editor is not None and self.editor.field == field else None
-            a, b, c = ui.labelled(label,kpos)
-            if ed:
-                t = ed.text
-                txt = t[:ed.cursor] + '\u2502' + t[ed.cursor:]
-                mark = ( ' \u2713', 'ok' ) if ed.ok else ( ' \u2717', 'error' )
-                segs = [ (a,'normal'), (b,'key'), (c + ': ','normal'), ('[' + txt + ']','bold'), mark ]
-            else:
-                t = v.field_text(field)
-                segs = [ (a,'normal'), (b,'key'), (c + ': ','normal'),
-                         ('[' + ( t or empty ) + ']','normal' if t else 'dim') ]
-            lines.append( ( segs, field ) )
+        fieldinfo = { f[0] : f for f in ui.fields }
+        popup = None#(line and column of the name completed, if any)
+        for row in ui.field_rows:
+            groups, column = [], 0
+            for field in row:
+                _, label, _key, kpos, empty = fieldinfo[field]
+                ed = self.editor if self.editor is not None and self.editor.field == field else None
+                a, b, c = ui.labelled(label,kpos)
+                if ed:
+                    t = ed.text
+                    #(with the cursor, except in menus, see ui.LineEditor):
+                    txt = t if ed.menu else t[:ed.cursor] + '\u2502' + t[ed.cursor:]
+                    mark = ( ' \u2713', 'ok' ) if ed.ok else ( ' \u2717', 'error' )
+                    segs = [ (a,'normal'), (b,'key'), (c + ': ','normal'), ('[' + txt + ']','bold'), mark ]
+                    popup = ( len(lines), column + len(label) + 3 + ed.choice_start )
+                else:
+                    t = v.field_text(field)
+                    segs = [ (a,'normal'), (b,'key'), (c + ': ','normal'),
+                             ('[' + ( t or empty ) + ']','normal' if t else 'dim') ]
+                segs.append( ( '   ', 'normal' ) )
+                column += sum( len(text) for text, _ in segs )
+                groups.append( ( segs, field ) )
+            lines.append( ( groups, 'groups' ) )
         ed = self.editor
         hint = ui.hint_line(ed,popup=True)
         lines.append( ( [ hint ], None ) )
@@ -277,11 +288,11 @@ class MplViewer:
         if ed is not None and ed.field in ui.file_prompts:
             lines.append( ( [ (ui.file_prompts[ed.field],'bold'), ('[' + ed.text + ']','bold') ], None ) )
         else:
-            segs = []
+            groups = []
             for action, label, keys, kpos in ui.actions:
                 a, b, c = ui.labelled(label,kpos)
-                segs.append( ( ( '[' + a, 'normal' ), ( b, 'key' ), ( c + ']  ', 'normal' ), action ) )
-            lines.append( ( segs, 'actions' ) )
+                groups.append( ( [ ( '[' + a, 'normal' ), ( b, 'key' ), ( c + ']  ', 'normal' ) ], action ) )
+            lines.append( ( groups, 'groups' ) )
         hover = self.hover
         if isinstance(hover,tuple):
             hover = 'panel'
@@ -290,10 +301,8 @@ class MplViewer:
         status = self.message or ( ui.shortcut_text(hover) if hover is not None else '' )
         lines.append( ( [ ( status, 'error' if self.message.startswith('Not') else 'normal' ) ], None ) )
         self._draw_lines(lines)
-        if ed is not None and ed.choices:
-            row = next( i for i, f in enumerate(ui.fields) if f[0] == ed.field )
-            label = ui.fields[row][1]
-            self._draw_popup(row,len(label) + 3 + ed.choice_start)
+        if ed is not None and ed.choices and popup is not None:
+            self._draw_popup(*popup)
         fig.canvas.draw_idle()
 
     def _draw_popup( self, row, column ):
@@ -331,7 +340,8 @@ class MplViewer:
 
     def _draw_lines( self, lines ):
         """The lines of the bottom panel, each a list of segments (text,
-        style), with the clickable lines given by what"""
+        style), with the clickable lines given by what, or (if what is
+        'groups') a list of groups of segments, each with what is clicked"""
         fig = self.fig
         size = 9
         #(width of a character of the monospace font, in figure coordinates):
@@ -340,17 +350,17 @@ class MplViewer:
         y = self._bottom - 0.01
         for segs, what in lines:
             x = 0.01
-            if what == 'actions':
-                for parts in segs:
+            if what == 'groups':
+                for parts, target in segs:
                     x0 = x
-                    for text, style in parts[:3]:
+                    for text, style in parts:
                         self._text(x,y,text,family='monospace',size=size,va='top',
                                    color=_colors[style],
                                    weight='bold' if style in ('key','bold') else 'normal')
                         x += len(text) * cw
-                    hit = self._text(x0,y,' ' * len(''.join(p[0] for p in parts[:3])),
+                    hit = self._text(x0,y,' ' * len(''.join(p[0] for p in parts)),
                                      family='monospace',size=size,va='top')
-                    self._targets.append( ( hit, parts[3] ) )
+                    self._targets.append( ( hit, target ) )
             else:
                 full = ''
                 for text, style in segs:

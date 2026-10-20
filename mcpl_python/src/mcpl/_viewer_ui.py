@@ -29,10 +29,14 @@ __all__ = []
 #position of the key in the label, text shown when the field is empty):
 fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
            ( 'limit', 'Limit', 'i', 1, 'all' ),
+           ( 'collection', 'Collection', 'c', 0, 'default' ),
            ( 'pick', 'Pick', 'p', 0, 'all particles' ),
            ( 'edit', 'Edit', 'e', 0, 'no changes' ),
-           ( 'collection', 'Collection', 'c', 0, 'default' ),
            ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy' ) )
+
+#The fields shown on the same line (the short ones together):
+field_rows = ( ( 'skip', 'limit', 'collection' ), ( 'pick', ), ( 'edit', ), ( 'plot', ) )
+assert [ f for row in field_rows for f in row ] == [ f[0] for f in fields ]
 
 #The fields chosen from a menu (see LineEditor):
 menu_fields = ( 'collection', )

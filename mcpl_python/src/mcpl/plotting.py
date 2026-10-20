@@ -62,10 +62,18 @@ from ._plotbackend import (
 Backend = PlotBackend
 
 
+def _line_style( color ):
+    """The colour (0 to 9, in the colour cycle of the backend) and line style
+    ('solid', 'dashed' or 'dotted') of a curve with the colour index color (see
+    StepHist): 10 colours with solid lines, then dashed, then dotted"""
+    return color % 10, ( 'solid', 'dashed', 'dotted' )[ ( color // 10 ) % 3 ]
+
 class StepHist:
     """1D histogram drawn as a step line. The bin edges have one more entry
     than the values. The color is an index into the colour cycle of the
-    backend (by default the position of the item in the panel)."""
+    backend, which has 10 colours drawn with solid lines, then dashed, then
+    dotted (see _line_style), by default the position of the item in the
+    panel."""
     def __init__( self, edges, values, label = None, color = None ):
         self.edges, self.values, self.label = edges, values, label
         self.color = color

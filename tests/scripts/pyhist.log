@@ -1,3 +1,17 @@
+range of values from 0.3 to 20.5: 0 to 22
+range of values from -20.5 to -0.3: -22 to 0
+range of values from -9.83 to 10.21: -10 to 11
+range of values from 1012.3 to 1077.9: 1010 to 1080
+range of values from 0.001234 to 0.0098: 0 to 0.01
+range of values from 3 to 4: 3 to 4
+range of values from -0.99 to 0.999: -1 to 1
+range of values from 1e-09 to 3.3e-07: 0 to 3.5e-07
+range of values from 0.1 to 0.3: 0.1 to 0.3
+range of values from 2.2 to 7.7: 2 to 7.75
+range of values from 123457 to 123499: 123455 to 123500
+colours of [2112, 22, 12, 14, 'other'] {12: 9, 14: 2, 'other': 3, 2112: 0, 22: 8}
+colours of [2112, 22, 11, -11, 2212, 211, -211, 13, -13, 12, 14, 16, 321, 'other'] {12: 9, 14: 10, 16: 11, 321: 12, 'other': 13, 2112: 0, 22: 8, 11: 1, -11: 3, 2212: 4, 211: 2, -211: 7, 13: 5, -13: 6} [(9, 'solid'), (0, 'dashed'), (1, 'dashed'), (2, 'dashed'), (3, 'dashed')]
+line styles: [(0, 'solid'), (9, 'solid'), (0, 'dashed'), (9, 'dashed'), (0, 'dotted'), (0, 'solid')]
 unit of x, 0.3m: ('cm', 1.0)
 unit of x, 2.5m: ('m', 100.0)
 unit of x, 5mm: ('mm', 0.1)
@@ -12,13 +26,13 @@ unit of wavelength, 1.8Aa: ('Aa', 1e-08)
 unit of wavelength, log axis 1e-3 to 100Aa: ('Aa', 1e-08)
 unit of wavelength, up to 1mm: ('mm', 0.1)
 unit of no units: None
-histogram('x'): label 'x [cm]', edges from -60.09 to 65.89
+histogram('x'): label 'x [cm]', edges from -65 to 70
 histogram('ekin;logx=auto'): label 'ekin [eV]', edges from 1393 to 9.725e+09
-histogram('wavelength'): label 'wavelength [Aa]', edges from 3.857e-06 to 0.007662
+histogram('wavelength'): label 'wavelength [Aa]', edges from 0 to 0.008
 histogram('x;range=-10cm:10cm;bins=2'): label 'x [cm]', edges from -10 to 10
 histogram('x;range=0:1m;bins=2'): label 'x [m]', edges from 0 to 1
-histogram('x/cm;bins=2'): label 'x/cm', edges from -60.09 to 65.89
-histogram('hypot(x,y)'): label 'hypot(x,y) [cm]', edges from 0.08119 to 69.42
+histogram('x/cm;bins=2'): label 'x/cm', edges from -65 to 70
+histogram('hypot(x,y)'): label 'hypot(x,y) [cm]', edges from 0 to 70
 histogram2d(x, ekin/MeV): # 2D histogram of: x [cm] : ekin/MeV
 histogram('x;range=-10:10'): The range of "x" must be given with units, as it has units (length), e.g. range=0cm:10cm
 histogram('x/cm;range=-10cm:10cm'): The range of "x/cm" must be given without units, as it has none
@@ -195,7 +209,7 @@ Figure 1 (1x1): None
     StepHist label='other' color=9 bins=26 edges=[-300,2300] sum=41 max=16 nonzero_bins=5
 Figure 1 (1x1): None
   Panel 'pick: pdgcode == gamma' xlabel='x/cm' ylabel='y/cm' 
-    Hist2D shape=(10, 10) x=[-26.4199,24.6688] y=[-44.7764,30.7065] sum=239 logz=True
+    Hist2D shape=(10, 10) x=[-27.5,25] y=[-45,35] sum=239 logz=True
 empty histogram with split='pdgcode': # histogram of: ekin/MeV
 # pick: x > 1km
 # values: weights per bin
@@ -256,22 +270,22 @@ mcpltool -H x/cm : y/cm;bins=4;print=1 -p pdgcode == gamma example.mcpl: exit co
    | # pick: pdgcode == gamma
    | # values: weights per bin
    | # x lower edge | x upper edge | y lower edge | y upper edge | value
-   | -26.419943 -13.647766 -44.776417 -25.905695 0
-   | -26.419943 -13.647766 -25.905695 -7.0349731 0
-   | -26.419943 -13.647766 -7.0349731 11.835749 3
-   | -26.419943 -13.647766 11.835749 30.70647 2
-   | -13.647766 -0.87558842 -44.776417 -25.905695 0
-   | -13.647766 -0.87558842 -25.905695 -7.0349731 0
-   | -13.647766 -0.87558842 -7.0349731 11.835749 53
-   | -13.647766 -0.87558842 11.835749 30.70647 7
-   | -0.87558842 11.896589 -44.776417 -25.905695 1
-   | -0.87558842 11.896589 -25.905695 -7.0349731 1
-   | -0.87558842 11.896589 -7.0349731 11.835749 170
-   | -0.87558842 11.896589 11.835749 30.70647 1
-   | 11.896589 24.668766 -44.776417 -25.905695 1
-   | 11.896589 24.668766 -25.905695 -7.0349731 0
-   | 11.896589 24.668766 -7.0349731 11.835749 0
-   | 11.896589 24.668766 11.835749 30.70647 0
+   | -27.5 -14.375 -45 -25 0
+   | -27.5 -14.375 -25 -5 0
+   | -27.5 -14.375 -5 15 3
+   | -27.5 -14.375 15 35 1
+   | -14.375 -1.25 -45 -25 0
+   | -14.375 -1.25 -25 -5 2
+   | -14.375 -1.25 -5 15 47
+   | -14.375 -1.25 15 35 6
+   | -1.25 11.875 -45 -25 1
+   | -1.25 11.875 -25 -5 2
+   | -1.25 11.875 -5 15 176
+   | -1.25 11.875 15 35 0
+   | 11.875 25 -45 -25 1
+   | 11.875 25 -25 -5 0
+   | 11.875 25 -5 15 0
+   | 11.875 25 15 35 0
 mcpltool -H x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print=1 example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
    | # values: weights per bin
@@ -284,20 +298,20 @@ mcpltool -H x/cm : y/cm;bins=2;xrange=-10:10;print=1 example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
    | # values: weights per bin
    | # x lower edge | x upper edge | y lower edge | y upper edge | value
-   | -10 0 -61.335377 -1.8209381 115
-   | -10 0 -1.8209381 57.693501 231
-   | 0 10 -61.335377 -1.8209381 82
-   | 0 10 -1.8209381 57.693501 302
+   | -10 0 -65 -2.5 105
+   | -10 0 -2.5 60 241
+   | 0 10 -65 -2.5 74
+   | 0 10 -2.5 60 310
 mcpltool -H x/cm : y/cm;bins=3,2;print=1 example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
    | # values: weights per bin
    | # x lower edge | x upper edge | y lower edge | y upper edge | value
-   | -60.088242 -18.094035 -61.335377 -1.8209381 18
-   | -60.088242 -18.094035 -1.8209381 57.693501 42
-   | -18.094035 23.900172 -61.335377 -1.8209381 256
-   | -18.094035 23.900172 -1.8209381 57.693501 659
-   | 23.900172 65.894379 -61.335377 -1.8209381 14
-   | 23.900172 65.894379 -1.8209381 57.693501 17
+   | -65 -20 -65 -2.5 14
+   | -65 -20 -2.5 60 37
+   | -20 25 -65 -2.5 239
+   | -20 25 -2.5 60 690
+   | 25 70 -65 -2.5 11
+   | 25 70 -2.5 60 15
 mcpltool -H x/cm;range=-10:10;bins=4 -B test example.mcpl reffile_1.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='x/cm\n(27.3% of weights outside plot range)' ylabel='weights per bin' xlim=[-10,10]
@@ -340,11 +354,11 @@ mcpltool -Hekin/MeV;print=1;bins=2 -ppdgcode==22 example.mcpl: exit code 0
    | # pick: pdgcode==22
    | # values: weights per bin
    | # lower edge | upper edge | value
-   | 0.24947436 91.251263 238
-   | 91.251263 182.25305 1
+   | 0 95 238
+   | 95 190 1
 mcpltool -H ekin example.mcpl: exit code 0
    | (weights per bin)
-   |      987 +##
+   |      988 +##
    |          |##
    |          |##
    |          |##
@@ -360,7 +374,7 @@ mcpltool -H ekin example.mcpl: exit code 0
    |          |##
    |        0 +##
    |          ++----------------------------------------------------------+
-   |          1.393e-06                   4.862                       9.725
+   |          0                             5                            10
    |                                    ekin [GeV]
 mcpltool -H ekin/MeV;bins=0 example.mcpl: exit code 1
    | ERROR: bins must be a positive integer (or two for 2D histograms, like bins=50,40) in "ekin/MeV;bins=0"
@@ -433,23 +447,23 @@ mcpltool -H x/cm;logx=2 example.mcpl: exit code 1
    | Run with "-H help" for how to write histograms
 mcpltool -H x/cm;logy=auto example.mcpl: exit code 0
    | (weights per bin)
-   |      313 +                            ##
+   |      343 +                            ##
    |          |                            ##
    |          |                          ####
+   |          |                          ######
    |          |                        ########
-   |          |                      ##########
    |          |                      ##############
    |          |                    ##################
-   |          |                ##  ##################
+   |          |                  ####################
    |          |                ########################
-   |          |              ############################
-   |          |              ##############################
-   |          |              ##############################
-   |          |          ##  ##################################  ##
-   |          |##      ############################################
-   |        1 +##      ############################################
+   |          |                ##########################
+   |          |                ##########################
+   |          |              ############################    ##
+   |          |            ######################################
+   |          |  ##    ##########################################
+   |        1 +  ##    ##########################################
    |          ++----------------------------------------------------------+
-   |          -60.09                      2.903                       65.89
+   |          -65                          2.5                           70
    |                                       x/cm
 mcpltool -H x/cm;logx=1;logx=1 example.mcpl: exit code 1
    | ERROR: Histogram option "logx" given more than once in "x/cm;logx=1;logx=1"
@@ -498,9 +512,9 @@ mcpltool -H x/cm;logx=auto;bins=3;print=1 example.mcpl: exit code 0
    | # histogram of: x/cm
    | # values: weights per bin
    | # lower edge | upper edge | value
-   | -60.088242 -18.094035 60
-   | -18.094035 23.900172 915
-   | 23.900172 65.894379 31
+   | -65 -20 51
+   | -20 25 929
+   | 25 70 26
 mcpltool -H ekin/MeV;logx=auto;range=1:10;bins=3;print=1 example.mcpl: exit code 0
    | # histogram of: ekin/MeV
    | # values: weights per bin
@@ -549,8 +563,8 @@ mcpltool -H x/cm;bins=2;print -H pdgcode;bar=2;print example.mcpl: exit code 0
    | # histogram of: x/cm
    | # values: weights per bin
    | # lower edge | upper edge | value
-   | -60.088242 2.9030685 717
-   | 2.9030685 65.894379 289
+   | -65 2.5 703
+   | 2.5 70 303
    | # bars of: pdgcode
    | # values: weights
    | # bar | value

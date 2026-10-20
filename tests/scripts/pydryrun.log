@@ -187,16 +187,16 @@ mcpltool --dry-run --hist ekin/MeV;print=1 a1.mcpl: exit code 0, real run did no
    | # histogram of: ekin/MeV
    | # values: weights per bin
    | # lower edge | upper edge | value
-   | 0.001 0.0039 4.5
-   | 0.0039 0.0067999999 9
-   | 0.0067999999 0.0096999998 13.5
-   | 0.0096999998 0.0126 18
-   | 0.0126 0.0155 22.5
-   | 0.0155 0.0184 27
-   | 0.0184 0.0213 31.5
-   | 0.0213 0.024199999 36
-   | 0.024199999 0.027099999 40.5
-   | 0.027099999 0.029999999 45
+   | 0 0.003 2.5
+   | 0.003 0.006 7.5
+   | 0.006 0.009 17
+   | 0.009 0.012 11.5
+   | 0.012 0.015 29
+   | 0.015 0.018 27
+   | 0.018 0.021 31.5
+   | 0.021 0.024 23.5
+   | 0.024 0.027 39
+   | 0.027 0.03 59
 mcpltool --dry-run --version: exit code 0, real run did not change files
    | MCPL version 2.2.9
 mcpltool --dry-run --bkey1 a1.mcpl: exit code 1, real run did not change files

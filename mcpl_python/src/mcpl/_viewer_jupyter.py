@@ -75,10 +75,13 @@ class JupyterViewer:
                                     f'{html.escape(ui.no_widget_text)}</div>' )
         self._fields = {}
         rows = []
-        for field, label, key, kpos, empty in ui.fields:
+        fieldinfo = { f[0] : f for f in ui.fields }
+        for field in ( f for row in ui.field_rows for f in row ):
+            _, label, _key, _kpos, empty = fieldinfo[field]
+            row = next( r for r in ui.field_rows if field in r )
             common = { 'value' : viewer.field_text(field), 'description' : label + ':',
                        'style' : {'description_width':'70px'},
-                       'layout' : w.Layout(width='95%') }
+                       'layout' : w.Layout(width=f'{95 // len(row)}%') }
             if field in ui.menu_fields:
                 t = w.Dropdown(options=[ ( f'{name}: {descr}', name )
                                          for name, descr in viewer.complete(field,'')[1] ],
@@ -87,7 +90,9 @@ class JupyterViewer:
                 t = w.Text(placeholder=empty,continuous_update=False,**common)
             t.observe(lambda change, field=field : self._on_field(field,change),'value')
             self._fields[field] = t
-            rows.append(t)
+            if field == row[-1]:
+                rows.append( t if len(row) == 1 else
+                             w.HBox([ self._fields[f] for f in row ],layout=w.Layout(width='100%')) )
         #(the text of the shown added plot, which can be changed, or emptied to
         #remove it; shown only for added plots):
         self._change = w.Text(placeholder='empty: remove the plot',continuous_update=False,

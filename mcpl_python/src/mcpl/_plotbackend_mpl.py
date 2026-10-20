@@ -29,7 +29,7 @@ from typing import ClassVar
 from ._common import _determine_version
 from ._numpy import np
 from ._plotbackend import PlotBackend, numbered_filenames
-from .plotting import Bars, Hist2D, StepHist, Text
+from .plotting import Bars, Hist2D, StepHist, Text, _line_style
 
 
 class Backend(PlotBackend):
@@ -162,9 +162,9 @@ class Backend(PlotBackend):
         has_legend = False
         for i,item in enumerate(panel.items):
             if isinstance(item,StepHist):
-                c = item.color if item.color is not None else i
+                c, style = _line_style( item.color if item.color is not None else i )
                 ax.stairs(item.values,item.edges,label=item.label,
-                          linewidth=1.5,color=f'C{c%10}')
+                          linewidth=1.5,color=f'C{c}',linestyle=style)
                 has_legend |= item.label is not None
             elif isinstance(item,Hist2D):
                 v = np.where(item.values>0,item.values,np.nan) if item.logz else item.values

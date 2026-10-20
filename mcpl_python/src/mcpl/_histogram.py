@@ -25,6 +25,7 @@ files, and plots of them."""
 __all__ = [ 'BarHistogram', 'Histogram', 'Histogram2D', 'histogram', 'histogram2d',
             'plot_histograms' ]
 
+import math
 import os
 
 from ._common import MCPLError
@@ -322,19 +323,25 @@ def _with_unit( expression, unit, note = None ):
     return f'{label} {note}' if note else label
 
 #Fixed colours of the values of some fields, so particle types have the same
-#colours in all plots (see _particles):
+#colours in all plots (see _particles), and those of them which other values
+#never get with solid lines, so these are never confused (n, gamma, e- and p):
 _fixed_colors = { 'pdgcode' : _pdg_colors }
-#(colours of other values):
-_other_colors = ( 9, )
+_reserved_colors = { 'pdgcode' : { _pdg_colors[c] for c in ( 2112, 22, 11, 2212 ) } }
 
 def _value_colors( field, keys ):
     """Colours of the values (keys) of the field, if it has fixed colours (as
-    {key : colour})"""
+    {key : colour index}, see plotting.StepHist): the other values get the
+    colours which are not used in the plot (cyan first, and not the reserved
+    ones), and then those of the next cycles (with dashed or dotted lines)"""
     fixed = _fixed_colors.get(field)
     if fixed is None:
         return {}
+    reserved = _reserved_colors.get(field,set())
+    used = { fixed[k] for k in keys if k in fixed }
+    free = [ c for c in ( 9, *range(9) ) if c not in used and c not in reserved ]
     others = [ k for k in keys if k not in fixed ]
-    res = { k : _other_colors[i % len(_other_colors)] for i, k in enumerate(others) }
+    res = { k : free[i] if i < len(free) else 10 + i - len(free)
+            for i, k in enumerate(others) }
     res.update( ( k, fixed[k] ) for k in keys if k in fixed )
     return res
 
@@ -404,6 +411,34 @@ def _bin_index( v, edges, log ):
     i -= v < edges[i]
     i += ( v >= edges[i+1] ) & ( i < n - 1 )
     return i
+
+#The most which _nice_range adds to a range (as a fraction of it) by rounding:
+_nice_waste = 0.075
+
+def _nice_range( lo, hi ):
+    """The range from lo to hi (lo < hi) of values on a linear axis, extended
+    to 0 if all values have the same sign and the one closest to 0 is within
+    a quarter of the range from 0 (e.g. from 0.3 to 20.5 becomes 0 to 20.5),
+    and then outwards to multiples of the largest round step (1, 2, 2.5 or 5
+    times a power of 10) which adds at most _nice_waste of the range (so 0 to
+    20.5 becomes 0 to 21)"""
+    if 0 <= lo < hi / 4:
+        lo = 0.0
+    elif lo / 4 < hi <= 0:
+        hi = 0.0
+    span = hi - lo
+    e0 = math.floor(math.log10(span))
+    for e in range( e0, e0 - 3, -1 ):
+        for m in ( 5, 2.5, 2, 1 ):
+            step = m * 10.0**e
+            #(with a tolerance for rounding errors, and the edges written as
+            #in decimal, e.g. 0.3 rather than 3*0.1, but always including the
+            #values):
+            klo, khi = math.floor( lo / step + 1e-9 ), math.ceil( hi / step - 1e-9 )
+            nlo, nhi = ( float(f'{k*m:.12g}e{e}') for k in ( klo, khi ) )
+            if ( nhi - nlo ) - span <= _nice_waste * span:
+                return min( nlo, lo ), max( nhi, hi )
+    return lo, hi
 
 def _make_edges( rng, bins, logx ):
     lo, hi = rng
@@ -591,14 +626,16 @@ class _Filler:
             if len(x):
                 lim[0], lim[1] = min(lim[0],x.min()), max(lim[1],x.max())
 
-    def _found_range( self, i, log = False ):
-        """The range of the values of expression i found by add_range"""
+    def _found_range( self, i, log = False, nice = True ):
+        """The range of the values of expression i found by add_range (for
+        linear axes extended to round values, unless nice is False, see
+        _nice_range)"""
         lo, hi = self._lims[i]
         if not lo <= hi:
             raise MCPLError('No values to histogram (no particles picked?)')
         if lo == hi:
             return ( lo/2, lo*2 ) if log else ( lo - 1.0, hi + 1.0 )
-        return lo, hi
+        return ( lo, hi ) if log or not nice else _nice_range(lo,hi)
 
     def _range_of( self, rng, i, name ):
         """The given range (see _as_range) of expression i, in the units of MCPL"""
@@ -626,7 +663,7 @@ class _Hist1DFiller(_Filler):
 
     def start_fill( self ):
         if self._logx == 'auto':
-            self._logx = _auto_logx(*self._found_range(0))
+            self._logx = _auto_logx(*self._found_range(0,nice=False))
         self._range = self._found_range(0,self._logx)
         self._setup()
 

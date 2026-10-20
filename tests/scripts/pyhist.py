@@ -302,6 +302,29 @@ def test_bars_groups_domains():
         except mcpl.MCPLError as err:
             print(f'histogram({e!r},{kw}): {err}')
 
+def test_ranges_colors():
+    from mcpldev._histogram import _nice_range, _value_colors
+    from mcpldev.plotting import _line_style
+    #Automatic ranges of linear axes: from 0 if the values are close enough
+    #to it, and to round values (adding at most 7.5% to the range):
+    for lo, hi in ( (0.3,20.5), (-20.5,-0.3), (-9.83,10.21), (1012.3,1077.9),
+                    (0.001234,0.0098), (3,4), (-0.99,0.999), (1e-9,3.3e-7),
+                    (0.1,0.30000000000000004), (2.2,7.7), (123456.7,123499.1) ):
+        nlo, nhi = _nice_range(lo,hi)
+        assert nlo <= lo and nhi >= hi
+        assert ( nhi - nlo ) <= 1.075 * ( max(hi,0) - min(lo,0) )
+        print(f'range of values from {lo:g} to {hi:g}: {nlo:g} to {nhi:g}')
+    #Colours of particle types: fixed ones, and the others get the unused
+    #colours (cyan first, and never those of n, gamma, e- and p), and then
+    #those of the next cycles (with dashed lines):
+    keys = [ 2112, 22, 12, 14, 'other' ]
+    print('colours of', keys, _value_colors('pdgcode',keys))
+    keys = [ 2112, 22, 11, -11, 2212, 211, -211, 13, -13, 12, 14, 16, 321, 'other' ]
+    cols = _value_colors('pdgcode',keys)
+    print('colours of', keys, cols, [ _line_style(cols[k]) for k in keys ][-5:])
+    print('line styles:', [ _line_style(c) for c in ( 0, 9, 10, 19, 20, 30 ) ])
+
+test_ranges_colors()
 test_units()
 test_bars_groups_domains()
 test_histograms()

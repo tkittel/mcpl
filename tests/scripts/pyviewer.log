@@ -10,7 +10,7 @@ skip=100 limit=500 pick='ekin > 1MeV' edit='z += 1m':
 skip=0 limit=None pick='mod(fileidx,3) == 0' edit='weight *= 2':
    example.mcpl: 336/1006 particles (33.4%), Σw = 672 (66.8%)
    23 views, same figures as mcpltool -H: True
-views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:acos(uz)/deg;range=0:180;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:userflags;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz
+views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:angle_to(0,0,1)/deg;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:userflags;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz
 check('skip','10'): (True, '')
 check('skip','x'): (False, 'Skip must be a number of particles')
 check('limit','all'): (True, '')
@@ -68,8 +68,8 @@ command extract: mcpltool -e example.mcpl example_selected.mcpl.gz
 commands of the overview: {'view': 'mcpltool --view="{\'plots\':{\'add\':[\'time/ms;logx=1\',\'ekin/MeV\']}}" example.mcpl', 'extract': 'mcpltool -e example.mcpl example_selected.mcpl.gz'}
 same pick, written differently: (True, '') restarted: False 'pdgcode==neutron'
 limit 1e3 then 1000: (True, '') (True, '') restarts: 1
-same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'ekin/MeV;logx=1;bins=50'] current: plot:ekin/MeV;logx=1;bins=50
-changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'ekin/MeV;logx=1;bins=50']
+same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'ekin/MeV;logx=1;bins=50'] current: plot:ekin/MeV;logx=1;bins=50
+changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'ekin/MeV;logx=1;bins=50']
 unchanged: (True, '') ['plot:time/ms;logx=1', 'plot:ekin/MeV'] current: plot:ekin/MeV
 change to keV: (True, '') ['plot:time/ms;logx=1', 'plot:ekin/keV'] current: plot:ekin/keV
 change to an existing plot: (True, '') ['plot:polz', 'plot:time/ms;logx=1']
@@ -88,15 +88,16 @@ completions: (0, [('beamz', 'a beam along the z axis: profiles and divergences')
 same collection: (True, '') restarted: False
 switched: (True, '') ['plot:pdgcode;bar;logy=auto', 'plot:ekin;logx=auto;logy;split=pdgcode'] added plot kept: x;bins=5 | state: {'collection': 'shielding', 'plots': {'add': ['x;bins=5']}}
 opened with the command: same state: True
+opened with the state as a dict: same state: True
 view "{'collection':'nope'}": Unknown collection of plots "nope" (the collections are: default, beamz, beamx, beamy, shielding)
 view "{'collection':3}": The viewer state "{'collection':3}" is not valid: collection must be a text
 state at the start: {} | command: mcpltool -w example.mcpl
 move up: True down twice: True True | current: plot:wavelength;logx;split=pdgcode
 move the overview: False
 move the last down: False
-state: {'limit': 500, 'pick': 'pdgcode != gamma', 'plots': {'change': {'ekin': 'ekin/keV;logy=1'}, 'remove': ['polx'], 'add': ['hypot(x,y)/cm'], 'order': ['ekin;logx=auto;logy;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin/keV;logy=1', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'poly', 'polz', 'hypot(x,y)/cm']}, 'view': 'hypot(x,y)/cm'}
-state without the options: {'plots': {'change': {'ekin': 'ekin/keV;logy=1'}, 'remove': ['polx'], 'add': ['hypot(x,y)/cm'], 'order': ['ekin;logx=auto;logy;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin/keV;logy=1', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'poly', 'polz', 'hypot(x,y)/cm']}, 'view': 'hypot(x,y)/cm'}
-command: mcpltool --view="{'plots':{'change':{'ekin':'ekin/keV;logy=1'},'remove':['polx'],'add':['hypot(x,y)/cm'],'order':['ekin;logx=auto;logy;split=pdgcode','acos(uz)/deg;range=0:180;logy;split=pdgcode','wavelength;logx;split=pdgcode','x : y','time;logx=auto;logy','pdgcode;bar;logy=auto','userflags;bar;logy=auto','ekin/keV;logy=1','x','y','z','ux','uy','uz','time','weight;unweighted','poly','polz','hypot(x,y)/cm']},'view':'hypot(x,y)/cm'}" -l500 -p "pdgcode != gamma" example.mcpl
+state: {'limit': 500, 'pick': 'pdgcode != gamma', 'plots': {'change': {'ekin': 'ekin/keV;logy=1'}, 'remove': ['polx'], 'add': ['hypot(x,y)/cm'], 'order': ['ekin;logx=auto;logy;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin/keV;logy=1', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'poly', 'polz', 'hypot(x,y)/cm']}, 'view': 'hypot(x,y)/cm'}
+state without the options: {'plots': {'change': {'ekin': 'ekin/keV;logy=1'}, 'remove': ['polx'], 'add': ['hypot(x,y)/cm'], 'order': ['ekin;logx=auto;logy;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin/keV;logy=1', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'poly', 'polz', 'hypot(x,y)/cm']}, 'view': 'hypot(x,y)/cm'}
+command: mcpltool --view="{'plots':{'change':{'ekin':'ekin/keV;logy=1'},'remove':['polx'],'add':['hypot(x,y)/cm'],'order':['ekin;logx=auto;logy;split=pdgcode','angle_to(0,0,1)/deg;logy;split=pdgcode','wavelength;logx;split=pdgcode','x : y','time;logx=auto;logy','pdgcode;bar;logy=auto','userflags;bar;logy=auto','ekin/keV;logy=1','x','y','z','ux','uy','uz','time','weight;unweighted','poly','polz','hypot(x,y)/cm']},'view':'hypot(x,y)/cm'}" -l500 -p "pdgcode != gamma" example.mcpl
 opened with the command: same state: True | current: plot:hypot(x,y)/cm
 suggested state file: example_viewer.json
 save: (True, 'Saved the viewer state in example_viewer.json')
@@ -139,7 +140,7 @@ To open the viewer like this again:
    |                             example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    |   ekin;logx=auto;logy;spli
    |   wavelength;logx;split=pd                               pick: pdgcode == neutron
-   |   acos(uz)/deg;range=0:180  (y: y [cm])
+   |   angle_to(0,0,1)/deg;logy  (y: y [cm])
    | ▸ x : y                        57.69 ┤       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   time;logx=auto;logy                │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   pdgcode;bar;logy=auto (a           │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
@@ -176,12 +177,12 @@ To open the viewer like this again:
    |  Collection: [default]
    |  Add plot: [e.g. hypot(x,y)/cm;logy]
    | 
-   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Matplotlib window]
+   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]  [GUI viewer]
 ==> keys ['WAIT', 'e', 'x', ' ', '=', ' ', '2', 'WAIT']:
    |                             example.mcpl: 1006 particles, Σw = 1006
    | ▸ ekin;logx=auto;logy;spli
    |   wavelength;logx;split=pd  (weights per bin)
-   |   acos(uz)/deg;range=0:180       106 ┤                       ⢠⠤⠴⠒⠒⠋⠉⢧
+   |   angle_to(0,0,1)/deg;logy       106 ┤                       ⢠⠤⠴⠒⠒⠋⠉⢧
    |   x : y                              │                   ⡤⠤⠖⠒⠋      ⢸
    |   time;logx=auto;logy                │                  ⢠⠇          ⠈⠉⢹
    |   pdgcode;bar;logy=auto              │                  ⢸         ⡤⠤⠤⠤⢼⡆
@@ -209,8 +210,8 @@ To open the viewer like this again:
    |                                      └┬────────────────────────────────────────────────────────────────────┬
    |                                      1393                           3.681e+06                      9.725e+09
    |                                                                     ekin [eV]
-   |                             ━━ n (2112)     ━━ γ (22)       ━━ e⁻ (11)      ━━ p (2212)     ━━ e⁺ (-11)
-   |                             ━━ π⁺ (211)     ━━ π⁻ (-211)    ━━ nu_mu (14)
+   |                             ━━ n (2112)    ━━ γ (22)      ━━ e⁻ (11)     ━━ p (2212)    ━━ e⁺ (-11)
+   |                             ━━ π⁺ (211)    ━━ π⁻ (-211)   ━━ νμ (14)
    |  Skip: [0]
    |  Limit: [all]
    |  Pick: [all particles]
@@ -218,7 +219,7 @@ To open the viewer like this again:
    |  Collection: [default]
    |  Add plot: [e.g. hypot(x,y)/cm;logy]
    | 
-   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Matplotlib window]
+   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]  [GUI viewer]
 ==> keys ['WAIT', 'a', 'h', 'y', 'p', 'o', 't', '(', 'x', ',', 'y', ')', '/', 'c', 'm', ';', 'l', 'o', 'Tab', 'y', '=', '1', 'Enter', 'WAIT']:
    views: plot:hypot(x,y)/cm;logy=1 current: plot:hypot(x,y)/cm;logy=1
 ==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'k', 'e', 'V', 'Enter', 'WAIT']:
@@ -231,19 +232,29 @@ To open the viewer like this again:
    Enter on another view, editing: True
 ==> keys ['WAIT', 'h']:
 ==> keys ['WAIT', 'Down', 'Down', 'MoveUp', 'WAIT']:
-   moved up: ['ekin;logx=auto;logy;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode', 'wavelength;logx;split=pdgcode'] current: plot:acos(uz)/deg;range=0:180;logy;split=pdgcode
-==> keys ['WAIT', 'Down', 'm', 'WAIT']:
-   m shows the plot in a window: 1 wavelength [m] (n/γ only) | the plot shown: plot:wavelength;logx;split=pdgcode
-==> keys ['WAIT', 'm']:
+   moved up: ['ekin;logx=auto;logy;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'wavelength;logx;split=pdgcode'] current: plot:angle_to(0,0,1)/deg;logy;split=pdgcode
+==> keys ['WAIT', 'Down', 'o', 'g', 'WAIT']:
+   o shows the plot in a window: gui_plot wavelength [m] (n/γ only) | the plot shown: plot:wavelength;logx;split=pdgcode
+   g opens the viewer in a window: gui_viewer True | messages: ['The viewer is opened in a GUI window']
+==> keys ['WAIT', 'O']:
    without a display: Not shown: The matplotlib plotting backend can not show plots here
-==> keys ['WAIT', 'c', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'b', 'e', 'a', 'm', 'x', 'Enter', 'WAIT']:
+==> keys ['WAIT', 'l', 'k', 'Down', 'K', 'WAIT']:
+   l and k: plot:ekin;logx=auto;logy;split=pdgcode {'logy': False, 'logx': False}
+   l and k: plot:wavelength;logx;split=pdgcode {'logx': False}
+   drawn with: linear x | the figure itself: logx
+   c shows the collections: ['default', 'beamz', 'beamx', 'beamy', 'shielding'] chosen: beamx | key hint: Up/Down: choose   Enter: apply   Esc: cancel
+==> keys ['WAIT', 'C', 'Down', 'Down', 'WAIT']:
+   the menu on the screen: ['Limit: [all]│beamy      a beam along the y axis: profiles and divergences    │', 'Up/Down: choose   Enter: apply   Esc: cancel']
+==> keys ['WAIT', 'c', 'Down', 'Down', 'Enter', 'WAIT']:
    c changes the collection: beamx plot:y : z
+==> keys ['WAIT', 'c', 'Down', 'Esc', 'WAIT']:
+   Esc keeps the collection: default
 ==> keys ['WAIT', 'v', 'Enter', 'WAIT']:
    v saves the state in: ['example_viewer2.json']
 ==> keys ['WAIT', 's', '1', '2', 'Esc', 'i', '5', '0', 'Enter', 'WAIT', 'p', 'Up', 'Esc']:
    skip, limit: '' '50' example.mcpl: 50 particles, Σw = 50
 ==> keys ['WAIT', ('Mouse', 2, 3, True), 'WAIT']:
-   view after clicking on line 3: plot:acos(uz)/deg;range=0:180;logy;split=pdgcode
+   view after clicking on line 3: plot:angle_to(0,0,1)/deg;logy;split=pdgcode
 ==> keys ['WAIT', 'p', 'x', 'Ctrl-C', 'p', 'y']:
    Ctrl-C quits like q, while editing a field: '' running: False
 ==> keys ['WAIT', 'a', 'e', 'Tab', 'Down']:

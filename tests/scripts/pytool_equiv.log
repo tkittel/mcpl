@@ -501,23 +501,23 @@ Results of selection and edit as expected: True
 mcpltool --extract a1.mcpl out.mcpl --pick ekin=1MeV: exit code 1
    | ERROR: Syntax error in expression "ekin=1MeV", after "ekin": unexpected "=" (use == for comparisons)
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool --extract a1.mcpl out.mcpl --pick foo>1: exit code 1
    | ERROR: Unknown name "foo" in expression "foo>1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool --extract a1.mcpl out.mcpl --pick x>1: exit code 1
    | ERROR: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x>1"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool --extract a1.mcpl out.mcpl --edit x==1cm: exit code 1
    | ERROR: Expected assignments like "x = 2*y" (or swap(..) or rotate_x/y/z(..)) in "x==1cm"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-E help" for how to edit particles with expressions
 mcpltool --extract a1.mcpl out.mcpl --edit x=2*ux: exit code 1
    | ERROR: Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x=2*ux"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-E help" for how to edit particles with expressions
 mcpltool --extract a1.mcpl out.mcpl --pick: exit code 1
    | ERROR: Missing argument for --pick
    | 
@@ -539,7 +539,7 @@ mcpltool --pick x>1cm -ba a1.mcpl: exit code 1
 mcpltool --pick x>1meV a1.mcpl: exit code 1
    | ERROR: Incompatible units in comparison: length and energy in expression "x>1meV"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool --stats --pick x>1km a1.mcpl: exit code 1
    | ERROR: Can not calculate statistics when no particles are picked
    | 
@@ -547,15 +547,15 @@ mcpltool --stats --pick x>1km a1.mcpl: exit code 1
 mcpltool --stats -pantimuon a1.mcpl: exit code 1
    | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == antimuon"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool -pfoo a1.mcpl: exit code 1
    | ERROR: Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool -pgamma -j a1.mcpl: exit code 1
    | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == gamma"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool --repair --pick x>1cm a1.mcpl: exit code 1
    | ERROR: -p can only be used when showing particles, or with -S, -w, -H or -e.
    | 
@@ -571,19 +571,19 @@ mcpltool -p22 --merge out.mcpl a1.mcpl a2.mcpl: exit code 1
 mcpltool --extract -p0 a1.mcpl out.mcpl: exit code 1
    | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == 0"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool --extract -pabc a1.mcpl out.mcpl: exit code 1
    | ERROR: Unknown name "abc" in expression "abc" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool --extract -pNeutron a1.mcpl out.mcpl: exit code 1
    | ERROR: Unknown name "Neutron" in expression "Neutron" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool --extract -pfoo a1.mcpl out.mcpl: exit code 1
    | ERROR: Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool --keep-statsum a1.mcpl: exit code 1
    | ERROR: --keep-statsum can only be used with -e.
    | 

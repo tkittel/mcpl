@@ -169,10 +169,17 @@ Other options:
 Output files are gzipped if their names end with .mcpl.gz.
 """
 
-def _mcpltool_usage(progname,errmsg=None,full=False):
+#Where errors in the values of options are explained (see _mcpltool_usage):
+_option_help = { '--pick' : 'Run with "-p help" for how to pick particles with expressions',
+                 '--edit' : 'Run with "-E help" for how to edit particles with expressions',
+                 '--hist' : 'Run with "-H help" for how to write histograms' }
+
+def _mcpltool_usage(progname,errmsg=None,full=False,option=None):
+    """Print the usage information, or the error (in the value of the option,
+    if given, see _option_help) and exit"""
     if errmsg:
         print(f"ERROR: {errmsg}\n")
-        print("Run with -h or --help for usage information")
+        print(_option_help.get(option,"Run with -h or --help for usage information"))
         sys.exit(1)
     msg = _full_help if full else _short_help
     from ._stdviews import _collections
@@ -229,8 +236,8 @@ def _app_mcpltool(argv):
     if not args:
         print('ERROR: No input file specified\n\nRun with -h or --help for usage information')
         sys.exit(1)
-    def bad(errmsg):
-        _mcpltool_usage(progname,errmsg)
+    def bad(errmsg,option=None):
+        _mcpltool_usage(progname,errmsg,option=option)
     args = list(args)
     #(--create-examples can only be combined with --dry-run):
     opt_examples = None
@@ -344,7 +351,7 @@ def _app_mcpltool(argv):
     if '--full-help' in flags:
         _mcpltool_usage(progname,full=True)
     for name, topic in (('--pick','pick'),('--edit','edit'),('--hist','hist')):
-        if values.get(name,'').strip() == 'help':
+        if values.get(name,'').strip().lower() == 'help':
             _topic_help(topic)
 
     #The mode:
@@ -411,18 +418,27 @@ def _app_mcpltool(argv):
         v = values['--pick'].strip()
         if v in _particle_names or re.fullmatch(r'[-+]?[0-9]+',v):
             bad(f'-p takes an expression (PICK): to pick particles of a type,'
-                f' use -p "pdgcode == {v}"')
+                f' use -p "pdgcode == {v}"','--pick')
         from ._expressions import ParticleFilter
         try:
             pick = ParticleFilter(values['--pick'])
         except MCPLError as e:
-            bad(str(e))
+            bad(str(e),'--pick')
     if '--edit' in values:
         from ._expressions import ParticleEdit
         try:
             edit = ParticleEdit(values['--edit'])
         except MCPLError as e:
-            bad(str(e))
+            bad(str(e),'--edit')
+    #(and -H, with the same checks as when the histograms are made):
+    if hists:
+        from ._histogram import _filler_for
+        from ._histstring import _parse_hist
+        for h in hists:
+            try:
+                _filler_for(_parse_hist(h))
+            except MCPLError as e:
+                bad(str(e),'--hist')
 
     if mode == '--version':
         if filelist:

@@ -31,6 +31,7 @@ import pathlib
 import re
 import shutil
 import sys
+import unicodedata
 from typing import ClassVar
 
 from ._numpy import np
@@ -108,8 +109,15 @@ def _fmt_y( v ):
     s = _fmt(v)
     return s if len(s) <= _ylw else f'{v:.2g}'
 
+def _width( text ):
+    """Width of the text in the terminal (the bars of antiparticle symbols, like
+    those of _particles, are combining characters, which take no space)"""
+    return sum( 1 for ch in _ansi_re.sub('',text) if not unicodedata.combining(ch) )
+
 def _center( text, width ):
-    return text.center(width).rstrip()
+    #(as str.center, with the width in the terminal):
+    pad = max( 0, width - _width(text) )
+    return ( ' ' * ( pad // 2 + ( pad & width & 1 ) ) + text ).rstrip()
 
 def _stdout_encoding():
     return getattr(sys.stdout,'encoding',None) or 'ascii'
@@ -375,8 +383,8 @@ class _TextBackend(PlotBackend):
                     if s.label is not None:
                         sym = self._line_sample(s,k) if braille else self._marker(s,k)
                         entries.append( ( f'{self._p(sym,self._curve_color(s,k))} {s.label}',
-                                          len(sym) + 1 + len(s.label) ) )
-                width = max( len(_ansi_re.sub('',ln)) for ln in out )
+                                          _width(sym) + 1 + _width(s.label) ) )
+                width = max( _width(ln) for ln in out )
                 out += _legend_columns(entries,width)
         return out
 
@@ -443,7 +451,7 @@ class _TextBackend(PlotBackend):
         c = self._chars
         labels = [ ' '.join(str(lab).split()) for lab in item.labels ]
         values = [ float(v) for v in item.values ]
-        lw = max( ( len(lab) for lab in labels ), default = 0 )
+        lw = max( ( _width(lab) for lab in labels ), default = 0 )
         vtexts = [ _fmt(v) for v in values ]
         vw = max( ( len(t) for t in vtexts ), default = 0 )
         nmax = max( 1, self._width - lw - vw - 4 )
@@ -456,7 +464,7 @@ class _TextBackend(PlotBackend):
             if v > 0:
                 units = max( 1, units )#non-zero values are always visible
             bar = c.hfill[-1] * ( units // nlev ) + ( c.hfill[units % nlev] if units % nlev else '' )
-            out.append( f'{lab:>{lw}} {c.vline}{self._p(bar,_curve_rgb(col))} {t}' )
+            out.append( f'{" " * ( lw - _width(lab) )}{lab} {c.vline}{self._p(bar,_curve_rgb(col))} {t}' )
         return out
 
     def _draw_hist2d( self, panel, item ):

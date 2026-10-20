@@ -173,10 +173,11 @@ def _box_width( n, available, editing ):
     want = max( 30, n + 1 ) if editing else n
     return max( 1, min( want, max( 10, available ) ) )
 
-def _show_in_window( figure ):
-    """Show the figure in a matplotlib window, in a new Python process (so the
-    terminal viewer goes on, and the window stays open when it is closed),
-    which gets the figure through its standard input (so no file is written)"""
+def _in_window( what, data ):
+    """Run what (code using the object x, read from the standard input, where
+    data is written pickled, so no file is written) in a new Python process,
+    which shows a window with matplotlib (so the terminal viewer goes on, and
+    the window stays open when it is closed)"""
     import json
     import pickle
     import subprocess
@@ -185,15 +186,27 @@ def _show_in_window( figure ):
     from ._plotbackend import _show_backend
     _show_backend('matplotlib')#(an MCPLError if matplotlib can not show plots here)
     code = ( f'import pickle, sys; sys.path[:0] = {json.dumps(sys.path)};'
-             f' from {__package__}.plotting import show;'
-             ' show([pickle.load(sys.stdin.buffer)], backend="matplotlib")' )
+             f' x = pickle.load(sys.stdin.buffer); {what}' )
     #(in its own session, so Ctrl-C in the terminal does not close the window,
     #and without output, which would mess up the terminal):
     p = subprocess.Popen([ sys.executable, '-c', code ], stdin = subprocess.PIPE,
                          stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL,
                          start_new_session = True)
-    p.stdin.write(pickle.dumps(figure))
+    p.stdin.write(pickle.dumps(data))
     p.stdin.close()
+
+def _plot_in_window( figure ):
+    """Show the figure in a window (see _in_window)"""
+    _in_window(f'from {__package__}.plotting import show;'
+               ' show([x], backend="matplotlib")',figure)
+
+def _viewer_in_window( viewer ):
+    """Open the viewer in a window, in the same state (see _in_window)"""
+    _in_window(f'from {__package__}._viewer import Viewer;'
+               f' from {__package__}._plotbackend import _create, _viewer_backend;'
+               ' _create(_viewer_backend("matplotlib",False)).run_viewer(Viewer(**x))',
+               { 'filename' : viewer.filename, 'view' : viewer.state(),
+                 'dry_run' : viewer._dry_run, 'progname' : viewer._progname })
 
 class TextViewer:
     """The viewer in a terminal (on a screen, see _CursesScreen)"""
@@ -209,8 +222,10 @@ class TextViewer:
         self.hover = None
         self.show_help = False
         self.scroll = 0
-        #(shows a figure in a matplotlib window, replaced in tests):
-        self.open_window = _show_in_window
+        self.scales = {}#(view key -> { 'logx' or 'logy' : chosen with l or k })
+        #(shows a figure or viewer in a window, replaced in tests):
+        self.open_window = lambda action, what : ( _plot_in_window(what) if action == 'gui_plot'
+                                                   else _viewer_in_window(what) )
         self._regions = []#(y, x0, x1, what) of the clickable things
 
     def run( self ):
@@ -254,7 +269,33 @@ class TextViewer:
         if k == 'PageUp':
             self.scroll = max( 0, self.scroll - 5 )
             return None
+        if k.lower() in ui.scale_keys:
+            self._toggle_scale(ui.scale_keys[k.lower()])
+            return None
         return self._do( ui.key_action(k,terminal = True) )
+
+    def _toggle_scale( self, axis ):
+        """Toggle the log scale of the axis ('logx' or 'logy') of the shown plot
+        (only how it is drawn, as in matplotlib)"""
+        fig = self.v.figure()
+        if fig is None or not fig.panels:
+            return
+        key = self.v.current_key
+        scales = self.scales.setdefault(key,{})
+        scales[axis] = not scales.get(axis,getattr(fig.panels[0],axis))
+
+    def _scaled( self, fig ):
+        """The figure with the scales chosen with _toggle_scale"""
+        import copy
+        scales = self.scales.get(self.v.current_key)
+        if not scales:
+            return fig
+        fig = copy.copy(fig)
+        fig.panels = [ copy.copy(p) for p in fig.panels ]
+        for p in fig.panels:
+            for axis, log in scales.items():
+                setattr(p,axis,log)
+        return fig
 
     def _do( self, action ):
         v = self.v
@@ -270,26 +311,27 @@ class TextViewer:
         elif action in ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot', 'write', 'state',
                          'change' ):
             self.editor = ui.editor_for(v,action)
-        elif action == 'window':
-            self._window()
+        elif action in ( 'gui_plot', 'gui_viewer' ):
+            self._window(action)
         elif action == 'help':
             self.show_help = True
         elif action == 'quit':
             return 'quit'
         return None
 
-    def _window( self ):
-        """Show the plot in a matplotlib window (with open_window)"""
-        figure = self.v.figure()
-        if figure is None:
+    def _window( self, action ):
+        """Show the plot, or the viewer, in a window (with open_window)"""
+        what = self.v.figure() if action == 'gui_plot' else self.v
+        if what is None:
             self.message = 'Not shown: there is no plot yet'
             return
         try:
-            self.open_window(figure)
+            self.open_window(action,what)
         except MCPLError as e:
             self.message = f'Not shown: {e}'
             return
-        self.message = 'The plot is shown in a matplotlib window'
+        self.message = ( 'The plot is shown in a GUI window' if action == 'gui_plot'
+                         else 'The viewer is opened in a GUI window' )
 
     def _apply( self ):
         done, self.message, replot = ui.apply_editor(self.v,self.editor)
@@ -432,6 +474,7 @@ class TextViewer:
         fig = self.v.figure()
         if fig is None or height < 6 or width < 40:
             return
+        fig = self._scaled(fig)
         npanels = max( 1, len(fig.panels) )
         #(as many rows per panel as fit, but at least 5):
         lines = None

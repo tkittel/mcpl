@@ -24,7 +24,7 @@ mcpltool --dry-run --extract --edit weight *= 2 --keep-statsum a1.mcpl out.mcpl:
 mcpltool --dry-run --extract --pick ekin < 1 meV + a1.mcpl out.mcpl: exit code 1, real run did not change files
    | ERROR: Syntax error in expression "ekin < 1 meV +", at the end: a value is missing
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool --dry-run --extract a1.mcpl a2.mcpl: exit code 1, real run did not change files
    | ERROR: Requested output file already exists.
    | 

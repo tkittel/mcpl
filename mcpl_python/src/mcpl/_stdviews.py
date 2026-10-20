@@ -34,6 +34,7 @@ __all__ = []
 #the two components across the beam):
 def _beam( axis, a, b ):
     div_a, div_b = f'atan2(u{a},u{axis})/deg', f'atan2(u{b},u{axis})/deg'
+    vector = ','.join( '1' if c == axis else '0' for c in 'xyz' )
     return ( f'{a} : {b}',
              f'{div_a} : {div_b}',
              f'{a} : {div_a}',
@@ -41,7 +42,7 @@ def _beam( axis, a, b ):
              'ekin;logx=auto;logy;split=pdgcode',
              'wavelength;split=pdgcode',
              f'hypot({a},{b})',
-             f'acos(abs(u{axis}))/deg;logy',
+             f'angle_to({vector})/deg;logy',
              'time;logx=auto;logy',
              'pdgcode;bar;logy=auto',
              f'{axis}',
@@ -51,7 +52,7 @@ _collections = {
     'default' : ( 'an overview of all particle fields',
                   ( 'ekin;logx=auto;logy;split=pdgcode',
                     'wavelength;logx;split=pdgcode',
-                    'acos(uz)/deg;range=0:180;logy;split=pdgcode',
+                    'angle_to(0,0,1)/deg;logy;split=pdgcode',
                     'x : y',
                     'time;logx=auto;logy',
                     'pdgcode;bar;logy=auto',
@@ -65,7 +66,7 @@ _collections = {
                     ( 'pdgcode;bar;logy=auto',
                       'ekin;logx=auto;logy;split=pdgcode',
                       'ekin;lethargy;logy;split=pdgcode',
-                      'acos(uz)/deg;range=0:180;logy;split=pdgcode',
+                      'angle_to(0,0,1)/deg;logy;split=pdgcode',
                       'time;logx=auto;logy;split=pdgcode',
                       'weight;logx=auto;logy;unweighted;split=pdgcode',
                       'x : y',

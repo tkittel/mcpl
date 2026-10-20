@@ -112,7 +112,7 @@ class Viewer:
         #The view argument is the name of a collection of plots, a view, or a
         #state (see state()), which is applied before the other arguments (so
         #these can change it):
-        if view in _collections:
+        if isinstance(view,str) and view in _collections:
             view = { 'collection' : view }
         state = _as_state(view)
         if state is not None:

@@ -34,14 +34,22 @@ fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
            ( 'collection', 'Collection', 'c', 0, 'default' ),
            ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy' ) )
 
+#The fields chosen from a menu (see LineEditor):
+menu_fields = ( 'collection', )
+
 #The other actions: (action, label, keys, position of the key in the label):
 actions = ( ( 'write', 'Write file...', ( 'w', ), 0 ),
             ( 'state', 'Save viewer state...', ( 'v', ), 5 ),
             ( 'help', 'Help', ( 'h', '?', 'F1' ), 0 ),
-            ( 'quit', 'Quit', ( 'q', 'Q' ), 0 ) )
+            ( 'quit', 'Quit', ( 'q', ), 0 ) )
 
 #The actions of the terminal only (as the others, shown after them):
-terminal_actions = ( ( 'window', 'Matplotlib window', ( 'm', ), 0 ), )
+terminal_actions = ( ( 'gui_plot', 'Open plot in GUI', ( 'o', ), 0 ),
+                     ( 'gui_viewer', 'GUI viewer', ( 'g', ), 0 ) )
+
+#The keys of the terminal for log scales of the shown plot (in windows, the
+#keys of matplotlib do this):
+scale_keys = { 'l' : 'logy', 'k' : 'logx' }
 
 #The actions asking for a file name, with the label of its field:
 file_prompts = { 'write' : 'Write to: ', 'state' : 'Save to: ' }
@@ -60,6 +68,8 @@ def key_action( key, terminal = False ):
         return view_keys[key]
     if key == 'Enter':
         return 'change'#(of the shown plot)
+    if len(key) == 1:
+        key = key.lower()#(the keys of letters work with Shift or Caps Lock too)
     for f, _, k, _, _ in fields:
         if key == k:
             return f
@@ -99,6 +109,8 @@ def hint_line( editor, popup = False ):
     to use it (else it lists them, with the chosen one in brackets)."""
     if editor is None:
         return '', 'dim'
+    if editor.menu and popup:
+        return 'Up/Down: choose   Enter: apply   Esc: cancel', 'dim'
     if editor.choices:
         if popup:
             return 'Up/Down: choose   Enter or Tab: insert   Esc: close', 'dim'
@@ -106,7 +118,7 @@ def hint_line( editor, popup = False ):
                           for i, (n, _) in enumerate(editor.choices) ), 'dim'
     if editor.replaces is not None and not editor.text.strip():
         return 'Enter: remove this plot   Esc: cancel', 'dim'
-    tab = '  (Tab: complete)' if editor.field in ( 'pick', 'edit', 'collection', 'plot' ) else ''
+    tab = '  (Tab: complete)' if editor.field in ( 'pick', 'edit', 'plot' ) else ''
     if not editor.ok and editor.message:
         return editor.message + tab, 'error'
     if editor.hint:
@@ -136,16 +148,18 @@ Keys:
                edited.
   a            Add a plot of an expression, with options as for -H, e.g.
                hypot(x,y)/cm;logy (see mcpltool -H help).
-  c            Choose the collection of plots to start from (Tab lists them),
-               e.g. beamz for a beam along the z axis (added plots are kept).
+  c            Choose the collection of plots to start from, e.g. beamz for a
+               beam along the z axis (added plots are kept).
   Enter        Change the shown plot (an empty text removes it).
   w            Write the picked and edited particles to a new file.
   v            Save the state of the viewer (the settings and plots) in a
                file, which -wFILE.json (or --view=FILE.json) opens again.
-  l, k         Log or linear scale of the y or x axis of the plot under the
-               mouse (in a matplotlib window, as in matplotlib).
-  m            Show the plot in a matplotlib window (in the terminal; the
-               window shows the plot as it is, and stays open).
+  l, k         Log or linear scale of the y or x axis of the plot (in a GUI
+               window, of the plot under the mouse, as in matplotlib).
+  o            Open the plot in a GUI window (in the terminal; the window
+               shows the plot as it is, and stays open).
+  g            Open the viewer in a GUI window, in the same state (in the
+               terminal; it stays open, and the terminal viewer goes on).
   h, ?, F1     Show this help.
   q            Quit (the commands doing the same are then printed).
 
@@ -228,6 +242,12 @@ class LineEditor:
         self.choices = []#(completions shown, when Tab gives several)
         self.selected = 0#(index of the chosen one)
         self.choice_start = 0#(position in the text of the name they complete)
+        #Fields with few values are a menu of them (choices, which Enter applies):
+        self.menu = field in menu_fields
+        if self.menu:
+            self.choices = viewer.complete(field,'')[1]
+            names = [ name for name, _ in self.choices ]
+            self.selected = names.index(self.text) if self.text in names else 0
         self._recheck()
 
     def _recheck( self ):
@@ -249,6 +269,16 @@ class LineEditor:
         are shown, Up and Down choose one, Enter and Tab insert it, and Esc
         closes them."""
         t, c = self.text, self.cursor
+        if self.menu:
+            if key in ( 'Up', 'Down' ):
+                self.selected = ( self.selected + ( -1 if key == 'Up' else 1 ) ) % len(self.choices)
+            elif key == 'Enter':
+                self.text = self.choices[self.selected][0]
+                self._recheck()
+                return 'apply'
+            elif key == 'Esc':
+                return 'cancel'
+            return None
         if self.choices:
             if key in ( 'Up', 'Down' ):
                 n = len(self.choices)

@@ -254,7 +254,7 @@ _hints = (
       'print contents instead of plotting',
       'print the contents of the histogram instead of plotting it' ),)
 
-_group_titles = { 'histoptions' : 'Options (after the expression, separated by ";"; options which are on or off are given as 1 or 0, and logx, logy, lethargy, unweighted and print alone mean =1, and bar alone bar=auto)',
+_group_titles = { 'histoptions' : 'Options',
                   'fields' : 'Fields of the particles',
                   'constants' : 'Constants',
                   'particles' : 'Particle names (PDG codes)',
@@ -281,23 +281,38 @@ in the units of the field, and wavelength = ... changing ekin), assignments
 to variables (other lowercase names, which can be used in later statements),
 and the statements listed below. The expressions are written as for -p (see
 -p help).''',
-    'hist' : '''HIST: an expression, or two separated by ":" for a 2D histogram, followed
-by options NAME=VALUE separated by ";", e.g.
-  -H "ekin;logx=auto;split=pdgcode"
-  -H "wavelength/Aa;bins=100;range=0:10"
+    'hist' : '''HIST: what to plot, an expression of the particles (written as for -p),
+or two separated by ":" for a 2D histogram, followed by options separated by
+";". For example:
+  -H ekin                     The kinetic energies, in a suitable unit.
+  -H "ekin/MeV;logx;split=pdgcode"
+                              The energies in MeV, on a logarithmic axis,
+                              with a curve for each particle type.
+  -H "wavelength/Aa;range=0:10"
+                              The wavelengths from 0 to 10 Aa (only of
+                              neutrons and gammas, the others are left out).
   -H "x : y;xrange=-10cm:10cm;yrange=-10cm:10cm"
-  -H "pdgcode;bar"
-Values with units are shown in a suitable unit, unless divided by one (as in
-wavelength/Aa). Particles for which the wavelength is not defined are left
-out. The expressions are written as for -p (see -p help).''',
+                              The positions in the x-y plane.
+  -H "pdgcode;bar"            A bar chart of the particle types.
+The plots are shown in a window, or in the terminal (with -t), or saved in a
+file (with -o FILE). -H can be given several times, for several plots, and
+with -w it adds plots to the viewer.''',
+}
+
+#(the end of the help texts, if any):
+_outro = {
+    'hist' : '''Options which are on or off are given as 1 or 0, and alone (as in "ekin;logy")
+they mean 1 (bar alone means bar=auto).
+
+The expressions, with the fields of the particles, units and functions, are
+described by -p help.''',
 }
 
 _topic_groups = {
     'pick' : ( 'fields', 'constants', 'particles', 'units', 'functions' ),
     'edit' : ( 'statements', 'fields', 'constants', 'particles', 'units',
                'functions' ),
-    'hist' : ( 'histoptions', 'fields', 'constants', 'particles', 'units',
-               'functions' ),
+    'hist' : ( 'histoptions', ),
 }
 
 def _help_text( topic ):
@@ -311,6 +326,8 @@ def _help_text( topic ):
             lines += textwrap.wrap( long, width = 79,
                                     initial_indent = f'  {name}: ',
                                     subsequent_indent = '      ' )
+    if topic in _outro:
+        lines += [ '', _outro[topic] ]
     return '\n'.join(lines)
 
 def _short_hint( name ):

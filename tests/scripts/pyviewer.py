@@ -128,6 +128,9 @@ def test_collections():
     arg = shlex.split(v.commands()['view'])[1]
     w = Viewer(ex,view=arg.split('=',1)[1] if arg.startswith('--') else arg[2:])
     print('opened with the command: same state:', w.state() == v.state())
+    #(a state given as a dict, as in the Python API):
+    w = Viewer(ex,view=v.state())
+    print('opened with the state as a dict: same state:', w.state() == v.state())
     for bad in ( "{'collection':'nope'}", "{'collection':3}" ):
         try:
             Viewer(ex,view=bad)
@@ -372,20 +375,45 @@ def test_terminal():
     #Moving the shown plot (Up and Down with Shift, Ctrl, Alt, ...):
     v, _ = run(['WAIT','Down','Down','MoveUp','WAIT'],show=False)
     print('   moved up:', v._s.plots[:3], 'current:', v.views[v.current][0])
-    #m shows the plot in a matplotlib window (here with a function which only
-    #notes the figure, so no window is opened in tests):
+    #o shows the plot, and g the viewer in the same state, in a GUI window
+    #(here with a function which only notes what is shown, so no window is
+    #opened in tests):
     shown = []
-    v, t = run(['WAIT','Down','m','WAIT'],show=False,window=shown.append)
-    print('   m shows the plot in a window:', len(shown), shown[0].panels[0].xlabel,
+    def window( action, what ):
+        shown.append( ( action, what ) )
+    v, t = run(['WAIT','Down','o','g','WAIT'],show=False,window=window)
+    print('   o shows the plot in a window:', shown[0][0], shown[0][1].panels[0].xlabel,
           '| the plot shown:', v.views[v.current][0])
-    def fail( figure ):
+    print('   g opens the viewer in a window:', shown[1][0], shown[1][1] is v,
+          '| messages:', [ ln.strip() for f in t.s.frames for ln in f.splitlines()
+                           if 'GUI window' in ln ][-1:])
+    def fail( action, what ):
         raise mcpl.MCPLError('The matplotlib plotting backend can not show plots here')
-    _, t = run(['WAIT','m'],show=False,window=fail)
+    _, t = run(['WAIT','O'],show=False,window=fail)
     print('   without a display:', next( ln.strip() for f in t.s.frames for ln in f.splitlines()
                                             if 'Not shown' in ln ))
-    #c changes the collection of plots (the field starts with the current one):
-    v, _ = run(['WAIT','c'] + ['Backspace'] * 7 + list('beamx') + ['Enter','WAIT'],show=False)
+    #l and k toggle the log scales of the y and x axes of the shown plot (only
+    #how it is drawn, as in matplotlib, and for each plot):
+    v, t = run(['WAIT','l','k','Down','K','WAIT'],show=False)
+    for key, scales in t.scales.items():
+        print(f'   l and k: {key} {scales}')
+    fig = t._scaled(v.figure())
+    print('   drawn with:', 'logx' if fig.panels[0].logx else 'linear x',
+          '| the figure itself:', 'logx' if v.figure().panels[0].logx else 'linear x')
+    #c shows a menu of the collections of plots (Up and Down choose one, which
+    #Enter applies; the keys work with Shift too):
+    e = ui.editor_for(v,'collection')
+    e.key('Down')
+    e.key('Down')
+    print('   c shows the collections:', [ n for n, _ in e.choices ],
+          'chosen:', e.choices[e.selected][0], '| key hint:', ui.hint_line(e,popup=True)[0])
+    v, t = run(['WAIT','C','Down','Down','WAIT'],show=False)
+    print('   the menu on the screen:', [ ln.strip() for ln in t.s.frames[-2].splitlines()
+                                          if 'beamy' in ln or 'Up/Down' in ln ])
+    v, _ = run(['WAIT','c','Down','Down','Enter','WAIT'],show=False)
     print('   c changes the collection:', v.field_text('collection'), v.views[v.current][0])
+    v, _ = run(['WAIT','c','Down','Esc','WAIT'],show=False)
+    print('   Esc keeps the collection:', v.field_text('collection'))
     before = set(pathlib.Path('.').glob('*.json'))
     run(['WAIT','v','Enter','WAIT'],show=False)
     print('   v saves the state in:', sorted( str(f) for f in set(pathlib.Path('.').glob('*.json')) - before ))

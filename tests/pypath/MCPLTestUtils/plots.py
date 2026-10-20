@@ -22,7 +22,7 @@
 """Figures for tests of the plotting backends, with the kinds of plots of the
 viewer: curves (also several in one plot), a 2D map and bars."""
 
-_plots = ( 'ekin;logx=auto;logy;split=pdgcode', 'acos(uz)/deg;range=0:180;logy;split=pdgcode',
+_plots = ( 'ekin;logx=auto;logy;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode',
            'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'x' )
 
 def example_figures( mcpl, filename ):

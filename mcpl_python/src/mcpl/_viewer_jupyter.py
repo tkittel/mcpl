@@ -76,10 +76,15 @@ class JupyterViewer:
         self._fields = {}
         rows = []
         for field, label, key, kpos, empty in ui.fields:
-            t = w.Text(value=viewer.field_text(field),placeholder=empty,
-                       continuous_update=False,description=label + ':',
-                       style={'description_width':'70px'},
-                       layout=w.Layout(width='95%'))
+            common = { 'value' : viewer.field_text(field), 'description' : label + ':',
+                       'style' : {'description_width':'70px'},
+                       'layout' : w.Layout(width='95%') }
+            if field in ui.menu_fields:
+                t = w.Dropdown(options=[ ( f'{name}: {descr}', name )
+                                         for name, descr in viewer.complete(field,'')[1] ],
+                               **common)
+            else:
+                t = w.Text(placeholder=empty,continuous_update=False,**common)
             t.observe(lambda change, field=field : self._on_field(field,change),'value')
             self._fields[field] = t
             rows.append(t)

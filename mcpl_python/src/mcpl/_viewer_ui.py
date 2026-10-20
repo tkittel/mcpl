@@ -92,7 +92,8 @@ def shortcut_text( name ):
     """Text of the status line when the mouse is over a field or action"""
     for f, label, k, _, _ in fields:
         if f == name:
-            return f'{label}: press {k} to edit (Enter applies, Tab completes, Up/Down for earlier texts, Esc cancels)'
+            verb = 'choose' if f in menu_fields else 'edit'
+            return f'{label}: press {k} to {verb} ({", ".join( f"{key} {does}" for key, does in field_keys(f) )})'
     for a, label, keys, _ in actions + terminal_actions:
         if a == name:
             return f'{label.rstrip(".")}: press {" or ".join(keys)}'
@@ -102,7 +103,28 @@ def shortcut_text( name ):
         return 'Click to show this plot on its own'
     return ''
 
-field_hint = 'Enter: apply   Tab: complete   Up/Down: earlier texts   Esc: cancel'
+#The fields with Tab completion of names:
+completing_fields = ( 'pick', 'edit', 'plot' )
+
+def field_keys( field ):
+    """The keys of a field while it is edited (as (key, what it does)): the
+    menu keys for the fields of menus, Tab for those with completion, and Up
+    and Down for earlier texts, except in the fields of the file names"""
+    if field in menu_fields:
+        return [ ( 'Up/Down', 'choose' ), ( 'Enter', 'applies' ), ( 'Esc', 'cancels' ) ]
+    res = [ ( 'Enter', 'applies' ) ]
+    if field in completing_fields:
+        res.append( ( 'Tab', 'completes' ) )
+    if field not in file_prompts:
+        res.append( ( 'Up/Down', 'for earlier texts' ) )
+    return res + [ ( 'Esc', 'cancels' ) ]
+
+def field_hint( field ):
+    """The line below the fields while the field is edited (and there is
+    nothing else to show), e.g. 'Enter: apply   Esc: cancel'"""
+    short = { 'applies' : 'apply', 'completes' : 'complete', 'cancels' : 'cancel',
+              'for earlier texts' : 'earlier texts' }
+    return '   '.join( f'{key}: {short.get(does,does)}' for key, does in field_keys(field) )
 
 def hint_line( editor, popup = False ):
     """The line below the fields while one is edited (with the LineEditor
@@ -114,7 +136,7 @@ def hint_line( editor, popup = False ):
     if editor is None:
         return '', 'dim'
     if editor.menu and popup:
-        return 'Up/Down: choose   Enter: apply   Esc: cancel', 'dim'
+        return field_hint(editor.field), 'dim'
     if editor.choices:
         if popup:
             return 'Up/Down: choose   Enter or Tab: insert   Esc: close', 'dim'
@@ -122,12 +144,12 @@ def hint_line( editor, popup = False ):
                           for i, (n, _) in enumerate(editor.choices) ), 'dim'
     if editor.replaces is not None and not editor.text.strip():
         return 'Enter: remove this plot   Esc: cancel', 'dim'
-    tab = '  (Tab: complete)' if editor.field in ( 'pick', 'edit', 'plot' ) else ''
+    tab = '  (Tab: complete)' if editor.field in completing_fields else ''
     if not editor.ok and editor.message:
         return editor.message + tab, 'error'
     if editor.hint:
         return 'hint: ' + editor.hint + tab, 'dim'
-    return field_hint, 'dim'
+    return field_hint(editor.field), 'dim'
 
 help_text = '''\
 The viewer shows the particles of an MCPL file: an overview with the first

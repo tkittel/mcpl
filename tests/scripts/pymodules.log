@@ -38,15 +38,18 @@ Modules of the mcpl package and their imports from the package:
   layer   9 : _viewer_widgets      <- _common, _histstring, _plotbackend_mpl, _stdviews, _thumbnails, _viewer_ui, plotting
   layer  10 : _clistats            <- _common, _histogram, _histstring, _plotbackend, _reader, _stats, plotting
   layer  10 : _viewer              <- _common, _expressions, _exprhelp, _exprsyntax, _extract, _histstring, _plotbackend, _reader, _stdviews, _viewer_code, _viewer_jupyter, _viewer_reading, plotting
-  layer  10 : _viewer_tk           <- _exprhelp, _logo, _messages, _viewer_code, _viewer_ui, _viewer_widgets
+  layer  10 : _viewer_tkbase       <- -
   layer  11 : _cli                 <- _clistats, _common, _examples, _expressions, _exprhelp, _extract, _fileops, _histogram, _histstring, _messages, _particles, _plotbackend, _reader, _stdviews, _viewer, _viewer_ui
-  layer  11 : _plotbackend_mpl_gui <- _plotbackend_mpl, _viewer_tk, _viewer_ui, _viewer_widgets
+  layer  11 : _viewer_tkcards      <- _viewer_tkbase, _viewer_widgets
+  layer  11 : _viewer_tkwindows    <- _exprhelp, _viewer_code, _viewer_tkbase, _viewer_ui, _viewer_widgets
+  layer  12 : _viewer_tk           <- _logo, _messages, _viewer_tkbase, _viewer_tkcards, _viewer_tkwindows, _viewer_ui, _viewer_widgets
+  layer  13 : _plotbackend_mpl_gui <- _plotbackend_mpl, _viewer_tk, _viewer_ui, _viewer_widgets
   layer top : __init__             <- _blocks, _common, _fileops, _messages, _reader, _statsum, _writer, constants
   layer top : __main__             <- _cli
   layer top : mcpl                 <- _blocks, _cli, _common, _fileops, _reader, _stats, _statsum
 numpy is imported by: _numpy
 matplotlib is imported by: _plotbackend_mpl, _plotbackend_mpl_gui, _thumbnails, _viewer_tk
-tkinter is imported by: _viewer_tk
+tkinter is imported by: _viewer_tk, _viewer_tkbase
 scipp is imported by: _scipp
 ipywidgets is imported by: _viewer_jupyter
 IPython is imported by: _viewer, _viewer_jupyter

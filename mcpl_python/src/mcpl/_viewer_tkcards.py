@@ -1,0 +1,234 @@
+
+################################################################################
+##                                                                            ##
+##  This file is part of MCPL (see https://mctools.github.io/mcpl/)           ##
+##                                                                            ##
+##  Copyright 2015-2026 MCPL developers.                                      ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+"""The list of the cards of the views of the viewer with Tk (see _viewer_tk and
+WidgetViewer.cards)"""
+
+__all__ = []
+
+from ._viewer_tkbase import elided, tk_modules
+from ._viewer_widgets import card_colors, colors
+
+#The heights of the cards:
+_card_heights = { 'card' : 64, 'small' : 30, 'header' : 26 }
+
+class CardList:
+    """The cards of the views (see WidgetViewer.cards and Card) on a canvas
+    which can be scrolled: a small image of the plot, its name and badges, or
+    a compact card with its name and status, under the headers of their
+    groups (which can be folded), with the shown one selected. Cards are
+    clicked to show them, dragged to move them (also into another group), and
+    removed with their menu (right click), as far as they allow it."""
+    width, thumb = 300, ( 84, 50 )
+
+    def __init__( self, parent, viewer ):
+        tk, ttk = tk_modules()
+        self.tv = viewer
+        frame = ttk.Frame(parent)
+        frame.pack(fill='both',expand=True)
+        self.canvas = tk.Canvas(frame,width=self.width+12,background=card_colors['bg'],
+                                highlightthickness=0)
+        bar = ttk.Scrollbar(frame,orient='vertical',command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=bar.set)
+        bar.pack(side='right',fill='y')
+        self.canvas.pack(side='left',fill='both',expand=True)
+        self.folded = set()#(the groups which are folded)
+        self._images = {}#PNG data -> PhotoImage (kept, as Tk needs them)
+        self._shown = None#(what is drawn, to only draw it again when changed)
+        self._slots = []#(top, bottom, kind, what): 'card' (the Card), 'header' (group) or 'add'
+        self._drag = None#(the key of the card dragged, and where it started)
+        c = self.canvas
+        c.bind('<ButtonPress-1>',self._on_press)
+        c.bind('<B1-Motion>',self._on_motion)
+        c.bind('<ButtonRelease-1>',self._on_release)
+        #(a menu of the card, with the right button, or Ctrl and a click on macOS):
+        for button in ( '<Button-3>', '<Control-Button-1>' if c.tk.call('tk','windowingsystem') == 'aqua' else '<Button-2>' ):
+            c.bind(button,self._on_menu)
+        #(scrolling with the wheel, as given by Windows and macOS, or X11):
+        c.bind('<MouseWheel>',lambda e : c.yview_scroll(-1 if e.delta > 0 else 1,'units'))
+        c.bind('<Button-4>',lambda _e : c.yview_scroll(-1,'units'))
+        c.bind('<Button-5>',lambda _e : c.yview_scroll(1,'units'))
+
+    def _image( self, key ):
+        tk, _ttk = tk_modules()
+        import base64
+        png = self.tv.thumbnail(key,*self.thumb)
+        if png is None:
+            return None
+        if png not in self._images:
+            if len(self._images) > 200:#(the images of plots shown before)
+                self._images = { k : v for k, v in self._images.items() if k in self._used }
+            self._images[png] = tk.PhotoImage(data=base64.b64encode(png))
+        self._used.add(png)
+        return self._images[png]
+
+    def show( self, cards, current ):
+        """Draw the cards (see WidgetViewer.cards), with the one of the shown
+        view selected (if anything changed; current, the index of the shown
+        view, is not needed, since the cards have the keys of the views)"""
+        self._used = set()
+        images = [ self._image(c.key) if c.image else None for c in cards ]
+        current = self.tv.shown_key
+        shown = ( tuple(cards), current, tuple(sorted(self.folded)),
+                  tuple( id(i) for i in images ) )
+        if shown == self._shown:
+            return
+        new_current = self._shown is None or self._shown[1] != current
+        self._shown = shown
+        c, col = self.canvas, card_colors
+        c.delete('all')
+        self._slots = []
+        y, group = 6, False#(False: before the first header)
+        selected = None#(where the shown card is, if it is a new one)
+        for card, img in zip(cards,images):
+            if card.grouped and card.group != group:
+                group = card.group
+                self._header(y,group)
+                y += _card_heights['header']
+            shown = card.key == current
+            if card.grouped and group in self.folded and not shown:
+                continue
+            h = _card_heights['small' if card.compact else 'card']
+            self._card(y,h,card,img,shown)
+            self._slots.append( ( y, y + h, 'card', card ) )
+            if shown and new_current:
+                selected = ( y, y + h )
+            y += h + 6
+        #(the card adding a plot):
+        self._rect(4,y,self.width,y+34,12,outline=col['border'],dash=(3,3),fill='')
+        c.create_text(self.width/2,y+17,text='+  New plot',fill=col['accent'],
+                      font=self.tv.bold)
+        self._slots.append( ( y, y + 34, 'add', None ) )
+        y += 40
+        c.configure(scrollregion=( 0, 0, self.width + 8, y ))
+        if selected is not None:
+            #(the selected card is scrolled into view):
+            top, bottom = c.canvasy(0), c.canvasy(c.winfo_height())
+            if selected[0] < top or selected[1] > bottom:
+                c.yview_moveto(max( 0.0, ( selected[0] - 40 ) / y ))
+
+    def _rect( self, x0, y0, x1, y1, r, **kw ):
+        pts = [ x0+r, y0, x1-r, y0, x1, y0, x1, y0+r, x1, y1-r, x1, y1,
+                x1-r, y1, x0+r, y1, x0, y1, x0, y1-r, x0, y0+r, x0, y0 ]
+        return self.canvas.create_polygon(pts,smooth=True,**kw)
+
+    def _header( self, y, group ):
+        mark = '\u25b8' if group in self.folded else '\u25be'
+        self.canvas.create_text(8,y+13,anchor='w',fill=card_colors['dim'],
+                                text=f'{mark}  {( group or "More plots" ).upper()}',
+                                font=( self.tv.bold.cget('family'), 8, 'bold' ))
+        self._slots.append( ( y, y + _card_heights['header'], 'header', group ) )
+
+    def _card( self, y, h, card, img, selected ):
+        c, col = self.canvas, card_colors
+        self._rect(4,y,self.width,y+h,12,fill=col['selected'] if selected else col['card'],
+                   outline=col['accent'] if selected else col['border'],width=2 if selected else 1)
+        if card.compact:
+            c.create_text(16,y+h/2,anchor='w',fill=col['dim'],
+                          text=f'{card.name}  \u00b7  {card.status}')
+            return
+        x = 14
+        if img is not None:
+            c.create_image(x,y+h/2,image=img,anchor='w')
+        if card.problem:
+            #(a plot which failed, e.g. with fields of the userdata which the
+            #file does not have, with its problem):
+            c.create_text(x+self.thumb[0]/2,y+h/2,text='\u2717',fill=colors['error'],
+                          font=( self.tv.bold.cget('family'), 22, 'bold' ))
+        x += self.thumb[0] + 12
+        c.create_text(x,y+20,anchor='w',fill=col['text'],font=self.tv.bold,
+                      text=elided(card.name,self.tv.bold,self.width-x-22))
+        if card.problem:
+            c.create_text(x,y+43,anchor='w',fill=colors['error'],
+                          font=( self.tv.bold.cget('family'), 8 ),
+                          text=elided(card.problem,self.tv.bold,self.width-x-22))
+        for b in ( () if card.problem else card.badges ):
+            w = 10 + 6.5 * len(b)
+            self._rect(x,y+34,x+w,y+52,8,fill=col['badge'],outline='')
+            c.create_text(x+w/2,y+43,text=b,fill=col['accent'],
+                          font=( self.tv.bold.cget('family'), 8 ))
+            x += w + 5
+        if card.draggable:
+            c.create_text(self.width-10,y+h/2,text='\u2807',fill=col['border'])#(drag handle)
+
+    def _slot( self, event ):
+        y = self.canvas.canvasy(event.y)
+        return next( ( s for s in self._slots if s[0] <= y < s[1] + 6 ), None )
+
+    def _on_menu( self, event ):
+        """A menu for the card: show or remove it (as far as it allows it)"""
+        tk, _ = tk_modules()
+        s = self._slot(event)
+        if s is None or s[2] != 'card' or not ( s[3].selectable or s[3].removable ):
+            return
+        card = s[3]
+        menu = tk.Menu(self.canvas,tearoff=0)
+        if card.selectable:
+            menu.add_command(label='Show',command=lambda : self.tv.on_select_key(card.key))
+        if card.removable:
+            menu.add_command(label='Remove this card',command=lambda : self.tv.on_remove(card.key))
+        menu.tk_popup(event.x_root,event.y_root)
+
+    def _on_press( self, event ):
+        s = self._slot(event)
+        self._drag = None
+        if s is not None and s[2] == 'card' and s[3].draggable:
+            self._drag = ( s[3].key, event.y, False )
+
+    def _on_motion( self, event ):
+        if self._drag is not None and abs( event.y - self._drag[1] ) > 6:
+            key, y0, _ = self._drag
+            self._drag = ( key, y0, True )
+            #(a line where the card would go):
+            self.canvas.delete('drop')
+            s = self._slot(event)
+            if s is not None:
+                self.canvas.create_line(4,s[0]-3,self.width,s[0]-3,fill=card_colors['accent'],
+                                        width=3,tags='drop')
+
+    def _on_release( self, event ):
+        drag, self._drag = self._drag, None
+        self.canvas.delete('drop')
+        s = self._slot(event)
+        if drag is not None and drag[2]:
+            if s is None:
+                return
+            if s[2] == 'card':
+                index, group = self.tv.plot_index(s[3].key), s[3].group
+            elif s[2] == 'header':
+                #(at the start of the group: before its first plot):
+                group = s[3]
+                index = next( ( self.tv.plot_index(x[3].key) for x in self._slots
+                                if x[2] == 'card' and x[0] > s[0] and x[3].draggable ),
+                              self.tv.plot_index(None) )
+            else:
+                index, group = self.tv.plot_index(None), None
+            self.tv.on_drop(drag[0],index,group)
+            return
+        if s is None:
+            return
+        if s[2] == 'header':
+            self.folded ^= { s[3] }
+            self.tv.refresh(plot = False)
+        elif s[2] == 'card' and s[3].selectable:
+            self.tv.on_select_key(s[3].key)
+        elif s[2] == 'add':
+            self.tv.on_new_plot()

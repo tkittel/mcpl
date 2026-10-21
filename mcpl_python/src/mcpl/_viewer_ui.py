@@ -140,6 +140,12 @@ quantities = ( ( 'Energy', 'ekin;logx=auto' ), ( 'Wavelength', 'wavelength;logx=
                ( 'Distance from the z axis', 'hypot(x,y)' ), ( 'Weight', 'weight' ),
                ( 'Particle type', 'pdgcode;bar' ), ( 'User flags', 'userflags;bar' ) )
 
+#The titles of the examples of expressions (see _exprhelp.examples), and the
+#topics of the examples of the fields:
+example_titles = { 'pick' : 'Examples of picks', 'edit' : 'Examples of edits',
+                    'hist' : 'Examples of plot expressions' }
+example_topics = { 'pick' : 'pick', 'edit' : 'edit', 'shown_plot' : 'hist' }
+
 #The fields with Tab completion of names:
 completing_fields = ( 'pick', 'edit', 'plot' )
 

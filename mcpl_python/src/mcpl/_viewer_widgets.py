@@ -29,6 +29,22 @@ __all__ = []
 from . import _viewer_ui as ui
 from ._common import MCPLError
 
+#The look of the viewers with windows (for toolkits with colours): the
+#colours of the line of messages and of the marks of the checks, of the
+#highlighted code (see _viewer_code.highlight), of the cards of the views (see
+#cards), and of the parts below the plot (that of the shown plot in the colour
+#of its selected card, and that of the pick and edit):
+colors = { 'normal' : 'black', 'dim' : '#777777', 'ok' : '#2ca02c', 'error' : '#d62728' }
+code_styles = { 'comment' : { 'foreground' : '#6a737d' },
+                'string' : { 'foreground' : '#067d17' },
+                'keyword' : { 'foreground' : '#0033b3' },
+                'number' : { 'foreground' : '#1750eb' },
+                'preprocessor' : { 'foreground' : '#9e5b00' },
+                'option' : { 'foreground' : '#871094' } }
+card_colors = { 'bg' : '#eef1f5', 'card' : '#ffffff', 'selected' : '#e2ebf6',
+                'border' : '#d5dbe3', 'accent' : '#2f5f8f', 'text' : '#1d2733',
+                'dim' : '#7a8594', 'badge' : '#dfe7f1' }
+part_colors = { 'Plot' : card_colors['selected'], 'Particles' : card_colors['bg'] }
 
 def _split_axes( x, y ):
     """The expressions of the x and y axes, with "x : y" written in one of them

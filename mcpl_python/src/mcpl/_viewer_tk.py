@@ -27,18 +27,16 @@ _viewer_widgets for what happens when they are used)."""
 __all__ = []
 
 from . import _viewer_ui as ui
-from ._viewer_widgets import WidgetViewer, run_with_ctrl_c
-
-
-def _tk():
-    """The modules of tkinter (imported when used, since Python can come
-    without them)"""
-    import tkinter
-    from tkinter import ttk
-    return tkinter, ttk
-
-#Colours of the line below the fields, and of the marks of the checks:
-_colors = { 'normal' : 'black', 'dim' : '#777777', 'ok' : '#2ca02c', 'error' : '#d62728' }
+from ._viewer_tkbase import tk_modules
+from ._viewer_tkcards import CardList
+from ._viewer_tkwindows import CodeWindow, Examples, WriteWindow
+from ._viewer_widgets import (
+    WidgetViewer,
+    card_colors,
+    colors,
+    part_colors,
+    run_with_ctrl_c,
+)
 
 #Tk key names, as names of _viewer_ui (the others are characters):
 _keymap = { 'Return' : 'Enter', 'KP_Enter' : 'Enter', 'Escape' : 'Esc', 'Delete' : 'Delete',
@@ -59,7 +57,7 @@ def _key_name( event ):
 class TkViewer(WidgetViewer):
     """The viewer in the Tk window root"""
     def __init__( self, viewer, root ):
-        tk, ttk = _tk()
+        tk, ttk = tk_modules()
         from matplotlib.backends.backend_tkagg import (
             FigureCanvasTkAgg,
             NavigationToolbar2Tk,
@@ -73,7 +71,7 @@ class TkViewer(WidgetViewer):
             style.theme_use('clam')#(the default of X11 looks dated)
             _check_fonts(root)
         #(the button of new plots, in the colour of the selected card):
-        accent = _card_colors['accent']
+        accent = card_colors['accent']
         style.configure('Accent.TButton',foreground='white',background=accent,
                         bordercolor=accent)
         style.map('Accent.TButton',background=[ ( 'disabled', '#a9bdd2' ), ( 'active', '#3d74ab' ) ],
@@ -81,7 +79,7 @@ class TkViewer(WidgetViewer):
         #(the other buttons light, in the colours of the cards, instead of the
         #grey of the theme of X11; native themes keep their own look):
         for name in ( 'TButton', 'TMenubutton' ):
-            style.configure(name,background='#f7f9fc',bordercolor=_card_colors['border'])
+            style.configure(name,background='#f7f9fc',bordercolor=card_colors['border'])
             style.map(name,background=[ ( 'active', '#e4ebf4' ) ])
         #(choices shown as a row of buttons, with the chosen one in the colour
         #of the selected card):
@@ -98,12 +96,12 @@ class TkViewer(WidgetViewer):
         import tkinter.font
         bold = tkinter.font.nametofont('TkDefaultFont').copy()
         bold.configure(weight='bold')
-        self._bold = bold
+        self.bold = bold
         #(the parts below the plot, see _part):
-        for name, bg in _part_colors.items():
+        for name, bg in part_colors.items():
             style.configure(f'{name}.TFrame',background=bg)
             style.configure(f'{name}.TLabel',background=bg)
-            style.configure(f'{name}Head.TLabel',background=bg,foreground=_card_colors['accent'],
+            style.configure(f'{name}Head.TLabel',background=bg,foreground=card_colors['accent'],
                             font=( bold.cget('family'), 8, 'bold' ))
         root.columnconfigure(1,weight=1)
         root.rowconfigure(0,weight=1)
@@ -134,20 +132,20 @@ class TkViewer(WidgetViewer):
                 menu.add_command(label=label,underline=kpos,accelerator=keys[0],
                                  command=lambda a=action : self.on_action(a))
                 self._actions[action] = menu.index('end')
-        self._cards = _CardList(left,self)
+        self._cards = CardList(left,self)
         self._hover(self._cards.canvas,'views')
         #The status and the plot (on the right):
         main = ttk.Frame(root,padding=(0,6,6,0))
         main.grid(row=0,column=1,sticky='nsew')
         main.columnconfigure(0,weight=1)
         main.rowconfigure(2,weight=1)
-        self._status = [ ttk.Label(main,font=bold), ttk.Label(main,foreground=_colors['dim']) ]
+        self._status = [ ttk.Label(main,font=bold), ttk.Label(main,foreground=colors['dim']) ]
         for i, label in enumerate(self._status):
             label.grid(row=i,column=0,sticky='w')
         #(the part of the shown plot, in the colours of its selected card: the
         #plot with its toolbar, and its fields below them, see _plot_part):
-        bg = _part_colors['Plot']
-        part, head = _part(main,'Plot','Plot','the shown plot',_card_colors['accent'])
+        bg = part_colors['Plot']
+        part, head = _part(main,'Plot','Plot','the shown plot',card_colors['accent'])
         part.master.grid(row=2,column=0,sticky='nsew')
         #(the fields at the bottom, packed first so the plot gets the rest):
         fields = ttk.Frame(part)
@@ -185,7 +183,7 @@ class TkViewer(WidgetViewer):
         bottom.grid(row=1,column=1,sticky='ew')
         bottom.columnconfigure(0,weight=1)
         part, _ = _part(bottom,'Particles','Pick & edit','particles from the input file',
-                        _card_colors['border'])
+                        card_colors['border'])
         part.master.grid(row=0,column=0,sticky='ew',pady=(2,0))
         info = { f[0] : f for f in ui.fields }
         #(plots are added with "+ New plot", and the collection is chosen
@@ -205,14 +203,14 @@ class TkViewer(WidgetViewer):
                 lab = ttk.Label(grid,text=label + ':',underline=kpos,
                                 **( _row_label if first else {} ))
                 lab.grid(row=r,column=col,sticky='e',padx=(0 if first else 12,4),pady=1)
-                wide = field in _example_topics
+                wide = field in ui.example_topics
                 w = ttk.Entry(grid,width=20 if wide else 10)
                 w.grid(row=r,column=col+1,sticky='ew' if wide else 'w')
                 self._placeholders[w] = empty
                 self._bind_entry(w,field)
                 col += 2
                 #(the examples right after the field, then the mark of its check):
-                if field in _example_topics:
+                if field in ui.example_topics:
                     self._examples_button(grid,field).grid(row=r,column=col,padx=(2,0))
                     col += 1
                 mark = ttk.Label(grid,width=2)
@@ -233,7 +231,7 @@ class TkViewer(WidgetViewer):
         #(the line of messages, and at its right what is under the mouse):
         self._line = ttk.Label(bottom)
         self._line.grid(row=1,column=0,sticky='w',pady=(2,0))
-        self._statusbar = ttk.Label(bottom,foreground=_colors['dim'])
+        self._statusbar = ttk.Label(bottom,foreground=colors['dim'])
         self._statusbar.grid(row=1,column=0,sticky='e',pady=(2,0))
         #(the window is at least as wide as the cards and the widest row of
         #the fields of the shown plot, so nothing is cut off):
@@ -247,7 +245,7 @@ class TkViewer(WidgetViewer):
         """A field of _viewer_ui.menu_fields: its label and menu (at the left
         of the row parent). The menu shows the chosen value, and its list the
         values with their descriptions."""
-        _, ttk = _tk()
+        _, ttk = tk_modules()
         _, label, _key, kpos, _ = next( f for f in ui.fields if f[0] == field )
         choices = self.menu_choices(field)
         frame = ttk.Frame(parent)
@@ -268,7 +266,7 @@ class TkViewer(WidgetViewer):
         """The list of the menu w is made as wide as its values (when it
         opens), also beyond the menu"""
         import tkinter.font
-        _, ttk = _tk()
+        _, ttk = tk_modules()
         font = tkinter.font.nametofont('TkTextFont')
         extra = max( 0, max( font.measure(v) for v in values ) + 30 - w.winfo_width() )
         ttk.Style(self.root).configure('Menu.TCombobox',postoffset=( 0, 0, extra, 0 ))
@@ -278,7 +276,7 @@ class TkViewer(WidgetViewer):
         (with the quantities of _viewer_ui.quantities in their lists), its
         settings and its plot expression, with the buttons of plots in the
         header of the part (head)"""
-        _, ttk = _tk()
+        _, ttk = tk_modules()
         #(the buttons at the right of the header):
         b = ttk.Button(head,text='+  New plot',style='Head.Accent.TButton',takefocus=0,
                        command=self.on_new_plot)
@@ -288,7 +286,7 @@ class TkViewer(WidgetViewer):
                                   command=self.on_remove)
         self._remove.pack(side='right',padx=(6,0))
         self._code = ttk.Button(head,text='</>  Plot code',style='Head.TButton',takefocus=0,
-                                command=lambda : _CodeWindow(self,'Code of the plot',
+                                command=lambda : CodeWindow(self,'Code of the plot',
                                                              self.plot_code()))
         self._code.pack(side='right')
         #(the title, in the header):
@@ -405,7 +403,7 @@ class TkViewer(WidgetViewer):
         self._code.configure(state='disabled' if self._new_plot is not None else 'normal')
 
     def show_line( self, text, style ):
-        self._line.configure(text=text,foreground=_colors.get(style,_colors['normal']))
+        self._line.configure(text=text,foreground=colors.get(style,colors['normal']))
 
     def show_title( self, filename ):
         self.root.title(f'MCPL viewer: {filename}')
@@ -439,7 +437,7 @@ class TkViewer(WidgetViewer):
             mark.configure(text='')
         else:
             mark.configure(text='\u2713' if ok else '\u2717',
-                           foreground=_colors['ok' if ok else 'error'])
+                           foreground=colors['ok' if ok else 'error'])
 
     def draw_plot( self ):
         self.canvas.draw_idle()
@@ -458,11 +456,11 @@ class TkViewer(WidgetViewer):
 
     def ask_file( self, action ):
         if action == 'write':
-            _WriteWindow(self)
+            WriteWindow(self)
             return
-        self._ask_file_name(action,lambda name : self.on_file(action,name))
+        self.ask_file_name(action,lambda name : self.on_file(action,name))
 
-    def _ask_file_name( self, action, then ):
+    def ask_file_name( self, action, then ):
         """Ask for the name of the file in a file dialog, and call then with it
         (None if cancelled)"""
         import os
@@ -476,7 +474,7 @@ class TkViewer(WidgetViewer):
         then(chosen or None)
 
     def show_help( self ):
-        tk, ttk = _tk()
+        tk, ttk = tk_modules()
         top = tk.Toplevel(self.root)
         top.title('MCPL viewer: help')
         text = tk.Text(top,width=82,height=40,font='TkFixedFont',wrap='none')
@@ -499,7 +497,7 @@ class TkViewer(WidgetViewer):
         root.selection_own(selection='PRIMARY')
 
     def close_window( self ):
-        tk, _ttk = _tk()
+        tk, _ttk = tk_modules()
         self.on_close()
         try:
             self.root.destroy()
@@ -549,7 +547,7 @@ class TkViewer(WidgetViewer):
     def _on_root_key( self, event ):
         """Keys outside the text fields (the keys in them are handled by
         _bind_entry, and those over the plot by _on_mpl_key)"""
-        tk, ttk = _tk()
+        tk, ttk = tk_modules()
         w = event.widget
         if isinstance(w,( ttk.Entry, ttk.Combobox, tk.Entry, tk.Text )) or w is self.canvas.get_tk_widget():
             return
@@ -587,9 +585,9 @@ class TkViewer(WidgetViewer):
 
     def _examples_button( self, parent, field ):
         """The "?" button of a field, showing examples to use in it"""
-        _, ttk = _tk()
+        _, ttk = tk_modules()
         return ttk.Button(parent,text='?',width=2,takefocus=0,style='Small.TButton',
-                          command=lambda : _Examples(self,_example_topics[field],
+                          command=lambda : Examples(self,ui.example_topics[field],
                                                      lambda e : self._use_example(field,e)))
 
     def _use_example( self, field, text ):
@@ -620,10 +618,10 @@ class TkViewer(WidgetViewer):
         not edited)"""
         w.delete(0,'end')
         self._showing.discard(w)
-        w.configure(foreground=_colors['normal'])
+        w.configure(foreground=colors['normal'])
         if not text and w in self._placeholders and self.root.focus_get() is not w:
             w.insert(0,self._placeholders[w])
-            w.configure(foreground=_colors['dim'])
+            w.configure(foreground=colors['dim'])
             self._showing.add(w)
         else:
             w.insert(0,text)
@@ -693,7 +691,7 @@ class TkViewer(WidgetViewer):
     def _open_popup( self, w, field, start, choices ):
         """The completions in a list below the field (Up and Down choose one,
         Enter or Tab inserts it, Esc closes the list)"""
-        tk, _ttk = _tk()
+        tk, _ttk = tk_modules()
         top = tk.Toplevel(self.root)
         top.overrideredirect(True)
         nw = max( len(n) for n, _ in choices )
@@ -725,33 +723,16 @@ class TkViewer(WidgetViewer):
             self._popup[2].destroy()
             self._popup = None
 
-#The heights of the cards of _CardList, and its colours:
-_card_heights = { 'card' : 64, 'small' : 30, 'header' : 26 }
-#(the styles of the highlighted code, see _viewer_code.highlight):
-_code_styles = { 'comment' : { 'foreground' : '#6a737d' },
-                 'string' : { 'foreground' : '#067d17' },
-                 'keyword' : { 'foreground' : '#0033b3' },
-                 'number' : { 'foreground' : '#1750eb' },
-                 'preprocessor' : { 'foreground' : '#9e5b00' },
-                 'option' : { 'foreground' : '#871094' } }
-
-_card_colors = { 'bg' : '#eef1f5', 'card' : '#ffffff', 'selected' : '#e2ebf6',
-                 'border' : '#d5dbe3', 'accent' : '#2f5f8f', 'text' : '#1d2733',
-                 'dim' : '#7a8594', 'badge' : '#dfe7f1' }
-#(the parts below the plot: that of the shown plot in the colour of its
-#selected card, and that of the particles):
-_part_colors = { 'Plot' : _card_colors['selected'], 'Particles' : _card_colors['bg'] }
-
 #(the labels at the start of the rows of the parts, in a column):
 _row_label = { 'width' : 9, 'anchor' : 'e' }
 
 def _part( parent, name, title, what, border ):
-    """A part below the plot (with the colours of _part_colors[name]), with a
+    """A part below the plot (with the colours of part_colors[name]), with a
     header with its title and what it is for. Returns the frame for its
     contents (in a frame with the border, its master), and the frame of the
     header (e.g. for buttons at its right)."""
-    tk, ttk = _tk()
-    box = tk.Frame(parent,background=_part_colors[name],highlightthickness=1,
+    tk, ttk = tk_modules()
+    box = tk.Frame(parent,background=part_colors[name],highlightthickness=1,
                    highlightbackground=border,highlightcolor=border)
     frame = ttk.Frame(box,style=f'{name}.TFrame',padding=(10,4,10,6))
     frame.pack(fill='both',expand=True)
@@ -764,225 +745,13 @@ def _part( parent, name, title, what, border ):
 def _tint( part, name ):
     """Give the frames and labels in the part (see _part) its colours (those
     with their own style keep it)"""
-    _, ttk = _tk()
+    _, ttk = tk_modules()
     for w in part.winfo_children():
         if isinstance(w,ttk.Frame) and not w.cget('style'):
             w.configure(style=f'{name}.TFrame')
             _tint(w,name)
         elif isinstance(w,ttk.Label) and not w.cget('style'):
             w.configure(style=f'{name}.TLabel')
-
-def _elided( text, font, width ):
-    """The text, shortened with ... at the end to fit the width (in pixels)
-    with the font"""
-    if font.measure(text) <= width:
-        return text
-    while text and font.measure(text + '\u2026') > width:
-        text = text[:-1]
-    return text.rstrip() + '\u2026'
-
-class _CardList:
-    """The cards of the views (see WidgetViewer.cards and Card) on a canvas
-    which can be scrolled: a small image of the plot, its name and badges, or
-    a compact card with its name and status, under the headers of their
-    groups (which can be folded), with the shown one selected. Cards are
-    clicked to show them, dragged to move them (also into another group), and
-    removed with their menu (right click), as far as they allow it."""
-    width, thumb = 300, ( 84, 50 )
-
-    def __init__( self, parent, viewer ):
-        tk, ttk = _tk()
-        self.tv = viewer
-        frame = ttk.Frame(parent)
-        frame.pack(fill='both',expand=True)
-        self.canvas = tk.Canvas(frame,width=self.width+12,background=_card_colors['bg'],
-                                highlightthickness=0)
-        bar = ttk.Scrollbar(frame,orient='vertical',command=self.canvas.yview)
-        self.canvas.configure(yscrollcommand=bar.set)
-        bar.pack(side='right',fill='y')
-        self.canvas.pack(side='left',fill='both',expand=True)
-        self.folded = set()#(the groups which are folded)
-        self._images = {}#PNG data -> PhotoImage (kept, as Tk needs them)
-        self._shown = None#(what is drawn, to only draw it again when changed)
-        self._slots = []#(top, bottom, kind, what): 'card' (the Card), 'header' (group) or 'add'
-        self._drag = None#(the key of the card dragged, and where it started)
-        c = self.canvas
-        c.bind('<ButtonPress-1>',self._on_press)
-        c.bind('<B1-Motion>',self._on_motion)
-        c.bind('<ButtonRelease-1>',self._on_release)
-        #(a menu of the card, with the right button, or Ctrl and a click on macOS):
-        for button in ( '<Button-3>', '<Control-Button-1>' if c.tk.call('tk','windowingsystem') == 'aqua' else '<Button-2>' ):
-            c.bind(button,self._on_menu)
-        #(scrolling with the wheel, as given by Windows and macOS, or X11):
-        c.bind('<MouseWheel>',lambda e : c.yview_scroll(-1 if e.delta > 0 else 1,'units'))
-        c.bind('<Button-4>',lambda _e : c.yview_scroll(-1,'units'))
-        c.bind('<Button-5>',lambda _e : c.yview_scroll(1,'units'))
-
-    def _image( self, key ):
-        tk, _ttk = _tk()
-        import base64
-        png = self.tv.thumbnail(key,*self.thumb)
-        if png is None:
-            return None
-        if png not in self._images:
-            if len(self._images) > 200:#(the images of plots shown before)
-                self._images = { k : v for k, v in self._images.items() if k in self._used }
-            self._images[png] = tk.PhotoImage(data=base64.b64encode(png))
-        self._used.add(png)
-        return self._images[png]
-
-    def show( self, cards, current ):
-        """Draw the cards (see WidgetViewer.cards), with the one of the shown
-        view selected (if anything changed; current, the index of the shown
-        view, is not needed, since the cards have the keys of the views)"""
-        self._used = set()
-        images = [ self._image(c.key) if c.image else None for c in cards ]
-        current = self.tv.shown_key
-        shown = ( tuple(cards), current, tuple(sorted(self.folded)),
-                  tuple( id(i) for i in images ) )
-        if shown == self._shown:
-            return
-        new_current = self._shown is None or self._shown[1] != current
-        self._shown = shown
-        c, col = self.canvas, _card_colors
-        c.delete('all')
-        self._slots = []
-        y, group = 6, False#(False: before the first header)
-        selected = None#(where the shown card is, if it is a new one)
-        for card, img in zip(cards,images):
-            if card.grouped and card.group != group:
-                group = card.group
-                self._header(y,group)
-                y += _card_heights['header']
-            shown = card.key == current
-            if card.grouped and group in self.folded and not shown:
-                continue
-            h = _card_heights['small' if card.compact else 'card']
-            self._card(y,h,card,img,shown)
-            self._slots.append( ( y, y + h, 'card', card ) )
-            if shown and new_current:
-                selected = ( y, y + h )
-            y += h + 6
-        #(the card adding a plot):
-        self._rect(4,y,self.width,y+34,12,outline=col['border'],dash=(3,3),fill='')
-        c.create_text(self.width/2,y+17,text='+  New plot',fill=col['accent'],
-                      font=self.tv._bold)
-        self._slots.append( ( y, y + 34, 'add', None ) )
-        y += 40
-        c.configure(scrollregion=( 0, 0, self.width + 8, y ))
-        if selected is not None:
-            #(the selected card is scrolled into view):
-            top, bottom = c.canvasy(0), c.canvasy(c.winfo_height())
-            if selected[0] < top or selected[1] > bottom:
-                c.yview_moveto(max( 0.0, ( selected[0] - 40 ) / y ))
-
-    def _rect( self, x0, y0, x1, y1, r, **kw ):
-        pts = [ x0+r, y0, x1-r, y0, x1, y0, x1, y0+r, x1, y1-r, x1, y1,
-                x1-r, y1, x0+r, y1, x0, y1, x0, y1-r, x0, y0+r, x0, y0 ]
-        return self.canvas.create_polygon(pts,smooth=True,**kw)
-
-    def _header( self, y, group ):
-        mark = '\u25b8' if group in self.folded else '\u25be'
-        self.canvas.create_text(8,y+13,anchor='w',fill=_card_colors['dim'],
-                                text=f'{mark}  {( group or "More plots" ).upper()}',
-                                font=( self.tv._bold.cget('family'), 8, 'bold' ))
-        self._slots.append( ( y, y + _card_heights['header'], 'header', group ) )
-
-    def _card( self, y, h, card, img, selected ):
-        c, col = self.canvas, _card_colors
-        self._rect(4,y,self.width,y+h,12,fill=col['selected'] if selected else col['card'],
-                   outline=col['accent'] if selected else col['border'],width=2 if selected else 1)
-        if card.compact:
-            c.create_text(16,y+h/2,anchor='w',fill=col['dim'],
-                          text=f'{card.name}  \u00b7  {card.status}')
-            return
-        x = 14
-        if img is not None:
-            c.create_image(x,y+h/2,image=img,anchor='w')
-        if card.problem:
-            #(a plot which failed, e.g. with fields of the userdata which the
-            #file does not have, with its problem):
-            c.create_text(x+self.thumb[0]/2,y+h/2,text='\u2717',fill=_colors['error'],
-                          font=( self.tv._bold.cget('family'), 22, 'bold' ))
-        x += self.thumb[0] + 12
-        c.create_text(x,y+20,anchor='w',fill=col['text'],font=self.tv._bold,
-                      text=_elided(card.name,self.tv._bold,self.width-x-22))
-        if card.problem:
-            c.create_text(x,y+43,anchor='w',fill=_colors['error'],
-                          font=( self.tv._bold.cget('family'), 8 ),
-                          text=_elided(card.problem,self.tv._bold,self.width-x-22))
-        for b in ( () if card.problem else card.badges ):
-            w = 10 + 6.5 * len(b)
-            self._rect(x,y+34,x+w,y+52,8,fill=col['badge'],outline='')
-            c.create_text(x+w/2,y+43,text=b,fill=col['accent'],
-                          font=( self.tv._bold.cget('family'), 8 ))
-            x += w + 5
-        if card.draggable:
-            c.create_text(self.width-10,y+h/2,text='\u2807',fill=col['border'])#(drag handle)
-
-    def _slot( self, event ):
-        y = self.canvas.canvasy(event.y)
-        return next( ( s for s in self._slots if s[0] <= y < s[1] + 6 ), None )
-
-    def _on_menu( self, event ):
-        """A menu for the card: show or remove it (as far as it allows it)"""
-        tk, _ = _tk()
-        s = self._slot(event)
-        if s is None or s[2] != 'card' or not ( s[3].selectable or s[3].removable ):
-            return
-        card = s[3]
-        menu = tk.Menu(self.canvas,tearoff=0)
-        if card.selectable:
-            menu.add_command(label='Show',command=lambda : self.tv.on_select_key(card.key))
-        if card.removable:
-            menu.add_command(label='Remove this card',command=lambda : self.tv.on_remove(card.key))
-        menu.tk_popup(event.x_root,event.y_root)
-
-    def _on_press( self, event ):
-        s = self._slot(event)
-        self._drag = None
-        if s is not None and s[2] == 'card' and s[3].draggable:
-            self._drag = ( s[3].key, event.y, False )
-
-    def _on_motion( self, event ):
-        if self._drag is not None and abs( event.y - self._drag[1] ) > 6:
-            key, y0, _ = self._drag
-            self._drag = ( key, y0, True )
-            #(a line where the card would go):
-            self.canvas.delete('drop')
-            s = self._slot(event)
-            if s is not None:
-                self.canvas.create_line(4,s[0]-3,self.width,s[0]-3,fill=_card_colors['accent'],
-                                        width=3,tags='drop')
-
-    def _on_release( self, event ):
-        drag, self._drag = self._drag, None
-        self.canvas.delete('drop')
-        s = self._slot(event)
-        if drag is not None and drag[2]:
-            if s is None:
-                return
-            if s[2] == 'card':
-                index, group = self.tv.plot_index(s[3].key), s[3].group
-            elif s[2] == 'header':
-                #(at the start of the group: before its first plot):
-                group = s[3]
-                index = next( ( self.tv.plot_index(x[3].key) for x in self._slots
-                                if x[2] == 'card' and x[0] > s[0] and x[3].draggable ),
-                              self.tv.plot_index(None) )
-            else:
-                index, group = self.tv.plot_index(None), None
-            self.tv.on_drop(drag[0],index,group)
-            return
-        if s is None:
-            return
-        if s[2] == 'header':
-            self.folded ^= { s[3] }
-            self.tv.refresh(plot = False)
-        elif s[2] == 'card' and s[3].selectable:
-            self.tv.on_select_key(s[3].key)
-        elif s[2] == 'add':
-            self.tv.on_new_plot()
 
 class _Controls:
     """The settings of a plot (see WidgetViewer.plot_controls): a menu or a
@@ -994,7 +763,7 @@ class _Controls:
     expression_choice = 'an expression...'
 
     def __init__( self, parent, on_change, on_hint = None, style = None ):
-        _, ttk = _tk()
+        _, ttk = tk_modules()
         #(the style of the labels and the frame, e.g. of a part, see _part):
         self._styles = { 'style' : f'{style}.TLabel' } if style else {}
         self.frame = ttk.Frame(parent,**( { 'style' : f'{style}.TFrame' } if style else {} ))
@@ -1004,7 +773,7 @@ class _Controls:
         self._widgets, self._used, self._greyed = {}, {}, set()
 
     def show( self, controls ):
-        _, ttk = _tk()
+        _, ttk = tk_modules()
         kind = controls[0] if controls else None
         if kind != self._kind:
             for w in self.frame.winfo_children():
@@ -1053,13 +822,13 @@ class _Controls:
         if used is None:
             if w in self._greyed:
                 w.delete(0,'end')
-                w.configure(foreground=_colors['normal'])
+                w.configure(foreground=colors['normal'])
                 self._greyed.discard(w)
             return
         if not w.get():
             self._used[w] = used
             w.insert(0,used)
-            w.configure(foreground=_colors['dim'])
+            w.configure(foreground=colors['dim'])
             self._greyed.add(w)
 
     def _text( self, w ):
@@ -1080,180 +849,6 @@ class _Controls:
     def values( self ):
         """The shown texts of the settings, as (option, text)"""
         return [ ( n, w.get() ) for n, w in self._widgets.items() ]
-
-_example_titles = { 'pick' : 'Examples of picks', 'edit' : 'Examples of edits',
-                    'hist' : 'Examples of plot expressions' }
-#(the topics of the examples of the fields, see _exprhelp.examples):
-_example_topics = { 'pick' : 'pick', 'edit' : 'edit', 'shown_plot' : 'hist' }
-
-class _Examples:
-    """A window with examples of expressions (of _exprhelp.examples), with what
-    they do, where clicking one calls on_choose with it"""
-    def __init__( self, tv, topic, on_choose ):
-        from ._exprhelp import examples
-        tk, ttk = _tk()
-        w = tk.Toplevel(tv.root)
-        w.title(_example_titles[topic])
-        w.transient(tv.root)
-        f = ttk.Frame(w,padding=10)
-        f.pack(fill='both',expand=True)
-        ttk.Label(f,text='Click an example to use it (and change it as needed). Help lists all'
-                  ' fields, units and functions.',foreground=_colors['dim']).pack(anchor='w')
-        text = tk.Text(f,width=84,height=min(30,3*len(examples[topic])),wrap='word',
-                       relief='flat',background='white',padx=8,pady=6,cursor='arrow')
-        text.pack(fill='both',expand=True,pady=(6,0))
-        text.tag_configure('what',lmargin1=24,lmargin2=24,spacing3=6,foreground=_colors['dim'],
-                           font='TkDefaultFont')
-        text.tag_configure('expr',font='TkFixedFont',foreground=_card_colors['accent'])
-        text.tag_configure('hover',underline=True)
-        for i, ( expr, what ) in enumerate(examples[topic]):
-            tag = f'example{i}'
-            text.insert('end',expr,( 'expr', tag ))
-            text.insert('end','\n')
-            text.insert('end',what + '\n','what')
-            text.tag_bind(tag,'<Button-1>',lambda _e, x=expr : ( on_choose(x), w.destroy() ))
-            text.tag_bind(tag,'<Enter>',lambda _e, t=tag : text.tag_add('hover',f'{t}.first',f'{t}.last'))
-            text.tag_bind(tag,'<Leave>',lambda _e : text.tag_remove('hover','1.0','end'))
-        text.configure(state='disabled')
-        ttk.Button(f,text='Close',command=w.destroy).pack(side='right',pady=(8,0))
-        w.bind('<Escape>',lambda _e : w.destroy())
-
-class _CodeWindow:
-    """A window with the command of mcpltool, and tabs with the code (in
-    Python, C++ and C) doing the same as the viewer (see Viewer.code), each
-    with a button copying it, and optionally widgets above them (made by
-    top(frame))"""
-    max_width = 130#(characters)
-
-    def __init__( self, tv, title, code, top = None ):
-        from ._viewer_code import kinds
-        tk, ttk = _tk()
-        self.tv = tv
-        w = self.window = tk.Toplevel(tv.root)
-        w.title(title)
-        w.transient(tv.root)
-        f = ttk.Frame(w,padding=10)
-        f.pack(fill='both',expand=True)
-        if top is not None:
-            top(f)
-        self._texts = {}
-        def section( parent, key, label ):
-            row = ttk.Frame(parent)
-            row.pack(fill='x',pady=(8,2))
-            if label:
-                ttk.Label(row,text=label,font=tv._bold).pack(side='left')
-            text = tk.Text(parent,font='TkFixedFont',wrap='none',width=90,height=1,
-                           relief='flat',background='white',padx=6,pady=4)
-            text.pack(fill='both',expand=True)
-            for style, opts in _code_styles.items():
-                text.tag_configure(style,**opts)
-            #(a scroll bar for the longer lines, if any, see show):
-            bar = ttk.Scrollbar(parent,orient='horizontal',command=text.xview)
-            text.configure(xscrollcommand=bar.set)
-            text._bar = bar
-            ttk.Button(row,text='Copy',takefocus=0,
-                       command=lambda : self._copy(text)).pack(side='right')
-            self._texts[key] = text
-        section(f,'command','Command line:')
-        langs = [ ( k, label ) for k, label in kinds[1:] if k in code ]#(no C++ and C for plots)
-        if len(langs) == 1:
-            section(f,langs[0][0],f'{langs[0][1]}:')
-        else:
-            #(the languages as buttons in a row, which are hard to miss, and one
-            #text with the code of the chosen language):
-            row = ttk.Frame(f)
-            row.pack(fill='x',pady=(10,0))
-            ttk.Label(row,text='Code in:',font=tv._bold).pack(side='left',padx=(0,6))
-            self._lang = tk.StringVar(value=langs[0][0])
-            for key, label in langs:
-                ttk.Radiobutton(row,text=label,value=key,variable=self._lang,
-                                style='Choice.Toolbutton',command=self._show_lang).pack(side='left',padx=(0,4))
-            page = ttk.Frame(f)
-            page.pack(fill='both',expand=True)
-            section(page,'code',None)
-        self.show(code)
-        ttk.Button(f,text='Close',command=w.destroy).pack(side='right',pady=(10,0))
-        w.bind('<Escape>',lambda _e : w.destroy())
-
-    def _show_lang( self ):
-        self.show(self._code)
-
-    def show( self, code ):
-        from ._viewer_code import highlight
-        self._code = code
-        #(the kind of code in each text, with one text for the language chosen,
-        #as high as the longest code of all languages):
-        kinds = { k : ( self._lang.get() if k == 'code' else k ) for k in self._texts }
-        height = max( v.count('\n') + 1 for k, v in code.items() if k != 'command' )
-        for key, text in self._texts.items():
-            value = code[kinds[key]]
-            #(as wide as the longest line, up to a maximum):
-            longest = max( len(line) for line in value.splitlines() )
-            text.configure(state='normal',height=1 if key == 'command' else height,
-                           width=min(max(longest+1,60),self.max_width))
-            if longest + 1 > self.max_width:
-                text._bar.pack(fill='x',after=text)
-            else:
-                text._bar.pack_forget()
-            text.delete('1.0','end')
-            text.insert('1.0',value)
-            for start, end, style in highlight(value,kinds[key]):
-                text.tag_add(style,f'1.0+{start}c',f'1.0+{end}c')
-            text.configure(state='disabled')
-
-    def _copy( self, text ):
-        self.tv.copy_text(text.get('1.0','end-1c'))
-        self.tv.show_line('Copied (paste with Ctrl+V or the middle mouse button)','normal')
-
-class _WriteWindow:
-    """The window for writing the picked and edited particles to a new file:
-    its name, with the command and Python code doing the same"""
-    def __init__( self, tv ):
-        self.tv = tv
-        self._code = _CodeWindow(tv,'Write file',tv.v.code(),top = self._top)
-        self._name.focus_set()
-
-    def _top( self, f ):
-        _, ttk = _tk()
-        ttk.Label(f,text='Write the picked and edited particles to a new file:',
-                  font=self.tv._bold).pack(anchor='w')
-        row = ttk.Frame(f)
-        row.pack(fill='x',pady=(6,0))
-        self._name = ttk.Entry(row,width=60)
-        self._name.insert(0,self.tv.suggested_filename('write'))
-        self._name.pack(side='left',fill='x',expand=True)
-        self._name.bind('<KeyRelease>',lambda _e : self._changed())
-        self._name.bind('<Return>',lambda _e : self._write())
-        ttk.Button(row,text='Browse...',takefocus=0,
-                   command=lambda : self.tv._ask_file_name('write',self._chosen)).pack(side='left',padx=(6,0))
-        ttk.Button(row,text='Write now',style='Accent.TButton',
-                   command=self._write).pack(side='left',padx=(6,0))
-        ttk.Button(row,text='Write now and view it',
-                   command=lambda : self._write(view = True)).pack(side='left',padx=(6,0))
-        self._message = ttk.Label(f,foreground=_colors['error'])
-        self._message.pack(anchor='w')
-
-    def _chosen( self, name ):
-        if name:
-            self._name.delete(0,'end')
-            self._name.insert(0,name)
-            self._changed()
-
-    def _changed( self ):
-        self._code.show(self.tv.v.code(filename = self._name.get().strip() or None))
-
-    def _write( self, view = False ):
-        """Write the file (and show it in the viewer, if view is set)"""
-        name = self._name.get().strip() or self.tv.suggested_filename('write')
-        ok, msg = self.tv.v.try_write(name)
-        if not ok:
-            self._message.configure(text=msg)
-            return
-        self._code.window.destroy()
-        #(the new file has the picked and edited particles, so only the plots
-        #are kept):
-        if not view or not self.tv.on_open_file(name,particles = False):
-            self.tv.show_line(msg,'normal')
 
 def _has_xft( root ):
     """Whether Tk uses Xft for its fonts, or None if not known: as Tk says
@@ -1285,7 +880,7 @@ def _root():
     """A Tk root window, or None if Tk can not show windows here (no tkinter,
     no display, or no Tk support in matplotlib)"""
     try:
-        tk, _ttk = _tk()
+        tk, _ttk = tk_modules()
         import matplotlib.backends.backend_tkagg  # noqa: F401
     except ImportError:
         return None

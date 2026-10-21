@@ -97,7 +97,8 @@ def resolve( spec, plots, groups ):
         if 'plots' in spec:
             cells = list(spec['plots'])
         elif 'group' in spec:
-            cells = [ p for p in plots if groups.get(p) == spec['group'] ]
+            #(an empty group is that of the plots without a group):
+            cells = [ p for p in plots if ( groups.get(p) or '' ) == spec['group'] ]
         else:
             cells = list(plots[:spec['first']])
         ncols = spec.get('ncols') or _ncols(len(cells))

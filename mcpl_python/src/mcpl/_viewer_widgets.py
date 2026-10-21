@@ -261,6 +261,21 @@ class WidgetViewer:
             self.show_line(msg,'normal' if ok else 'error')
             self.refresh(plot = False)
 
+    def on_group_overview( self, group ):
+        """Show the plots of the group (None for those without a group) as an
+        overview: a new one (see Viewer.add_overview), unless there is one with
+        its name"""
+        title = group or 'More plots'
+        key = next( ( k for k, ov in self.v.overviews() if ov.title == title ), None )
+        if key is None:
+            ok, msg = self.v.add_overview({ 'title' : title, 'group' : group or '' })
+            if not ok:
+                self.show_line(msg,'error')
+                return
+            key = self.v.overviews()[-1][0]
+            self.show_line(f'New overview "{title}" (removed with Delete)','normal')
+        self.on_select_key(key)
+
     def on_drop( self, key, index, group ):
         """A card was dragged: its plot (of the view with the key) is moved to
         the index in the list of plots, and into the group (None for none)"""

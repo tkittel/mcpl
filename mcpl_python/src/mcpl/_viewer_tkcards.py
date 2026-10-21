@@ -174,9 +174,17 @@ class CardList:
         return next( ( s for s in self._slots if s[0] <= y < s[1] + 6 ), None )
 
     def _on_menu( self, event ):
-        """A menu for the card: show or remove it (as far as it allows it)"""
+        """A menu for the card: show or remove it (as far as it allows it), or
+        for the header of a group: show it as an overview"""
         tk, _ = tk_modules()
         s = self._slot(event)
+        if s is not None and s[2] == 'header':
+            #(the plots of the group can be shown together):
+            menu = tk.Menu(self.canvas,tearoff=0)
+            menu.add_command(label='Show this group as an overview',
+                             command=lambda : self.tv.on_group_overview(s[3]))
+            menu.tk_popup(event.x_root,event.y_root)
+            return
         if s is None or s[2] != 'card' or not ( s[3].selectable or s[3].removable ):
             return
         card = s[3]

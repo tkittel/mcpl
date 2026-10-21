@@ -443,6 +443,9 @@
    field collection: 'default'
    line (normal): 
    choosing the collection again: ['overview:multi', 'overview:1', 'overview:2']
+   line (normal): New overview "Fields" (removed with Delete)
+   a group as an overview: overview:3 Fields ['13 plots'] | state: [{'title': 'Fields', 'group': 'Fields'}]
+   the same group again shows it: overview:3 4
 ==> the buttons of the actions, and quit
    help shown: 42 lines
    window closed

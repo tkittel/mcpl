@@ -47,6 +47,34 @@ class Overview:
         """The plots of the overview, in the order of its cells"""
         return [ p for p in self.cells if p is not None ]
 
+_forms = ( 'first', 'group', 'plots', 'pairs' )
+
+def check_spec( spec ):
+    """Check a specification of an overview (see the module), as given in the
+    state of the viewer: TypeError or ValueError if it is not valid"""
+    if not isinstance(spec,dict):
+        raise TypeError('an overview must be a JSON object with its title and one of'
+                        f' {", ".join(_forms)}')
+    for k in spec:
+        if k not in ( 'title', 'ncols', *_forms ):
+            raise ValueError(f'unknown entry "{k}" of an overview (the entries are: title,'
+                             f' ncols, {", ".join(_forms)})')
+    if not isinstance(spec.get('title'),str) or not spec['title'].strip():
+        raise ValueError('an overview must have a "title" (a text)')
+    forms = [ f for f in _forms if f in spec ]
+    if len(forms) != 1:
+        raise ValueError(f'the overview "{spec["title"]}" must have exactly one of'
+                         f' {", ".join(_forms)}')
+    v = spec[forms[0]]
+    ok = ( isinstance(v,int) and v > 0 if forms[0] == 'first' else
+           isinstance(v,str) if forms[0] == 'group' else
+           isinstance(v,list) and bool(v) and all( isinstance(e,str) or ( e is None and
+                                                   forms[0] == 'plots' ) for e in v ) )
+    if not ok or not isinstance(spec.get('ncols',1),int) or spec.get('ncols',1) < 1:
+        raise ValueError(f'the {forms[0]} of the overview "{spec["title"]}" is not valid'
+                         ' (first is a number, group a text, plots a list of histogram'
+                         ' strings or null, and pairs a list of expressions)')
+
 def _ncols( n ):
     """Columns of a grid of n plots: 3 for 6 plots (in 2 rows), and more for
     more plots, so they fill a wide window"""

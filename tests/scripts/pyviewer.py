@@ -219,12 +219,27 @@ def test_state():
         print(f'view {view!r}:', w.views[w.current][0])
     for bad in ( "{'foo':1}", '{"limit":"a"}', "{'plots':{'change':{'nope':'x'}}}",
                  "{'plots':{'remove':['x;bins=7']}}", "{'plots':{'foo':[]}}",
-                 "{'plots':{'add':['x;bins=0']}}", "{bad", "[1]", "nope.json", 'nope' ):
+                 "{'plots':{'add':['x;bins=0']}}", "{bad", "[1]", "nope.json", 'nope',
+                 "{'add_overviews':[{'title':'x'}]}", "{'add_overviews':[{'title':'x','first':2,'group':'g'}]}",
+                 "{'add_overviews':[{'title':'x','plots':['nonsense']}]}", "{'add_overviews':{}}",
+                 "{'remove_overviews':['Nope']}" ):
         try:
             Viewer(ex,view=bad)
             print(f'view {bad!r}: no error')
         except mcpl.MCPLError as e:
             print(f'view {bad!r}: {e}')
+    #Overviews added and removed, which the state keeps:
+    v = Viewer(ex)
+    v.multi_overview = True
+    print('added overview:', v.add_overview({ 'title' : 'Spectra', 'plots' : [ 'ekin', None, 'time' ],
+                                               'ncols' : 3 }))
+    v.remove_overview('overview:2')
+    v.select_key('overview:3')
+    state = v.state(full = False)
+    print('state:', state)
+    w = Viewer(ex,view=state)
+    w.multi_overview = True
+    print('opened again:', [ ( k, ov.title, ov.cells ) for k, ov in w.overviews() ], w.current_key)
 
 def test_fields():
     v = Viewer(ex)

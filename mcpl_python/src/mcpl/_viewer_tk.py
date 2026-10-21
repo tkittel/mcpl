@@ -115,11 +115,11 @@ class TkViewer(WidgetViewer):
         button.pack(anchor='w',pady=(0,6))
         menu = tk.Menu(button,tearoff=0)
         button['menu'] = menu
-        menu.add_command(label='Open file...',command=self._ask_open)
+        menu.add_command(label='Open MCPL file...',command=self._ask_open)
         self._actions_menu, self._actions = menu, {}#(action -> index of its entry)
         for action, label, keys, kpos in ui.actions:
             #(writing opens a window, with the name of the file and the code):
-            label = 'Write file / code...' if action == 'write' else label
+            label = 'Write MCPL file / code...' if action == 'write' else label
             menu.add_command(label=label,underline=kpos,accelerator=keys[0],
                              command=lambda a=action : self.on_action(a))
             self._actions[action] = menu.index('end')
@@ -154,6 +154,8 @@ class TkViewer(WidgetViewer):
         self.toolbar = NavigationToolbar2Tk(self.canvas,plot,pack_toolbar=False)
         self.toolbar.update()
         self.toolbar.pack(side='bottom',fill='x')
+        #(the plot fills the space left, so it asks for little):
+        self.canvas.get_tk_widget().configure(width=400,height=300)
         self.canvas.get_tk_widget().pack(side='top',fill='both',expand=True)
         super().__init__(viewer,fig)
         #(the collection of plots, above their cards):
@@ -189,7 +191,7 @@ class TkViewer(WidgetViewer):
                                 **( _row_label if first else {} ))
                 lab.pack(side='left',padx=(0 if first else 12,4))
                 wide = field in _example_topics
-                w = ttk.Entry(frame,width=60 if wide else 10)
+                w = ttk.Entry(frame,width=20 if wide else 10)
                 w.pack(side='left',fill='x',expand=wide)
                 self._placeholders[w] = empty
                 self._bind_entry(w,field)
@@ -207,6 +209,10 @@ class TkViewer(WidgetViewer):
         self._line.grid(row=1,column=0,sticky='w',pady=(2,0))
         self._statusbar = ttk.Label(bottom,foreground=_colors['dim'])
         self._statusbar.grid(row=1,column=0,sticky='e',pady=(2,0))
+        #(the window is at least as wide as the cards and the widest row of
+        #the fields of the shown plot, so nothing is cut off):
+        root.update_idletasks()
+        root.minsize(left.winfo_reqwidth() + self._axes[0].master.winfo_reqwidth() + 40,600)
         self._popup = None#(the list of completions: (field, start, Toplevel, Listbox))
         root.bind('<Key>',self._on_root_key)
         root.protocol('WM_DELETE_WINDOW',self.close_window)
@@ -252,10 +258,10 @@ class TkViewer(WidgetViewer):
                        command=self.on_new_plot)
         b.pack(side='right',padx=(6,0))
         self._hover(b,'new_plot')
-        self._remove = ttk.Button(head,text='Remove',style='Head.TButton',takefocus=0,
+        self._remove = ttk.Button(head,text='Remove plot',style='Head.TButton',takefocus=0,
                                   command=self.on_remove)
         self._remove.pack(side='right',padx=(6,0))
-        self._code = ttk.Button(head,text='</>  Code',style='Head.TButton',takefocus=0,
+        self._code = ttk.Button(head,text='</>  Plot code',style='Head.TButton',takefocus=0,
                                 command=lambda : _CodeWindow(self,'Code of the plot',
                                                              self.plot_code()))
         self._code.pack(side='right')
@@ -721,7 +727,7 @@ def _part( parent, name, what, border ):
     frame = ttk.Frame(box,style=f'{name}.TFrame',padding=(10,4,10,6))
     frame.pack(fill='both',expand=True)
     head = ttk.Frame(frame,style=f'{name}.TFrame')
-    head.pack(fill='x',pady=(0,3))
+    head.pack(fill='x',pady=(0,6))
     ttk.Label(head,text=f'{name.upper()}  \u00b7  {what}',
               style=f'{name}Head.TLabel').pack(side='left')
     return frame, head

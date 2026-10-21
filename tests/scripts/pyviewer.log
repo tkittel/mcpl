@@ -349,7 +349,7 @@ view 'x': plot:x
 view ' x ': plot:x
 view 'overview': plot:ekin;logx=auto;logy;split=pdgcode
 view 'pdgcode;bar = auto ; logy=auto': plot:pdgcode;bar;logy=auto
-view "{'foo':1}": The viewer state "{'foo':1}" is not valid: unknown entry "foo" (the entries are: skip, limit, pick, edit, collection, plots, view)
+view "{'foo':1}": The viewer state "{'foo':1}" is not valid: unknown entry "foo" (the entries are: skip, limit, pick, edit, collection, plots, add_overviews, remove_overviews, view)
 view '{"limit":"a"}': The viewer state "{"limit":"a"}" is not valid: limit must be a number
 view "{'plots':{'change':{'nope':'x'}}}": The viewer state changes the plot "nope", which is not one of the plots
 view "{'plots':{'remove':['x;bins=7']}}": The viewer state removes the plot "x;bins=7", which is not one of the plots
@@ -359,6 +359,14 @@ view '{bad': The viewer state "{bad" is not valid JSON (Expecting property name 
 view '[1]': Unknown view "[1]" (the views are the overview and the plots, given as overview or as the histogram string of a plot, e.g. ekin)
 view 'nope.json': Can not read the viewer state from nope.json ([Errno 2] No such file or directory: 'nope.json')
 view 'nope': Unknown view "nope" (the views are the overview and the plots, given as overview or as the histogram string of a plot, e.g. ekin)
+view "{'add_overviews':[{'title':'x'}]}": The viewer state "{'add_overviews':[{'title':'x'}]}" is not valid: in add_overviews, the overview "x" must have exactly one of first, group, plots, pairs
+view "{'add_overviews':[{'title':'x','first':2,'group':'g'}]}": The viewer state "{'add_overviews':[{'title':'x','first':2,'group':'g'}]}" is not valid: in add_overviews, the overview "x" must have exactly one of first, group, plots, pairs
+view "{'add_overviews':[{'title':'x','plots':['nonsense']}]}": The viewer state adds an overview which is not valid: The overview "x" has the plot "nonsense": Unknown name "nonsense" in expression "nonsense" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+view "{'add_overviews':{}}": The viewer state "{'add_overviews':{}}" is not valid: add_overviews must be a list of overviews
+view "{'remove_overviews':['Nope']}": The viewer state removes the overview "Nope", which is not one of the overviews
+added overview: (True, '')
+state: {'add_overviews': [{'title': 'Spectra', 'plots': ['ekin', None, 'time'], 'ncols': 3}], 'remove_overviews': ['Correlations'], 'view': 'overview:Spectra'}
+opened again: [('overview:multi', 'Overview', ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto']), ('overview:1', 'All fields', ['ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto']), ('overview:3', 'Spectra', ['ekin', None, 'time'])] overview:3
 suggested name: example_selected.mcpl.gz
 dry run: MCPL: Would extract 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz
 files after the dry run: []

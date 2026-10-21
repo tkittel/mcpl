@@ -82,6 +82,7 @@ layers = {
     '_viewer_tkwindows' : 11,
     '_viewer_tk' : 12,
     '_viewer_reading' : 9,
+    '_viewer_overviews' : 8,
     '_thumbnails' : 8,
     '_viewer' : 10,
     '_clistats' : 10,

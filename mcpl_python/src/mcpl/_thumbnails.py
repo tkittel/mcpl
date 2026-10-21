@@ -47,6 +47,8 @@ def thumbnail_png( figure, width, height ):
     gap = 2
     pw, ph = ( width - gap * ( nc + 1 ) ) // nc, ( height - gap * ( nr + 1 ) ) // nr
     for i, panel in enumerate(figure.panels[:nr*nc]):
+        if panel is None:#(an empty cell of the grid)
+            continue
         r, c = divmod(i,nc)
         x0, y0 = gap + c * ( pw + gap ), gap + r * ( ph + gap )
         _panel(img[y0:y0+ph,x0:x0+pw],panel)

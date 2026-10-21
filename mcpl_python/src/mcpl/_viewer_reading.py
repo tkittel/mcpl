@@ -67,6 +67,10 @@ class _Reading:
             self._thread.join()
             self._thread = None
 
+    def _reading_settings( self ):
+        """The settings which are read (a copy)"""
+        return self._s.copy()
+
     @property
     def error( self ):
         """The error of the reading (e.g. "no particles picked"), or None"""
@@ -95,7 +99,7 @@ class _Reading:
     def _restart( self ):
         with self._lock:
             self._generation += 1
-            self._job = ( self._generation, self._s.copy() )
+            self._job = ( self._generation, self._reading_settings() )
             self._wake.notify_all()
 
     def _worker( self ):

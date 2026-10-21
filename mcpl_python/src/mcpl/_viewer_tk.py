@@ -105,6 +105,8 @@ class TkViewer(WidgetViewer):
         from ._logo import logo_png
         self._logo = tk.PhotoImage(data=base64.b64encode(logo_png())).subsample(3)
         ttk.Label(left,image=self._logo).pack(anchor='w',pady=(0,6))
+        self._entries, self._marks = {}, {}
+        self._menu_descriptions = {}#(the labels of the descriptions of menu fields)
         self._cards = _CardList(left,self)
         self._hover(self._cards.canvas,'views')
         #The status and the plot (on the right):
@@ -115,13 +117,16 @@ class TkViewer(WidgetViewer):
         self._status = [ ttk.Label(main,font=bold), ttk.Label(main,foreground=_colors['dim']) ]
         for i, label in enumerate(self._status):
             label.grid(row=i,column=0,sticky='w')
-        #(the plot, with its toolbar, in the colour and border of the part of
-        #the shown plot and of its selected card):
+        #(the part of the shown plot, in the colours of its selected card: the
+        #plot with its toolbar, and its fields below them, see _plot_part):
         bg = _part_colors['Plot']
-        plot = tk.Frame(main,name='plotbox',background=bg,highlightthickness=1,
-                        highlightbackground=_card_colors['accent'],
-                        highlightcolor=_card_colors['accent'])
-        plot.grid(row=2,column=0,sticky='nsew')
+        part = _part(main,'Plot','the shown plot',_card_colors['accent'])
+        part.master.grid(row=2,column=0,sticky='nsew')
+        #(the fields at the bottom, packed first so the plot gets the rest):
+        fields = ttk.Frame(part)
+        fields.pack(side='bottom',fill='x')
+        plot = tk.Frame(part,name='plotbox',background=bg)
+        plot.pack(fill='both',expand=True,pady=(0,4))
         #(the widgets of the toolbar get the colour when they are made, as
         #matplotlib draws its icons on their background):
         for option in ( 'background', 'highlightBackground', 'activeBackground' ):
@@ -130,31 +135,32 @@ class TkViewer(WidgetViewer):
         self.canvas = FigureCanvasTkAgg(fig,master=plot)
         self.toolbar = NavigationToolbar2Tk(self.canvas,plot,pack_toolbar=False)
         self.toolbar.update()
-        self.toolbar.pack(side='bottom',fill='x',padx=6,pady=(0,2))
-        self.canvas.get_tk_widget().pack(side='top',fill='both',expand=True,padx=6,pady=(6,0))
+        self.toolbar.pack(side='bottom',fill='x')
+        self.canvas.get_tk_widget().pack(side='top',fill='both',expand=True)
         super().__init__(viewer,fig)
+        #(the collection of plots, above their cards):
+        self._menu_field(left,'collection',before = self._cards.canvas.master)
         self.canvas.mpl_connect('button_press_event',self._on_mpl_click)
         self.canvas.mpl_connect('key_press_event',self._on_mpl_key)
         self.canvas.mpl_connect('motion_notify_event',self._on_mpl_motion)
         self._inaxes = None#(the axes under the mouse)
-        #Below the plot: the part of the shown plot, the part of the
-        #particles (for all plots), the line below them and the actions:
-        bottom = ttk.Frame(root,padding=(6,4,6,6))
-        bottom.grid(row=1,column=1,sticky='ew')
-        bottom.columnconfigure(0,weight=1)
-        self._entries, self._marks = {}, {}
         self._actions = {}#(the buttons of ui.actions)
         self._placeholders = {}#entry -> text shown in grey while it is empty
         self._showing = set()#(the entries showing their placeholder)
-        part = _part(bottom,'Plot','the shown plot',_card_colors['accent'])
-        part.master.grid(row=0,column=0,sticky='ew')
-        self._plot_part(part)
+        self._plot_part(fields)
         _tint(part,'Plot')
+        #Below the plot: the part of the particles (for all plots), the line
+        #below it and the actions:
+        bottom = ttk.Frame(root,padding=(0,4,6,6))
+        bottom.grid(row=1,column=1,sticky='ew')
+        bottom.columnconfigure(0,weight=1)
         part = _part(bottom,'Particles','of all plots',_card_colors['border'])
-        part.master.grid(row=1,column=0,sticky='ew',pady=(6,0))
+        part.master.grid(row=0,column=0,sticky='ew',pady=(2,0))
         info = { f[0] : f for f in ui.fields }
-        #(plots are added with "+ New plot", not with a field):
-        rows = [ tuple( f for f in row if f != 'plot' ) for row in ui.field_rows ]
+        #(plots are added with "+ New plot", and the collection is chosen
+        #above the cards):
+        rows = [ tuple( f for f in row if f not in ( 'plot', *ui.menu_fields ) )
+                 for row in ui.field_rows ]
         for row in ( row for row in rows if row ):
             frame = ttk.Frame(part)
             frame.pack(fill='x',pady=1)
@@ -164,18 +170,10 @@ class TkViewer(WidgetViewer):
                 lab = ttk.Label(frame,text=label + ':',underline=kpos,
                                 **( _row_label if first else {} ))
                 lab.pack(side='left',padx=(0 if first else 12,4))
-                if field in ui.menu_fields:
-                    choices = self.menu_choices(field)
-                    w = ttk.Combobox(frame,state='readonly',width=48,
-                                     values=[ f'{n}  ({d})' for n, d in choices ])
-                    w.bind('<<ComboboxSelected>>',lambda _e, f=field, c=choices :
-                           self._on_menu(f,c))
-                    w.pack(side='left')
-                else:
-                    w = ttk.Entry(frame,width=12 if len(row) > 1 else 60)
-                    w.pack(side='left',fill='x',expand=len(row) == 1)
-                    self._placeholders[w] = empty
-                    self._bind_entry(w,field)
+                w = ttk.Entry(frame,width=12 if len(row) > 1 else 60)
+                w.pack(side='left',fill='x',expand=len(row) == 1)
+                self._placeholders[w] = empty
+                self._bind_entry(w,field)
                 #(the examples right after the field, then the mark of its check):
                 if field in _example_topics:
                     self._examples_button(frame,field).pack(side='left',padx=(2,0))
@@ -185,9 +183,9 @@ class TkViewer(WidgetViewer):
                 self._hover(lab,field)
                 self._hover(w,field)
         self._line = ttk.Label(bottom)
-        self._line.grid(row=2,column=0,sticky='w',pady=(2,2))
+        self._line.grid(row=1,column=0,sticky='w',pady=(2,2))
         buttons = ttk.Frame(bottom)
-        buttons.grid(row=3,column=0,sticky='w')
+        buttons.grid(row=2,column=0,sticky='w')
         #(another file, with the same plots, pick and edit, see on_open_file):
         ttk.Button(buttons,text='Open file...',takefocus=0,
                    command=self._ask_open).pack(side='left',padx=(0,6))
@@ -201,10 +199,32 @@ class TkViewer(WidgetViewer):
             self._actions[action] = b
         _tint(part,'Particles')
         self._statusbar = ttk.Label(bottom,foreground=_colors['dim'])
-        self._statusbar.grid(row=4,column=0,sticky='w',pady=(4,0))
+        self._statusbar.grid(row=3,column=0,sticky='w',pady=(4,0))
         self._popup = None#(the list of completions: (field, start, Toplevel, Listbox))
         root.bind('<Key>',self._on_root_key)
         root.protocol('WM_DELETE_WINDOW',self.close_window)
+
+    def _menu_field( self, parent, field, before ):
+        """A field of _viewer_ui.menu_fields: its label and menu in a row, and
+        the description of the chosen value below them (packed before the
+        widget before)"""
+        _, ttk = _tk()
+        _, label, _key, kpos, _ = next( f for f in ui.fields if f[0] == field )
+        choices = self.menu_choices(field)
+        frame = ttk.Frame(parent)
+        frame.pack(fill='x',pady=(0,6),before=before)
+        lab = ttk.Label(frame,text=label + ':',underline=kpos)
+        lab.grid(row=0,column=0,sticky='w',padx=(0,4))
+        w = ttk.Combobox(frame,state='readonly',values=[ n for n, _ in choices ])
+        w.grid(row=0,column=1,sticky='ew')
+        w.bind('<<ComboboxSelected>>',lambda _e : self._on_menu(field,choices))
+        frame.columnconfigure(1,weight=1)
+        descr = ttk.Label(frame,foreground=_colors['dim'])
+        descr.grid(row=1,column=0,columnspan=2,sticky='w')
+        self._entries[field], self._menu_descriptions[field] = w, descr
+        self._marks[field] = ttk.Label(frame)#(menus are not checked)
+        self._hover(lab,field)
+        self._hover(w,field)
 
     def _plot_part( self, part ):
         """The fields of the shown plot (or of a new plot): its title, its axes
@@ -304,8 +324,8 @@ class TkViewer(WidgetViewer):
             return#(no field, see focus_field)
         w = self._entries[field]
         if field in ui.menu_fields:
-            descr = dict(self.menu_choices(field)).get(text,'')
-            w.set(f'{text}  ({descr})')
+            w.set(text)
+            self._menu_descriptions[field].configure(text=dict(self.menu_choices(field)).get(text,''))
             return
         self._set_text(w,text)
 

@@ -109,6 +109,7 @@ class WidgetViewer:
         self._thumbnails = {}#view key -> (figure, PNG data, time)
         self._removed = set()#(the cards removed which are not views, see cards)
         self._new_plot = None#(the title of a new plot, while it has no axes, see on_new_plot)
+        self._empty = None#(the view and message shown instead of its plot, see refresh)
         #(when the plot was drawn, how long it took, and whether a newer figure
         #is not drawn yet, see on_timer):
         self._drawn_at, self._draw_time, self._plot_pending = 0.0, 0.0, False
@@ -475,7 +476,8 @@ class WidgetViewer:
         figure = self.v.figure(key = key)
         old = self._thumbnails.get(key)
         if figure is None:
-            return old[1] if old else None
+            #(the image of the plot before is kept while the file is read):
+            return old[1] if old and self.v.reading else None
         if old is not None and ( old[0] is figure
                                  or ( time.monotonic() - old[2] < 2 and self.v.reading ) ):
             return old[1]
@@ -673,8 +675,18 @@ class WidgetViewer:
             self.pane.clear()
             self.pane.show_message('Choose or type what to plot below (X axis)')
             self.draw_plot()
+        elif plot and v.figure() is None and not v.reading:
+            #(nothing to show, e.g. when no particles are picked: said in the
+            #plot, instead of keeping the plot drawn before):
+            message = ( v.error or 'nothing to show' ).capitalize()
+            if self._empty != ( v.current_key, message ):
+                self._empty = ( v.current_key, message )
+                self.pane.clear()
+                self.pane.show_message(message)
+                self.draw_plot()
         elif plot:
             import time
+            self._empty = None
             t = time.monotonic()
             if self.pane.show(v):
                 self.draw_plot()

@@ -75,7 +75,7 @@ def _beam( axis, a, b ):
              _item(f'{a} : {div_a}',f'Phase space {a}',beam),
              _item(f'{b} : {div_b}',f'Phase space {b}',beam),
              _item('ekin;logx=auto;logy;split=pdgcode','Energy spectrum','Spectra'),
-             _item('wavelength;split=pdgcode','Wavelength','Spectra'),
+             _item('wavelength;logx=auto;logy=auto;split=pdgcode','Wavelength','Spectra'),
              _item(f'hypot({a},{b})','Distance from the axis','Other'),
              _item(f'angle_to({vector})/deg;logy',f'Angle to the {axis} axis','Other'),
              _item('time;logx=auto;logy','Time','Other'),

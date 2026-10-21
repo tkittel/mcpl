@@ -119,7 +119,7 @@ class TkViewer(WidgetViewer):
         self._actions_menu, self._actions = menu, {}#(action -> index of its entry)
         for action, label, keys, kpos in ui.actions:
             #(writing opens a window, with the name of the file and the code):
-            label = 'Write MCPL file / code...' if action == 'write' else label
+            label = 'Write modified MCPL file / code...' if action == 'write' else label
             menu.add_command(label=label,underline=kpos,accelerator=keys[0],
                              command=lambda a=action : self.on_action(a))
             self._actions[action] = menu.index('end')
@@ -173,7 +173,7 @@ class TkViewer(WidgetViewer):
         bottom = ttk.Frame(root,padding=(0,4,6,6))
         bottom.grid(row=1,column=1,sticky='ew')
         bottom.columnconfigure(0,weight=1)
-        part, _ = _part(bottom,'Particles','of all plots',_card_colors['border'])
+        part, _ = _part(bottom,'Particles','used in all plots',_card_colors['border'])
         part.master.grid(row=0,column=0,sticky='ew',pady=(2,0))
         info = { f[0] : f for f in ui.fields }
         #(plots are added with "+ New plot", and the collection is chosen
@@ -181,25 +181,31 @@ class TkViewer(WidgetViewer):
         rows = ( ( 'pick', 'skip', 'limit' ), ( 'edit', ) )
         assert sorted( f for row in rows for f in row ) == sorted(
             f for row in ui.field_rows for f in row if f not in ( 'plot', *ui.menu_fields ) )
-        for row in rows:
-            frame = ttk.Frame(part)
-            frame.pack(fill='x',pady=1)
+        #(in a grid, so the expressions of the rows have the same width):
+        grid = ttk.Frame(part)
+        grid.pack(fill='x')
+        grid.columnconfigure(1,weight=1)
+        for r, row in enumerate(rows):
+            col = 0
             for field in row:
                 _, label, _key, kpos, empty = info[field]
                 first = field == row[0]
-                lab = ttk.Label(frame,text=label + ':',underline=kpos,
+                lab = ttk.Label(grid,text=label + ':',underline=kpos,
                                 **( _row_label if first else {} ))
-                lab.pack(side='left',padx=(0 if first else 12,4))
+                lab.grid(row=r,column=col,sticky='e',padx=(0 if first else 12,4),pady=1)
                 wide = field in _example_topics
-                w = ttk.Entry(frame,width=20 if wide else 10)
-                w.pack(side='left',fill='x',expand=wide)
+                w = ttk.Entry(grid,width=20 if wide else 10)
+                w.grid(row=r,column=col+1,sticky='ew' if wide else 'w')
                 self._placeholders[w] = empty
                 self._bind_entry(w,field)
+                col += 2
                 #(the examples right after the field, then the mark of its check):
                 if field in _example_topics:
-                    self._examples_button(frame,field).pack(side='left',padx=(2,0))
-                mark = ttk.Label(frame,width=2)
-                mark.pack(side='left')
+                    self._examples_button(grid,field).grid(row=r,column=col,padx=(2,0))
+                    col += 1
+                mark = ttk.Label(grid,width=2)
+                mark.grid(row=r,column=col)
+                col += 1
                 self._entries[field], self._marks[field] = w, mark
                 self._hover(lab,field)
                 self._hover(w,field)

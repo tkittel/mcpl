@@ -133,7 +133,7 @@ plot_controls = {
 
 #The quantities offered when adding a plot in the viewers with windows (as the
 #start of a histogram string), besides any expression:
-quantities = ( ( 'Energy', 'ekin;logx=auto' ), ( 'Wavelength', 'wavelength' ),
+quantities = ( ( 'Energy', 'ekin;logx=auto' ), ( 'Wavelength', 'wavelength;logx=auto' ),
                ( 'Time', 'time;logx=auto' ), ( 'Position x', 'x' ), ( 'Position y', 'y' ),
                ( 'Position z', 'z' ), ( 'Direction x', 'ux' ), ( 'Direction y', 'uy' ),
                ( 'Direction z', 'uz' ), ( 'Angle to the z axis', 'angle_to(0,0,1)/deg' ),

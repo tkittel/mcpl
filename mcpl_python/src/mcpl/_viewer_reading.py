@@ -68,6 +68,12 @@ class _Reading:
             self._thread = None
 
     @property
+    def error( self ):
+        """The error of the reading (e.g. "no particles picked"), or None"""
+        with self._lock:
+            return self._error
+
+    @property
     def reading( self ):
         """Whether the file is being read (for the current settings)"""
         with self._lock:

@@ -76,7 +76,13 @@ class TkViewer(WidgetViewer):
         accent = _card_colors['accent']
         style.configure('Accent.TButton',foreground='white',background=accent,
                         bordercolor=accent)
-        style.map('Accent.TButton',background=[ ( 'active', '#3d74ab' ) ])
+        style.map('Accent.TButton',background=[ ( 'disabled', '#a9bdd2' ), ( 'active', '#3d74ab' ) ],
+                  foreground=[ ( 'disabled', '#eef2f7' ) ])
+        #(the other buttons light, in the colours of the cards, instead of the
+        #grey of the theme of X11; native themes keep their own look):
+        for name in ( 'TButton', 'TMenubutton' ):
+            style.configure(name,background='#f7f9fc',bordercolor=_card_colors['border'])
+            style.map(name,background=[ ( 'active', '#e4ebf4' ) ])
         #(choices shown as a row of buttons, with the chosen one in the colour
         #of the selected card):
         style.configure('Choice.Toolbutton',relief='raised',borderwidth=1,padding=(8,3),
@@ -217,10 +223,11 @@ class TkViewer(WidgetViewer):
                 self._hover(w,field)
         #(writing the picked and edited particles, in the corner, which opens
         #a window with the name of the file and the code):
-        self._write = ttk.Button(grid,text='Write modified MCPL file / code...',
-                                 style='Head.TButton',takefocus=0,
+        self._write = ttk.Button(grid,text='Create new MCPL file...',
+                                 style='Head.Accent.TButton',takefocus=0,
                                  command=lambda : self.on_action('write'))
-        self._write.grid(row=len(rows)-1,column=4,columnspan=6,sticky='e')
+        #(below skip and limit, from the start of the one to the end of the other):
+        self._write.grid(row=len(rows)-1,column=4,columnspan=5,sticky='ew',padx=(12,0))
         self._hover(self._write,'write')
         _tint(part,'Particles')
         #(the line of messages, and at its right what is under the mouse):

@@ -50,7 +50,7 @@ ipywidgets is imported by: _viewer_jupyter
 IPython is imported by: _viewer, _viewer_jupyter
 curses is imported by: _plotbackend_text_gui
 matplotlib, scipp, ipywidgets, IPython, curses are only imported inside functions
-mcpl.__all__ has 36 names, provided by:
+mcpl.__all__ has 33 names, provided by:
   _common              : MCPLError
   _messages            : use_logging
   _statsum             : encode_stat_sum, is_valid_stat_sum_key
@@ -60,6 +60,6 @@ mcpl.__all__ has 36 names, provided by:
   _writer              : MCPLOutFile, gzip_file
   _fileops             : can_merge, convert2ascii, create_outfile_mpi, dump_file, forcemerge_files, merge_files, merge_inplace, merge_outfiles_mpi, name_helper, repair
   _stats               : collect_stats, dump_stats, plot_stats
-  _histogram           : BarHistogram, Histogram, Histogram2D, histogram, histogram2d, plot_histograms
+  _histogram           : histogram, histogram2d, plot_histograms
   _viewer              : view
   _cli                 : app_mcpltool, app_pymcpltool

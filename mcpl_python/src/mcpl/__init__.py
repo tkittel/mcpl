@@ -47,9 +47,6 @@ programme under grant agreement No 676548 (the BrightnESS project)
 """
 
 __all__ = [
-            'BarHistogram',
-            'Histogram',
-            'Histogram2D',
             'MCPLError',
             'MCPLFile',
             'MCPLOutFile',
@@ -111,12 +108,9 @@ from ._writer import MCPLOutFile, gzip_file
 #only imported when used (so the code for reading and writing files does not
 #depend on them in any way):
 _on_demand = {
-    'BarHistogram' : '_histogram',
-    'Histogram' : '_histogram',
     'ParticleEdit' : '_expressions',
     'ParticleFilter' : '_expressions',
     'ParticleValue' : '_expressions',
-    'Histogram2D' : '_histogram',
     'app_mcpltool' : '_cli',
     'app_pymcpltool' : '_cli',
     'collect_stats' : '_stats',

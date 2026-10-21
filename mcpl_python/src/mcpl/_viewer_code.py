@@ -292,8 +292,7 @@ def _c_swap( a, b, tr, indent ):
         return None
     t = types[0] if tr.lang == 'c' or types[0] == 'double' else f'std::{types[0]}'
     A, B = tr.field(a), tr.field(b)
-    return [ f'{indent}{{', f'{indent}  {t} tmp = {A};', f'{indent}  {A} = {B};',
-             f'{indent}  {B} = tmp;', f'{indent}}}' ]
+    return _c_block(indent,f'{t} tmp = {A};',f'{A} = {B};',f'{B} = tmp;')
 
 def _c_rotation( fname, angle, tr, indent ):
     """The C or C++ code of a rotation (rotate_x, rotate_y or rotate_z) by a
@@ -311,25 +310,25 @@ def _c_rotation( fname, angle, tr, indent ):
     k = round(q)
     lines = []
     if abs( q - k ) <= 8 * 2.220446049250313e-16 * max( 1.0, abs(k) ):
-        #(as (A,B) -> (A,B), (-B,A), (-A,-B) or (B,-A), with 0.0 - v for -v, to
-        #avoid negative zeros as the edits do):
-        new = { 0 : None, 1 : ( '0.0 - {B}', '{A}' ), 2 : ( '0.0 - {A}', '0.0 - {B}' ),
-                3 : ( '{B}', '0.0 - {A}' ) }[k % 4]
-        if new is None:
-            return []
+        #(A,B) -> (-B,A), (-A,-B) or (B,-A), with 0.0 - v for -v (to avoid
+        #negative zeros, as the edits do):
         for pa, pb in _rotation_planes[fname]:
-            lines += _c_plane(tr,pa,pb,new[0].format(A='a',B='b'),new[1].format(A='a',B='b'),indent)
+            A, B = tr.field(pa), tr.field(pb)
+            lines += { 0 : [],
+                       1 : _c_block(indent,f'double tmp = {A};',f'{A} = 0.0 - {B};',f'{B} = tmp;'),
+                       2 : [ f'{indent}{A} = 0.0 - {A};', f'{indent}{B} = 0.0 - {B};' ],
+                       3 : _c_block(indent,f'double tmp = {A};',f'{A} = {B};',f'{B} = 0.0 - tmp;') }[k % 4]
         return lines
     c, s = math.cos(a), math.sin(a)
     for pa, pb in _rotation_planes[fname]:
-        lines += _c_plane(tr,pa,pb,f'{c!r} * a - {s!r} * b',f'{s!r} * a + {c!r} * b',indent)
+        A, B = tr.field(pa), tr.field(pb)
+        lines += _c_block(indent,f'double tmp = {A};',f'{A} = {c!r} * tmp - {s!r} * {B};',
+                          f'{B} = {s!r} * tmp + {c!r} * {B};')
     return lines
 
-def _c_plane( tr, pa, pb, new_a, new_b, indent ):
-    """The fields pa and pb set to new_a and new_b (of their values a and b)"""
-    A, B = tr.field(pa), tr.field(pb)
-    return [ f'{indent}{{', f'{indent}  const double a = {A}, b = {B};',
-             f'{indent}  {A} = {new_a};', f'{indent}  {B} = {new_b};', f'{indent}}}' ]
+def _c_block( indent, *statements ):
+    """The statements in a block (for the variables in it)"""
+    return [ f'{indent}{{' ] + [ f'{indent}  {st}' for st in statements ] + [ f'{indent}}}' ]
 
 def _c_assignment( st, tr, indent ):
     """The C or C++ code of an assignment of an edit (to a field), or None"""

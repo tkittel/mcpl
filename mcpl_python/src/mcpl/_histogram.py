@@ -22,8 +22,8 @@
 """Histograms of values calculated with expressions from the particles in MCPL
 files, and plots of them."""
 
-__all__ = [ 'BarHistogram', 'Histogram', 'Histogram2D', 'histogram', 'histogram2d',
-            'plot_histograms' ]
+#(the classes of the histograms are not public, see Histogram):
+__all__ = [ 'histogram', 'histogram2d', 'plot_histograms' ]
 
 import math
 import os
@@ -160,9 +160,12 @@ class Histogram(_Plot):
     particles if unweighted) in the dictionary contents, with one entry per
     curve (keyed by label, None for a single curve). The sums of squared
     weights are in sumw2, and the sums of weights below and above the edges
-    are in underflow and overflow (with the same keys)."""
+    are in underflow and overflow (with the same keys).
+
+    Objects of this class are made by histogram(), and the class itself is not part
+    of the public API (it is not made directly)."""
     _panel_options = ( 'logy', )
-    def __init__( self, expression, edges, logx, weighted, lethargy, title, unit = None ):
+    def __init__( self, expression, edges, *, logx, weighted, lethargy, title, unit = None ):
         super().__init__(weighted,title)
         self.expression = expression
         self.unit = unit
@@ -234,9 +237,12 @@ class BarHistogram(_Plot):
     """Bar chart of the values of an expression with whole numbers, created by
     the histogram() function with bar. The contents are the sums of weights (or
     numbers of particles if unweighted) of the bars, by their labels (the
-    values, or names like "n (2112)" for pdgcode values)."""
+    values, or names like "n (2112)" for pdgcode values).
+
+    Objects of this class are made by histogram() with bar, and the class itself is not part
+    of the public API (it is not made directly)."""
     _panel_options = ( 'logy', )
-    def __init__( self, expression, weighted, title ):
+    def __init__( self, expression, *, weighted, title ):
         super().__init__(weighted,title)
         self.expression = expression
         self.logy = False
@@ -272,9 +278,12 @@ class Histogram2D(_Plot):
     histogram2d() function. The contents (with shape (len(xedges)-1,
     len(yedges)-1)) are sums of weights, or numbers of particles if
     unweighted. For expressions with units, the edges are in the units xunit
-    and yunit (texts like "cm", else None)."""
+    and yunit (texts like "cm", else None).
+
+    Objects of this class are made by histogram2d(), and the class itself is not part
+    of the public API (it is not made directly)."""
     _panel_options = ( 'logz', )
-    def __init__( self, xexpression, yexpression, xedges, yedges, weighted, title,
+    def __init__( self, xexpression, yexpression, xedges, yedges, *, weighted, title,
                   xunit = None, yunit = None ):
         super().__init__(weighted,title)
         self.xexpression, self.yexpression = xexpression, yexpression
@@ -717,8 +726,9 @@ class _Hist1DFiller(_Filler):
                     a[0] = a[0].reshape(-1,k).sum(axis=1)
                     a[1] = a[1].reshape(-1,k).sum(axis=1)
         unit, scale = self._unit or ( None, 1.0 )
-        h = Histogram(self._vals[0].expression,edges/scale,self._logx,self._weighted,
-                      self._lethargy,self._title,unit=unit)
+        h = Histogram(self._vals[0].expression,edges/scale,logx=self._logx,
+                      weighted=self._weighted,lethargy=self._lethargy,title=self._title,
+                      unit=unit)
         h.logy = self._logy
         h.note, h._plot_notes['x'] = ( self._notes[0].note(u) for u in ( False, True ) )
         h._display_bins = nbins if self._auto else None
@@ -775,7 +785,7 @@ class _BarFiller(_Filler):
 
     def result( self ):
         e = self._vals[0]
-        h = BarHistogram(e.expression,self._weighted,self._title)
+        h = BarHistogram(e.expression,weighted=self._weighted,title=self._title)
         if self._logy is not None:
             h.logy = self._logy
         h.note, h._plot_notes['x'] = ( self._notes[0].note(u) for u in ( False, True ) )
@@ -849,7 +859,8 @@ class _Hist2DFiller(_Filler):
                 contents = contents.reshape(bx//kx,kx,by//ky,ky).sum(axis=(1,3))
         ( xunit, xscale ), ( yunit, yscale ) = self._units
         h = Histogram2D(self._vals[0].expression,self._vals[1].expression,xe/xscale,
-                        ye/yscale,self._weighted,self._title,xunit=xunit,yunit=yunit)
+                        ye/yscale,weighted=self._weighted,title=self._title,xunit=xunit,
+                        yunit=yunit)
         h.xnote, h.ynote = ( n.note() for n in self._notes )
         h._plot_notes['x'], h._plot_notes['y'] = ( n.note(True) for n in self._notes )
         h.contents += contents

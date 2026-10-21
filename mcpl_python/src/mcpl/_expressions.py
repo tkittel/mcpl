@@ -137,8 +137,8 @@ def _expr_check( node, expr, variables = () ):
                  ast.Not, ast.USub, ast.UAdd, ast.Invert, ast.BinOp, ast.Add,
                  ast.Sub, ast.Mult, ast.Div, ast.Pow, ast.FloorDiv,
                  ast.BitAnd, ast.BitOr, ast.Compare, ast.Eq, ast.NotEq,
-                 ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.Name, ast.Load,
-                 ast.Constant, ast.Call, _Unit )
+                 ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn, ast.Tuple,
+                 ast.Name, ast.Load, ast.Constant, ast.Call, _Unit )
     #TODO: Consider supporting conditional expressions ("a if cond else b",
     #e.g. evaluated with _ExprEvaluator._with_active for each branch, like the
     #right side of and/or), which were removed since nothing used them.
@@ -155,7 +155,11 @@ def _expr_check( node, expr, variables = () ):
         if isinstance(n,ast.Name) and not ( n.id in _expr_fields
                                             or n.id in variables
                                             or n.id in _expr_constants
-                                            or n.id in _expr_functions ):
+                                            or n.id in _expr_functions
+                                            or n.id.startswith('userdata.') ):
+            if n.id in ( 'ud', 'userdata' ):
+                raise MCPLError(f'Fields of the userdata are written as userdata.NAME'
+                                f' or ud.NAME, in expression "{expr}"')
             raise MCPLError(f'Unknown name "{n.id}" in expression "{expr}"'
                             ' (particle fields are: '
                             + ', '.join(_expr_fields) + ')')
@@ -268,6 +272,8 @@ class _ExprEvaluator:
     def error( self, msg ):
         raise MCPLError(f'{msg} in expression "{self._expr}"')
     def name( self, n ):
+        if n.startswith('userdata.'):
+            return self._userdata(n[9:])
         if n == 'wavelength':
             self._check_wavelength()
             q = self._wavelength()
@@ -287,6 +293,22 @@ class _ExprEvaluator:
             q = _Q(getattr(self._block,n),_expr_field_dims.get(n))
             self._cache[n] = self.finite(q,f'The particle field {n} has')
         return self._cache[n]
+    def _userdata( self, field ):
+        """The values of the field of the userdata (without units)"""
+        if isinstance(self._block,_EmptyBlock):
+            return _Q(np.zeros(0))#(all fields, when checked without a file)
+        ud = self._block.userdata
+        if ud is None:
+            self.error(f'The particles have no userdata (for userdata.{field})')
+        names = ud.dtype.names
+        if field not in names:
+            self.error(f'No userdata field "{field}" (the fields are: {", ".join(names)})')
+        v = ud[field]
+        if v.ndim != 1:
+            self.error(f'The userdata field "{field}" has {v.shape[1]} values per particle,'
+                       ' and only fields of one value can be used')
+        return _Q(v.astype(float) if v.dtype.kind in 'iub' else v)
+
     def _wavelength( self ):
         #Wavelengths (NaN for particles other than neutrons and gammas, for
         #which they are not used), also of modified particles in edits:
@@ -385,6 +407,13 @@ class _ExprEvaluator:
             fcts = { ast.Eq : np.equal, ast.NotEq : np.not_equal,
                      ast.Lt : np.less, ast.LtE : np.less_equal,
                      ast.Gt : np.greater, ast.GtE : np.greater_equal }
+            if isinstance(node.ops[0],(ast.In,ast.NotIn)):
+                #(equal to any of the values, see _ExprParser._comparison):
+                left, res = ev(node.left), False
+                for c in node.comparators[0].elts:
+                    a, b, _ = self.same(left,ev(c),'comparison with "in"')
+                    res = np.logical_or(res,np.equal(a,b))
+                return _Q(np.logical_not(res) if isinstance(node.ops[0],ast.NotIn) else res)
             left, res = ev(node.left), True
             for op, c in zip(node.ops,node.comparators):
                 right = ev(c)

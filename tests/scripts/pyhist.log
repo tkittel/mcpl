@@ -680,11 +680,11 @@ mcpltool -E z = 1cm, x = 0 example.mcpl: exit code 1
    | ERROR: Separate the statements of edits with ";" (not ",") in "z = 1cm, x = 0"
    | 
    | Run with "-E help" for how to edit particles with expressions
-mcpltool -p help: exit code 0, 120 lines, starting with:
+mcpltool -p help: exit code 0, 125 lines, starting with:
    | PICK: an expression which is true for the particles to use, e.g.
    |   -p "pdgcode == neutron and ekin < 25meV"
    |   -p "hypot(x,y) < 10cm and angle_to(0,0,1) < 1deg"
-mcpltool --edit=help: exit code 0, 130 lines, starting with:
+mcpltool --edit=help: exit code 0, 133 lines, starting with:
    | EDIT: statements separated by ";", executed in order, e.g.
    |   -E "z += 1cm;weight *= 0.5"
    |   -E "rotate_y(90deg);x += 10cm"

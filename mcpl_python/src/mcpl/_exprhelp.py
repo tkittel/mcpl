@@ -79,6 +79,9 @@ _hints = (
     ( 'fields', 'wavelength',
       'wavelength (a length)',
       'wavelength, calculated from ekin, only for neutrons and gammas (a length: e.g. pdgcode == neutron and wavelength > 1.8Aa, or wavelength/Aa)' ),
+    ( 'fields', 'userdata.NAME',
+      'a field of the userdata (no unit)',
+      'the field NAME of the userdata of the particles, in files with userdata (no unit: e.g. userdata.nscat > 2, or ud.nscat > 2 for short; only fields of one value per particle, which can not be changed)' ),
     ( 'constants', 'pi',
       'pi (no unit)',
       'pi = 3.14159... (no unit: e.g. atan2(y,x) > pi/2)' ),
@@ -267,8 +270,10 @@ _intro = {
   -p "pdgcode == neutron and ekin < 25meV"
   -p "hypot(x,y) < 10cm and angle_to(0,0,1) < 1deg"
   -p "(userflags & 0xff) == 7 or time > 10us"
-The operators are: + - * / (and ^ for powers), == != < <= > >=, and, or,
-not (and & | ~ for bits). Values with units must be written with units
+  -p "abs(pdgcode) in (electron,muon)"
+The operators are: + - * / (and ^ for powers), == != < <= > >=, in and
+not in (one of the values in parentheses), and, or, not (and & | ~ for
+bits). Values with units must be written with units
 (e.g. 25meV or 10cm), except for a plain 0 (e.g. x > 0), and the wavelength
 can only be used for neutrons and gammas, which must be picked first (e.g.
 "pdgcode == neutron and wavelength > 1.8Aa").''',

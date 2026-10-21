@@ -175,7 +175,7 @@ class TkViewer(WidgetViewer):
         self._hover(b,'new_plot')
         ttk.Button(frame,text='</>  Code',takefocus=0,
                    command=lambda : _CodeWindow(self,'Code of the plot',
-                                                *self.plot_code())).pack(side='right')
+                                                self.plot_code())).pack(side='right')
         w = ttk.Entry(frame,width=40)
         w.pack(side='left',fill='x',expand=True)
         self._bind_entry(w,'shown_plot')
@@ -187,6 +187,8 @@ class TkViewer(WidgetViewer):
         buttons = ttk.Frame(bottom)
         buttons.grid(row=len(rows)+2,column=0,sticky='w')
         for action, label, _keys, kpos in ui.actions:
+            #(writing opens a window, with the name of the file and the code):
+            label = 'Write file / code...' if action == 'write' else label
             b = ttk.Button(buttons,text=label,underline=kpos,takefocus=0,
                            command=lambda a=action : self.on_action(a))
             b.pack(side='left',padx=(0,6))
@@ -740,12 +742,14 @@ class _Controls:
         return [ ( n, w.get() ) for n, w in self._widgets.items() ]
 
 class _CodeWindow:
-    """A window with the command of mcpltool and the Python code doing the
-    same as the viewer (see Viewer.code), each with a button copying it, and
-    optionally widgets above them (made by top(frame))"""
+    """A window with the command of mcpltool, and tabs with the code (in
+    Python, C++ and C) doing the same as the viewer (see Viewer.code), each
+    with a button copying it, and optionally widgets above them (made by
+    top(frame))"""
     max_width = 130#(characters)
 
-    def __init__( self, tv, title, command, code, top = None ):
+    def __init__( self, tv, title, code, top = None ):
+        from ._viewer_code import kinds
         tk, ttk = _tk()
         self.tv = tv
         w = self.window = tk.Toplevel(tv.root)
@@ -755,30 +759,42 @@ class _CodeWindow:
         f.pack(fill='both',expand=True)
         if top is not None:
             top(f)
-        self._texts = []
-        for label in ( 'Command line:', 'Python:' ):
-            row = ttk.Frame(f)
+        self._texts = {}
+        def section( parent, key, label ):
+            row = ttk.Frame(parent)
             row.pack(fill='x',pady=(8,2))
-            ttk.Label(row,text=label,font=tv._bold).pack(side='left')
-            text = tk.Text(f,font='TkFixedFont',wrap='none',width=90,height=1,
+            if label:
+                ttk.Label(row,text=label,font=tv._bold).pack(side='left')
+            text = tk.Text(parent,font='TkFixedFont',wrap='none',width=90,height=1,
                            relief='flat',background='white',padx=6,pady=4)
-            text.pack(fill='x')
+            text.pack(fill='both',expand=True)
             #(a scroll bar for the longer lines, if any, see show):
-            bar = ttk.Scrollbar(f,orient='horizontal',command=text.xview)
+            bar = ttk.Scrollbar(parent,orient='horizontal',command=text.xview)
             text.configure(xscrollcommand=bar.set)
             text._bar = bar
             ttk.Button(row,text='Copy',takefocus=0,
-                       command=lambda t=text : self._copy(t)).pack(side='right')
-            self._texts.append(text)
-        self.show(command,code)
+                       command=lambda : self._copy(text)).pack(side='right')
+            self._texts[key] = text
+        section(f,'command','Command line:')
+        ttk.Label(f,text='Code:',font=tv._bold).pack(anchor='w',pady=(10,0))
+        tabs = ttk.Notebook(f)
+        tabs.pack(fill='both',expand=True,pady=(2,0))
+        for key, label in kinds[1:]:
+            page = ttk.Frame(tabs,padding=(6,0,6,6))
+            tabs.add(page,text=f'  {label}  ')
+            section(page,key,None)
+        self.show(code)
         ttk.Button(f,text='Close',command=w.destroy).pack(side='right',pady=(10,0))
         w.bind('<Escape>',lambda _e : w.destroy())
 
-    def show( self, command, code ):
-        for text, value in zip( self._texts, ( command, code ) ):
+    def show( self, code ):
+        #(the code in the tabs as high as the longest one):
+        height = max( v.count('\n') + 1 for k, v in code.items() if k != 'command' )
+        for key, text in self._texts.items():
+            value = code[key]
             #(as wide as the longest line, up to a maximum):
             longest = max( len(line) for line in value.splitlines() )
-            text.configure(state='normal',height=value.count('\n')+1,
+            text.configure(state='normal',height=1 if key == 'command' else height,
                            width=min(max(longest+1,60),self.max_width))
             if longest + 1 > self.max_width:
                 text._bar.pack(fill='x',after=text)
@@ -799,7 +815,7 @@ class _WriteWindow:
     its name, with the command and Python code doing the same"""
     def __init__( self, tv ):
         self.tv = tv
-        self._code = _CodeWindow(tv,'Write file',*tv.v.code(),top = self._top)
+        self._code = _CodeWindow(tv,'Write file',tv.v.code(),top = self._top)
         self._name.focus_set()
 
     def _top( self, f ):
@@ -815,7 +831,7 @@ class _WriteWindow:
         self._name.bind('<Return>',lambda _e : self._write())
         ttk.Button(row,text='Browse...',takefocus=0,
                    command=lambda : self.tv._ask_file_name('write',self._chosen)).pack(side='left',padx=(6,0))
-        ttk.Button(row,text='Write',style='Accent.TButton',
+        ttk.Button(row,text='Write now',style='Accent.TButton',
                    command=self._write).pack(side='left',padx=(6,0))
         self._message = ttk.Label(f,foreground=_colors['error'])
         self._message.pack(anchor='w')
@@ -827,7 +843,7 @@ class _WriteWindow:
             self._changed()
 
     def _changed( self ):
-        self._code.show(*self.tv.v.code(filename = self._name.get().strip() or None))
+        self._code.show(self.tv.v.code(filename = self._name.get().strip() or None))
 
     def _write( self ):
         ok, msg = self.tv.v.try_write(self._name.get().strip() or None)
@@ -837,11 +853,18 @@ class _WriteWindow:
         else:
             self._message.configure(text=msg)
 
+def _quantity( expression ):
+    """The name of the quantity of _viewer_ui.quantities with the expression,
+    or None"""
+    e = expression.strip()
+    return next( ( n for n, p in ui.quantities if p.split(';')[0] == e ), None )
+
 class _AddPlot:
-    """The window for adding a plot: what to plot (a quantity of
-    _viewer_ui.quantities, or an expression, and another one for a 2D
-    histogram), its settings and title, with a preview of the plot for the
-    first particles"""
+    """The window for adding a plot: the expressions of its x axis (and y axis,
+    for 2D histograms), which are chosen from a list of named quantities
+    (_viewer_ui.quantities, which show their expressions) or written, its
+    settings and title, with a preview of the plot for the first
+    particles"""
     preview_size = ( 460, 280 )
 
     def __init__( self, tv ):
@@ -852,49 +875,79 @@ class _AddPlot:
         top.transient(tv.root)
         f = ttk.Frame(top,padding=10)
         f.pack(fill='both',expand=True)
-        names = [ n for n, _ in ui.quantities ]
-        ttk.Label(f,text='Plot of:').grid(row=0,column=0,sticky='w')
-        self._x = ttk.Combobox(f,values=names,width=30)
-        self._x.set(names[0])
-        self._x.grid(row=0,column=1,sticky='w',pady=2)
-        ttk.Label(f,text='Against (for 2D):').grid(row=1,column=0,sticky='w')
-        self._y = ttk.Combobox(f,values=[ '' ] + names,width=30)
-        self._y.grid(row=1,column=1,sticky='w',pady=2)
-        for w in ( self._x, self._y ):
-            w.bind('<<ComboboxSelected>>',lambda _e : self._changed(reset = True))
-            w.bind('<KeyRelease>',lambda _e : self._changed(reset = True))
-        ttk.Label(f,text='Settings:').grid(row=2,column=0,sticky='w')
+        #(the list shows the names and expressions of the quantities, and
+        #choosing one puts its expression in the field):
+        self._menu = [ f'{name}:  {plot.split(";")[0]}' for name, plot in ui.quantities ]
+        self._names = []
+        for row, label in enumerate(( 'X axis:', 'Y axis:' )):
+            ttk.Label(f,text=label).grid(row=row,column=0,sticky='w')
+            cell = ttk.Frame(f)
+            cell.grid(row=row,column=1,columnspan=2,sticky='w',pady=2)
+            w = ttk.Combobox(cell,values=self._menu if row == 0 else [ '' ] + self._menu,
+                             width=34,font='TkFixedFont')
+            w.pack(side='left')
+            w.bind('<<ComboboxSelected>>',lambda _e, w=w : self._chosen(w))
+            w.bind('<KeyRelease>',lambda e : None if e.keysym in ( 'Return', 'Escape' )
+                   else self._changed())
+            name = ttk.Label(cell,foreground=_colors['dim'])
+            name.pack(side='left',padx=(8,0))
+            self._names.append(name)
+            if row == 0:
+                self._x = w
+            else:
+                self._y = w
+        ttk.Label(f,text=( 'Any expression of the particle fields, like hypot(x,y)/cm or'
+                           ' ekin/meV (see Help), or a quantity from the list.' ),
+                  foreground=_colors['dim']).grid(row=2,column=1,columnspan=2,sticky='w')
+        ttk.Label(f,text='Settings:').grid(row=3,column=0,sticky='w')
         self._controls = _Controls(f,lambda _n, _v : self._changed())
-        self._controls.frame.grid(row=2,column=1,sticky='w',pady=2)
-        ttk.Label(f,text='Plot title:').grid(row=3,column=0,sticky='w')
+        self._controls.frame.grid(row=3,column=1,columnspan=2,sticky='w',pady=2)
+        ttk.Label(f,text='Plot title:').grid(row=4,column=0,sticky='w')
         self._title = ttk.Entry(f,width=40)
-        self._title.grid(row=3,column=1,sticky='w',pady=2)
-        ttk.Label(f,text='Plot expression:').grid(row=4,column=0,sticky='w')
+        self._title.grid(row=4,column=1,columnspan=2,sticky='w',pady=2)
+        ttk.Label(f,text='Plot expression:').grid(row=5,column=0,sticky='w')
         self._plot = ttk.Label(f,font='TkFixedFont')
-        self._plot.grid(row=4,column=1,sticky='w',pady=2)
+        self._plot.grid(row=5,column=1,columnspan=2,sticky='w',pady=2)
         self._preview = ttk.Label(f)
-        self._preview.grid(row=5,column=0,columnspan=2,pady=6)
+        self._preview.grid(row=6,column=0,columnspan=3,pady=6)
         self._message = ttk.Label(f,foreground=_colors['error'],wraplength=self.preview_size[0])
-        self._message.grid(row=6,column=0,columnspan=2,sticky='w')
+        self._message.grid(row=7,column=0,columnspan=3,sticky='w')
         buttons = ttk.Frame(f)
-        buttons.grid(row=7,column=0,columnspan=2,sticky='e',pady=(6,0))
+        buttons.grid(row=8,column=0,columnspan=3,sticky='e',pady=(6,0))
         ttk.Button(buttons,text='Cancel',command=top.destroy).pack(side='right',padx=(6,0))
-        ttk.Button(buttons,text='Add plot',command=self._add).pack(side='right')
+        ttk.Button(buttons,text='Add plot',style='Accent.TButton',
+                   command=self._add).pack(side='right')
         top.bind('<Escape>',lambda _e : top.destroy())
         top.bind('<Return>',lambda _e : self._add())
         self._image, self._pending = None, None
-        self._changed(reset = True)
+        self._x.set(self._menu[0])
+        self._chosen(self._x)
         self._x.focus_set()
+
+    def _chosen( self, w ):
+        """A quantity was chosen from the list: its expression is shown in the
+        field, and the plot starts with its settings"""
+        text = w.get()
+        if text in self._menu:
+            w.set(ui.quantities[self._menu.index(text)][1].split(';')[0])
+        self._changed(reset = True)
+        w.icursor('end')
 
     def plot( self, reset = False ):
         """The plot string (with the settings of the quantities if reset is set,
         else with those shown)"""
-        return self.tv.compose(self._x.get(),self._y.get(),
-                               () if reset else self._controls.values())
+        #(the quantities of the expressions, for their settings):
+        x, y = ( _quantity(w.get()) or w.get() for w in ( self._x, self._y ) )
+        return self.tv.compose(x,y,() if reset else self._controls.values())
 
     def _changed( self, reset = False ):
         """Show the plot string, and a preview of it (soon, after a change).
-        New quantities (reset) start with their own settings."""
+        Quantities chosen from the list (reset) start with their own
+        settings."""
+        for w, name in zip( ( self._x, self._y ), self._names ):
+            known = _quantity(w.get())
+            name.configure(text=known or ( 'empty: a 1D histogram'
+                                           if w is self._y and not w.get().strip() else '' ))
         plot = self.plot(reset)
         self._plot.configure(text=plot)
         self._controls.show(self.tv.plot_controls(plot))

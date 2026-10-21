@@ -483,29 +483,32 @@ def test_tool():
     print(f'mcpltool -w with two files: {rv.stdout.splitlines()[0]}')
 
 def test_code():
-    print('The command and Python code of plots, and of writing files:')
-    for pick, edit, skip in ( (None,None,0), ('pdgcode == neutron','z += 1m;weight *= 2',0),
-                              ('ekin > 1MeV',None,100) ):
-        v = Viewer(ex,pick=pick,edit=edit,skip=skip)
+    print('The command and code of plots, and of writing files:')
+    def show( code, kinds = ( 'command', 'python' ) ):
+        print(f'  {code["command"]}')
+        for k in kinds[1:]:
+            print(''.join( f'     {k:>6} | {line}\n' for line in code[k].splitlines() ),end='')
+    for pick, edit, skip, limit in ( (None,None,0,None),
+                                     ('pdgcode == neutron','z += 1m;weight *= 2',0,None),
+                                     ('ekin > 1MeV',None,100,300) ):
+        v = Viewer(ex,pick=pick,edit=edit,skip=skip,limit=limit)
         for plots in ( ['ekin;logx'], ['x','y : z;bins=10'] ):
-            cmd, code = v.code(plots)
-            print(f'  {cmd}')
-            print(''.join( f'     | {line}\n' for line in code.splitlines() ),end='')
-        cmd, code = v.code(filename = 'by_python.mcpl')
-        print(f'  {cmd}')
-        print(''.join( f'     | {line}\n' for line in code.splitlines() ),end='')
-        #The code makes the same histograms (as figures, but without the pick
-        #and edit as titles), and writes the same particles, as the viewer
-        #(without skip):
+            show(v.code(plots))
+        allkinds = ( 'command', 'python', 'cpp', 'c' )
+        show(v.code(['ekin;logx']) if skip else v.code(filename = 'by_python.mcpl'),
+             allkinds if skip or pick else allkinds[:2])
         if skip:
-            continue
+            show(v.code(filename = 'by_python.mcpl'),allkinds)
+        code = v.code(filename = 'by_python.mcpl')['python']
+        #The code makes the same histograms (as figures, but without the pick
+        #and edit as titles), and writes the same particles, as the viewer:
         def run( code ):
             script = pathlib.Path('code.py')
             script.write_text(code.replace('import mcpl\n',''))
             return runpy.run_path(str(script),init_globals = { 'mcpl' : mcpl })
-        ns = run(v.code(_plots)[1].replace('mcpl.plot_histograms( hs )',
+        ns = run(v.code(_plots)['python'].replace('mcpl.plot_histograms( hs )',
                                             'figs = [ h.figure() for h in hs ]'))
-        vp = Viewer(ex,pick=pick,edit=edit,plots=_plots)
+        vp = Viewer(ex,pick=pick,edit=edit,skip=skip,limit=limit,plots=_plots)
         vp.start()
         vp.wait()
         def untitled( fig ):
@@ -527,8 +530,35 @@ def test_code():
         for fn in ( 'by_python.mcpl', 'by_viewer.mcpl', 'code.py' ):
             pathlib.Path(fn).unlink()
 
+def test_range_and_userdata():
+    #A limit beyond the end of the file gives the same particles, so the
+    #reading is not restarted:
+    v = Viewer(ex)
+    v.start()
+    v.wait()
+    for field, text in ( ('limit','1e9'), ('limit','500'), ('limit','all'), ('skip','2000'),
+                         ('skip','3000') ):
+        g = v._generation
+        v.set(field,text)
+        print(f'{field} {text}: read again: {v._generation != g}')
+    v.stop()
+    #The userdata fields of the file, in completions and checks:
+    fn = 'ud_viewer.mcpl'
+    with mcpl.MCPLOutFile(fn,userdata_layout='nscat:uint8,temp:float32,dir:float32[3]') as o:
+        o.add_particles( x = [1.0,2.0], uz = 1.0, ekin = 1.0, pdgcode = 2112, weight = 1.0,
+                         userdata = { 'nscat' : [0,1], 'temp' : [10.0,20.0], 'dir' : [[0,0,1]]*2 } )
+    v = Viewer(fn)
+    for field, text in ( ('pick','ud'), ('pick','x > 0cm and ud.'), ('plot','userdata.t'),
+                         ('pick','use') ):
+        print(f'completions of {text!r}:', [ c for c, _ in v.complete(field,text)[1] ])
+    for text in ( 'ud.nscat > 0', 'ud.nope > 0', 'ud.dir > 0' ):
+        print(f'check of {text!r}:', v.check('pick',text))
+    print('without userdata:', Viewer(ex).check('plot','ud.nscat;bar'))
+    pathlib.Path(fn).unlink()
+
 test_figures()
 test_code()
+test_range_and_userdata()
 test_fields()
 test_reading()
 test_collections()

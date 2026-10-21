@@ -1,3 +1,25 @@
+'pdgcode in (neutron,gamma)': 965 particles, normalised 'pdgcode in (neutron,gamma)', as expected: True
+'pdgcode not in ( neutron, gamma )': 41 particles, normalised 'pdgcode not in (neutron,gamma)', as expected: True
+'abs(pdgcode) in (11)': 23 particles, normalised 'abs(pdgcode) in (11)', as expected: True
+'not ekin in (1MeV,2MeV) and pdgcode in (22,2112)': 965 particles, normalised 'not ekin in (1MeV,2MeV) and pdgcode in (22,2112)', as expected: True
+abs(pdgcode): i
+pdgcode in neutron: Syntax error in expression "pdgcode in neutron", after "pdgcode in": "(" is expected, not "neutron"
+pdgcode in (): Syntax error in expression "pdgcode in ()", after "pdgcode in (": a value is expected, not ")"
+pdgcode in (1cm): Incompatible units in comparison with "in": value without units and length (add units, e.g. 2cm) in expression "pdgcode in (1cm)"
+0 < pdgcode in (1,2): Syntax error in expression "0 < pdgcode in (1,2)", after "0 < pdgcode": "in" can not be used in a chain of comparisons
+pdgcode in (1,2) < 3: Syntax error in expression "pdgcode in (1,2) < 3", after "pdgcode in (1,2)": "in" can not be used in a chain of comparisons
+'ud.nscat >= 2': [False, False, True, True], normalised 'userdata.nscat>=2'
+'userdata.temp < 25 or ud.nscat == 3': [True, True, False, True], normalised 'userdata.temp<25 or userdata.nscat==3'
+'ud.nscat in (0,3)': [True, False, False, True], normalised 'userdata.nscat in (0,3)'
+value ud.temp*2: [20.0, 40.0, 60.0, 80.0]
+ud.nope > 1: No userdata field "nope" (the fields are: nscat, temp, dir) in expression "ud.nope > 1"
+ud.dir > 1: The userdata field "dir" has 3 values per particle, and only fields of one value can be used in expression "ud.dir > 1"
+ud > 1: Fields of the userdata are written as userdata.NAME or ud.NAME, in expression "ud > 1"
+ud. > 1: Syntax error in expression "ud. > 1", after "ud.": the name of a userdata field is missing
+edited with userdata values: [10.0, 20.0, 30.0, 40.0]
+changing userdata: Syntax error in expression "ud.nscat += 1", at the start: fields of the userdata can not be changed
+without userdata: The particles have no userdata (for userdata.nscat) in expression "ud.nscat > 1"
+bar chart of ud.nscat: BarHistogram
 value 'ekin/MeV': 'ekin/MeV'
 value '(ekin) / MeV': 'ekin/MeV'
 value '(x**2+y^2)/cm^2': '(x^2+y^2)/cm^2'

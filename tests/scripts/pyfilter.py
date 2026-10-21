@@ -432,7 +432,63 @@ def test_canonical():
         except mcpl.MCPLError as e:
             print(f'histogram {h!r}: {e}')
 
+def test_in_and_userdata():
+    #Comparisons with "in" and "not in" a list of values:
+    from mcpldev._expressions import _expr_canonical
+    with mcpl.MCPLFile(example_file) as f:
+        b = f.read_block()
+    p = b.pdgcode
+    for e, ref in ( ( 'pdgcode in (neutron,gamma)', np.isin(p,[2112,22]) ),
+                    ( 'pdgcode not in ( neutron, gamma )', ~np.isin(p,[2112,22]) ),
+                    ( 'abs(pdgcode) in (11)', np.abs(p) == 11 ),
+                    ( 'not ekin in (1MeV,2MeV) and pdgcode in (22,2112)',
+                      ~np.isin(b.ekin,[1,2]) & np.isin(p,[22,2112]) ) ):
+        k = _expr_canonical(e)
+        ok = ( np.array_equal(mcpl.ParticleFilter(e)(b),ref)
+               and np.array_equal(mcpl.ParticleFilter(k)(b),ref) and _expr_canonical(k) == k )
+        print(f'{e!r}: {int(ref.sum())} particles, normalised {k!r}, as expected: {ok}')
+        assert ok
+    #(abs of integers gives integers):
+    print('abs(pdgcode):', mcpl.ParticleValue('abs(pdgcode)')(b).dtype.kind)
+    for bad in ( 'pdgcode in neutron', 'pdgcode in ()', 'pdgcode in (1cm)', '0 < pdgcode in (1,2)',
+                 'pdgcode in (1,2) < 3' ):
+        try:
+            mcpl.ParticleFilter(bad)
+        except mcpl.MCPLError as e:
+            print(f'{bad}: {e}')
+    #Fields of the userdata (of one value per particle), as userdata.NAME or
+    #ud.NAME:
+    fn = 'ud_expressions.mcpl'
+    with mcpl.MCPLOutFile(fn,userdata_layout='nscat:uint8,temp:float32,dir:float32[3]') as o:
+        o.add_particles( x = [1.0,2.0,3.0,4.0], uz = 1.0, ekin = 1.0, pdgcode = 2112, weight = 1.0,
+                         userdata = { 'nscat' : [0,1,2,3], 'temp' : [10.0,20.0,30.0,40.0],
+                                      'dir' : [[0,0,1]]*4 } )
+    with mcpl.MCPLFile(fn) as f:
+        u = f.read_block()
+        for e in ( 'ud.nscat >= 2', 'userdata.temp < 25 or ud.nscat == 3', 'ud.nscat in (0,3)' ):
+            print(f'{e!r}: {mcpl.ParticleFilter(e)(u).tolist()}, normalised {_expr_canonical(e)!r}')
+        print('value ud.temp*2:', mcpl.ParticleValue('ud.temp*2')(u).tolist())
+        for bad in ( 'ud.nope > 1', 'ud.dir > 1', 'ud > 1', 'ud. > 1' ):
+            try:
+                mcpl.ParticleFilter(bad)(u)
+            except mcpl.MCPLError as e:
+                print(f'{bad}: {e}')
+    b2 = mcpl.MCPLFile(fn,edit='x = ud.temp*1cm').read_block()
+    print('edited with userdata values:', b2.x.tolist())
+    try:
+        mcpl.ParticleEdit('ud.nscat += 1')
+    except mcpl.MCPLError as e:
+        print(f'changing userdata: {e}')
+    try:
+        mcpl.ParticleFilter('ud.nscat > 1')(b)
+    except mcpl.MCPLError as e:
+        print(f'without userdata: {e}')
+    h = mcpl.histogram(fn,'ud.nscat;bar')
+    print('bar chart of ud.nscat:', type(h).__name__)
+    pathlib.Path(fn).unlink()
+
 if __name__ == '__main__':
+    test_in_and_userdata()
     test_canonical()
     test_angle_to()
     test_exact_rotations()

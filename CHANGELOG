@@ -20,12 +20,16 @@ v2.2.9  (work in progress)
         fields, units, functions and histogram options.
       * Expressions (with -p, -E and -H, and in the Python API) use the
         logical operators and, or and not (&&, || and ! give an error saying
-        what to write instead), and mod(a,b) for remainders of integers. The
-        position of the particles in the file can be used as fileidx (e.g.
+        what to write instead), mod(a,b) for remainders of integers, and in
+        and not in for lists of values (e.g. pdgcode in (neutron,gamma)).
+        Fields of the userdata can be used as userdata.NAME (or ud.NAME), and
+        the position of the particles in the file as fileidx (e.g.
         mcpltool -e -p "mod(fileidx,10) == 0" FILE OUT.mcpl.gz extracts every
         tenth particle, marking stat:sum entries as not available). They
         can only contain printable ASCII characters, and not the characters
         " ' { } [ ] # $ ` and backslash.
+      * MCPLFile has the new options skip and limit (like mcpltool -s and -l),
+        which choose a range of the particles in the file.
       * New option mcpltool --create-examples[=N], which creates three example
         files with N particles each (default 1000000) in the current
         directory: neutrons leaving a moderator surface, mixed particles

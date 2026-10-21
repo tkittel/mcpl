@@ -65,6 +65,7 @@ layers = {
     '_fileops' : 5,
     '_examples' : 5,
     '_extract' : 5,
+    '_viewer_code' : 6,
     '_plotbackend' : 6,
     'plotting' : 7,
     '_plotbackend_mpl' : 8,

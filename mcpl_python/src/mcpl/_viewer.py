@@ -82,6 +82,10 @@ class Viewer:
         self.filename = str(filename)
         with MCPLFile(self.filename) as f:
             self._ntotal = f.nparticles
+            #(the userdata fields of one value, as (name, type), for completions):
+            layout = f.userdata_layout or ''
+            self._ud_fields = [ tuple(e.split(':',1)) for e in layout.split(',')
+                                if ':' in e and '[' not in e ]
         self._dry_run = dry_run
         self._progname = progname
         self._texts = { 'skip' : '', 'limit' : '', 'pick' : '', 'edit' : '',
@@ -180,6 +184,8 @@ class Viewer:
 
     def _parse( self, field, text ):
         text = text.strip()
+        if field in ( 'pick', 'edit', 'plot' ):
+            self._check_userdata(text)
         if field in ('skip','limit'):
             if not text or ( field == 'limit' and text == 'all' ):
                 return 0 if field == 'skip' else None
@@ -210,6 +216,18 @@ class Viewer:
                                 f' are: {", ".join(_collections)})')
             return text
         raise MCPLError(f'Unknown field "{field}"')
+
+    def _check_userdata( self, text ):
+        """Check that the userdata fields used in the text (an expression, or a
+        histogram string) are fields of the file (before the particles are
+        read)"""
+        names = [ n for n, _ in self._ud_fields ]
+        for m in re.finditer(r'\b(?:ud|userdata)\.([A-Za-z0-9_]+)',text):
+            if not names:
+                raise MCPLError(f'The file has no userdata (for {m.group(0)}), in "{text}"')
+            if m.group(1) not in names:
+                raise MCPLError(f'No userdata field "{m.group(1)}" with one value per'
+                                f' particle (the fields are: {", ".join(names)}), in "{text}"')
 
     def set( self, field, text, restart = True ):
         """Apply the text of a field (restarting the reading): (ok, message). For
@@ -244,13 +262,23 @@ class Viewer:
                            == _expr_canonical(old,field == 'edit') )
                          if text and old else text == old )
             else:
-                same = getattr(self._s,field) == value
+                #(skip and limit are the same if they give the same particles,
+                #e.g. limits beyond the end of the file):
+                new = ( value, self._s.limit ) if field == 'skip' else ( self._s.skip, value )
+                same = self._range(*new) == self._range(self._s.skip,self._s.limit)
+            #(the value is kept, also when it gives the same particles):
+            setattr(self._s,field,value)
             if same:
                 return True, ''
-            setattr(self._s,field,value)
         if restart:
             self._restart()
         return True, ''
+
+    def _range( self, skip, limit ):
+        """The range of particles of the file (first, end) for skip and limit"""
+        n = self._ntotal
+        first = min( skip or 0, n )
+        return first, n if not limit else min( n, first + limit )
 
     def change_plot( self, old, text ):
         """Replace the plot old (its histogram string) by the text, in its place
@@ -434,7 +462,7 @@ class Viewer:
                    | ( {'statements'} if field == 'edit' else set() ) )
         res = []
         for group, name, short, _ in _hints:
-            if group not in groups:
+            if group not in groups or name.startswith('userdata.'):#(see below)
                 continue
             base = re.match(r'[A-Za-z_][A-Za-z0-9_]*', name).group(0)
             if not base.startswith(prefix):
@@ -442,6 +470,17 @@ class Viewer:
             insert = base + ( '(' if '(' in name else ( '=' if '=' in name else '' ) )
             if insert not in [ r[0] for r in res ]:
                 res.append( ( insert, short ) )
+        if not options:
+            #(the userdata fields of the file, as ud.NAME or userdata.NAME, also
+            #after either prefix):
+            m = re.search(r'\b(ud|userdata)\.([A-Za-z0-9_]*)$', text[:cursor])
+            if m:
+                #(then only the fields):
+                start, prefix, base, res = m.start(2), m.group(2), '', []
+            else:
+                base = 'userdata.' if prefix.startswith('use') else 'ud.'
+            res += [ ( base + name, f'userdata field ({kind})' ) for name, kind in self._ud_fields
+                     if ( base + name ).startswith(prefix) ]
         return start, res
 
     def hint( self, field, text, cursor = None ):
@@ -698,50 +737,27 @@ class Viewer:
                  'extract' : ' '.join([ prog, '-e' ] + opts + [ fn, self.suggested_filename() ]) }
 
     def code( self, plots = None, filename = None ):
-        """The command (of mcpltool) and the Python code doing the same as the
-        viewer, as (command, code): histograms of the plots (a list of
-        histogram strings), or else writing the picked and edited particles
-        to the file filename (default suggested_filename()). The Python API has
-        no skip and limit, so a comment says so when they are used."""
-        from ._extract import _shell_arg
-        s = self._s
-        prog = self._progname
-        fn = _shell_arg(self.filename) if ' ' in self.filename else self.filename
-        opts = self._options()
-        args = [ repr(self.filename) ] + [ f'{name} = {e.expression!r}' for name, e in
-                                           ( ('pick',s.pick), ('edit',s.edit) ) if e is not None ]
-        lines = [ 'import mcpl' ]
-        if s.skip or s.limit:
-            lines.append('# (all particles of the file: the Python API has no -s and -l)')
-        if plots is not None:
-            cmd = [ prog ] + opts
-            for p in plots:
-                cmd += [ '-H', _shell_arg(p) ]
-            cmd.append(fn)
-            lines.append(f'f = mcpl.MCPLFile( {", ".join(args)} )')
-            if len(plots) == 1:
-                lines += [ f'h = mcpl.histogram( f, {plots[0]!r} )', 'h.plot()' ]
-            else:
-                lines += [ 'hs = [ mcpl.histogram( f, p ) for p in (' ]
-                lines += [ f'    {p!r},' for p in plots ]
-                lines += [ ') ]', 'mcpl.plot_histograms( hs )' ]
-            return ' '.join(cmd), '\n'.join(lines)
-        out = filename or self.suggested_filename()
-        cmd = [ prog, '-e' ] + opts + [ fn, _shell_arg(out) if ' ' in out else out ]
-        lines.append(f'fin = mcpl.MCPLFile( {", ".join(args)} )')
-        lines += [ f'with mcpl.MCPLOutFile( {out!r} ) as fout:',
-                   '    fout.transfer_metadata( fin )  # copy the header' ]
-        if s.edit is not None and 'weight' in s.edit.modified_fields and self._has_stat_sums():
-            lines.append('    fout.hdr_scale_stat_sums( -1.0 )  # weights edited:'
-                         ' stat:sum entries not available')
-        lines += [ '    for block in fin.particle_blocks:',
-                   '        fout.add_particles( block )' ]
-        return ' '.join(cmd), '\n'.join(lines)
-
-    def _has_stat_sums( self ):
+        """The command (of mcpltool) and the code doing the same as the viewer,
+        as a dict with the keys of _viewer_code.kinds: histograms of the plots
+        (a list of histogram strings), or else writing the picked and edited
+        particles to the file filename (default suggested_filename())"""
         from ._reader import MCPLFile
-        with MCPLFile(self.filename) as f:
-            return any( v is not None for v in f.stat_sum.values() )
+        from ._viewer_code import _Job, code
+        s = self._s
+        expr = lambda e : None if e is None else e.expression
+        mark = False
+        if plots is None:
+            n = self._ntotal
+            with MCPLFile(self.filename) as f:
+                has_statsums = any( v is not None for v in f.stat_sum.values() )
+            #(stat:sum entries are marked as not available as by mcpltool -e,
+            #see _mcpltool_extract):
+            mark = has_statsums and bool( s.skip or 0 < ( s.limit or 0 ) < n
+                         or ( s.pick is not None and s.pick._uses_fileidx )
+                         or ( s.edit is not None and 'weight' in s.edit.modified_fields ) )
+        job = _Job(self.filename,s.skip,s.limit,expr(s.pick),expr(s.edit),plots,
+                   filename or self.suggested_filename(),mark)
+        return code(job,self._progname)
 
     #Writing:
 

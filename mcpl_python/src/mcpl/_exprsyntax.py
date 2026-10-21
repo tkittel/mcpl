@@ -126,7 +126,8 @@ class _ExprParser:
     """Parser of expressions and edit statements, reading the tokens of Python
     (with tokenize) and giving trees of ast nodes. The precedences are, from
     the lowest: or, and, not, comparisons (which can be chained, as in
-    0 < x < 2cm), |, &, + and -, * and / and //, unary - + ~, the multiplication
+    0 < x < 2cm, and "in" or "not in" a list of values, as in
+    pdgcode in (neutron,gamma), which can not), |, &, + and -, * and / and //, unary - + ~, the multiplication
     by a unit directly after a number or a closing parenthesis (as in 25meV or
     2^(ekin/MeV)MeV), and ^ (or **, which is right-associative, with unary
     - + ~ allowed in exponents). Units are values (MeV is 1MeV), and a power
@@ -208,6 +209,10 @@ class _ExprParser:
 
     def _statement( self ):
         name, op = self._peek(), self._peek(1)
+        if name in ( ( 'name', 'ud' ), ( 'name', 'userdata' ) ) and op == ( 'op', '.' ):
+            nxt = self._peek(3)
+            if nxt[0] == 'op' and ( nxt[1] == '=' or nxt[1] in _op_assign ):
+                raise self._error('fields of the userdata can not be changed')
         if name[0] == 'name' and op[0] == 'op' and ( op[1] == '=' or op[1] in _op_assign ):
             self._i += 2
             target = ast.Name( id = name[1], ctx = ast.Store() )
@@ -243,6 +248,21 @@ class _ExprParser:
         while ( op := self._accept('op',*_op_cmp) ):
             ops.append(_op_cmp[op]())
             rights.append(self._binary())
+        if self._peek() == ( 'name', 'in' ) or ( self._peek() == ( 'name', 'not' )
+                                                 and self._peek(1) == ( 'name', 'in' ) ):
+            if ops:
+                raise self._error('"in" can not be used in a chain of comparisons')
+            op = ast.NotIn() if self._accept('name','not') else ast.In()
+            self._take()
+            self._expect('op','(')
+            values = [ self._expression() ]
+            while self._accept('op',','):
+                values.append(self._expression())
+            self._expect('op',')')
+            if self._peek()[0] == 'op' and self._peek()[1] in _op_cmp:
+                raise self._error('"in" can not be used in a chain of comparisons')
+            return ast.Compare( left = left, ops = [ op ],
+                                comparators = [ ast.Tuple( elts = values, ctx = ast.Load() ) ] )
         return ast.Compare( left = left, ops = ops, comparators = rights ) if ops else left
 
     def _binary( self, level = 0 ):
@@ -306,6 +326,14 @@ class _ExprParser:
                 self._expect('op',')')
             return ast.Call( func = ast.Name( id = s, ctx = ast.Load() ), args = args,
                              keywords = [] )
+        if s in ( 'ud', 'userdata' ) and self._accept('op','.'):
+            #(a field of the userdata, as one name "userdata.NAME", see
+            #_ExprEvaluator.name):
+            kind, field = self._peek()
+            if kind != 'name':
+                raise self._error('the name of a userdata field is missing')
+            self._i += 1
+            return ast.Name( id = f'userdata.{field}', ctx = ast.Load() )
         return ast.Name( id = s, ctx = ast.Load() )
 
     def _number( self, s ):
@@ -413,6 +441,10 @@ class _ExprWriter:
             if isinstance(node.op,ast.Not):
                 return 'not ' + self._sub(node.operand,_prec_not), _prec_not
             return _op_of_node[type(node.op)][0] + self._sub(node.operand,_prec_unary), _prec_unary
+        if isinstance(node,ast.Compare) and isinstance(node.ops[0],(ast.In,ast.NotIn)):
+            values = ','.join( self._sub(e,0) for e in node.comparators[0].elts )
+            op = ' not in ' if isinstance(node.ops[0],ast.NotIn) else ' in '
+            return self._sub(node.left,_prec_cmp+1) + f'{op}({values})', _prec_cmp
         if isinstance(node,ast.Compare):
             t = self._sub(node.left,_prec_cmp+1)
             for op, right in zip(node.ops,node.comparators):

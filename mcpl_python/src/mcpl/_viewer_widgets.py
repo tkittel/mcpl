@@ -48,6 +48,7 @@ class WidgetViewer:
                                title_y=0.98)
         self._histories = {}#field -> ui.History, while it is edited
         self._thumbnails = {}#view key -> (figure, PNG data, time)
+        self._removed = set()#(the cards removed which are not views, see cards)
         #(when the plot was drawn, how long it took, and whether a newer figure
         #is not drawn yet, see on_timer):
         self._drawn_at, self._draw_time, self._plot_pending = 0.0, 0.0, False
@@ -286,8 +287,9 @@ class WidgetViewer:
         Viewer.plot_info), with the key of the view, and the problem of the
         plot if it failed (e.g. for fields of the userdata which the file does
         not have), else None. In the default collection, files without userdata
-        have a card for it which is not a view (with the key None), as a
-        reminder that MCPL files can have userdata."""
+        have a card for it which is not a view (with the key info:userdata,
+        which can be removed as the cards of plots), as a reminder that MCPL
+        files can have userdata."""
         from ._stdviews import _default_collection
         from .plotting import Text
         res = []
@@ -296,11 +298,12 @@ class WidgetViewer:
             items = fig.panels[0].items if fig is not None and len(fig.panels) == 1 else []
             problem = items[0].text if len(items) == 1 and isinstance(items[0],Text) else None
             res.append( { 'key' : key, **self.v.plot_info(key), 'problem' : problem } )
-        if self.v.collection == _default_collection and not self.v.has_userdata:
+        if ( self.v.collection == _default_collection and not self.v.has_userdata
+             and 'info:userdata' not in self._removed ):
             #(after the other fields):
             i = 1 + max( ( i for i, c in enumerate(res) if c['group'] == 'Fields' ),
                          default = len(res) - 1 )
-            res.insert(i,{ 'key' : None, 'title' : 'Userdata', 'name' : 'Userdata', 'plot' : None,
+            res.insert(i,{ 'key' : 'info:userdata', 'title' : 'Userdata', 'name' : 'Userdata', 'plot' : None,
                            'group' : 'Fields', 'badges' : [], 'constant' : None, 'absent' : True,
                            'problem' : None })
         return res
@@ -312,6 +315,8 @@ class WidgetViewer:
         import time
 
         from ._thumbnails import thumbnail_png
+        if key.startswith('info:'):
+            return None#(not a view, see cards)
         figure = self.v.figure(key = key)
         old = self._thumbnails.get(key)
         if figure is None:
@@ -437,6 +442,10 @@ class WidgetViewer:
     def on_remove( self, key = None ):
         """Remove the plot (the view with the key, default the shown one)"""
         key = key or self.v.current_key
+        if key.startswith('info:'):
+            self._removed.add(key)#(a card which is not a view, see cards)
+            self.refresh(plot = False)
+            return
         if not key.startswith('plot:'):
             self.show_line('Choose a plot to remove it','error')
             return

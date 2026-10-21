@@ -172,7 +172,7 @@ t.shown()
 step('adding a plot with the builder')
 for x, y, settings in ( ('Energy','',()), ('Energy','',(('logx','linear'),('logy','log'))),
                         ('Position x','Direction x',(('bins','30'),)),
-                        ('Particle types','',(('bar','5'),)), ('hypot(x,y)/cm','',()) ):
+                        ('Particle type','',(('bar','5'),)), ('hypot(x,y)/cm','',()) ):
     plot = t.compose(x,y,settings)
     print(f'   {x!r} against {y!r} with {settings}: {plot!r}, settings {t.plot_controls(plot)[0]}')
 png, problem = t.preview_png(t.compose('Wavelength'),300,200)

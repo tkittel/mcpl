@@ -79,9 +79,9 @@ def _beam( axis, a, b ):
              _item(f'hypot({a},{b})','Distance from the axis','Other'),
              _item(f'angle_to({vector})/deg;logy',f'Angle to the {axis} axis','Other'),
              _item('time;logx=auto;logy','Time','Other'),
-             _item('pdgcode;bar;logy=auto','Particle types','Other'),
+             _item('pdgcode;bar;logy=auto','Particle type','Other'),
              _item(f'{axis}',f'Position {axis}','Other'),
-             _item('weight;unweighted;logy','Weights','Other') )
+             _item('weight;unweighted;logy',None,'Other') )
 
 #The titles of plots of single fields (also divided by units, as in ekin/MeV),
 #when they have no title of their own (see _viewer._auto_title):
@@ -89,7 +89,7 @@ _field_titles = { 'ekin' : 'Energy', 'x' : 'Position x', 'y' : 'Position y',
                   'z' : 'Position z', 'ux' : 'Direction x', 'uy' : 'Direction y',
                   'uz' : 'Direction z', 'polx' : 'Polarisation x', 'poly' : 'Polarisation y',
                   'polz' : 'Polarisation z', 'time' : 'Time', 'weight' : 'Weight',
-                  'pdgcode' : 'Particle types', 'userflags' : 'User flags',
+                  'pdgcode' : 'Particle type', 'userflags' : 'User flags',
                   'wavelength' : 'Wavelength', 'fileidx' : 'Position in the file' }
 
 _collections = {
@@ -99,24 +99,24 @@ _collections = {
         _item('angle_to(0,0,1)/deg;logy;split=pdgcode','Angle to the z axis','Main plots'),
         _item('x : y','Position x-y','Main plots'),
         _item('time;logx=auto;logy','Time','Main plots'),
-        _item('pdgcode;bar;logy=auto','Particle types','Main plots'),
-        #(the fields in the order of mcpltool, mostly with the titles from their
-        #expressions, see _auto_title):
+        _item('pdgcode;bar;logy=auto','Particle type','Main plots'),
+        #(the fields in the order of mcpltool, with the titles from their
+        #expressions, see _viewer._auto_title):
         *( _item(f,t,'Fields') for f, t in (
             ( 'ekin', None ), ( 'x', None ), ( 'y', None ), ( 'z', None ), ( 'ux', None ),
-            ( 'uy', None ), ( 'uz', None ), ( 'time', 'Time (linear)' ),
-            ( 'weight;unweighted', 'Weights' ), ( 'polx', None ), ( 'poly', None ),
-            ( 'polz', None ), ( 'userflags;bar;logy=auto', None ) ) ) ) ),
+            ( 'uy', None ), ( 'uz', None ), ( 'time', None ), ( 'weight;unweighted', None ),
+            ( 'polx', None ), ( 'poly', None ), ( 'polz', None ),
+            ( 'userflags;bar;logy=auto', None ) ) ) ) ),
     'beamz' : ( 'a beam along the z axis: profiles and divergences', _beam('z','x','y') ),
     'beamx' : ( 'a beam along the x axis: profiles and divergences', _beam('x','y','z') ),
     'beamy' : ( 'a beam along the y axis: profiles and divergences', _beam('y','z','x') ),
     'shielding' : ( 'spectra, directions and weights of all particle types', (
-        _item('pdgcode;bar;logy=auto','Particle types','Main plots'),
+        _item('pdgcode;bar;logy=auto','Particle type','Main plots'),
         _item('ekin;logx=auto;logy;split=pdgcode','Energy spectrum','Main plots'),
         _item('ekin;lethargy;logy;split=pdgcode','Lethargy spectrum','Main plots'),
         _item('angle_to(0,0,1)/deg;logy;split=pdgcode','Angle to the z axis','Main plots'),
         _item('time;logx=auto;logy;split=pdgcode','Time','Main plots'),
-        _item('weight;logx=auto;logy;unweighted;split=pdgcode','Weights','Main plots'),
+        _item('weight;logx=auto;logy;unweighted;split=pdgcode',None,'Main plots'),
         _item('x : y','Position x-y','More plots'),
         _item('hypot(x,y);logy;split=pdgcode','Distance from the z axis','More plots'),
         _item('wavelength;logx;split=pdgcode','Wavelength','More plots') ) ),

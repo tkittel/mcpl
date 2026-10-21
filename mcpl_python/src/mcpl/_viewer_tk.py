@@ -116,7 +116,8 @@ class TkViewer(WidgetViewer):
         self.toolbar = NavigationToolbar2Tk(self.canvas,plot,pack_toolbar=False)
         self.toolbar.update()
         #(the settings of the shown plot, below its toolbar):
-        self._controls = _Controls(plot,self.on_control)
+        self._controls = _Controls(plot,self.on_control,
+                                   on_hint = lambda text : self.show_line(text,'dim'))
         self._controls.frame.pack(side='bottom',fill='x',pady=(2,0))
         self.toolbar.pack(side='bottom',fill='x')
         self.canvas.get_tk_widget().pack(side='top',fill='both',expand=True)
@@ -156,10 +157,11 @@ class TkViewer(WidgetViewer):
                     w.pack(side='left',fill='x',expand=len(row) == 1)
                     self._placeholders[w] = empty
                     self._bind_entry(w,field)
+                #(the examples right after the field, then the mark of its check):
+                if field in _example_topics:
+                    self._examples_button(frame,field).pack(side='left',padx=(2,0))
                 mark = ttk.Label(frame,width=2)
                 mark.pack(side='left')
-                if field in _example_topics:
-                    self._examples_button(frame,field).pack(side='left',padx=(0,2))
                 self._entries[field], self._marks[field] = w, mark
                 self._hover(lab,field)
                 self._hover(w,field)
@@ -188,12 +190,13 @@ class TkViewer(WidgetViewer):
         ttk.Button(frame,text='</>  Code',takefocus=0,
                    command=lambda : _CodeWindow(self,'Code of the plot',
                                                 self.plot_code())).pack(side='right')
-        self._examples_button(frame,'shown_plot').pack(side='right',padx=(4,6))
+        #(the examples right after the field, then the mark of its check):
+        mark = ttk.Label(frame,width=2)
+        mark.pack(side='right',padx=(0,6))
+        self._examples_button(frame,'shown_plot').pack(side='right',padx=(2,0))
         w = ttk.Entry(frame,width=40)
         w.pack(side='left',fill='x',expand=True)
         self._bind_entry(w,'shown_plot')
-        mark = ttk.Label(frame,width=2)
-        mark.pack(side='left')
         self._entries['shown_plot'], self._marks['shown_plot'] = w, mark
         self._line = ttk.Label(bottom)
         self._line.grid(row=len(rows)+1,column=0,sticky='w',pady=(2,2))
@@ -648,7 +651,7 @@ class _CardList:
                 group = card['group']
                 self._header(y,group)
                 y += _card_heights['header']
-            if ( card['plot'] is not None or card['key'] is None ) and group in self.folded and i != current:
+            if ( card['plot'] is not None or card['key'].startswith('info:') ) and group in self.folded and i != current:
                 continue
             kind = 'small' if card['constant'] is not None or card['absent'] else 'card'
             h = _card_heights[kind]
@@ -723,18 +726,19 @@ class _CardList:
         """A menu for the card of a plot: show or remove it"""
         tk, _ = _tk()
         s = self._slot(event)
-        if s is None or s[2] != 'card' or not ( s[3][1] or '' ).startswith('plot:'):
+        if s is None or s[2] != 'card' or not s[3][1].startswith(( 'plot:', 'info:' )):
             return
         key = s[3][1]
         menu = tk.Menu(self.canvas,tearoff=0)
-        menu.add_command(label='Show',command=lambda : self.tv.on_select_key(key))
-        menu.add_command(label='Remove this plot',command=lambda : self.tv.on_remove(key))
+        if key.startswith('plot:'):
+            menu.add_command(label='Show',command=lambda : self.tv.on_select_key(key))
+        menu.add_command(label='Remove this card',command=lambda : self.tv.on_remove(key))
         menu.tk_popup(event.x_root,event.y_root)
 
     def _on_press( self, event ):
         s = self._slot(event)
         self._drag = None
-        if s is not None and s[2] == 'card' and ( s[3][1] or '' ).startswith('plot:'):
+        if s is not None and s[2] == 'card' and s[3][1].startswith('plot:'):
             self._drag = ( s[3][1], event.y, False )
 
     def _on_motion( self, event ):
@@ -771,7 +775,7 @@ class _CardList:
         if s[2] == 'header':
             self.folded ^= { s[3] }
             self.tv.refresh(plot = False)
-        elif s[2] == 'card' and s[3][1] is not None:#(not the card of absent userdata)
+        elif s[2] == 'card' and not s[3][1].startswith('info:'):#(not a view, see WidgetViewer.cards)
             self.tv.on_select(s[3][0])
         elif s[2] == 'add':
             _AddPlot(self.tv)
@@ -780,11 +784,16 @@ class _Controls:
     """The settings of a plot (see WidgetViewer.plot_controls): a menu or a
     text field for each, in a row, which call on_change(option, shown text)
     when changed (with Enter, for the text fields). The row is made again
-    when the kind of plot changes."""
-    def __init__( self, parent, on_change ):
+    when the kind of plot changes. The menu of split has a choice for writing
+    an expression, which on_hint (if given) explains."""
+    #(the choice of the menu of split for writing an expression in it):
+    expression_choice = 'an expression...'
+
+    def __init__( self, parent, on_change, on_hint = None ):
         _, ttk = _tk()
         self.frame = ttk.Frame(parent)
         self._on_change = on_change
+        self._on_hint = on_hint
         self._kind = None
         self._widgets = {}
 
@@ -799,9 +808,11 @@ class _Controls:
                 ttk.Label(self.frame,text=label).pack(side='left',padx=(8,3))
                 if choices is not None:
                     #(split also takes an expression, the others only the choices):
-                    w = ttk.Combobox(self.frame,values=choices,width=12 if name == 'split' else 7,
+                    if name == 'split':
+                        choices = [ *choices, self.expression_choice ]
+                    w = ttk.Combobox(self.frame,values=choices,width=14 if name == 'split' else 7,
                                      state='normal' if name == 'split' else 'readonly')
-                    w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._on_change(n,w.get()))
+                    w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._chosen(n,w))
                 else:
                     w = ttk.Entry(self.frame,width=12 if 'range' in name else 5)
                 if name == 'split' or choices is None:
@@ -820,6 +831,17 @@ class _Controls:
             else:
                 w.delete(0,'end')
                 w.insert(0,shown)
+
+    def _chosen( self, name, w ):
+        if w.get() != self.expression_choice:
+            self._on_change(name,w.get())
+            return
+        #(an expression is written in the field, and applied with Enter):
+        w.set('')
+        w.focus_set()
+        if self._on_hint is not None:
+            self._on_hint('Type what to split the plot by, e.g. x > 0cm or abs(pdgcode),'
+                          ' and press Enter')
 
     def values( self ):
         """The shown texts of the settings, as (option, text)"""
@@ -1048,7 +1070,8 @@ class _AddPlot:
                            ' ekin/meV (see Help), or a quantity from the list.' ),
                   foreground=_colors['dim']).grid(row=2,column=1,columnspan=2,sticky='w')
         ttk.Label(f,text='Settings:').grid(row=3,column=0,sticky='w')
-        self._controls = _Controls(f,lambda _n, _v : self._changed())
+        self._controls = _Controls(f,lambda _n, _v : self._changed(),
+                                   on_hint = lambda text : self._message.configure(text=text))
         self._controls.frame.grid(row=3,column=1,columnspan=2,sticky='w',pady=2)
         ttk.Label(f,text='Plot title:').grid(row=4,column=0,sticky='w')
         self._title = ttk.Entry(f,width=40)

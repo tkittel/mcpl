@@ -138,7 +138,7 @@ quantities = ( ( 'Energy', 'ekin;logx=auto' ), ( 'Wavelength', 'wavelength' ),
                ( 'Position z', 'z' ), ( 'Direction x', 'ux' ), ( 'Direction y', 'uy' ),
                ( 'Direction z', 'uz' ), ( 'Angle to the z axis', 'angle_to(0,0,1)/deg' ),
                ( 'Distance from the z axis', 'hypot(x,y)' ), ( 'Weight', 'weight' ),
-               ( 'Particle types', 'pdgcode;bar' ), ( 'User flags', 'userflags;bar' ) )
+               ( 'Particle type', 'pdgcode;bar' ), ( 'User flags', 'userflags;bar' ) )
 
 #The fields with Tab completion of names:
 completing_fields = ( 'pick', 'edit', 'plot' )

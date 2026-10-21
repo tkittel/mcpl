@@ -111,7 +111,10 @@ def _panel( img, panel ):
                     prev = None
                     continue
                 a, b = ( row, row ) if prev is None else ( min( row, prev ), max( row, prev ) )
-                img[a:b+1,x] = color
+                #(2 pixels wide, as the lines of the plots):
+                img[max(0,a-1):b+1,x] = color
+                if x + 1 < w:
+                    img[max(0,row-1):row+1,x+1] = color
                 prev = row
     for it in panel.items:
         if isinstance(it,Hist2D):

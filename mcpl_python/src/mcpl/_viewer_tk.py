@@ -89,8 +89,12 @@ class TkViewer(WidgetViewer):
         bold = tkinter.font.nametofont('TkDefaultFont').copy()
         bold.configure(weight='bold')
         self._bold = bold
-        #(the titles of the parts below the plot):
-        style.configure('TLabelframe.Label',font=bold,foreground=_colors['dim'])
+        #(the parts below the plot, see _part):
+        for name, bg in _part_colors.items():
+            style.configure(f'{name}.TFrame',background=bg)
+            style.configure(f'{name}.TLabel',background=bg)
+            style.configure(f'{name}Head.TLabel',background=bg,foreground=_card_colors['accent'],
+                            font=( bold.cget('family'), 8, 'bold' ))
         root.columnconfigure(1,weight=1)
         root.rowconfigure(0,weight=1)
         #The logo and the views (on the left):
@@ -133,11 +137,12 @@ class TkViewer(WidgetViewer):
         self._actions = {}#(the buttons of ui.actions)
         self._placeholders = {}#entry -> text shown in grey while it is empty
         self._showing = set()#(the entries showing their placeholder)
-        part = ttk.Labelframe(bottom,text='Plot',padding=(6,2,6,4))
-        part.grid(row=0,column=0,sticky='ew')
+        part = _part(bottom,'Plot','the shown plot',_card_colors['accent'])
+        part.master.grid(row=0,column=0,sticky='ew')
         self._plot_part(part)
-        part = ttk.Labelframe(bottom,text='Particles (of all plots)',padding=(6,2,6,4))
-        part.grid(row=1,column=0,sticky='ew',pady=(4,0))
+        _tint(part,'Plot')
+        part = _part(bottom,'Particles','of all plots',_card_colors['border'])
+        part.master.grid(row=1,column=0,sticky='ew',pady=(6,0))
         info = { f[0] : f for f in ui.fields }
         #(plots are added with "+ New plot", not with a field):
         rows = [ tuple( f for f in row if f != 'plot' ) for row in ui.field_rows ]
@@ -146,8 +151,10 @@ class TkViewer(WidgetViewer):
             frame.pack(fill='x',pady=1)
             for field in row:
                 _, label, _key, kpos, empty = info[field]
-                lab = ttk.Label(frame,text=label + ':',underline=kpos)
-                lab.pack(side='left',padx=(0 if field == row[0] else 12,4))
+                first = field == row[0]
+                lab = ttk.Label(frame,text=label + ':',underline=kpos,
+                                **( _row_label if first else {} ))
+                lab.pack(side='left',padx=(0 if first else 12,4))
                 if field in ui.menu_fields:
                     choices = self.menu_choices(field)
                     w = ttk.Combobox(frame,state='readonly',width=48,
@@ -183,6 +190,7 @@ class TkViewer(WidgetViewer):
             b.pack(side='left',padx=(0,6))
             self._hover(b,action)
             self._actions[action] = b
+        _tint(part,'Particles')
         self._statusbar = ttk.Label(bottom,foreground=_colors['dim'])
         self._statusbar.grid(row=4,column=0,sticky='w',pady=(4,0))
         self._popup = None#(the list of completions: (field, start, Toplevel, Listbox))
@@ -196,7 +204,7 @@ class TkViewer(WidgetViewer):
         _, ttk = _tk()
         frame = ttk.Frame(part)
         frame.pack(fill='x',pady=1)
-        ttk.Label(frame,text='Title:').pack(side='left',padx=(0,4))
+        ttk.Label(frame,text='Title:',**_row_label).pack(side='left',padx=(0,4))
         t = ttk.Entry(frame,width=36)
         t.pack(side='left')
         self._placeholders[t] = 'the name in the list of plots'
@@ -223,7 +231,8 @@ class TkViewer(WidgetViewer):
         self._menu = [ f'{name}:  {plot.split(";")[0]}' for name, plot in ui.quantities ]
         self._axes = []
         for label in ( 'X axis:', 'Y axis:' ):
-            ttk.Label(frame,text=label).pack(side='left',padx=(0 if not self._axes else 12,4))
+            ttk.Label(frame,text=label,**( _row_label if not self._axes else {} )).pack(
+                side='left',padx=(0 if not self._axes else 12,4))
             w = ttk.Combobox(frame,width=30,values=self._menu if not self._axes else [ '' ] + self._menu)
             w.pack(side='left')
             w.bind('<<ComboboxSelected>>',lambda _e, w=w : self._on_axis_chosen(w))
@@ -238,14 +247,18 @@ class TkViewer(WidgetViewer):
         ttk.Label(frame,text='(Y axis empty: 1D histogram)',
                   foreground=_colors['dim']).pack(side='left',padx=(6,0))
         #(the settings):
-        self._controls = _Controls(part,self.on_control,
-                                   on_hint = lambda text : self.show_line(text,'dim'))
-        self._controls.frame.pack(fill='x',pady=1)
+        frame = ttk.Frame(part)
+        frame.pack(fill='x',pady=1)
+        ttk.Label(frame,text='Settings:',**_row_label).pack(side='left',padx=(0,4))
+        self._controls = _Controls(frame,self.on_control,
+                                   on_hint = lambda text : self.show_line(text,'dim'),
+                                   style = 'Plot')
+        self._controls.frame.pack(side='left',fill='x')
         #(the plot expression, which changes the plot, or removes it when
         #emptied):
         frame = ttk.Frame(part)
         frame.pack(fill='x',pady=1)
-        ttk.Label(frame,text='Plot expression:').pack(side='left',padx=(0,4))
+        ttk.Label(frame,text='Plot expression:',**_row_label).pack(side='left',padx=(0,4))
         w = ttk.Entry(frame,width=40)
         w.pack(side='left',fill='x',expand=True)
         self._examples_button(frame,'shown_plot').pack(side='left',padx=(2,0))
@@ -624,6 +637,36 @@ _code_styles = { 'comment' : { 'foreground' : '#6a737d' },
 _card_colors = { 'bg' : '#eef1f5', 'card' : '#ffffff', 'selected' : '#e2ebf6',
                  'border' : '#d5dbe3', 'accent' : '#2f5f8f', 'text' : '#1d2733',
                  'dim' : '#7a8594', 'badge' : '#dfe7f1' }
+#(the parts below the plot: that of the shown plot in the colour of its
+#selected card, and that of the particles):
+_part_colors = { 'Plot' : _card_colors['selected'], 'Particles' : _card_colors['bg'] }
+
+#(the labels at the start of the rows of the parts, in a column):
+_row_label = { 'width' : 15, 'anchor' : 'e' }
+
+def _part( parent, name, what, border ):
+    """A part below the plot (with the colours of _part_colors[name]), with a
+    header with its name and what it is for. Returns the frame for its
+    contents (in a frame with the border, its master)."""
+    tk, ttk = _tk()
+    box = tk.Frame(parent,background=_part_colors[name],highlightthickness=1,
+                   highlightbackground=border,highlightcolor=border)
+    frame = ttk.Frame(box,style=f'{name}.TFrame',padding=(10,4,10,6))
+    frame.pack(fill='both',expand=True)
+    ttk.Label(frame,text=f'{name.upper()}  \u00b7  {what}',
+              style=f'{name}Head.TLabel').pack(anchor='w',pady=(0,3))
+    return frame
+
+def _tint( part, name ):
+    """Give the frames and labels in the part (see _part) its colours (those
+    with their own style keep it)"""
+    _, ttk = _tk()
+    for w in part.winfo_children():
+        if isinstance(w,ttk.Frame) and not w.cget('style'):
+            w.configure(style=f'{name}.TFrame')
+            _tint(w,name)
+        elif isinstance(w,ttk.Label) and not w.cget('style'):
+            w.configure(style=f'{name}.TLabel')
 
 def _elided( text, font, width ):
     """The text, shortened with ... at the end to fit the width (in pixels)
@@ -846,9 +889,11 @@ class _Controls:
     #(the choice of the menu of split for writing an expression in it):
     expression_choice = 'an expression...'
 
-    def __init__( self, parent, on_change, on_hint = None ):
+    def __init__( self, parent, on_change, on_hint = None, style = None ):
         _, ttk = _tk()
-        self.frame = ttk.Frame(parent)
+        #(the style of the labels and the frame, e.g. of a part, see _part):
+        self._styles = { 'style' : f'{style}.TLabel' } if style else {}
+        self.frame = ttk.Frame(parent,**( { 'style' : f'{style}.TFrame' } if style else {} ))
         self._on_change = on_change
         self._on_hint = on_hint
         self._kind = None
@@ -861,8 +906,9 @@ class _Controls:
             for w in self.frame.winfo_children():
                 w.destroy()
             self._kind, self._widgets = kind, {}
-            for name, label, choices, _ in ( controls[1] if controls else () ):
-                ttk.Label(self.frame,text=label).pack(side='left',padx=(8,3))
+            for i, ( name, label, choices, _ ) in enumerate( controls[1] if controls else () ):
+                ttk.Label(self.frame,text=label,**self._styles).pack(side='left',
+                                                                     padx=(0 if i == 0 else 10,3))
                 if choices is not None:
                     #(split also takes an expression, the others only the choices):
                     if name == 'split':

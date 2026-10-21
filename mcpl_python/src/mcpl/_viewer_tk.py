@@ -85,6 +85,7 @@ class TkViewer(WidgetViewer):
                   foreground=[ ( 'selected', 'white' ) ],relief=[ ( 'selected', 'sunken' ) ])
         #(the small buttons next to fields, as high as the fields):
         style.configure('Small.TButton',padding=(2,0))
+        style.configure('Compact.TMenubutton',padding=(6,0))
         #(the compact buttons in the header of the part of the shown plot):
         for name in ( 'Head.TButton', 'Head.Accent.TButton' ):
             style.configure(name,padding=(8,0),width=-4)
@@ -110,19 +111,23 @@ class TkViewer(WidgetViewer):
         ttk.Label(left,image=self._logo).pack(anchor='w',pady=(0,6))
         self._entries, self._marks = {}, {}
         #(the actions in a menu: another file, with the same plots, pick and
-        #edit, see on_open_file, and those of ui.actions):
-        button = ttk.Menubutton(left,text='\u2630  Menu',takefocus=0)
-        button.pack(anchor='w',pady=(0,6))
+        #edit, see on_open_file, and those of ui.actions but writing, which
+        #has its button with the pick and edit; in a row with the collection
+        #of plots, see _menu_field):
+        self._top_row = ttk.Frame(left)
+        self._top_row.pack(fill='x',pady=(0,6))
+        button = ttk.Menubutton(self._top_row,text='\u2630 Menu',takefocus=0,
+                                style='Compact.TMenubutton')
+        button.pack(side='left')
         menu = tk.Menu(button,tearoff=0)
         button['menu'] = menu
         menu.add_command(label='Open MCPL file...',command=self._ask_open)
         self._actions_menu, self._actions = menu, {}#(action -> index of its entry)
         for action, label, keys, kpos in ui.actions:
-            #(writing opens a window, with the name of the file and the code):
-            label = 'Write modified MCPL file / code...' if action == 'write' else label
-            menu.add_command(label=label,underline=kpos,accelerator=keys[0],
-                             command=lambda a=action : self.on_action(a))
-            self._actions[action] = menu.index('end')
+            if action != 'write':
+                menu.add_command(label=label,underline=kpos,accelerator=keys[0],
+                                 command=lambda a=action : self.on_action(a))
+                self._actions[action] = menu.index('end')
         self._cards = _CardList(left,self)
         self._hover(self._cards.canvas,'views')
         #The status and the plot (on the right):
@@ -136,7 +141,7 @@ class TkViewer(WidgetViewer):
         #(the part of the shown plot, in the colours of its selected card: the
         #plot with its toolbar, and its fields below them, see _plot_part):
         bg = _part_colors['Plot']
-        part, head = _part(main,'Plot','the shown plot',_card_colors['accent'])
+        part, head = _part(main,'Plot','Plot','the shown plot',_card_colors['accent'])
         part.master.grid(row=2,column=0,sticky='nsew')
         #(the fields at the bottom, packed first so the plot gets the rest):
         fields = ttk.Frame(part)
@@ -159,7 +164,7 @@ class TkViewer(WidgetViewer):
         self.canvas.get_tk_widget().pack(side='top',fill='both',expand=True)
         super().__init__(viewer,fig)
         #(the collection of plots, above their cards):
-        self._menu_field(left,'collection',before = self._cards.canvas.master)
+        self._menu_field(self._top_row,'collection')
         self.canvas.mpl_connect('button_press_event',self._on_mpl_click)
         self.canvas.mpl_connect('key_press_event',self._on_mpl_key)
         self.canvas.mpl_connect('motion_notify_event',self._on_mpl_motion)
@@ -173,7 +178,8 @@ class TkViewer(WidgetViewer):
         bottom = ttk.Frame(root,padding=(0,4,6,6))
         bottom.grid(row=1,column=1,sticky='ew')
         bottom.columnconfigure(0,weight=1)
-        part, _ = _part(bottom,'Particles','used in all plots',_card_colors['border'])
+        part, _ = _part(bottom,'Particles','Pick & edit','particles from the input file',
+                        _card_colors['border'])
         part.master.grid(row=0,column=0,sticky='ew',pady=(2,0))
         info = { f[0] : f for f in ui.fields }
         #(plots are added with "+ New plot", and the collection is chosen
@@ -209,6 +215,13 @@ class TkViewer(WidgetViewer):
                 self._entries[field], self._marks[field] = w, mark
                 self._hover(lab,field)
                 self._hover(w,field)
+        #(writing the picked and edited particles, in the corner, which opens
+        #a window with the name of the file and the code):
+        self._write = ttk.Button(grid,text='Write modified MCPL file / code...',
+                                 style='Head.TButton',takefocus=0,
+                                 command=lambda : self.on_action('write'))
+        self._write.grid(row=len(rows)-1,column=4,columnspan=6,sticky='e')
+        self._hover(self._write,'write')
         _tint(part,'Particles')
         #(the line of messages, and at its right what is under the mouse):
         self._line = ttk.Label(bottom)
@@ -223,19 +236,19 @@ class TkViewer(WidgetViewer):
         root.bind('<Key>',self._on_root_key)
         root.protocol('WM_DELETE_WINDOW',self.close_window)
 
-    def _menu_field( self, parent, field, before ):
-        """A field of _viewer_ui.menu_fields: its label and menu in a row
-        (packed before the widget before). The menu shows the chosen value,
-        and its list the values with their descriptions."""
+    def _menu_field( self, parent, field ):
+        """A field of _viewer_ui.menu_fields: its label and menu (at the left
+        of the row parent). The menu shows the chosen value, and its list the
+        values with their descriptions."""
         _, ttk = _tk()
         _, label, _key, kpos, _ = next( f for f in ui.fields if f[0] == field )
         choices = self.menu_choices(field)
         frame = ttk.Frame(parent)
-        frame.pack(fill='x',pady=(0,6),before=before)
+        frame.pack(side='left',fill='x',expand=True,padx=(8,0))
         lab = ttk.Label(frame,text=label + ':',underline=kpos)
         lab.pack(side='left',padx=(0,4))
         values = [ f'{n}  \u2013  {d}' for n, d in choices ]
-        w = ttk.Combobox(frame,state='readonly',values=values,style='Menu.TCombobox')
+        w = ttk.Combobox(frame,state='readonly',values=values,style='Menu.TCombobox',width=8)
         w.configure(postcommand=lambda : self._widen_list(w,values))
         w.pack(side='left',fill='x',expand=True)
         w.bind('<<ComboboxSelected>>',lambda _e : self._on_menu(field,choices))
@@ -402,6 +415,9 @@ class TkViewer(WidgetViewer):
             self.on_open_file(chosen)
 
     def show_enabled( self, action, enabled ):
+        if action == 'write':
+            self._write.state([ '!disabled' if enabled else 'disabled' ])
+            return
         self._actions_menu.entryconfigure(self._actions[action],
                                           state='normal' if enabled else 'disabled')
 
@@ -722,9 +738,9 @@ _part_colors = { 'Plot' : _card_colors['selected'], 'Particles' : _card_colors['
 #(the labels at the start of the rows of the parts, in a column):
 _row_label = { 'width' : 9, 'anchor' : 'e' }
 
-def _part( parent, name, what, border ):
+def _part( parent, name, title, what, border ):
     """A part below the plot (with the colours of _part_colors[name]), with a
-    header with its name and what it is for. Returns the frame for its
+    header with its title and what it is for. Returns the frame for its
     contents (in a frame with the border, its master), and the frame of the
     header (e.g. for buttons at its right)."""
     tk, ttk = _tk()
@@ -734,7 +750,7 @@ def _part( parent, name, what, border ):
     frame.pack(fill='both',expand=True)
     head = ttk.Frame(frame,style=f'{name}.TFrame')
     head.pack(fill='x',pady=(0,6))
-    ttk.Label(head,text=f'{name.upper()}  \u00b7  {what}',
+    ttk.Label(head,text=f'{title.upper()}  \u00b7  {what}',
               style=f'{name}Head.TLabel').pack(side='left')
     return frame, head
 

@@ -697,6 +697,52 @@ class Viewer:
         return { 'view' : ' '.join([ prog, view ] + opts + [ fn ]),
                  'extract' : ' '.join([ prog, '-e' ] + opts + [ fn, self.suggested_filename() ]) }
 
+    def code( self, plots = None, filename = None ):
+        """The command (of mcpltool) and the Python code doing the same as the
+        viewer, as (command, code): histograms of the plots (a list of
+        histogram strings), or else writing the picked and edited particles
+        to the file filename (default suggested_filename()). The Python API has
+        no skip and limit, so a comment says so when they are used."""
+        from ._extract import _shell_arg
+        s = self._s
+        prog = self._progname
+        fn = _shell_arg(self.filename) if ' ' in self.filename else self.filename
+        opts = self._options()
+        args = [ repr(self.filename) ] + [ f'{name} = {e.expression!r}' for name, e in
+                                           ( ('pick',s.pick), ('edit',s.edit) ) if e is not None ]
+        lines = [ 'import mcpl' ]
+        if s.skip or s.limit:
+            lines.append('# (all particles of the file: the Python API has no -s and -l)')
+        if plots is not None:
+            cmd = [ prog ] + opts
+            for p in plots:
+                cmd += [ '-H', _shell_arg(p) ]
+            cmd.append(fn)
+            lines.append(f'f = mcpl.MCPLFile( {", ".join(args)} )')
+            if len(plots) == 1:
+                lines += [ f'h = mcpl.histogram( f, {plots[0]!r} )', 'h.plot()' ]
+            else:
+                lines += [ 'hs = [ mcpl.histogram( f, p ) for p in (' ]
+                lines += [ f'    {p!r},' for p in plots ]
+                lines += [ ') ]', 'mcpl.plot_histograms( hs )' ]
+            return ' '.join(cmd), '\n'.join(lines)
+        out = filename or self.suggested_filename()
+        cmd = [ prog, '-e' ] + opts + [ fn, _shell_arg(out) if ' ' in out else out ]
+        lines.append(f'fin = mcpl.MCPLFile( {", ".join(args)} )')
+        lines += [ f'with mcpl.MCPLOutFile( {out!r} ) as fout:',
+                   '    fout.transfer_metadata( fin )  # copy the header' ]
+        if s.edit is not None and 'weight' in s.edit.modified_fields and self._has_stat_sums():
+            lines.append('    fout.hdr_scale_stat_sums( -1.0 )  # weights edited:'
+                         ' stat:sum entries not available')
+        lines += [ '    for block in fin.particle_blocks:',
+                   '        fout.add_particles( block )' ]
+        return ' '.join(cmd), '\n'.join(lines)
+
+    def _has_stat_sums( self ):
+        from ._reader import MCPLFile
+        with MCPLFile(self.filename) as f:
+            return any( v is not None for v in f.stat_sum.values() )
+
     #Writing:
 
     def suggested_filename( self ):

@@ -10,6 +10,72 @@ skip=100 limit=500 pick='ekin > 1MeV' edit='z += 1m':
 skip=0 limit=None pick='mod(fileidx,3) == 0' edit='weight *= 2':
    example.mcpl: 336/1006 particles (33.4%), Σw = 672 (66.8%)
    23 views, same figures as mcpltool -H: True
+The command and Python code of plots, and of writing files:
+  mcpltool -H "ekin;logx" example.mcpl
+     | import mcpl
+     | f = mcpl.MCPLFile( 'example.mcpl' )
+     | h = mcpl.histogram( f, 'ekin;logx' )
+     | h.plot()
+  mcpltool -H "x" -H "y : z;bins=10" example.mcpl
+     | import mcpl
+     | f = mcpl.MCPLFile( 'example.mcpl' )
+     | hs = [ mcpl.histogram( f, p ) for p in (
+     |     'x',
+     |     'y : z;bins=10',
+     | ) ]
+     | mcpl.plot_histograms( hs )
+  mcpltool -e example.mcpl by_python.mcpl
+     | import mcpl
+     | fin = mcpl.MCPLFile( 'example.mcpl' )
+     | with mcpl.MCPLOutFile( 'by_python.mcpl' ) as fout:
+     |     fout.transfer_metadata( fin )  # copy the header
+     |     for block in fin.particle_blocks:
+     |         fout.add_particles( block )
+  same figures: True, same particles: True
+  mcpltool -p "pdgcode == neutron" -E "z += 1m;weight *= 2" -H "ekin;logx" example.mcpl
+     | import mcpl
+     | f = mcpl.MCPLFile( 'example.mcpl', pick = 'pdgcode == neutron', edit = 'z += 1m;weight *= 2' )
+     | h = mcpl.histogram( f, 'ekin;logx' )
+     | h.plot()
+  mcpltool -p "pdgcode == neutron" -E "z += 1m;weight *= 2" -H "x" -H "y : z;bins=10" example.mcpl
+     | import mcpl
+     | f = mcpl.MCPLFile( 'example.mcpl', pick = 'pdgcode == neutron', edit = 'z += 1m;weight *= 2' )
+     | hs = [ mcpl.histogram( f, p ) for p in (
+     |     'x',
+     |     'y : z;bins=10',
+     | ) ]
+     | mcpl.plot_histograms( hs )
+  mcpltool -e -p "pdgcode == neutron" -E "z += 1m;weight *= 2" example.mcpl by_python.mcpl
+     | import mcpl
+     | fin = mcpl.MCPLFile( 'example.mcpl', pick = 'pdgcode == neutron', edit = 'z += 1m;weight *= 2' )
+     | with mcpl.MCPLOutFile( 'by_python.mcpl' ) as fout:
+     |     fout.transfer_metadata( fin )  # copy the header
+     |     for block in fin.particle_blocks:
+     |         fout.add_particles( block )
+  same figures: True, same particles: True
+  mcpltool -s100 -p "ekin > 1MeV" -H "ekin;logx" example.mcpl
+     | import mcpl
+     | # (all particles of the file: the Python API has no -s and -l)
+     | f = mcpl.MCPLFile( 'example.mcpl', pick = 'ekin > 1MeV' )
+     | h = mcpl.histogram( f, 'ekin;logx' )
+     | h.plot()
+  mcpltool -s100 -p "ekin > 1MeV" -H "x" -H "y : z;bins=10" example.mcpl
+     | import mcpl
+     | # (all particles of the file: the Python API has no -s and -l)
+     | f = mcpl.MCPLFile( 'example.mcpl', pick = 'ekin > 1MeV' )
+     | hs = [ mcpl.histogram( f, p ) for p in (
+     |     'x',
+     |     'y : z;bins=10',
+     | ) ]
+     | mcpl.plot_histograms( hs )
+  mcpltool -e -s100 -p "ekin > 1MeV" example.mcpl by_python.mcpl
+     | import mcpl
+     | # (all particles of the file: the Python API has no -s and -l)
+     | fin = mcpl.MCPLFile( 'example.mcpl', pick = 'ekin > 1MeV' )
+     | with mcpl.MCPLOutFile( 'by_python.mcpl' ) as fout:
+     |     fout.transfer_metadata( fin )  # copy the header
+     |     for block in fin.particle_blocks:
+     |         fout.add_particles( block )
 views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:angle_to(0,0,1)/deg;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:userflags;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz
 check('skip','10'): (True, '')
 check('skip','x'): (False, 'Skip must be a number of particles')

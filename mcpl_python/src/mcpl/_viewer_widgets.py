@@ -248,6 +248,13 @@ class WidgetViewer:
         self.refresh()
         return ok
 
+    def plot_code( self ):
+        """The command and Python code of the shown plot (or of the plots of
+        the overview), see Viewer.code"""
+        plot = self._shown_plot()
+        plots = [ plot ] if plot else [ k[5:] for k in self.v.overview_keys() ]
+        return self.v.code(plots)
+
     def cards( self ):
         """The views as cards: the plot_info of the viewer (see
         Viewer.plot_info), with the key of the view"""

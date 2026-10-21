@@ -240,6 +240,9 @@
    shown plot field: ('time;logx=auto', 'Arrival time')
    settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
+==> the command of the shown plot, and of the plots of the overview
+   mcpltool -p "pdgcode == neutron" -H "time;logx=auto" example.mcpl
+   mcpltool -p "pdgcode == neutron" -H "angle_to(0,0,1)/deg;bins=40;range=0:90" -H "ekin;logx=auto;logy;split=pdgcode" -H "wavelength;logx;split=pdgcode" -H "x : y" -H "time;logx=auto;logy" -H "pdgcode;bar;logy=auto" example.mcpl
 ==> the buttons of the actions, and quit
    help shown: 41 lines
    window closed

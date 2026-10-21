@@ -167,16 +167,21 @@ class TkViewer(WidgetViewer):
         t.bind('<FocusOut>',lambda _e : self._on_entry_unfocus(t),'+')
         self._title = t
         ttk.Label(frame,text='Plot expression:').pack(side='left',padx=(12,4))
-        w = ttk.Entry(frame,width=60)
+        #(the buttons at the right, the code of the shown plot and new plots,
+        #packed before the field, which gets the rest of the width):
+        b = ttk.Button(frame,text='+  New plot',style='Accent.TButton',takefocus=0,
+                       command=lambda : self.focus_field('plot'))
+        b.pack(side='right',padx=(6,0))
+        self._hover(b,'new_plot')
+        ttk.Button(frame,text='</>  Code',takefocus=0,
+                   command=lambda : _CodeWindow(self,'Code of the plot',
+                                                *self.plot_code())).pack(side='right')
+        w = ttk.Entry(frame,width=40)
         w.pack(side='left',fill='x',expand=True)
         self._bind_entry(w,'shown_plot')
         mark = ttk.Label(frame,width=2)
         mark.pack(side='left')
         self._entries['shown_plot'], self._marks['shown_plot'] = w, mark
-        b = ttk.Button(frame,text='+  New plot',style='Accent.TButton',takefocus=0,
-                       command=lambda : self.focus_field('plot'))
-        b.pack(side='left',padx=(6,0))
-        self._hover(b,'new_plot')
         self._line = ttk.Label(bottom)
         self._line.grid(row=len(rows)+1,column=0,sticky='w',pady=(2,2))
         buttons = ttk.Frame(bottom)
@@ -256,6 +261,14 @@ class TkViewer(WidgetViewer):
             self.on_field_edited(field,self._text(w))
 
     def ask_file( self, action ):
+        if action == 'write':
+            _WriteWindow(self)
+            return
+        self._ask_file_name(action,lambda name : self.on_file(action,name))
+
+    def _ask_file_name( self, action, then ):
+        """Ask for the name of the file in a file dialog, and call then with it
+        (None if cancelled)"""
         import os
         from tkinter import filedialog
         name = self.suggested_filename(action)
@@ -264,7 +277,7 @@ class TkViewer(WidgetViewer):
                                               initialdir=os.path.dirname(os.path.abspath(name)),
                                               initialfile=os.path.basename(name),
                                               confirmoverwrite=False)
-        self.on_file(action,chosen or None)
+        then(chosen or None)
 
     def show_help( self ):
         tk, ttk = _tk()
@@ -725,6 +738,104 @@ class _Controls:
     def values( self ):
         """The shown texts of the settings, as (option, text)"""
         return [ ( n, w.get() ) for n, w in self._widgets.items() ]
+
+class _CodeWindow:
+    """A window with the command of mcpltool and the Python code doing the
+    same as the viewer (see Viewer.code), each with a button copying it, and
+    optionally widgets above them (made by top(frame))"""
+    max_width = 130#(characters)
+
+    def __init__( self, tv, title, command, code, top = None ):
+        tk, ttk = _tk()
+        self.tv = tv
+        w = self.window = tk.Toplevel(tv.root)
+        w.title(title)
+        w.transient(tv.root)
+        f = ttk.Frame(w,padding=10)
+        f.pack(fill='both',expand=True)
+        if top is not None:
+            top(f)
+        self._texts = []
+        for label in ( 'Command line:', 'Python:' ):
+            row = ttk.Frame(f)
+            row.pack(fill='x',pady=(8,2))
+            ttk.Label(row,text=label,font=tv._bold).pack(side='left')
+            text = tk.Text(f,font='TkFixedFont',wrap='none',width=90,height=1,
+                           relief='flat',background='white',padx=6,pady=4)
+            text.pack(fill='x')
+            #(a scroll bar for the longer lines, if any, see show):
+            bar = ttk.Scrollbar(f,orient='horizontal',command=text.xview)
+            text.configure(xscrollcommand=bar.set)
+            text._bar = bar
+            ttk.Button(row,text='Copy',takefocus=0,
+                       command=lambda t=text : self._copy(t)).pack(side='right')
+            self._texts.append(text)
+        self.show(command,code)
+        ttk.Button(f,text='Close',command=w.destroy).pack(side='right',pady=(10,0))
+        w.bind('<Escape>',lambda _e : w.destroy())
+
+    def show( self, command, code ):
+        for text, value in zip( self._texts, ( command, code ) ):
+            #(as wide as the longest line, up to a maximum):
+            longest = max( len(line) for line in value.splitlines() )
+            text.configure(state='normal',height=value.count('\n')+1,
+                           width=min(max(longest+1,60),self.max_width))
+            if longest + 1 > self.max_width:
+                text._bar.pack(fill='x',after=text)
+            else:
+                text._bar.pack_forget()
+            text.delete('1.0','end')
+            text.insert('1.0',value)
+            text.configure(state='disabled')
+
+    def _copy( self, text ):
+        root = self.tv.root
+        root.clipboard_clear()
+        root.clipboard_append(text.get('1.0','end-1c'))
+        self.tv.show_line('Copied','normal')
+
+class _WriteWindow:
+    """The window for writing the picked and edited particles to a new file:
+    its name, with the command and Python code doing the same"""
+    def __init__( self, tv ):
+        self.tv = tv
+        self._code = _CodeWindow(tv,'Write file',*tv.v.code(),top = self._top)
+        self._name.focus_set()
+
+    def _top( self, f ):
+        _, ttk = _tk()
+        ttk.Label(f,text='Write the picked and edited particles to a new file:',
+                  font=self.tv._bold).pack(anchor='w')
+        row = ttk.Frame(f)
+        row.pack(fill='x',pady=(6,0))
+        self._name = ttk.Entry(row,width=60)
+        self._name.insert(0,self.tv.suggested_filename('write'))
+        self._name.pack(side='left',fill='x',expand=True)
+        self._name.bind('<KeyRelease>',lambda _e : self._changed())
+        self._name.bind('<Return>',lambda _e : self._write())
+        ttk.Button(row,text='Browse...',takefocus=0,
+                   command=lambda : self.tv._ask_file_name('write',self._chosen)).pack(side='left',padx=(6,0))
+        ttk.Button(row,text='Write',style='Accent.TButton',
+                   command=self._write).pack(side='left',padx=(6,0))
+        self._message = ttk.Label(f,foreground=_colors['error'])
+        self._message.pack(anchor='w')
+
+    def _chosen( self, name ):
+        if name:
+            self._name.delete(0,'end')
+            self._name.insert(0,name)
+            self._changed()
+
+    def _changed( self ):
+        self._code.show(*self.tv.v.code(filename = self._name.get().strip() or None))
+
+    def _write( self ):
+        ok, msg = self.tv.v.try_write(self._name.get().strip() or None)
+        if ok:
+            self.tv.show_line(msg,'normal')
+            self._code.window.destroy()
+        else:
+            self._message.configure(text=msg)
 
 class _AddPlot:
     """The window for adding a plot: what to plot (a quantity of

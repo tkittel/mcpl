@@ -26,7 +26,9 @@
 # -H), the fields with their checks, completions and history, the commands,
 # writing files, and the viewer in the terminal on a screen in memory.
 
+import copy
 import pathlib
+import runpy
 import shutil
 import subprocess
 import sys
@@ -480,7 +482,53 @@ def test_tool():
                         capture_output=True,text=True,check=False)
     print(f'mcpltool -w with two files: {rv.stdout.splitlines()[0]}')
 
+def test_code():
+    print('The command and Python code of plots, and of writing files:')
+    for pick, edit, skip in ( (None,None,0), ('pdgcode == neutron','z += 1m;weight *= 2',0),
+                              ('ekin > 1MeV',None,100) ):
+        v = Viewer(ex,pick=pick,edit=edit,skip=skip)
+        for plots in ( ['ekin;logx'], ['x','y : z;bins=10'] ):
+            cmd, code = v.code(plots)
+            print(f'  {cmd}')
+            print(''.join( f'     | {line}\n' for line in code.splitlines() ),end='')
+        cmd, code = v.code(filename = 'by_python.mcpl')
+        print(f'  {cmd}')
+        print(''.join( f'     | {line}\n' for line in code.splitlines() ),end='')
+        #The code makes the same histograms (as figures, but without the pick
+        #and edit as titles), and writes the same particles, as the viewer
+        #(without skip):
+        if skip:
+            continue
+        def run( code ):
+            script = pathlib.Path('code.py')
+            script.write_text(code.replace('import mcpl\n',''))
+            return runpy.run_path(str(script),init_globals = { 'mcpl' : mcpl })
+        ns = run(v.code(_plots)[1].replace('mcpl.plot_histograms( hs )',
+                                            'figs = [ h.figure() for h in hs ]'))
+        vp = Viewer(ex,pick=pick,edit=edit,plots=_plots)
+        vp.start()
+        vp.wait()
+        def untitled( fig ):
+            fig = copy.deepcopy(fig)
+            for panel in fig.panels:
+                panel.title = None
+            return fig
+        same_figs = all( same(a,untitled(vp.figure(key = f'plot:{p}')))
+                         for a, p in zip( ns['figs'], _plots ) )
+        vp.stop()
+        run(code)
+        v.write('by_viewer.mcpl')
+        with MCPLFile('by_python.mcpl') as a, MCPLFile('by_viewer.mcpl') as b:
+            same_particles = ( a.nparticles == b.nparticles and
+                               all( (x.ekin == y.ekin).all() and (x.z == y.z).all()
+                                    and (x.weight == y.weight).all() for x, y in
+                                    zip(a.particle_blocks,b.particle_blocks) ) )
+        print(f'  same figures: {same_figs}, same particles: {same_particles}')
+        for fn in ( 'by_python.mcpl', 'by_viewer.mcpl', 'code.py' ):
+            pathlib.Path(fn).unlink()
+
 test_figures()
+test_code()
 test_fields()
 test_reading()
 test_collections()

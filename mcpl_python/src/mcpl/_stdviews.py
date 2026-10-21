@@ -20,8 +20,9 @@
 ################################################################################
 
 """The collections of plots of the viewer: each has a name, a short
-description and the plots the viewer starts with, of which the first ones are
-shown together in the overview. The collection is chosen with -wNAME (or in
+description, the plots the viewer starts with, and optionally its overviews
+(several plots shown together, see _viewer_overviews; by default the first
+six plots). The collection is chosen with -wNAME (or in
 the viewer), and the state of the viewer is saved as the changes of the plots
 of its collection.
 
@@ -63,6 +64,19 @@ def _item( plot, title = None, group = None ):
         return plot
     return { k : v for k, v in ( ( 'title', title ), ( 'plot', plot ), ( 'group', group ) )
              if v is not None }
+
+#The overview of the correlations of the fields, as a corner plot (see
+#_viewer_overviews), with the energy on a log scale (as log10 of the energy
+#in eV):
+def _correlations( *exprs ):
+    return { 'title' : 'Correlations',
+             'pairs' : ( *exprs, 'log10(ekin/eV)', 'weight' ) }
+
+#The overviews of the beam collections: the first plots, and the correlations
+#of the positions and directions across the beam:
+def _beam_overviews( axis, a, b ):
+    return ( { 'title' : 'Overview', 'first' : 6 },
+             _correlations(a,b,f'u{a}',f'u{b}',f'u{axis}') )
 
 #The angles of the directions to the axis of a beam along z, x or y (with
 #the two components across the beam):
@@ -106,10 +120,15 @@ _collections = {
             ( 'ekin', None ), ( 'x', None ), ( 'y', None ), ( 'z', None ), ( 'ux', None ),
             ( 'uy', None ), ( 'uz', None ), ( 'time', None ), ( 'weight;unweighted', None ),
             ( 'polx', None ), ( 'poly', None ), ( 'polz', None ),
-            ( 'userflags;bar;logy=auto', None ) ) ) ) ),
-    'beamz' : ( 'a beam along the z axis: profiles and divergences', _beam('z','x','y') ),
-    'beamx' : ( 'a beam along the x axis: profiles and divergences', _beam('x','y','z') ),
-    'beamy' : ( 'a beam along the y axis: profiles and divergences', _beam('y','z','x') ),
+            ( 'userflags;bar;logy=auto', None ) ) ) ),
+        ( { 'title' : 'Overview', 'first' : 6 }, { 'title' : 'All fields', 'group' : 'Fields' },
+          _correlations('x','y','ux','uy','uz') ) ),
+    'beamz' : ( 'a beam along the z axis: profiles and divergences', _beam('z','x','y'),
+                _beam_overviews('z','x','y') ),
+    'beamx' : ( 'a beam along the x axis: profiles and divergences', _beam('x','y','z'),
+                _beam_overviews('x','y','z') ),
+    'beamy' : ( 'a beam along the y axis: profiles and divergences', _beam('y','z','x'),
+                _beam_overviews('y','z','x') ),
     'shielding' : ( 'spectra, directions and weights of all particle types', (
         _item('pdgcode;bar;logy=auto','Particle type','Main plots'),
         _item('ekin;logx=auto;logy;split=pdgcode','Energy spectrum','Main plots'),

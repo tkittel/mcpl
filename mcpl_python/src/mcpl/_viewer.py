@@ -29,7 +29,6 @@ file."""
 
 __all__ = ['view']
 
-import copy
 import functools
 import pathlib
 import re
@@ -43,13 +42,10 @@ from ._stdviews import (
     _item,
     _plot_item,
 )
+from ._viewer_overviews import default_specs, overview_figure, resolve
 from ._viewer_reading import _make_filler, _Reading
 
 _fields = ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot' )
-
-#(the plots of the viewer start as those of a collection, see _stdviews, of
-#which the first _noverview are shown together in the overview):
-_noverview = 6
 
 class _Settings:
     """What is shown: a range of particles in the file, picked and edited, and
@@ -122,7 +118,7 @@ class Viewer(_Reading):
         #multi_overview, see views):
         self.multi_overview = False
         self._current = None#(key of the view shown, None for the first)
-        self._overview = None#(the overview figure, with what it was made from)
+        self._overviews = {}#view key -> (what its figure was made from, figure)
         #The view argument is the name of a collection of plots, a view, or a
         #state (see state()), which is applied before the other arguments (so
         #these can change it):
@@ -154,6 +150,11 @@ class Viewer(_Reading):
             #userdata, at the end):
             items += self._userdata_items()
         self._collection = name
+        #(the overviews of the collection, see _viewer_overviews, and the
+        #indices of those which were removed):
+        self._overview_specs = list( _collections[name][2] if len(_collections[name]) > 2
+                                     else default_specs )
+        self._removed_overviews = set()
         self._base = [ p for p, _, _ in items ]
         self._base_meta = { p : ( t, g ) for p, t, g in items if ( t, g ) != ( None, None ) }
         #(the plot of the collection each plot comes from, if any, for state()):
@@ -179,9 +180,14 @@ class Viewer(_Reading):
             raise MCPLError(msg)
 
     def _view_key( self, view ):
-        """The key of a view given as overview or as a plot (histogram string)"""
+        """The key of a view given as overview (or overview:TITLE, for the
+        overviews after the first) or as a plot (histogram string)"""
         if view in ( 'overview', 'overview:multi' ):
             return 'overview'
+        if view.startswith('overview:'):
+            key = self._overview_key_of(view[9:])
+            if key is not None:
+                return key
         try:
             same = self._same_plot(view)
         except MCPLError:
@@ -282,6 +288,11 @@ class Viewer(_Reading):
             self._current = f'plot:{same or text}'
         elif field == 'collection':
             if value == self._collection:
+                #(the same collection only gives back its removed overviews):
+                if self._removed_overviews:
+                    self._removed_overviews = set()
+                    with self._lock:
+                        self._updates += 1
                 return True, ''
             self._use_collection(value)
             self._current = None
@@ -470,9 +481,10 @@ class Viewer(_Reading):
         (for a plot of a field where they all have the same value, else
         None)"""
         if not key.startswith('plot:'):
-            return { 'title' : None, 'name' : 'Overview', 'plot' : None, 'group' : None,
-                     'badges' : [ f'{len(self.overview_keys())} plots' ], 'constant' : None,
-                     'absent' : False }
+            ov = dict(self.overviews()).get(key)
+            return { 'title' : None, 'name' : ov.title if ov else 'Overview', 'plot' : None,
+                     'group' : None, 'badges' : [ f'{len(ov.plots) if ov else 0} plots' ],
+                     'constant' : None, 'absent' : False }
         p = key[5:]
         title, group = self._meta.get(p,( None, None ))
         o = _parsed_plot(p)#(cached, for the cards, which are shown often)
@@ -530,7 +542,7 @@ class Viewer(_Reading):
         start = m.start() if m else cursor
         prefix = m.group(0) if m else ''
         if field == 'collection':
-            return 0, [ ( name, descr ) for name, ( descr, _ ) in _collections.items()
+            return 0, [ ( name, c[0] ) for name, c in _collections.items()
                         if name.startswith(text[:cursor].strip()) ]
         if field not in ( 'pick', 'edit', 'plot' ):
             return start, []
@@ -590,7 +602,7 @@ class Viewer(_Reading):
         """The views, as a list of (key, label): the overview with its plots
         (only with multi_overview, see overview_keys), and each plot (with its
         histogram string as label)"""
-        res = [ ( 'overview:multi', 'overview' ) ] if self.multi_overview else []
+        res = [ ( k, 'overview' ) for k, _ in self.overviews() ]
         with self._lock:
             constants = self._constants
         #(plots of a field where all particles have the same value are marked):
@@ -600,10 +612,58 @@ class Viewer(_Reading):
                           if field in constants else p ) )
         return res
 
-    def overview_keys( self ):
-        """The keys of the views of the plots shown in the overview (in the
-        order of its panels)"""
-        return [ f'plot:{p}' for p in self._s.plots[:_noverview] ]
+    def overviews( self ):
+        """The overviews shown (only with multi_overview, see views), as (view
+        key, Overview): those of the collection which were not removed and
+        have plots (see _viewer_overviews). The key of the first of the
+        collection is overview:multi, and of the others overview:N (N its
+        position in the collection)."""
+        return [ ( k, ov ) for i, k, ov in self._all_overviews()
+                 if i not in self._removed_overviews ]
+
+    def _all_overviews( self ):
+        """The overviews of the collection which have plots, also those which
+        were removed, as (position in the collection, view key, Overview)"""
+        if not self.multi_overview:
+            return []
+        groups = { p : g for p, ( _, g ) in self._meta.items() }
+        res = []
+        for i, spec in enumerate(self._overview_specs):
+            ov = resolve(spec,self._s.plots,groups)
+            if ov is not None:
+                res.append( ( i, 'overview:multi' if i == 0 else f'overview:{i}', ov ) )
+        return res
+
+    def _overview_key_of( self, title ):
+        """The key of the overview with the title, or None"""
+        return next( ( k for k, ov in self.overviews() if ov.title == title ), None )
+
+    def overview_keys( self, key = 'overview:multi' ):
+        """The keys of the views of the plots of the cells of the overview with
+        the key (in the order of its panels, None for empty cells)"""
+        ov = dict(self.overviews()).get(key)
+        return [] if ov is None else [ None if p is None else f'plot:{p}' for p in ov.cells ]
+
+    def remove_overview( self, key ):
+        """Remove the overview with the key (see overviews): whether it was
+        removed (choosing the collection again gives it back)"""
+        if key not in dict(self.overviews()):
+            return False
+        self._removed_overviews.add( 0 if key == 'overview:multi' else int(key[9:]) )
+        if self._current == key or ( key == 'overview:multi' and self._current == 'overview' ):
+            self._current = None
+        with self._lock:
+            self._updates += 1
+        return True
+
+    def _reading_settings( self ):
+        """What is read: the settings, with the plots of the overviews too (also
+        of those which were removed, which choosing the collection again gives
+        back)"""
+        s = self._s.copy()
+        s.plots += [ p for _, _, ov in self._all_overviews() for p in ov.plots ]
+        s.plots = list(dict.fromkeys(s.plots))
+        return s
 
     @property
     def current( self ):
@@ -639,20 +699,21 @@ class Viewer(_Reading):
         or None if not yet available"""
         if key is None:
             key = self.views[self.current if index is None else index][0]
+        if key.startswith('overview:'):
+            ov = dict(self.overviews()).get(key)
+            with self._lock:
+                return None if ov is None else self._overview_figure(key,ov)
         with self._lock:
-            if key == 'overview:multi':
-                return self._overview_figure()
             return self._figures.get(key)
 
-    def _overview_figure( self ):
-        """The overview: the first plots together (made again only when the
-        figures or the plots changed, so the same figure is returned until
-        then)"""
-        keys = self.overview_keys()
-        made_from = ( self._figures, tuple(keys) )
-        if self._overview is None or self._overview[0] != made_from:
-            self._overview = ( made_from, _overview(self._figures,keys) )
-        return self._overview[1]
+    def _overview_figure( self, key, ov ):
+        """The figure of the overview (made again only when the figures or its
+        plots changed, so the same figure is returned until then)"""
+        made_from = ( self._figures, tuple(ov.cells), ov.ncols )
+        old = self._overviews.get(key)
+        if old is None or old[0] != made_from:
+            self._overviews[key] = old = ( made_from, overview_figure(self._figures,ov) )
+        return old[1]
 
     def status_lines( self, weights = '\u03a3w' ):
         """The two status lines: the file, the numbers of particles and the sum
@@ -736,9 +797,14 @@ class Viewer(_Reading):
                 diff[k] = v
         if diff:
             res['plots'] = diff
+        removed = [ self._overview_specs[i]['title'] for i in sorted(self._removed_overviews) ]
+        if removed:
+            res['remove_overviews'] = removed
         key = self.views[self.current][0]
         if key != self.views[0][0]:
-            res['view'] = 'overview' if key == 'overview:multi' else key[5:]
+            ov = dict(self.overviews()).get(key)
+            res['view'] = ( 'overview' if key == 'overview:multi' else
+                            f'overview:{ov.title}' if ov is not None else key[5:] )
         return res
 
     def _apply_state( self, state ):
@@ -780,6 +846,12 @@ class Viewer(_Reading):
         if order:
             #(the plots in the given order, followed by any others):
             self._s.plots[:] = order + [ p for p in self._s.plots if p not in order ]
+        titles = [ s['title'] for s in self._overview_specs ]
+        for title in state.get('remove_overviews',[]):
+            if title not in titles:
+                raise MCPLError(f'The viewer state removes the overview "{title}", which is'
+                                ' not one of the overviews')
+            self._removed_overviews.add(titles.index(title))
         self._current = None
 
     def suggested_state_filename( self ):
@@ -1079,21 +1151,6 @@ def _plot_field( text ):
     from ._histstring import _parse_hist
     exprs = _parse_hist(text)['exprs']
     return _Expr(exprs[0]).field if len(exprs) == 1 else None
-
-def _overview( figures, keys ):
-    """The overview: the plots of the views with the keys together (as far as
-    they are available), with the title of the plots"""
-    from .plotting import Figure, Panel, Text
-    figs = [ figures.get(k) for k in keys ]
-    if all( f is None for f in figs ):
-        return None
-    panels = []
-    for f in figs:
-        panel = copy.copy(f.panels[0]) if f is not None else Panel( items = [ Text('') ] )
-        panel.title = None#(the title of the plots is that of the overview)
-        panels.append(panel)
-    title = next( ( f.title for f in figs if f is not None ), None )
-    return Figure( title = title, nrows = 2, ncols = 3, panels = panels )
 
 def _parse_count( text ):
     """The integer of a text like 1000 or 1e6 (or None if it is not one)"""

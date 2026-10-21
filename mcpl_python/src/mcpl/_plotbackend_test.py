@@ -59,6 +59,9 @@ def describe( figures ):
     for i,f in enumerate(figures):
         lines.append(f'Figure {i+1} ({f.nrows}x{f.ncols}): {f.title!r}')
         for p in f.panels:
+            if p is None:
+                lines.append('  (empty cell)')
+                continue
             opts = [ o for o,v in (('logx',p.logx),('logy',p.logy)) if v ]
             if p.xlim:
                 opts.append(f'xlim=[{_fmt(p.xlim[0])},{_fmt(p.xlim[1])}]')

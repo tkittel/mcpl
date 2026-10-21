@@ -204,8 +204,9 @@ class _TextBackend(PlotBackend):
             out += [ _center(line,self._width) for line in figure.title.split('\n') ]
             out.append('')
         for panel in figure.panels:
-            out += self._draw_panel(panel)
-            out.append('')
+            if panel is not None:#(not the empty cells of grids)
+                out += self._draw_panel(panel)
+                out.append('')
         return '\n'.join(out).rstrip('\n')
 
     def _draw_panel( self, panel ):

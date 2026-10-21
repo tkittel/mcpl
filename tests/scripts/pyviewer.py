@@ -113,13 +113,24 @@ def test_collections():
     #All plots of all collections work (they are plot items, with titles and
     #groups):
     from mcpldev._stdviews import _plot_item
-    for name, ( descr, items ) in _collections.items():
+    from mcpldev._viewer_overviews import default_specs, resolve
+    for name, ( descr, items, *overviews ) in _collections.items():
         plots = [ _plot_item(i) for i in items ]
         assert len({ p for p, _, _ in plots }) == len(plots)
         for p, _, _ in plots:
             mcpl.histogram(ex,p)
         groups = list(dict.fromkeys( g for _, _, g in plots ))
         print(f'collection {name}: {descr}, {len(plots)} plots, first: {plots[0]!r}, groups: {groups}')
+        #(and all plots of its overviews work):
+        for spec in ( overviews[0] if overviews else default_specs ):
+            ov = resolve(spec,[ p for p, _, _ in plots ],{ p : g for p, _, g in plots })
+            for p in ov.plots:
+                Viewer(ex).check('plot',p)[0] or print(f'   bad plot of {spec["title"]}: {p}')
+                if ':' in p:
+                    mcpl.histogram2d(ex,*p.split(':'))
+                else:
+                    mcpl.histogram(ex,p)
+            print(f'   overview {ov.title!r}: {len(ov.plots)} plots in {ov.nrows}x{ov.ncols}')
     v = Viewer(ex,view='beamz',plots=['x;bins=5'])
     print('-wbeamz:', v.field_text('collection'), [ k for k, _ in v.views ][:2],
           '| state:', v.state(), '| command:', v.commands()['view'])
@@ -170,7 +181,7 @@ def test_state():
     v = Viewer(ex)
     v.multi_overview = True
     print('state at the start:', v.state(), '| command:', v.commands()['view'])
-    v.select(2)
+    v.select(len(v.overviews()) + 1)#(the second plot)
     print('move up:', v.move(-1), 'down twice:', v.move(1), v.move(1), '| current:', v.views[v.current][0])
     v.select(0)
     print('move the overview:', v.move(1))

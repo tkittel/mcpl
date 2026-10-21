@@ -437,7 +437,7 @@ class WidgetViewer:
         """The command and Python code of the shown plot (or of the plots of
         the overview), see Viewer.code"""
         plot = self._shown_plot()
-        plots = [ plot ] if plot else [ k[5:] for k in self.v.overview_keys() ]
+        plots = [ plot ] if plot else [ k[5:] for k in self.v.overview_keys(self.v.current_key) if k ]
         return self.v.code(plots)
 
     def cards( self ):
@@ -452,7 +452,8 @@ class WidgetViewer:
         for key, _ in self.v.views:
             info = self.v.plot_info(key)
             if not key.startswith('plot:'):
-                res.append(Card(key,info['name'],badges=info['badges'],image=True))
+                #(an overview, see Viewer.overviews):
+                res.append(Card(key,info['name'],badges=info['badges'],image=True,removable=True))
                 continue
             fig = self.v.figure(key = key)
             items = fig.panels[0].items if fig is not None and len(fig.panels) == 1 else []
@@ -627,6 +628,13 @@ class WidgetViewer:
         key = key or self.shown_key
         if key == 'info:new':
             self._new_plot = None#(given up, see on_new_plot)
+            self.refresh()
+            return
+        if key.startswith('overview:'):
+            name = self.v.plot_info(key)['name']
+            self.v.remove_overview(key)
+            self.show_line(f'Removed the overview "{name}" (choosing the collection again'
+                           ' gives it back)','normal')
             self.refresh()
             return
         if key.startswith('info:'):

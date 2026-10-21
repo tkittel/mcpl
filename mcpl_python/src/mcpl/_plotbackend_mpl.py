@@ -133,8 +133,15 @@ class Backend(PlotBackend):
         """Draw the panels of the figure on the axes (of the matplotlib figure
         fig), hiding the axes which are not needed"""
         import matplotlib.ticker
+        #(the plots of a corner plot share their axes, see _corner_axes):
+        corner = getattr(figure,'_corner',False)
         for ax, panel in zip(axlist,figure.panels):
-            self._draw_panel(fig,ax,panel)
+            if panel is None:#(an empty cell of the grid)
+                ax.set_visible(False)
+            else:
+                self._draw_panel(fig,ax,panel,compact=corner)
+        if corner:
+            _corner_axes(axlist,figure.nrows,figure.ncols)
         for ax in axlist[len(figure.panels):]:
             ax.set_visible(False)
         for ax in axlist:
@@ -147,8 +154,9 @@ class Backend(PlotBackend):
         for the viewer). Returns all axes added to fig (also those of colour
         bars)."""
         before = set(fig.axes)
-        gs = subplotspec.subgridspec(figure.nrows,figure.ncols,hspace=0.55,
-                                     wspace=0.35)
+        space = 0.08 if getattr(figure,'_corner',False) else None
+        gs = subplotspec.subgridspec(figure.nrows,figure.ncols,hspace=space or 0.55,
+                                     wspace=space or 0.35)
         axlist = [ fig.add_subplot(gs[i,j]) for i in range(figure.nrows)
                    for j in range(figure.ncols) ]
         self._draw_axes(fig,axlist,figure)
@@ -157,7 +165,9 @@ class Backend(PlotBackend):
             ax._mcpl_home = _axes_view(ax)
         return new
 
-    def _draw_panel( self, fig, ax, panel ):
+    def _draw_panel( self, fig, ax, panel, compact = False ):
+        """Draw the panel on the axes ax (without colour bars and legends if
+        compact)"""
         import matplotlib.colors
         has_legend = False
         for i,item in enumerate(panel.items):
@@ -176,7 +186,8 @@ class Backend(PlotBackend):
                     im = ax.pcolormesh(item.xedges,item.yedges,np.asarray(v).T,
                                        norm=( matplotlib.colors.LogNorm()
                                               if item.logz else None ))
-                    fig.colorbar(im,ax=ax)
+                    if not compact:
+                        fig.colorbar(im,ax=ax)
             elif isinstance(item,Bars):
                 pos = list(range(len(item.values)))
                 colors = [ f'C{c%10}' for c in item.colors ] if item.colors else None
@@ -212,9 +223,32 @@ class Backend(PlotBackend):
             ax.set_xlabel(panel.xlabel,fontsize='small')
         if panel.ylabel:
             ax.set_ylabel(panel.ylabel)
-        if has_legend:
+        if has_legend and not compact:
             ax.legend(fontsize='small')
         ax.grid(alpha=0.3)
+
+def _corner_axes( axlist, nrows, ncols ):
+    """The axes of a corner plot (see _viewer_overviews.pair_cells): the labels
+    of the x axes only in the bottom row, and of the y axes only in the left
+    column, with the histograms on the diagonal without their y axes (the x
+    axes of each column are those of the same expression)"""
+    import matplotlib.ticker
+    for i, ax in enumerate(axlist[:nrows*ncols]):
+        r, c = divmod(i,ncols)
+        #(without the ticks at the ends, whose labels would meet those of the
+        #neighbouring plots):
+        for axis in ( ax.xaxis, ax.yaxis ):
+            if axis.get_scale() == 'linear':
+                axis.set_major_locator(matplotlib.ticker.MaxNLocator(4,prune='both'))
+        if r < nrows - 1:
+            ax.set_xlabel('')
+            ax.tick_params(labelbottom=False)
+        if r == c:
+            ax.set_ylabel('')
+            ax.set_yticks([])
+        elif c > 0:
+            ax.set_ylabel('')
+            ax.tick_params(labelleft=False)
 
 _logo_inches = 0.4#(height of the logo, and its margin)
 _logo_margin = 0.06
@@ -346,8 +380,8 @@ class FigurePane:
             self._title = self.fig.text(0.5*(left+right),y,figure.title,ha='center',
                                         va='top',size=self._title_size)
         #(the first axes are those of the plots, in order, see draw_in):
-        self._panels = ( list(zip(self.axes,viewer.overview_keys()))
-                         if key == 'overview:multi' else [] )
+        self._panels = ( [ ( ax, k ) for ax, k in zip(self.axes,viewer.overview_keys(key))
+                           if k is not None ] if key.startswith('overview:') else [] )
         self._key, self._figure = key, figure
         return True
 

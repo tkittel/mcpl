@@ -121,6 +121,8 @@ def _map_texts( figure, fct ):
         return fct(t) if isinstance(t,str) else t
     fig.title = f(fig.title)
     for p in fig.panels:
+        if p is None:#(an empty cell of the grid)
+            continue
         p.title, p.xlabel, p.ylabel = f(p.title), f(p.xlabel), f(p.ylabel)
         for item in p.items:
             if isinstance(item,StepHist):
@@ -132,7 +134,8 @@ def _map_texts( figure, fct ):
     return fig
 
 class Figure:
-    """Figure (page) with panels arranged in a grid of nrows x ncols."""
+    """Figure (page) with panels arranged in a grid of nrows x ncols (row by
+    row, with None for empty cells of the grid)."""
     def __init__( self, title = None, panels = None, nrows = 1, ncols = 1 ):
         self.title = title
         self.panels = list(panels or [])

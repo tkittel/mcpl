@@ -195,8 +195,9 @@ def hint_line( editor, popup = False ):
     return field_hint(editor.field), 'dim'
 
 help_text = '''\
-The viewer shows the particles of an MCPL file: an overview with the first
-plots, and each plot on its own. The plots are histograms of expressions (as
+The viewer shows the particles of an MCPL file: each plot on its own, and in
+windows also overviews of several plots (e.g. the first ones, or a corner plot
+of the correlations of the fields), which depend on the collection. The plots are histograms of expressions (as
 for -H), which can be changed, removed and reordered, and further ones added.
 Plots are updated while the file is read, and are complete when the reading
 is done.

@@ -85,6 +85,9 @@ class TkViewer(WidgetViewer):
                   foreground=[ ( 'selected', 'white' ) ],relief=[ ( 'selected', 'sunken' ) ])
         #(the small buttons next to fields, as high as the fields):
         style.configure('Small.TButton',padding=(2,0))
+        #(the compact buttons in the header of the part of the shown plot):
+        for name in ( 'Head.TButton', 'Head.Accent.TButton' ):
+            style.configure(name,padding=(8,0),width=-4)
         import tkinter.font
         bold = tkinter.font.nametofont('TkDefaultFont').copy()
         bold.configure(weight='bold')
@@ -106,6 +109,20 @@ class TkViewer(WidgetViewer):
         self._logo = tk.PhotoImage(data=base64.b64encode(logo_png())).subsample(3)
         ttk.Label(left,image=self._logo).pack(anchor='w',pady=(0,6))
         self._entries, self._marks = {}, {}
+        #(the actions in a menu: another file, with the same plots, pick and
+        #edit, see on_open_file, and those of ui.actions):
+        button = ttk.Menubutton(left,text='\u2630  Menu',takefocus=0)
+        button.pack(anchor='w',pady=(0,6))
+        menu = tk.Menu(button,tearoff=0)
+        button['menu'] = menu
+        menu.add_command(label='Open file...',command=self._ask_open)
+        self._actions_menu, self._actions = menu, {}#(action -> index of its entry)
+        for action, label, keys, kpos in ui.actions:
+            #(writing opens a window, with the name of the file and the code):
+            label = 'Write file / code...' if action == 'write' else label
+            menu.add_command(label=label,underline=kpos,accelerator=keys[0],
+                             command=lambda a=action : self.on_action(a))
+            self._actions[action] = menu.index('end')
         self._cards = _CardList(left,self)
         self._hover(self._cards.canvas,'views')
         #The status and the plot (on the right):
@@ -145,13 +162,12 @@ class TkViewer(WidgetViewer):
         self.canvas.mpl_connect('key_press_event',self._on_mpl_key)
         self.canvas.mpl_connect('motion_notify_event',self._on_mpl_motion)
         self._inaxes = None#(the axes under the mouse)
-        self._actions = {}#(the buttons of ui.actions)
         self._placeholders = {}#entry -> text shown in grey while it is empty
         self._showing = set()#(the entries showing their placeholder)
         self._plot_part(fields,head)
         _tint(part,'Plot')
-        #Below the plot: the part of the particles (for all plots), the line
-        #below it and the actions:
+        #Below the plot: the part of the particles (for all plots), and the
+        #line below it:
         bottom = ttk.Frame(root,padding=(0,4,6,6))
         bottom.grid(row=1,column=1,sticky='ew')
         bottom.columnconfigure(0,weight=1)
@@ -159,10 +175,11 @@ class TkViewer(WidgetViewer):
         part.master.grid(row=0,column=0,sticky='ew',pady=(2,0))
         info = { f[0] : f for f in ui.fields }
         #(plots are added with "+ New plot", and the collection is chosen
-        #above the cards):
-        rows = [ tuple( f for f in row if f not in ( 'plot', *ui.menu_fields ) )
-                 for row in ui.field_rows ]
-        for row in ( row for row in rows if row ):
+        #above the cards; the expressions get the width of the rows):
+        rows = ( ( 'pick', 'skip', 'limit' ), ( 'edit', ) )
+        assert sorted( f for row in rows for f in row ) == sorted(
+            f for row in ui.field_rows for f in row if f not in ( 'plot', *ui.menu_fields ) )
+        for row in rows:
             frame = ttk.Frame(part)
             frame.pack(fill='x',pady=1)
             for field in row:
@@ -171,8 +188,9 @@ class TkViewer(WidgetViewer):
                 lab = ttk.Label(frame,text=label + ':',underline=kpos,
                                 **( _row_label if first else {} ))
                 lab.pack(side='left',padx=(0 if first else 12,4))
-                w = ttk.Entry(frame,width=12 if len(row) > 1 else 60)
-                w.pack(side='left',fill='x',expand=len(row) == 1)
+                wide = field in _example_topics
+                w = ttk.Entry(frame,width=60 if wide else 10)
+                w.pack(side='left',fill='x',expand=wide)
                 self._placeholders[w] = empty
                 self._bind_entry(w,field)
                 #(the examples right after the field, then the mark of its check):
@@ -183,24 +201,12 @@ class TkViewer(WidgetViewer):
                 self._entries[field], self._marks[field] = w, mark
                 self._hover(lab,field)
                 self._hover(w,field)
-        self._line = ttk.Label(bottom)
-        self._line.grid(row=1,column=0,sticky='w',pady=(2,2))
-        buttons = ttk.Frame(bottom)
-        buttons.grid(row=2,column=0,sticky='w')
-        #(another file, with the same plots, pick and edit, see on_open_file):
-        ttk.Button(buttons,text='Open file...',takefocus=0,
-                   command=self._ask_open).pack(side='left',padx=(0,6))
-        for action, label, _keys, kpos in ui.actions:
-            #(writing opens a window, with the name of the file and the code):
-            label = 'Write file / code...' if action == 'write' else label
-            b = ttk.Button(buttons,text=label,underline=kpos,takefocus=0,
-                           command=lambda a=action : self.on_action(a))
-            b.pack(side='left',padx=(0,6))
-            self._hover(b,action)
-            self._actions[action] = b
         _tint(part,'Particles')
+        #(the line of messages, and at its right what is under the mouse):
+        self._line = ttk.Label(bottom)
+        self._line.grid(row=1,column=0,sticky='w',pady=(2,0))
         self._statusbar = ttk.Label(bottom,foreground=_colors['dim'])
-        self._statusbar.grid(row=3,column=0,sticky='w',pady=(4,0))
+        self._statusbar.grid(row=1,column=0,sticky='e',pady=(2,0))
         self._popup = None#(the list of completions: (field, start, Toplevel, Listbox))
         root.bind('<Key>',self._on_root_key)
         root.protocol('WM_DELETE_WINDOW',self.close_window)
@@ -242,20 +248,20 @@ class TkViewer(WidgetViewer):
         header of the part (head)"""
         _, ttk = _tk()
         #(the buttons at the right of the header):
-        b = ttk.Button(head,text='+  New plot',style='Accent.TButton',takefocus=0,
+        b = ttk.Button(head,text='+  New plot',style='Head.Accent.TButton',takefocus=0,
                        command=self.on_new_plot)
         b.pack(side='right',padx=(6,0))
         self._hover(b,'new_plot')
-        self._remove = ttk.Button(head,text='Remove',takefocus=0,command=self.on_remove)
+        self._remove = ttk.Button(head,text='Remove',style='Head.TButton',takefocus=0,
+                                  command=self.on_remove)
         self._remove.pack(side='right',padx=(6,0))
-        self._code = ttk.Button(head,text='</>  Code',takefocus=0,
+        self._code = ttk.Button(head,text='</>  Code',style='Head.TButton',takefocus=0,
                                 command=lambda : _CodeWindow(self,'Code of the plot',
                                                              self.plot_code()))
         self._code.pack(side='right')
-        frame = ttk.Frame(part)
-        frame.pack(fill='x',pady=1)
-        ttk.Label(frame,text='Title:',**_row_label).pack(side='left',padx=(0,4))
-        t = ttk.Entry(frame,width=36)
+        #(the title, in the header):
+        ttk.Label(head,text='Title:',style='Plot.TLabel').pack(side='left',padx=(16,4))
+        t = ttk.Entry(head,width=32)
         t.pack(side='left')
         self._placeholders[t] = 'the name in the list of plots'
         t.bind('<Return>',lambda _e : self._on_title_enter(t))
@@ -264,28 +270,40 @@ class TkViewer(WidgetViewer):
         t.bind('<FocusIn>',lambda _e : self._on_title_focus(t),'+')
         t.bind('<FocusOut>',lambda _e : self._on_entry_unfocus(t),'+')
         self._title = t
-        #(the axes, where choosing a quantity of the list puts its expression):
+        #(the axes, where choosing a quantity of the list puts its expression,
+        #and the plot expression, which changes the plot, or removes it when
+        #emptied):
         frame = ttk.Frame(part)
         frame.pack(fill='x',pady=1)
         self._menu = [ f'{name}:  {plot.split(";")[0]}' for name, plot in ui.quantities ]
         self._axes = []
         for label in ( 'X axis:', 'Y axis:' ):
             ttk.Label(frame,text=label,**( _row_label if not self._axes else {} )).pack(
-                side='left',padx=(0 if not self._axes else 12,4))
-            w = ttk.Combobox(frame,width=30,values=self._menu if not self._axes else [ '' ] + self._menu)
+                side='left',padx=(0 if not self._axes else 10,4))
+            w = ttk.Combobox(frame,width=22,values=self._menu if not self._axes else [ '' ] + self._menu)
             w.pack(side='left')
             w.bind('<<ComboboxSelected>>',lambda _e, w=w : self._on_axis_chosen(w))
             w.bind('<KeyRelease>',lambda e : None if e.keysym in ( 'Return', 'KP_Enter', 'Escape' )
-                   else self.on_axes_edited(*( a.get() for a in self._axes )))
+                   else self.on_axes_edited(*self._axis_texts()))
             w.bind('<Return>',lambda _e : self._on_axes_enter())
             w.bind('<KP_Enter>',lambda _e : self._on_axes_enter())
             w.bind('<Escape>',lambda _e : self._on_title_escape())
             self._axes.append(w)
+        #(an empty y axis says what it means):
+        y = self._axes[1]
+        self._placeholders[y] = 'none (1D histogram)'
+        y.bind('<FocusIn>',lambda _e : self._set_text(y,self._text(y)),'+')
+        y.bind('<FocusOut>',lambda _e : self._on_entry_unfocus(y),'+')
         self._marks['axes'] = ttk.Label(frame,width=2)
         self._marks['axes'].pack(side='left')
-        #(shown while the y axis is empty):
-        self._axes_note = ttk.Label(frame,foreground=_colors['dim'])
-        self._axes_note.pack(side='left',padx=(6,0))
+        ttk.Label(frame,text='Expression:').pack(side='left',padx=(10,4))
+        w = ttk.Entry(frame,width=30)
+        w.pack(side='left',fill='x',expand=True)
+        self._examples_button(frame,'shown_plot').pack(side='left',padx=(2,0))
+        mark = ttk.Label(frame,width=2)
+        mark.pack(side='left')
+        self._bind_entry(w,'shown_plot')
+        self._entries['shown_plot'], self._marks['shown_plot'] = w, mark
         #(the settings):
         frame = ttk.Frame(part)
         frame.pack(fill='x',pady=1)
@@ -294,29 +312,21 @@ class TkViewer(WidgetViewer):
                                    on_hint = lambda text : self.show_line(text,'dim'),
                                    style = 'Plot')
         self._controls.frame.pack(side='left',fill='x')
-        #(the plot expression, which changes the plot, or removes it when
-        #emptied):
-        frame = ttk.Frame(part)
-        frame.pack(fill='x',pady=1)
-        ttk.Label(frame,text='Plot expression:',**_row_label).pack(side='left',padx=(0,4))
-        w = ttk.Entry(frame,width=40)
-        w.pack(side='left',fill='x',expand=True)
-        self._examples_button(frame,'shown_plot').pack(side='left',padx=(2,0))
-        mark = ttk.Label(frame,width=2)
-        mark.pack(side='left')
-        self._bind_entry(w,'shown_plot')
-        self._entries['shown_plot'], self._marks['shown_plot'] = w, mark
+
+    def _axis_texts( self ):
+        """The texts of the axes (empty while showing their placeholders)"""
+        return [ self._text(a) for a in self._axes ]
 
     def _on_axis_chosen( self, w ):
         """A quantity was chosen from the list of an axis: its expression is
         shown, and the plot changed"""
         text = w.get()
-        if text in self._menu:
-            w.set(ui.quantities[self._menu.index(text)][1].split(';')[0])
+        self._set_text(w,ui.quantities[self._menu.index(text)][1].split(';')[0]
+                       if text in self._menu else text)
         self._on_axes_enter()
 
     def _on_axes_enter( self ):
-        if self.on_axes(*( a.get() for a in self._axes )):
+        if self.on_axes(*self._axis_texts()):
             self.show_check('axes',None)
             self.canvas.get_tk_widget().focus_set()
         return 'break'
@@ -354,7 +364,6 @@ class TkViewer(WidgetViewer):
                 if self._text(w) != ( value or '' ) or ( not value and w not in self._showing ):
                     self._set_text(w,value or '')
         self._remove.configure(state='disabled' if text is None else 'normal')
-        self._axes_note.configure(text='' if y else '(Y axis empty: 1D histogram)')
         #(the fields are only shown for plots, so the overview gets more room):
         if text is None:
             self._plot_fields.pack_forget()
@@ -381,7 +390,8 @@ class TkViewer(WidgetViewer):
             self.on_open_file(chosen)
 
     def show_enabled( self, action, enabled ):
-        self._actions[action].state([ '!disabled' if enabled else 'disabled' ])
+        self._actions_menu.entryconfigure(self._actions[action],
+                                          state='normal' if enabled else 'disabled')
 
     def show_controls( self, controls ):
         self._controls.show(controls)
@@ -698,7 +708,7 @@ _card_colors = { 'bg' : '#eef1f5', 'card' : '#ffffff', 'selected' : '#e2ebf6',
 _part_colors = { 'Plot' : _card_colors['selected'], 'Particles' : _card_colors['bg'] }
 
 #(the labels at the start of the rows of the parts, in a column):
-_row_label = { 'width' : 15, 'anchor' : 'e' }
+_row_label = { 'width' : 9, 'anchor' : 'e' }
 
 def _part( parent, name, what, border ):
     """A part below the plot (with the colours of _part_colors[name]), with a

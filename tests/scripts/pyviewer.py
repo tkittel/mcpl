@@ -530,6 +530,28 @@ def test_code():
         for fn in ( 'by_python.mcpl', 'by_viewer.mcpl', 'code.py' ):
             pathlib.Path(fn).unlink()
 
+def test_c_translation():
+    #Simple picks and edits are translated to C and C++ (the generated code was
+    #compiled and compared with the viewer when this was written), and the
+    #others are left to the users:
+    from mcpldev._viewer_code import _c_condition, _c_edit, _CTranslator
+    for pick in ( 'pdgcode == neutron', 'abs(pdgcode) in (electron,muon) or ekin < 25meV and hypot(x,y) < 5cm',
+                  'pdgcode not in (22,2112)', '(userflags & 0xff) == 0 and not ekin > 1MeV', '0cm < x < 2cm',
+                  'ekin/MeV > 0.5 and uz > 0.9', 'sqrt(x^2+y^2) < 3cm', '-x > 1mm', 'pdgcode/2 > 1000',
+                  'angle_to(0,0,1) < 1deg', 'wavelength > 1.8Aa', 'mod(fileidx,10) == 0' ):
+        for lang, kind in ( ('c','c'), ('cpp','cpp') ):
+            tr = _CTranslator(lang,'p',kind)
+            print(f'pick {pick!r} in {lang}: {_c_condition(pick,tr)}  {sorted(tr.headers)}')
+    for edit in ( 'z += 1m;weight *= 0.5', 'x = 2*y;ekin = ekin/2', 'time = time + 1ms*abs(x)/1cm',
+                  'rotate_z(90deg)', 'ux = 1', 'a = 2*x;y = a' ):
+        print(f'edit {edit!r}: {_c_edit(edit,_CTranslator("c","q","struct"),"")}')
+    #The highlighting of the code (the styles of its parts):
+    from mcpldev._viewer_code import highlight
+    code = Viewer(ex,pick='pdgcode == neutron',skip=5).code(['ekin;logx'])
+    for kind in ( 'command', 'python', 'cpp', 'c' ):
+        print(f'highlighted {kind}:', ' '.join( f'{style}[{code[kind][a:b]}]'
+                                                for a, b, style in highlight(code[kind],kind) ))
+
 def test_range_and_userdata():
     #A limit beyond the end of the file gives the same particles, so the
     #reading is not restarted:
@@ -548,16 +570,20 @@ def test_range_and_userdata():
         o.add_particles( x = [1.0,2.0], uz = 1.0, ekin = 1.0, pdgcode = 2112, weight = 1.0,
                          userdata = { 'nscat' : [0,1], 'temp' : [10.0,20.0], 'dir' : [[0,0,1]]*2 } )
     v = Viewer(fn)
-    for field, text in ( ('pick','ud'), ('pick','x > 0cm and ud.'), ('plot','userdata.t'),
-                         ('pick','use') ):
+    for field, text in ( ('pick','userd'), ('pick','x > 0cm and userdata.'), ('plot','userdata.t'),
+                         ('pick','userdata.d') ):
         print(f'completions of {text!r}:', [ c for c, _ in v.complete(field,text)[1] ])
-    for text in ( 'ud.nscat > 0', 'ud.nope > 0', 'ud.dir > 0' ):
+    for text in ( 'userdata.nscat > 0', 'userdata.nope > 0', 'userdata.dir > 0',
+                  'userdata.dir.at(2) > 0', 'userdata.dir.at(3) > 0', 'userdata.nscat.at(0) > 0' ):
         print(f'check of {text!r}:', v.check('pick',text))
-    print('without userdata:', Viewer(ex).check('plot','ud.nscat;bar'))
+    w = Viewer(ex)
+    print('without userdata:', w.check('plot','userdata.nscat;bar'), w.check('pick','x > 0cm and userdata.'),
+          w.hint('pick','userdata.'))
     pathlib.Path(fn).unlink()
 
 test_figures()
 test_code()
+test_c_translation()
 test_range_and_userdata()
 test_fields()
 test_reading()

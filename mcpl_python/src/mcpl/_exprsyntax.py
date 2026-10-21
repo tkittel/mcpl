@@ -209,8 +209,10 @@ class _ExprParser:
 
     def _statement( self ):
         name, op = self._peek(), self._peek(1)
-        if name in ( ( 'name', 'ud' ), ( 'name', 'userdata' ) ) and op == ( 'op', '.' ):
-            nxt = self._peek(3)
+        if name == ( 'name', 'userdata' ) and op == ( 'op', '.' ):
+            #(an assignment after userdata.NAME, or after the 8 tokens of
+            #userdata.NAME.at(INDEX)):
+            nxt = self._peek(8 if self._peek(3) == ( 'op', '.' ) else 3)
             if nxt[0] == 'op' and ( nxt[1] == '=' or nxt[1] in _op_assign ):
                 raise self._error('fields of the userdata can not be changed')
         if name[0] == 'name' and op[0] == 'op' and ( op[1] == '=' or op[1] in _op_assign ):
@@ -326,15 +328,35 @@ class _ExprParser:
                 self._expect('op',')')
             return ast.Call( func = ast.Name( id = s, ctx = ast.Load() ), args = args,
                              keywords = [] )
-        if s in ( 'ud', 'userdata' ) and self._accept('op','.'):
-            #(a field of the userdata, as one name "userdata.NAME", see
-            #_ExprEvaluator.name):
-            kind, field = self._peek()
-            if kind != 'name':
-                raise self._error('the name of a userdata field is missing')
-            self._i += 1
-            return ast.Name( id = f'userdata.{field}', ctx = ast.Load() )
+        if self._peek() == ( 'op', '.' ):
+            if s != 'userdata':
+                raise self._error('"." can only be used for fields of the userdata'
+                                  ' (as userdata.NAME)')
+            return self._userdata()
         return ast.Name( id = s, ctx = ast.Load() )
+
+    def _userdata( self ):
+        """A field of the userdata (after the name userdata), as one name
+        "userdata.NAME", or "userdata.NAME.at(INDEX)" for a value of an array
+        (counting from 0), see _ExprEvaluator.name"""
+        self._take()#(the ".")
+        kind, field = self._peek()
+        if kind != 'name':
+            raise self._error('the name of a userdata field is missing')
+        self._i += 1
+        if not self._accept('op','.'):
+            return ast.Name( id = f'userdata.{field}', ctx = ast.Load() )
+        if not self._accept('name','at'):
+            raise self._error('values of arrays in the userdata are written as'
+                              ' userdata.NAME.at(INDEX)')
+        self._expect('op','(')
+        kind, index = self._peek()
+        if kind != 'number' or not index.isdigit():
+            raise self._error('the index of a value in an array must be a whole number'
+                              ' (counting from 0)')
+        self._i += 1
+        self._expect('op',')')
+        return ast.Name( id = f'userdata.{field}.at({int(index)})', ctx = ast.Load() )
 
     def _number( self, s ):
         v = ast.literal_eval(s)

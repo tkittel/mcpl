@@ -1,3 +1,31 @@
+pick example 'pdgcode == neutron': 726 particles
+pick example 'pdgcode in (neutron,gamma)': 965 particles
+pick example 'abs(pdgcode) in (electron,muon)': 23 particles
+pick example 'ekin < 25meV': 0 particles
+pick example '0cm < z < 10cm': 0 particles
+pick example 'pdgcode == neutron and wavelength > 1.8Aa': 0 particles
+pick example 'hypot(x,y) < 5cm and angle_to(0,0,1) < 1deg': 3 particles
+pick example 'not ( time > 10us or weight < 0.1 )': 1006 particles
+pick example '(userflags & 0xff) == 7': 0 particles
+pick example 'mod(fileidx,10) == 0': 101 particles
+pick example 'userdata.nscat >= 2': 502 particles
+pick example 'userdata.origdir.at(2) > 0.99': 1006 particles
+edit example 'z += 1cm': ok
+edit example 'weight *= 0.5': ok
+edit example 'wavelength = 1.8Aa': ok
+edit example 'rotate_y(90deg);x += 10cm': ok
+edit example 'swap(x,y)': ok
+edit example 'tmp = hypot(x,y);x = tmp;y = 0cm': ok
+edit example 'time += hypot(x,y,z)/(2200m/s)': ok
+histogram example 'ekin': Histogram
+histogram example 'ekin/MeV;logx;split=pdgcode': Histogram
+histogram example 'ekin;logx;lethargy': Histogram
+histogram example 'wavelength/Aa;range=0:10': Histogram
+histogram example 'x : y;xrange=-10cm:10cm;yrange=-10cm:10cm': Histogram2D
+histogram example 'atan2(uy,ux)/deg : uz': Histogram2D
+histogram example 'pdgcode;bar': BarHistogram
+histogram example 'angle_to(0,0,1)/deg;logy;split=pdgcode in (neutron,gamma)': Histogram
+histogram example 'userdata.nscat;bar;unweighted': BarHistogram
 'pdgcode in (neutron,gamma)': 965 particles, normalised 'pdgcode in (neutron,gamma)', as expected: True
 'pdgcode not in ( neutron, gamma )': 41 particles, normalised 'pdgcode not in (neutron,gamma)', as expected: True
 'abs(pdgcode) in (11)': 23 particles, normalised 'abs(pdgcode) in (11)', as expected: True
@@ -8,18 +36,30 @@ pdgcode in (): Syntax error in expression "pdgcode in ()", after "pdgcode in (":
 pdgcode in (1cm): Incompatible units in comparison with "in": value without units and length (add units, e.g. 2cm) in expression "pdgcode in (1cm)"
 0 < pdgcode in (1,2): Syntax error in expression "0 < pdgcode in (1,2)", after "0 < pdgcode": "in" can not be used in a chain of comparisons
 pdgcode in (1,2) < 3: Syntax error in expression "pdgcode in (1,2) < 3", after "pdgcode in (1,2)": "in" can not be used in a chain of comparisons
-'ud.nscat >= 2': [False, False, True, True], normalised 'userdata.nscat>=2'
-'userdata.temp < 25 or ud.nscat == 3': [True, True, False, True], normalised 'userdata.temp<25 or userdata.nscat==3'
-'ud.nscat in (0,3)': [True, False, False, True], normalised 'userdata.nscat in (0,3)'
-value ud.temp*2: [20.0, 40.0, 60.0, 80.0]
-ud.nope > 1: No userdata field "nope" (the fields are: nscat, temp, dir) in expression "ud.nope > 1"
-ud.dir > 1: The userdata field "dir" has 3 values per particle, and only fields of one value can be used in expression "ud.dir > 1"
-ud > 1: Fields of the userdata are written as userdata.NAME or ud.NAME, in expression "ud > 1"
-ud. > 1: Syntax error in expression "ud. > 1", after "ud.": the name of a userdata field is missing
-edited with userdata values: [10.0, 20.0, 30.0, 40.0]
-changing userdata: Syntax error in expression "ud.nscat += 1", at the start: fields of the userdata can not be changed
-without userdata: The particles have no userdata (for userdata.nscat) in expression "ud.nscat > 1"
-bar chart of ud.nscat: BarHistogram
+'userdata.nscat >= 2': [False, False, True, True], normalised 'userdata.nscat>=2'
+'userdata.temp < 25 or userdata.nscat == 3': [True, True, False, True], normalised 'userdata.temp<25 or userdata.nscat==3'
+'userdata.nscat in (0,3)': [True, False, False, True], normalised 'userdata.nscat in (0,3)'
+'userdata.dir.at(0) > 0.5': [False, False, True, True], normalised 'userdata.dir.at(0)>0.5'
+'userdata.dir.at( 2 ) == 1': [True, False, False, False], normalised 'userdata.dir.at(2)==1'
+'hypot(userdata.dir.at(0),userdata.dir.at(1)) > 0.9': [False, True, True, True], normalised 'hypot(userdata.dir.at(0),userdata.dir.at(1))>0.9'
+value userdata.temp*2: [20.0, 40.0, 60.0, 80.0]
+value userdata.dir.at(1): [0.0, 1.0, 0.0, 0.800000011920929]
+userdata.nope > 1: No userdata field "nope" (the fields are: nscat, temp, dir) in expression "userdata.nope > 1"
+userdata.dir > 1: The userdata field "dir" has 3 values per particle (use userdata.dir.at(0) to userdata.dir.at(2)) in expression "userdata.dir > 1"
+userdata.dir.at(3) > 0: The index 3 is too large for the userdata field "dir", which has 3 values per particle (from .at(0) to .at(2)) in expression "userdata.dir.at(3) > 0"
+userdata.nscat.at(0) > 0: The userdata field "nscat" has one value per particle (use userdata.nscat without .at(0)) in expression "userdata.nscat.at(0) > 0"
+userdata.dir.at(x) > 0: Syntax error in expression "userdata.dir.at(x) > 0", after "userdata.dir.at(": the index of a value in an array must be a whole number (counting from 0)
+userdata.dir.at(1.5) > 0: Syntax error in expression "userdata.dir.at(1.5) > 0", after "userdata.dir.at(": the index of a value in an array must be a whole number (counting from 0)
+userdata.dir.get(1) > 0: Syntax error in expression "userdata.dir.get(1) > 0", after "userdata.dir.": values of arrays in the userdata are written as userdata.NAME.at(INDEX)
+ud.nscat > 1: Syntax error in expression "ud.nscat > 1", after "ud": "." can only be used for fields of the userdata (as userdata.NAME)
+x.y > 1: Syntax error in expression "x.y > 1", after "x": "." can only be used for fields of the userdata (as userdata.NAME)
+userdata > 1: Fields of the userdata are written as userdata.NAME, in expression "userdata > 1"
+userdata. > 1: Syntax error in expression "userdata. > 1", after "userdata.": the name of a userdata field is missing
+edited with userdata values: [10.0, 20.0, 30.0, 40.0] [0.0, 100.0, 0.0, 80.0]
+changing userdata: Syntax error in expression "userdata.nscat += 1", at the start: fields of the userdata can not be changed
+changing userdata: Syntax error in expression "userdata.dir.at(1) = 2", at the start: fields of the userdata can not be changed
+without userdata: The particles have no userdata (for userdata.nscat) in expression "userdata.nscat > 1"
+bar chart of userdata.nscat: BarHistogram
 value 'ekin/MeV': 'ekin/MeV'
 value '(ekin) / MeV': 'ekin/MeV'
 value '(x**2+y^2)/cm^2': '(x^2+y^2)/cm^2'
@@ -201,7 +241,7 @@ ParticleFilter("__import__('os').system('ls')"): The character ' can not be used
 ParticleFilter('ekin'): Expression "ekin" is not a condition (e.g. a comparison)
 ParticleFilter('lambda: 1'): Syntax error in expression "lambda: 1", after "lambda": unexpected ":"
 ParticleFilter('sin(x, y=1) > 0'): Syntax error in expression "sin(x, y=1) > 0", after "sin(x, y": ")" is expected, not "=" (use == for comparisons)
-ParticleFilter('x.real > 0'): Syntax error in expression "x.real > 0", after "x": unexpected "."
+ParticleFilter('x.real > 0'): Syntax error in expression "x.real > 0", after "x": "." can only be used for fields of the userdata (as userdata.NAME)
 ParticleFilter('[x][0] > 0'): The character [ can not be used in expressions (in "[x][0] > 0")
 ParticleFilter("x > 'a'"): The character ' can not be used in expressions (in "x > 'a'")
 ParticleFilter(''): Syntax error in expression "", at the start: a value is missing

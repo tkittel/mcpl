@@ -157,9 +157,9 @@ def _expr_check( node, expr, variables = () ):
                                             or n.id in _expr_constants
                                             or n.id in _expr_functions
                                             or n.id.startswith('userdata.') ):
-            if n.id in ( 'ud', 'userdata' ):
-                raise MCPLError(f'Fields of the userdata are written as userdata.NAME'
-                                f' or ud.NAME, in expression "{expr}"')
+            if n.id == 'userdata':
+                raise MCPLError(f'Fields of the userdata are written as userdata.NAME,'
+                                f' in expression "{expr}"')
             raise MCPLError(f'Unknown name "{n.id}" in expression "{expr}"'
                             ' (particle fields are: '
                             + ', '.join(_expr_fields) + ')')
@@ -273,7 +273,8 @@ class _ExprEvaluator:
         raise MCPLError(f'{msg} in expression "{self._expr}"')
     def name( self, n ):
         if n.startswith('userdata.'):
-            return self._userdata(n[9:])
+            field, _, index = n[9:].partition('.at(')
+            return self._userdata(field,int(index[:-1]) if index else None)
         if n == 'wavelength':
             self._check_wavelength()
             q = self._wavelength()
@@ -293,20 +294,31 @@ class _ExprEvaluator:
             q = _Q(getattr(self._block,n),_expr_field_dims.get(n))
             self._cache[n] = self.finite(q,f'The particle field {n} has')
         return self._cache[n]
-    def _userdata( self, field ):
-        """The values of the field of the userdata (without units)"""
+    def _userdata( self, field, index = None ):
+        """The values of the field of the userdata (without units), or of the
+        value with the index (from 0) of a field with an array of values"""
         if isinstance(self._block,_EmptyBlock):
             return _Q(np.zeros(0))#(all fields, when checked without a file)
         ud = self._block.userdata
+        name = f'userdata.{field}' + ( '' if index is None else f'.at({index})' )
         if ud is None:
-            self.error(f'The particles have no userdata (for userdata.{field})')
+            self.error(f'The particles have no userdata (for {name})')
         names = ud.dtype.names
         if field not in names:
             self.error(f'No userdata field "{field}" (the fields are: {", ".join(names)})')
         v = ud[field]
-        if v.ndim != 1:
-            self.error(f'The userdata field "{field}" has {v.shape[1]} values per particle,'
-                       ' and only fields of one value can be used')
+        n = v.shape[1] if v.ndim > 1 else None
+        if n is None and index is not None:
+            self.error(f'The userdata field "{field}" has one value per particle'
+                       f' (use userdata.{field} without .at({index}))')
+        if n is not None and index is None:
+            self.error(f'The userdata field "{field}" has {n} values per particle'
+                       f' (use userdata.{field}.at(0) to userdata.{field}.at({n-1}))')
+        if index is not None:
+            if index >= n:
+                self.error(f'The index {index} is too large for the userdata field "{field}",'
+                           f' which has {n} values per particle (from .at(0) to .at({n-1}))')
+            v = v[:,index]
         return _Q(v.astype(float) if v.dtype.kind in 'iub' else v)
 
     def _wavelength( self ):

@@ -81,7 +81,10 @@ _hints = (
       'wavelength, calculated from ekin, only for neutrons and gammas (a length: e.g. pdgcode == neutron and wavelength > 1.8Aa, or wavelength/Aa)' ),
     ( 'fields', 'userdata.NAME',
       'a field of the userdata (no unit)',
-      'the field NAME of the userdata of the particles, in files with userdata (no unit: e.g. userdata.nscat > 2, or ud.nscat > 2 for short; only fields of one value per particle, which can not be changed)' ),
+      'the field NAME of the userdata of the particles, in files with userdata (no unit, and it can not be changed: e.g. userdata.nscat > 2)' ),
+    ( 'fields', 'userdata.NAME.at(INDEX)',
+      'a value of an array in the userdata (no unit)',
+      'the value with the INDEX (counting from 0) of the field NAME of the userdata, for fields with several values per particle (e.g. userdata.origdir.at(2) for the third value of a field origdir:float32[3])' ),
     ( 'constants', 'pi',
       'pi (no unit)',
       'pi = 3.14159... (no unit: e.g. atan2(y,x) > pi/2)' ),
@@ -265,43 +268,89 @@ _group_titles = { 'histoptions' : 'Options',
                   'functions' : 'Functions',
                   'statements' : 'Statements' }
 
+#Examples of the expressions (picks, edits and histogram strings), from simple
+#to advanced, with what they do, for the help texts and the viewers:
+examples = {
+    'pick' : (
+        ( 'pdgcode == neutron', 'Neutrons.' ),
+        ( 'pdgcode in (neutron,gamma)', 'Neutrons and gammas.' ),
+        ( 'abs(pdgcode) in (electron,muon)', 'Electrons, muons and their antiparticles.' ),
+        ( 'ekin < 25meV', 'Kinetic energies below 25 meV.' ),
+        ( '0cm < z < 10cm', 'Positions between z = 0 and 10 cm.' ),
+        ( 'pdgcode == neutron and wavelength > 1.8Aa',
+          ( 'Neutrons with wavelengths above 1.8 Aa (only neutrons and gammas have'
+            ' wavelengths, so they are picked first).' ) ),
+        ( 'hypot(x,y) < 5cm and angle_to(0,0,1) < 1deg',
+          'Within 5 cm of the z axis, and moving within 1 degree of its direction.' ),
+        ( 'not ( time > 10us or weight < 0.1 )', 'Early particles with large weights.' ),
+        ( '(userflags & 0xff) == 7', 'The lowest 8 bits of the user flags are 7.' ),
+        ( 'mod(fileidx,10) == 0', 'Every tenth particle in the file.' ),
+        ( 'userdata.nscat >= 2', 'The userdata field nscat is 2 or more (in files with userdata).' ),
+        ( 'userdata.origdir.at(2) > 0.99',
+          'The third value (counting from 0) of the userdata field origdir is above 0.99.' ),
+    ),
+    'edit' : (
+        ( 'z += 1cm', 'Move the particles 1 cm along z.' ),
+        ( 'weight *= 0.5', 'Halve the weights.' ),
+        ( 'wavelength = 1.8Aa',
+          'Give the particles the energy of a wavelength of 1.8 Aa (only for neutrons and gammas).' ),
+        ( 'rotate_y(90deg);x += 10cm', 'Rotate around the y axis, then move along x.' ),
+        ( 'swap(x,y)', 'Swap the x and y coordinates.' ),
+        ( 'tmp = hypot(x,y);x = tmp;y = 0cm', 'Use a variable (tmp) in later statements.' ),
+        ( 'time += hypot(x,y,z)/(2200m/s)',
+          'Add the time to fly to the origin at 2200 m/s.' ),
+    ),
+    'hist' : (
+        ( 'ekin', 'The kinetic energies, in a suitable unit.' ),
+        ( 'ekin/MeV;logx;split=pdgcode',
+          'The energies in MeV, on a logarithmic axis, with a curve for each particle type.' ),
+        ( 'ekin;logx;lethargy', 'The energies per unit of lethargy.' ),
+        ( 'wavelength/Aa;range=0:10',
+          'The wavelengths from 0 to 10 Aa (only of neutrons and gammas, the others are left out).' ),
+        ( 'x : y;xrange=-10cm:10cm;yrange=-10cm:10cm', 'The positions in the x-y plane.' ),
+        ( 'atan2(uy,ux)/deg : uz', 'The directions: the azimuth around the z axis, and uz.' ),
+        ( 'pdgcode;bar', 'A bar chart of the particle types.' ),
+        ( 'angle_to(0,0,1)/deg;logy;split=pdgcode in (neutron,gamma)',
+          'The angles to the z axis, for neutrons and gammas, and for the others.' ),
+        ( 'userdata.nscat;bar;unweighted', 'The numbers of particles for each value of nscat.' ),
+    ),
+}
+
+def _examples_text( topic ):
+    """The examples of the topic, as in the help texts of mcpltool"""
+    opt = { 'pick' : '-p', 'edit' : '-E', 'hist' : '-H' }[topic]
+    lines = []
+    for expr, what in examples[topic]:
+        arg = f'  {opt} "{expr}"'
+        text = textwrap.wrap(what,width = 79 - 30)
+        if len(arg) <= 28:
+            lines.append(f'{arg:<30}{text[0]}')
+            text = text[1:]
+        else:
+            lines.append(arg)
+        lines += [ ' ' * 30 + t for t in text ]
+    return '\n'.join(lines)
+
 _intro = {
-    'pick' : '''PICK: an expression which is true for the particles to use, e.g.
-  -p "pdgcode == neutron and ekin < 25meV"
-  -p "hypot(x,y) < 10cm and angle_to(0,0,1) < 1deg"
-  -p "(userflags & 0xff) == 7 or time > 10us"
-  -p "abs(pdgcode) in (electron,muon)"
-The operators are: + - * / (and ^ for powers), == != < <= > >=, in and
+    'pick' : ( 'PICK: an expression which is true for the particles to use, for example:',
+               '''The operators are: + - * / (and ^ for powers), == != < <= > >=, in and
 not in (one of the values in parentheses), and, or, not (and & | ~ for
 bits). Values with units must be written with units
 (e.g. 25meV or 10cm), except for a plain 0 (e.g. x > 0), and the wavelength
 can only be used for neutrons and gammas, which must be picked first (e.g.
-"pdgcode == neutron and wavelength > 1.8Aa").''',
-    'edit' : '''EDIT: statements separated by ";", executed in order, e.g.
-  -E "z += 1cm;weight *= 0.5"
-  -E "rotate_y(90deg);x += 10cm"
-  -E "tmp = x;x = y;y = tmp"
-The statements are assignments to fields (=, +=, -=, *= and /=, with values
+"pdgcode == neutron and wavelength > 1.8Aa").''' ),
+    'edit' : ( 'EDIT: statements separated by ";", executed in order, for example:',
+               '''The statements are assignments to fields (=, +=, -=, *= and /=, with values
 in the units of the field, and wavelength = ... changing ekin), assignments
 to variables (other lowercase names, which can be used in later statements),
 and the statements listed below. The expressions are written as for -p (see
--p help).''',
-    'hist' : '''HIST: what to plot, an expression of the particles (written as for -p),
+-p help).''' ),
+    'hist' : ( '''HIST: what to plot, an expression of the particles (written as for -p),
 or two separated by ":" for a 2D histogram, followed by options separated by
-";". For example:
-  -H ekin                     The kinetic energies, in a suitable unit.
-  -H "ekin/MeV;logx;split=pdgcode"
-                              The energies in MeV, on a logarithmic axis,
-                              with a curve for each particle type.
-  -H "wavelength/Aa;range=0:10"
-                              The wavelengths from 0 to 10 Aa (only of
-                              neutrons and gammas, the others are left out).
-  -H "x : y;xrange=-10cm:10cm;yrange=-10cm:10cm"
-                              The positions in the x-y plane.
-  -H "pdgcode;bar"            A bar chart of the particle types.
-The plots are shown in a window, or in the terminal (with -t), or saved in a
+";". For example:''',
+               '''The plots are shown in a window, or in the terminal (with -t), or saved in a
 file (with -o FILE). -H can be given several times, for several plots, and
-with -w it adds plots to the viewer.''',
+with -w it adds plots to the viewer.''' ),
 }
 
 #(the end of the help texts, if any):
@@ -322,7 +371,8 @@ _topic_groups = {
 
 def _help_text( topic ):
     """Help text for -p help ('pick'), -E help ('edit') or -H help ('hist')"""
-    lines = [ _intro[topic] ]
+    head, tail = _intro[topic]
+    lines = [ head, _examples_text(topic), tail ]
     for g in _topic_groups[topic]:
         lines += [ '', _group_titles[g] + ':' ]
         for grp, name, _short, long in _hints:

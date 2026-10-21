@@ -456,38 +456,69 @@ def test_in_and_userdata():
             mcpl.ParticleFilter(bad)
         except mcpl.MCPLError as e:
             print(f'{bad}: {e}')
-    #Fields of the userdata (of one value per particle), as userdata.NAME or
-    #ud.NAME:
+    #Fields of the userdata, as userdata.NAME, and values of arrays as
+    #userdata.NAME.at(INDEX) (counting from 0):
     fn = 'ud_expressions.mcpl'
     with mcpl.MCPLOutFile(fn,userdata_layout='nscat:uint8,temp:float32,dir:float32[3]') as o:
         o.add_particles( x = [1.0,2.0,3.0,4.0], uz = 1.0, ekin = 1.0, pdgcode = 2112, weight = 1.0,
                          userdata = { 'nscat' : [0,1,2,3], 'temp' : [10.0,20.0,30.0,40.0],
-                                      'dir' : [[0,0,1]]*4 } )
+                                      'dir' : [[0,0,1],[0,1,0],[1,0,0],[0.6,0.8,0]] } )
     with mcpl.MCPLFile(fn) as f:
         u = f.read_block()
-        for e in ( 'ud.nscat >= 2', 'userdata.temp < 25 or ud.nscat == 3', 'ud.nscat in (0,3)' ):
+        for e in ( 'userdata.nscat >= 2', 'userdata.temp < 25 or userdata.nscat == 3',
+                   'userdata.nscat in (0,3)', 'userdata.dir.at(0) > 0.5', 'userdata.dir.at( 2 ) == 1',
+                   'hypot(userdata.dir.at(0),userdata.dir.at(1)) > 0.9' ):
             print(f'{e!r}: {mcpl.ParticleFilter(e)(u).tolist()}, normalised {_expr_canonical(e)!r}')
-        print('value ud.temp*2:', mcpl.ParticleValue('ud.temp*2')(u).tolist())
-        for bad in ( 'ud.nope > 1', 'ud.dir > 1', 'ud > 1', 'ud. > 1' ):
+        print('value userdata.temp*2:', mcpl.ParticleValue('userdata.temp*2')(u).tolist())
+        print('value userdata.dir.at(1):', mcpl.ParticleValue('userdata.dir.at(1)')(u).tolist())
+        for bad in ( 'userdata.nope > 1', 'userdata.dir > 1', 'userdata.dir.at(3) > 0',
+                     'userdata.nscat.at(0) > 0', 'userdata.dir.at(x) > 0', 'userdata.dir.at(1.5) > 0',
+                     'userdata.dir.get(1) > 0', 'ud.nscat > 1', 'x.y > 1', 'userdata > 1', 'userdata. > 1' ):
             try:
                 mcpl.ParticleFilter(bad)(u)
             except mcpl.MCPLError as e:
                 print(f'{bad}: {e}')
-    b2 = mcpl.MCPLFile(fn,edit='x = ud.temp*1cm').read_block()
-    print('edited with userdata values:', b2.x.tolist())
+    b2 = mcpl.MCPLFile(fn,edit='x = userdata.temp*1cm;y = userdata.dir.at(1)*1m').read_block()
+    print('edited with userdata values:', b2.x.tolist(), b2.y.tolist())
+    for bad in ( 'userdata.nscat += 1', 'userdata.dir.at(1) = 2' ):
+        try:
+            mcpl.ParticleEdit(bad)
+        except mcpl.MCPLError as e:
+            print(f'changing userdata: {e}')
     try:
-        mcpl.ParticleEdit('ud.nscat += 1')
-    except mcpl.MCPLError as e:
-        print(f'changing userdata: {e}')
-    try:
-        mcpl.ParticleFilter('ud.nscat > 1')(b)
+        mcpl.ParticleFilter('userdata.nscat > 1')(b)
     except mcpl.MCPLError as e:
         print(f'without userdata: {e}')
-    h = mcpl.histogram(fn,'ud.nscat;bar')
-    print('bar chart of ud.nscat:', type(h).__name__)
+    h = mcpl.histogram(fn,'userdata.nscat;bar')
+    print('bar chart of userdata.nscat:', type(h).__name__)
+    pathlib.Path(fn).unlink()
+
+def test_help_examples():
+    #The examples of the help texts (and the viewers) are valid, and work on
+    #files (with the userdata fields of the examples):
+    from mcpldev._exprhelp import examples
+    fn = 'help_examples.mcpl'
+    with ( mcpl.MCPLOutFile(fn,userdata_layout='nscat:uint8,origdir:float32[3]') as o,
+           mcpl.MCPLFile(example_file) as f ):
+        b = f.read_block()
+        o.add_particles(b,userdata={ 'nscat' : np.arange(len(b)) % 4,
+                                     'origdir' : np.tile([0.0,0.0,1.0],(len(b),1)) })
+    with mcpl.MCPLFile(fn) as f:
+        b = f.read_block()
+        for expr, _ in examples['pick']:
+            print(f'pick example {expr!r}: {int(mcpl.ParticleFilter(expr)(b).sum())} particles')
+        #(for neutrons, which have wavelengths):
+        neutrons = b[b.pdgcode == 2112]
+        for expr, _ in examples['edit']:
+            mcpl.ParticleEdit(expr)(neutrons)
+            print(f'edit example {expr!r}: ok')
+    for expr, _ in examples['hist']:
+        h = mcpl.histogram(fn,expr)
+        print(f'histogram example {expr!r}: {type(h).__name__}')
     pathlib.Path(fn).unlink()
 
 if __name__ == '__main__':
+    test_help_examples()
     test_in_and_userdata()
     test_canonical()
     test_angle_to()

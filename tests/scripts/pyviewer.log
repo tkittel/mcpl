@@ -61,10 +61,13 @@ The command and code of plots, and of writing files:
         cpp |   mcpl::MCPLOutFile fout( "by_python.mcpl" );
         cpp |   fout.transfer_metadata( fin );  // copy the header
         cpp |   for ( auto p : fin ) {
-        cpp |     // Not yet translated (expressions are available in Python and mcpltool):
-        cpp |     //   the pick pdgcode == neutron
-        cpp |     //   the edit z += 1m;weight *= 2
+        cpp |     // the pick: pdgcode == neutron
+        cpp |     if ( !( p.pdgcode() == 2112 ) )
+        cpp |       continue;
         cpp |     mcpl_particle_t q = p.c_struct();
+        cpp |     // the edit: z += 1m;weight *= 2
+        cpp |     q.position[2] += 100.0;
+        cpp |     q.weight *= 2;
         cpp |     fout.add( q );
         cpp |   }
         cpp |   fout.close();
@@ -79,10 +82,13 @@ The command and code of plots, and of writing files:
           c |   mcpl_transfer_metadata( fin, fout );  /* copy the header */
           c |   const mcpl_particle_t * p;
           c |   while ( ( p = mcpl_read( fin ) ) ) {
-          c |     /* Not yet translated (expressions are available in Python and mcpltool):
-          c |          the pick pdgcode == neutron
-          c |          the edit z += 1m;weight *= 2 */
+          c |     /* the pick: pdgcode == neutron */
+          c |     if ( !( p->pdgcode == 2112 ) )
+          c |       continue;
           c |     mcpl_particle_t q = *p;
+          c |     /* the edit: z += 1m;weight *= 2 */
+          c |     q.position[2] += 100.0;
+          c |     q.weight *= 2;
           c |     mcpl_add_particle( fout, &q );
           c |   }
           c |   mcpl_close_outfile( fout );
@@ -119,10 +125,10 @@ The command and code of plots, and of writing files:
         cpp |   for ( auto p : f ) {
         cpp |     if ( n++ == 300 )
         cpp |       break;
-        cpp |     // Not yet translated (expressions are available in Python and mcpltool):
-        cpp |     //   the pick ekin > 1MeV
-        cpp |     //   the histogram of ekin;logx
-        cpp |     (void)p;
+        cpp |     // the pick: ekin > 1MeV
+        cpp |     if ( !( p.ekin() > 1.0 ) )
+        cpp |       continue;
+        cpp |     // Insert custom C++ logic here to mimic the histogram: "ekin;logx"
         cpp |   }
         cpp | }
           c | #include "mcpl.h"
@@ -134,10 +140,10 @@ The command and code of plots, and of writing files:
           c |   mcpl_seek( f, 100 );
           c |   const mcpl_particle_t * p;
           c |   for ( uint64_t n = 0; n < 300 && ( p = mcpl_read( f ) ); ++n ) {
-          c |     /* Not yet translated (expressions are available in Python and mcpltool):
-          c |          the pick ekin > 1MeV
-          c |          the histogram of ekin;logx */
-          c |     (void)p;
+          c |     /* the pick: ekin > 1MeV */
+          c |     if ( !( p->ekin > 1.0 ) )
+          c |       continue;
+          c |     /* Insert custom C logic here to mimic the histogram: "ekin;logx" */
           c |   }
           c |   mcpl_close_file( f );
           c |   return 0;
@@ -162,9 +168,9 @@ The command and code of plots, and of writing files:
         cpp |   for ( auto p : fin ) {
         cpp |     if ( n++ == 300 )
         cpp |       break;
-        cpp |     // Not yet translated (expressions are available in Python and mcpltool):
-        cpp |     //   the pick ekin > 1MeV
-        cpp |     (void)p;
+        cpp |     // the pick: ekin > 1MeV
+        cpp |     if ( !( p.ekin() > 1.0 ) )
+        cpp |       continue;
         cpp |     fout.transfer_last_read_particle( fin );
         cpp |   }
         cpp |   fout.close();
@@ -180,9 +186,9 @@ The command and code of plots, and of writing files:
           c |   mcpl_seek( fin, 100 );
           c |   const mcpl_particle_t * p;
           c |   for ( uint64_t n = 0; n < 300 && ( p = mcpl_read( fin ) ); ++n ) {
-          c |     /* Not yet translated (expressions are available in Python and mcpltool):
-          c |          the pick ekin > 1MeV */
-          c |     (void)p;
+          c |     /* the pick: ekin > 1MeV */
+          c |     if ( !( p->ekin > 1.0 ) )
+          c |       continue;
           c |     mcpl_transfer_last_read_particle( fin, fout );
           c |   }
           c |   mcpl_close_outfile( fout );
@@ -190,19 +196,56 @@ The command and code of plots, and of writing files:
           c |   return 0;
           c | }
   same figures: True, same particles: True
+pick 'pdgcode == neutron' in c: p->pdgcode == 2112  []
+pick 'pdgcode == neutron' in cpp: p.pdgcode() == 2112  []
+pick 'abs(pdgcode) in (electron,muon) or ekin < 25meV and hypot(x,y) < 5cm' in c: ( abs( p->pdgcode ) == 11 || abs( p->pdgcode ) == 13 ) || ( p->ekin < 2.5e-08 && hypot( p->position[0], p->position[1] ) < 5.0 )  ['math.h', 'stdlib.h']
+pick 'abs(pdgcode) in (electron,muon) or ekin < 25meV and hypot(x,y) < 5cm' in cpp: ( std::abs( p.pdgcode() ) == 11 || std::abs( p.pdgcode() ) == 13 ) || ( p.ekin() < 2.5e-08 && std::hypot( p.x(), p.y() ) < 5.0 )  ['cmath', 'cstdlib']
+pick 'pdgcode not in (22,2112)' in c: p->pdgcode != 22 && p->pdgcode != 2112  []
+pick 'pdgcode not in (22,2112)' in cpp: p.pdgcode() != 22 && p.pdgcode() != 2112  []
+pick '(userflags & 0xff) == 0 and not ekin > 1MeV' in c: ( p->userflags & 255 ) == 0 && !( p->ekin > 1.0 )  []
+pick '(userflags & 0xff) == 0 and not ekin > 1MeV' in cpp: ( p.userflags() & 255 ) == 0 && !( p.ekin() > 1.0 )  []
+pick '0cm < x < 2cm' in c: 0.0 < p->position[0] && p->position[0] < 2.0  []
+pick '0cm < x < 2cm' in cpp: 0.0 < p.x() && p.x() < 2.0  []
+pick 'ekin/MeV > 0.5 and uz > 0.9' in c: p->ekin > 0.5 && p->direction[2] > 0.9  []
+pick 'ekin/MeV > 0.5 and uz > 0.9' in cpp: p.ekin() > 0.5 && p.uz() > 0.9  []
+pick 'sqrt(x^2+y^2) < 3cm' in c: sqrt( pow( p->position[0], 2 ) + pow( p->position[1], 2 ) ) < 3.0  ['math.h']
+pick 'sqrt(x^2+y^2) < 3cm' in cpp: std::sqrt( std::pow( p.x(), 2 ) + std::pow( p.y(), 2 ) ) < 3.0  ['cmath']
+pick '-x > 1mm' in c: -p->position[0] > 0.1  []
+pick '-x > 1mm' in cpp: -p.x() > 0.1  []
+pick 'pdgcode/2 > 1000' in c: (double)p->pdgcode / 2 > 1000  []
+pick 'pdgcode/2 > 1000' in cpp: static_cast<double>(p.pdgcode()) / 2 > 1000  []
+pick 'angle_to(0,0,1) < 1deg' in c: None  []
+pick 'angle_to(0,0,1) < 1deg' in cpp: None  []
+pick 'wavelength > 1.8Aa' in c: None  []
+pick 'wavelength > 1.8Aa' in cpp: None  []
+pick 'mod(fileidx,10) == 0' in c: None  []
+pick 'mod(fileidx,10) == 0' in cpp: None  []
+edit 'z += 1m;weight *= 0.5': ['q.position[2] += 100.0;', 'q.weight *= 0.5;']
+edit 'x = 2*y;ekin = ekin/2': ['q.position[0] = 2 * q.position[1];', 'q.ekin /= 2;']
+edit 'time = time + 1ms*abs(x)/1cm': ['q.time += fabs( q.position[0] );']
+edit 'rotate_z(90deg)': None
+edit 'ux = 1': None
+edit 'a = 2*x;y = a': None
+highlighted command: option[-s5] option[-p] string["pdgcode == neutron"] option[-H] string["ekin;logx"]
+highlighted python: keyword[import] string['example.mcpl'] number[5] string['pdgcode == neutron'] string['ekin;logx']
+highlighted cpp: preprocessor[#include] string["mcplcpp.h"] preprocessor[#include] string[<cstdint>] keyword[int] string["example.mcpl"] number[5] keyword[for] keyword[auto] comment[// the pick: pdgcode == neutron] keyword[if] number[2112] keyword[continue] comment[// Insert custom C++ logic here to mimic the histogram: "ekin;logx"]
+highlighted c: preprocessor[#include] string["mcpl.h"] preprocessor[#include] string[<stdint.h>] keyword[int] keyword[void] string["example.mcpl"] number[5] keyword[const] keyword[while] comment[/* the pick: pdgcode == neutron */] keyword[if] number[2112] keyword[continue] comment[/* Insert custom C logic here to mimic the histogram: "ekin;logx" */] keyword[return] number[0]
 limit 1e9: read again: False
 limit 500: read again: True
 limit all: read again: True
 skip 2000: read again: True
 skip 3000: read again: False
-completions of 'ud': ['ud.nscat', 'ud.temp']
-completions of 'x > 0cm and ud.': ['nscat', 'temp']
+completions of 'userd': ['userdata.nscat', 'userdata.temp', 'userdata.dir.at(']
+completions of 'x > 0cm and userdata.': ['nscat', 'temp', 'dir.at(']
 completions of 'userdata.t': ['temp']
-completions of 'use': ['userflags', 'userdata.nscat', 'userdata.temp']
-check of 'ud.nscat > 0': (True, '')
-check of 'ud.nope > 0': (False, 'No userdata field "nope" with one value per particle (the fields are: nscat, temp), in "ud.nope > 0"')
-check of 'ud.dir > 0': (False, 'No userdata field "dir" with one value per particle (the fields are: nscat, temp), in "ud.dir > 0"')
-without userdata: (False, 'The file has no userdata (for ud.nscat), in "ud.nscat;bar"')
+completions of 'userdata.d': ['dir.at(']
+check of 'userdata.nscat > 0': (True, '')
+check of 'userdata.nope > 0': (False, 'No userdata field "nope" (the fields are: nscat, temp, dir), in "userdata.nope > 0"')
+check of 'userdata.dir > 0': (False, 'The userdata field "dir" has 3 values per particle (use userdata.dir.at(0) to userdata.dir.at(2)), in "userdata.dir > 0"')
+check of 'userdata.dir.at(2) > 0': (True, '')
+check of 'userdata.dir.at(3) > 0': (False, 'The userdata field "dir" has 3 values per particle (use userdata.dir.at(0) to userdata.dir.at(2)), in "userdata.dir.at(3) > 0"')
+check of 'userdata.nscat.at(0) > 0': (False, 'The userdata field "nscat" has one value per particle (use userdata.nscat), in "userdata.nscat.at(0) > 0"')
+without userdata: (False, 'There are no userdata fields in this file, in "userdata.nscat;bar"') (False, 'There are no userdata fields in this file, in "x > 0cm and userdata."') userdata.  there are no userdata fields in this file
 views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:angle_to(0,0,1)/deg;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:userflags;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz
 check('skip','10'): (True, '')
 check('skip','x'): (False, 'Skip must be a number of particles')

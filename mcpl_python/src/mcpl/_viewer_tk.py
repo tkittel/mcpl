@@ -71,11 +71,14 @@ class TkViewer(WidgetViewer):
         style = ttk.Style(root)
         if root.tk.call('tk','windowingsystem') == 'x11':
             style.theme_use('clam')#(the default of X11 looks dated)
+            _check_fonts(root)
         #(the button of new plots, in the colour of the selected card):
         accent = _card_colors['accent']
         style.configure('Accent.TButton',foreground='white',background=accent,
                         bordercolor=accent)
         style.map('Accent.TButton',background=[ ( 'active', '#3d74ab' ) ])
+        #(the small buttons next to fields, as high as the fields):
+        style.configure('Small.TButton',padding=(2,0))
         import tkinter.font
         bold = tkinter.font.nametofont('TkDefaultFont').copy()
         bold.configure(weight='bold')
@@ -148,6 +151,8 @@ class TkViewer(WidgetViewer):
                     self._bind_entry(w,field)
                 mark = ttk.Label(frame,width=2)
                 mark.pack(side='left')
+                if field in _example_topics:
+                    self._examples_button(frame,field).pack(side='left',padx=(0,2))
                 self._entries[field], self._marks[field] = w, mark
                 self._hover(lab,field)
                 self._hover(w,field)
@@ -176,6 +181,7 @@ class TkViewer(WidgetViewer):
         ttk.Button(frame,text='</>  Code',takefocus=0,
                    command=lambda : _CodeWindow(self,'Code of the plot',
                                                 self.plot_code())).pack(side='right')
+        self._examples_button(frame,'shown_plot').pack(side='right',padx=(4,6))
         w = ttk.Entry(frame,width=40)
         w.pack(side='left',fill='x',expand=True)
         self._bind_entry(w,'shown_plot')
@@ -378,6 +384,21 @@ class TkViewer(WidgetViewer):
 
     #The text fields:
 
+    def _examples_button( self, parent, field ):
+        """The "?" button of a field, showing examples to use in it"""
+        _, ttk = _tk()
+        return ttk.Button(parent,text='?',width=2,takefocus=0,style='Small.TButton',
+                          command=lambda : _Examples(self,_example_topics[field],
+                                                     lambda e : self._use_example(field,e)))
+
+    def _use_example( self, field, text ):
+        """Put the example in the field, to be applied (or changed) there"""
+        w = self._entries[field]
+        w.focus_set()
+        self._set_text(w,text)
+        w.icursor('end')
+        self.on_field_edited(field,text)
+
     def _bind_entry( self, w, field ):
         w.bind('<KeyRelease>',lambda e : self._on_entry_key(w,field,e))
         w.bind('<Return>',lambda _e : self._on_entry_enter(w,field))
@@ -505,6 +526,14 @@ class TkViewer(WidgetViewer):
 
 #The heights of the cards of _CardList, and its colours:
 _card_heights = { 'card' : 64, 'small' : 30, 'header' : 26 }
+#(the styles of the highlighted code, see _viewer_code.highlight):
+_code_styles = { 'comment' : { 'foreground' : '#6a737d' },
+                 'string' : { 'foreground' : '#067d17' },
+                 'keyword' : { 'foreground' : '#0033b3' },
+                 'number' : { 'foreground' : '#1750eb' },
+                 'preprocessor' : { 'foreground' : '#9e5b00' },
+                 'option' : { 'foreground' : '#871094' } }
+
 _card_colors = { 'bg' : '#eef1f5', 'card' : '#ffffff', 'selected' : '#e2ebf6',
                  'border' : '#d5dbe3', 'accent' : '#2f5f8f', 'text' : '#1d2733',
                  'dim' : '#7a8594', 'badge' : '#dfe7f1' }
@@ -741,6 +770,43 @@ class _Controls:
         """The shown texts of the settings, as (option, text)"""
         return [ ( n, w.get() ) for n, w in self._widgets.items() ]
 
+_example_titles = { 'pick' : 'Examples of picks', 'edit' : 'Examples of edits',
+                    'hist' : 'Examples of plot expressions' }
+#(the topics of the examples of the fields, see _exprhelp.examples):
+_example_topics = { 'pick' : 'pick', 'edit' : 'edit', 'shown_plot' : 'hist' }
+
+class _Examples:
+    """A window with examples of expressions (of _exprhelp.examples), with what
+    they do, where clicking one calls on_choose with it"""
+    def __init__( self, tv, topic, on_choose ):
+        from ._exprhelp import examples
+        tk, ttk = _tk()
+        w = tk.Toplevel(tv.root)
+        w.title(_example_titles[topic])
+        w.transient(tv.root)
+        f = ttk.Frame(w,padding=10)
+        f.pack(fill='both',expand=True)
+        ttk.Label(f,text='Click an example to use it (and change it as needed). Help lists all'
+                  ' fields, units and functions.',foreground=_colors['dim']).pack(anchor='w')
+        text = tk.Text(f,width=84,height=min(30,3*len(examples[topic])),wrap='word',
+                       relief='flat',background='white',padx=8,pady=6,cursor='arrow')
+        text.pack(fill='both',expand=True,pady=(6,0))
+        text.tag_configure('what',lmargin1=24,lmargin2=24,spacing3=6,foreground=_colors['dim'],
+                           font='TkDefaultFont')
+        text.tag_configure('expr',font='TkFixedFont',foreground=_card_colors['accent'])
+        text.tag_configure('hover',underline=True)
+        for i, ( expr, what ) in enumerate(examples[topic]):
+            tag = f'example{i}'
+            text.insert('end',expr,( 'expr', tag ))
+            text.insert('end','\n')
+            text.insert('end',what + '\n','what')
+            text.tag_bind(tag,'<Button-1>',lambda _e, x=expr : ( on_choose(x), w.destroy() ))
+            text.tag_bind(tag,'<Enter>',lambda _e, t=tag : text.tag_add('hover',f'{t}.first',f'{t}.last'))
+            text.tag_bind(tag,'<Leave>',lambda _e : text.tag_remove('hover','1.0','end'))
+        text.configure(state='disabled')
+        ttk.Button(f,text='Close',command=w.destroy).pack(side='right',pady=(8,0))
+        w.bind('<Escape>',lambda _e : w.destroy())
+
 class _CodeWindow:
     """A window with the command of mcpltool, and tabs with the code (in
     Python, C++ and C) doing the same as the viewer (see Viewer.code), each
@@ -768,6 +834,8 @@ class _CodeWindow:
             text = tk.Text(parent,font='TkFixedFont',wrap='none',width=90,height=1,
                            relief='flat',background='white',padx=6,pady=4)
             text.pack(fill='both',expand=True)
+            for style, opts in _code_styles.items():
+                text.tag_configure(style,**opts)
             #(a scroll bar for the longer lines, if any, see show):
             bar = ttk.Scrollbar(parent,orient='horizontal',command=text.xview)
             text.configure(xscrollcommand=bar.set)
@@ -788,6 +856,7 @@ class _CodeWindow:
         w.bind('<Escape>',lambda _e : w.destroy())
 
     def show( self, code ):
+        from ._viewer_code import highlight
         #(the code in the tabs as high as the longest one):
         height = max( v.count('\n') + 1 for k, v in code.items() if k != 'command' )
         for key, text in self._texts.items():
@@ -802,6 +871,8 @@ class _CodeWindow:
                 text._bar.pack_forget()
             text.delete('1.0','end')
             text.insert('1.0',value)
+            for start, end, style in highlight(value,key):
+                text.tag_add(style,f'1.0+{start}c',f'1.0+{end}c')
             text.configure(state='disabled')
 
     def _copy( self, text ):
@@ -970,6 +1041,21 @@ class _AddPlot:
             self.top.destroy()
         else:
             self._message.configure(text=self.tv.v.check('plot',self.plot())[1])
+
+def _check_fonts( root ):
+    """Warn if the fonts are not antialiased, as with a Tk built without Xft on
+    X11 (like the default Tk of conda-forge)"""
+    import tkinter
+    try:
+        system = str(root.tk.call('::tk::pkgconfig','get','fontsystem'))
+    except tkinter.TclError:
+        return#(not known)
+    if system != 'xft':
+        from ._messages import _warning
+        _warning('The fonts of the viewer are not smooth (antialiased), since the Tk'
+                 ' library used by Python was built without Xft. In a conda'
+                 ' environment, a Tk with Xft can be installed with:'
+                 ' conda install -c conda-forge "tk=*=xft_*"')
 
 def _root():
     """A Tk root window, or None if Tk can not show windows here (no tkinter,

@@ -63,14 +63,16 @@ class MCPLFile:
     blocks of particles as requested."""
 
     def __del__(self):
-        self._fileclose()
+        #(also for objects whose __init__ failed before the file was opened):
+        getattr(self,'_fileclose',lambda : None)()
         self._fileclose = lambda : None
 
-    def __init__(self,filename,blocklength = 10000, raw_strings = False,
+    def __init__(self,filename,*,blocklength = 10000, raw_strings = False,
                  pick = None, edit = None, skip = 0, limit = None,
                  _recover = True):
         """Open indicated mcpl file, which can either be uncompressed (.mcpl) or
-        compressed (.mcpl.gz). The blocklength parameter can be used to control
+        compressed (.mcpl.gz). The other arguments must be given by name. The
+        blocklength parameter can be used to control
         the number of particles read by each call to read_block(). The parameter
         raw_strings will prevent UTF-8 decoding of string data loaded from the
         file.
@@ -102,8 +104,6 @@ class MCPLFile:
         particles, in which case their unmodified fields are transferred
         exactly.
         """
-        #(set first, for __del__ if anything below fails):
-        self._fileclose = lambda : None
         #(only importing the expressions module when needed):
         self._flt = self._edt = None
         if pick is not None or edit is not None:

@@ -82,10 +82,14 @@ class Viewer:
         self.filename = str(filename)
         with MCPLFile(self.filename) as f:
             self._ntotal = f.nparticles
-            #(the userdata fields of one value, as (name, type), for completions):
-            layout = f.userdata_layout or ''
-            self._ud_fields = [ tuple(e.split(':',1)) for e in layout.split(',')
-                                if ':' in e and '[' not in e ]
+            #(the userdata fields, as (name, type, number of values or None for
+            #fields of one value), for completions and checks):
+            self._ud_fields = []
+            for e in ( f.userdata_layout or '' ).split(','):
+                if ':' in e:
+                    name, kind = e.split(':',1)
+                    kind, _, n = kind.partition('[')
+                    self._ud_fields.append( ( name, kind, int(n[:-1]) if n else None ) )
         self._dry_run = dry_run
         self._progname = progname
         self._texts = { 'skip' : '', 'limit' : '', 'pick' : '', 'edit' : '',
@@ -221,13 +225,20 @@ class Viewer:
         """Check that the userdata fields used in the text (an expression, or a
         histogram string) are fields of the file (before the particles are
         read)"""
-        names = [ n for n, _ in self._ud_fields ]
-        for m in re.finditer(r'\b(?:ud|userdata)\.([A-Za-z0-9_]+)',text):
-            if not names:
-                raise MCPLError(f'The file has no userdata (for {m.group(0)}), in "{text}"')
-            if m.group(1) not in names:
-                raise MCPLError(f'No userdata field "{m.group(1)}" with one value per'
-                                f' particle (the fields are: {", ".join(names)}), in "{text}"')
+        fields = { name : n for name, _, n in self._ud_fields }
+        if not fields and re.search(r'\buserdata\b',text):
+            raise MCPLError(f'There are no userdata fields in this file, in "{text}"')
+        for m in re.finditer(r'\buserdata\.([A-Za-z0-9_]+)(\.at\( *([0-9]+) *\))?',text):
+            name, index = m.group(1), m.group(3)
+            if name not in fields:
+                raise MCPLError(f'No userdata field "{name}" (the fields are:'
+                                f' {", ".join(fields)}), in "{text}"')
+            n = fields[name]
+            if ( n is None ) != ( index is None ) or ( index is not None and int(index) >= n ):
+                use = ( f'userdata.{name}' if n is None else
+                        f'userdata.{name}.at(0) to userdata.{name}.at({n-1})' )
+                raise MCPLError(f'The userdata field "{name}" has {n or "one"} value'
+                                f'{"s" if n else ""} per particle (use {use}), in "{text}"')
 
     def set( self, field, text, restart = True ):
         """Apply the text of a field (restarting the reading): (ok, message). For
@@ -471,16 +482,18 @@ class Viewer:
             if insert not in [ r[0] for r in res ]:
                 res.append( ( insert, short ) )
         if not options:
-            #(the userdata fields of the file, as ud.NAME or userdata.NAME, also
-            #after either prefix):
-            m = re.search(r'\b(ud|userdata)\.([A-Za-z0-9_]*)$', text[:cursor])
+            #(the userdata fields of the file, as userdata.NAME, and only those
+            #after "userdata."):
+            m = re.search(r'\buserdata\.([A-Za-z0-9_]*)$', text[:cursor])
             if m:
-                #(then only the fields):
-                start, prefix, base, res = m.start(2), m.group(2), '', []
+                start, prefix, base, res = m.start(1), m.group(1), '', []
             else:
-                base = 'userdata.' if prefix.startswith('use') else 'ud.'
-            res += [ ( base + name, f'userdata field ({kind})' ) for name, kind in self._ud_fields
-                     if ( base + name ).startswith(prefix) ]
+                base = 'userdata.'
+            for name, kind, n in self._ud_fields:
+                insert = base + name + ( '' if n is None else '.at(' )
+                if insert.startswith(prefix) and ( m or prefix ):
+                    res.append( ( insert, f'userdata field ({kind})' if n is None else
+                                  f'userdata field ({n} values of {kind}, at(0) to at({n-1}))' ) )
         return start, res
 
     def hint( self, field, text, cursor = None ):
@@ -491,6 +504,8 @@ class Viewer:
             name = text.strip()
             return f'{name}  {_collections[name][0]}' if name in _collections else None
         cursor = len(text) if cursor is None else cursor
+        if not self._ud_fields and re.search(r'\buserdata\.[A-Za-z0-9_]*$', text[:cursor]):
+            return 'userdata.  there are no userdata fields in this file'
         m = re.search(r'[A-Za-z_][A-Za-z0-9_]*$', text[:cursor])
         if not m:
             return None

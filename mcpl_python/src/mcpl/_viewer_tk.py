@@ -124,6 +124,7 @@ class TkViewer(WidgetViewer):
         bottom.grid(row=1,column=1,sticky='ew')
         bottom.columnconfigure(0,weight=1)
         self._entries, self._marks = {}, {}
+        self._actions = {}#(the buttons of ui.actions)
         self._placeholders = {}#entry -> text shown in grey while it is empty
         self._showing = set()#(the entries showing their placeholder)
         info = { f[0] : f for f in ui.fields }
@@ -199,6 +200,7 @@ class TkViewer(WidgetViewer):
                            command=lambda a=action : self.on_action(a))
             b.pack(side='left',padx=(0,6))
             self._hover(b,action)
+            self._actions[action] = b
         self._statusbar = ttk.Label(bottom,foreground=_colors['dim'])
         self._statusbar.grid(row=len(rows)+3,column=0,sticky='w',pady=(4,0))
         self._popup = None#(the list of completions: (field, start, Toplevel, Listbox))
@@ -239,6 +241,9 @@ class TkViewer(WidgetViewer):
 
     def show_line( self, text, style ):
         self._line.configure(text=text,foreground=_colors.get(style,_colors['normal']))
+
+    def show_enabled( self, action, enabled ):
+        self._actions[action].state([ '!disabled' if enabled else 'disabled' ])
 
     def show_controls( self, controls ):
         self._controls.show(controls)
@@ -336,9 +341,14 @@ class TkViewer(WidgetViewer):
             self.on_field_apply(field,choices[i][0])
         self.canvas.get_tk_widget().focus_set()
 
+    def _hover_text( self, name ):
+        if name == 'write' and not self.v.changes_particles:
+            return self.v.nothing_to_write
+        return ui.shortcut_text(name)
+
     def _hover( self, widget, name ):
         """Show the shortcut of the field or action under the mouse"""
-        widget.bind('<Enter>',lambda _e : self._statusbar.configure(text=ui.shortcut_text(name)),'+')
+        widget.bind('<Enter>',lambda _e : self._statusbar.configure(text=self._hover_text(name)),'+')
         widget.bind('<Leave>',lambda _e : self._statusbar.configure(text=''),'+')
 
     def _on_root_key( self, event ):

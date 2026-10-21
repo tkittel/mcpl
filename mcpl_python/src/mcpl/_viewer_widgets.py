@@ -48,6 +48,9 @@ class WidgetViewer:
                                title_y=0.98)
         self._histories = {}#field -> ui.History, while it is edited
         self._thumbnails = {}#view key -> (figure, PNG data, time)
+        #(when the plot was drawn, how long it took, and whether a newer figure
+        #is not drawn yet, see on_timer):
+        self._drawn_at, self._draw_time, self._plot_pending = 0.0, 0.0, False
         self.closed = False
 
     #To implement for the toolkit:
@@ -80,6 +83,10 @@ class WidgetViewer:
         """Show the settings of the shown plot (see plot_controls), or none
         (if controls is None)"""
         raise NotImplementedError
+
+    def show_enabled( self, action, enabled ):
+        """Show the button of the action as enabled or not (if the toolkit has
+        such buttons)"""
 
     def show_check( self, field, ok ):
         """Mark the text of the field being edited as valid or not (ok is None
@@ -117,9 +124,21 @@ class WidgetViewer:
         self.refresh()
 
     def on_timer( self ):
-        """To be called regularly (e.g. every 0.2 s), while the file is read"""
-        if not self.closed and self.v.poll():
-            self.refresh()
+        """To be called regularly (e.g. every 0.2 s), while the file is read.
+        While it is read, the plot is only drawn again when some time passed
+        (at least 3 times as long as drawing it took), so the window stays
+        responsive."""
+        import time
+        if self.closed:
+            return
+        changed = self.v.poll()
+        if not ( changed or self._plot_pending ):
+            return
+        reading = self.v.reading
+        wait = max( 0.5, 3 * self._draw_time )
+        late = time.monotonic() - self._drawn_at >= wait
+        self.refresh(plot = late or not reading)
+        self._plot_pending = reading and not late
 
     def on_close( self ):
         if not self.closed:
@@ -352,6 +371,8 @@ class WidgetViewer:
         elif action == 'change':
             if self._shown_plot() is not None:
                 self.focus_field('shown_plot')
+        elif action == 'write' and not self.v.changes_particles:
+            self.show_line(self.v.nothing_to_write,'error')
         elif action in ui.file_prompts:
             self.ask_file(action)
         elif action == 'help':
@@ -391,8 +412,14 @@ class WidgetViewer:
         shown = self._shown_plot()
         self.show_plot_field(shown,v.plot_info(f'plot:{shown}')['title'] if shown else None)
         self.show_controls(self.plot_controls())
-        if plot and self.pane.show(v):
-            self.draw_plot()
+        self.show_enabled('write',self.v.changes_particles)
+        if plot:
+            import time
+            t = time.monotonic()
+            if self.pane.show(v):
+                self.draw_plot()
+                self._drawn_at = time.monotonic()
+                self._draw_time = self._drawn_at - t
 
 def run_with_ctrl_c( run, close ):
     """Run the GUI (run() returns when the window is closed), with Ctrl-C in the

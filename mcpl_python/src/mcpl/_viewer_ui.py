@@ -34,6 +34,16 @@ fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
            ( 'edit', 'Edit', 'e', 0, 'no changes' ),
            ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy' ) )
 
+#What the fields are, for the hover texts:
+field_descriptions = {
+    'skip' : 'the number of particles at the start of the file which are left out',
+    'limit' : 'the largest number of particles to use, after those skipped',
+    'collection' : 'the plots to start from, for some uses',
+    'pick' : 'an expression which is true for the particles to use',
+    'edit' : 'statements which change the particles, after they are picked',
+    'plot' : 'a histogram string of a new plot',
+}
+
 #The fields shown on the same line (the short ones together):
 field_rows = ( ( 'skip', 'limit', 'collection' ), ( 'pick', ), ( 'edit', ), ( 'plot', ) )
 assert [ f for row in field_rows for f in row ] == [ f[0] for f in fields ]
@@ -92,7 +102,8 @@ def shortcut_text( name ):
     """Text of the status line when the mouse is over a field or action"""
     for f, label, k, _, _ in fields:
         if f == name:
-            return f'{label} (key {k}): {", ".join( f"{key} {does}" for key, does in field_keys(f) )}'
+            return ( f'{label}: {field_descriptions[f]} (key {k};'
+                     f' {", ".join( f"{key} {does}" for key, does in field_keys(f) )})' )
     for a, label, keys, _ in actions + terminal_actions:
         if a == name:
             return f'{label.rstrip(".")}: press {" or ".join(keys)}'

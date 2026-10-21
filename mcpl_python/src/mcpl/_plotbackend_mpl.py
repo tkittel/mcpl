@@ -163,8 +163,12 @@ class Backend(PlotBackend):
         for i,item in enumerate(panel.items):
             if isinstance(item,StepHist):
                 c, style = _line_style( item.color if item.color is not None else i )
-                ax.stairs(item.values,item.edges,label=item.label,
-                          linewidth=1.5,color=f'C{c}',linestyle=style)
+                #(drawn as a line along the steps, with the ends down to 0 as
+                #with stairs, since matplotlib finds the limits of lines much
+                #faster than those of the patches of stairs):
+                x = np.repeat(item.edges,2)
+                y = np.concatenate(( [ 0.0 ], np.repeat(item.values,2), [ 0.0 ] ))
+                ax.plot(x,y,label=item.label,linewidth=1.5,color=f'C{c}',linestyle=style)
                 has_legend |= item.label is not None
             elif isinstance(item,Hist2D):
                 v = np.where(item.values>0,item.values,np.nan) if item.logz else item.values

@@ -243,6 +243,19 @@
 ==> the command of the shown plot, and of the plots of the overview
    mcpltool -p "pdgcode == neutron" -H "time;logx=auto" example.mcpl
    mcpltool -p "pdgcode == neutron" -H "angle_to(0,0,1)/deg;bins=40;range=0:90" -H "ekin;logx=auto;logy;split=pdgcode" -H "wavelength;logx;split=pdgcode" -H "x : y" -H "time;logx=auto;logy" -H "pdgcode;bar;logy=auto" example.mcpl
+==> writing needs a pick, an edit or a range of particles
+   check of pick: None
+   field pick: ''
+   line (normal): 
+   views: 21 views, shown: 'Overview' (None, group None, badges ['6 plots'])
+   constant fields: ['User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
+   thumbnails: 21
+   status: example.mcpl: 1006 particles, Σw = 1006
+   shown plot field: (None, None)
+   settings: None
+   plot: 7 axes
+   changes particles: False
+   line (error): Pick, edit or choose a range of particles first, to write them to a new file
 ==> the buttons of the actions, and quit
    help shown: 41 lines
    window closed

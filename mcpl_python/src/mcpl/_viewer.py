@@ -107,6 +107,9 @@ class Viewer:
         self._error = None
         self._generation = 0#(incremented for every new reading)
         self._seen_gen = 0#(the last reading which is done)
+        #(the figures of the last reading which was done, for its particles,
+        #which are kept for plots which do not change, see _read):
+        self._done = None#(particles key, {view key: figure}, constants, counts)
         self._seen = -1
         self._updates = 0
         self._job = None
@@ -776,6 +779,16 @@ class Viewer:
 
     #Writing:
 
+    @property
+    def changes_particles( self ):
+        """Whether the particles shown are not just those of the file (with
+        skip, limit, pick or edit), so writing them gives a new file"""
+        s = self._s
+        return bool( s.skip or s.limit or s.pick is not None or s.edit is not None )
+
+    #(the reason why writing is not possible, see changes_particles):
+    nothing_to_write = 'Pick, edit or choose a range of particles first, to write them to a new file'
+
     def suggested_filename( self ):
         """<input>_selected.mcpl.gz, or <input>_selected2.mcpl.gz, ... if that
         (or the same without .gz) exists"""
@@ -923,7 +936,22 @@ class Viewer:
 
     def _read( self, f, gen, settings ):
         """Read the file twice (for the ranges, and to fill the histograms),
-        publishing figures at the update points"""
+        publishing figures at the update points. The figures of the plots of the
+        last reading which was done are kept if the particles are the same (the
+        same skip, limit, pick and edit), so only new plots are filled."""
+        key = ( settings.skip, settings.limit,
+                *( None if e is None else e.expression for e in ( settings.pick, settings.edit ) ) )
+        done = self._done if self._done is not None and self._done[0] == key else None
+        known = {}
+        if done is not None:
+            known = { k : fig for k, fig in done[1].items() if k[5:] in settings.plots }
+            settings = settings.copy()
+            settings.plots = [ p for p in settings.plots if f'plot:{p}' not in known ]
+            if not settings.plots:
+                self._publish(gen,figures=known,constants=done[2],progress='',counts=done[3])
+                return
+        def figures( figs ):
+            return None if figs is None else { **known, **figs }
         frac = [0.0]
         def progress( x ):
             frac[0] = min( 1.0, x )
@@ -934,7 +962,7 @@ class Viewer:
         kept, nkept, n, w = [], 0, 0, 0.0
         points = _update_points()
         nextpoint = next(points)
-        self._publish(gen,figures={},progress='reading: finding ranges',counts=None)
+        self._publish(gen,figures=figures({}),progress='reading: finding ranges',counts=None)
         for b in self._blocks(f,settings,gen,progress):
             comp.add1(b)
             n += len(b)
@@ -949,7 +977,7 @@ class Viewer:
                     figs = _preview(f,settings,kept)
                 else:
                     figs = None
-                self._publish(gen,figures=figs,
+                self._publish(gen,figures=figures(figs),
                               progress=f'reading: finding ranges ({100*frac[0]:.0f}%)')
         counts = ( n, self._range_counts[0], w, self._range_counts[1] )
         if n == 0:
@@ -968,10 +996,13 @@ class Viewer:
             if m >= nextpoint and m < n:
                 while m >= nextpoint:
                     nextpoint = next(points)
-                self._publish(gen,figures=comp.figures(),constants=comp.constants(),
+                self._publish(gen,figures=figures(comp.figures()),constants=comp.constants(),
                               progress=f'reading: {100*frac[0]:.0f}% of particles')
-        self._publish(gen,figures=comp.figures(),constants=comp.constants(),progress='',
-                      counts=counts)
+        figs, constants = figures(comp.figures()), comp.constants()
+        self._publish(gen,figures=figs,constants=constants,progress='',counts=counts)
+        with self._lock:
+            if gen == self._generation:
+                self._done = ( key, figs, constants, counts )
 
 def _free_filename( filename, suffix, ext, *other_exts ):
     """The name <input><suffix><ext> next to the file (without its extensions

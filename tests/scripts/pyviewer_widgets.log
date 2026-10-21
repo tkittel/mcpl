@@ -10,6 +10,7 @@
    thumbnails: 20
    status: example.mcpl: 1006 particles, Σw = 1006
    shown plot field: (None, None)
+   settings: None
    plot: 7 axes
 ==> typing in the pick field: invalid, then valid with a hint
    check of pick: False
@@ -26,6 +27,7 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None)
+   settings: None
    plot: 7 axes
 ==> Esc in the edit field restores its text
    check of edit: False
@@ -49,6 +51,7 @@
    thumbnails: 13
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None)
+   settings: None
    plot: 10 axes
    check of collection: None
    field collection: 'default'
@@ -58,6 +61,7 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None)
+   settings: None
    plot: 7 axes
 ==> adding a plot (the field is emptied, and the plot shown)
    check of plot: None
@@ -68,6 +72,7 @@
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/cm;logy', None)
+   settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
 ==> changing the shown plot, and removing it (empty text)
    check of shown_plot: True
@@ -79,6 +84,7 @@
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/mm;logy', None)
+   settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
    check of shown_plot: None
    line (normal): 
@@ -87,6 +93,7 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('polz', 'Polarisation z')
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
 ==> keys outside the fields
   key Down:
@@ -95,6 +102,7 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('polz', 'Polarisation z')
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key MoveDown:
    views: 20 views, shown: 'Polarisation z' (polz, group Fields, badges [])
@@ -102,6 +110,7 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('polz', 'Polarisation z')
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key Up:
    views: 20 views, shown: 'Polarisation y' (poly, group Fields, badges [])
@@ -109,6 +118,7 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('poly', 'Polarisation y')
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key P:
    focus: pick
@@ -117,6 +127,7 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('poly', 'Polarisation y')
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key Enter:
    focus: shown_plot
@@ -125,6 +136,7 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('poly', 'Polarisation y')
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key w:
    asked for a file to write, suggested: example_selected.mcpl.gz
@@ -133,6 +145,7 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('poly', 'Polarisation y')
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key v:
    asked for a file to state, suggested: example_viewer.json
@@ -141,6 +154,7 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('poly', 'Polarisation y')
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key ?:
    help shown: 41 lines
@@ -149,6 +163,7 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('poly', 'Polarisation y')
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
 ==> the file names (the suggested one is written, the same again is refused)
    line (normal): MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz
@@ -160,12 +175,14 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None)
+   settings: None
    plot: 7 axes
    views: 20 views, shown: 'Angle to the z axis' (angle_to(0,0,1)/deg;logy;split=pdgcode, group Main plots, badges ['log y', 'by particle'])
    constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('angle_to(0,0,1)/deg;logy;split=pdgcode', 'Angle to the z axis')
+   settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
 ==> the title of the shown plot, and dragging its card into another group
    line (normal): 
@@ -174,8 +191,55 @@
    thumbnails: 20
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('angle_to(0,0,1)/deg;logy;split=pdgcode', 'Angle to the beam')
+   settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
    state: {'plots': {'change': {'angle_to(0,0,1)/deg;logy;split=pdgcode': {'title': 'Angle to the beam', 'plot': 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'group': 'Mine'}}, 'order': ['angle_to(0,0,1)/deg;logy;split=pdgcode', 'ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz']}, 'view': 'angle_to(0,0,1)/deg;logy;split=pdgcode'}
+==> the settings of the shown plot
+  logy set to 'linear':
+   line (normal): 
+  split set to 'particle type':
+   line (normal): 
+  bins set to '40':
+   line (normal): 
+  range set to '0:90':
+   line (normal): 
+  split set to 'none':
+   line (normal): 
+  logx set to 'nonsense':
+   line (error): Histogram option "logx" must be 1, 0 or auto (not "nonsense"), in "angle_to(0,0,1)/deg;bins=40;range=0:90;logx=nonsense"
+   views: 20 views, shown: 'Angle to the beam' (angle_to(0,0,1)/deg;bins=40;range=0:90, group Mine, badges ['range'])
+   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
+   thumbnails: 20
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('angle_to(0,0,1)/deg;bins=40;range=0:90', 'Angle to the beam')
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '40', 'range': '0:90'})
+   plot: 1 axes
+==> adding a plot with the builder
+   'Energy' against '' with (): 'ekin;logx=auto', settings 1d
+   'Energy' against '' with (('logx', 'linear'), ('logy', 'log')): 'ekin;logy', settings 1d
+   'Position x' against 'Direction x' with (('bins', '30'),): 'x : ux;bins=30', settings 2d
+   'Particle types' against '' with (('bar', '5'),): 'pdgcode;bar=5', settings bar
+   'hypot(x,y)/cm' against '' with (): 'hypot(x,y)/cm', settings 1d
+   preview: True None
+   preview of an invalid plot: (None, 'Histogram option "logx" must be 1, 0 or auto (not "2"), in "wavelength;logx=2"')
+   line (normal): 
+   added: True
+   views: 21 views, shown: 'Arrival time' (time;logx=auto, group None, badges ['log x'])
+   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
+   thumbnails: 21
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('time;logx=auto', 'Arrival time')
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
+   plot: 1 axes
+   line (normal): 
+   added again, with another title: True
+   views: 21 views, shown: 'Arrival time' (time;logx=auto, group None, badges ['log x'])
+   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
+   thumbnails: 21
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('time;logx=auto', 'Arrival time')
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
+   plot: 1 axes
 ==> the buttons of the actions, and quit
    help shown: 41 lines
    window closed

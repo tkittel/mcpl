@@ -82,17 +82,15 @@ def _parse_hist( text ):
     defaults for those not given)."""
     from ._expressions import _check_chars
     _check_chars(text,'histogram')
-    parts = [ e.strip() for e in text.split(';') ]
-    exprs = [ e.strip() for e in parts[0].split(':') ]
+    first, opts = _hist_parts(text)
+    exprs = [ e.strip() for e in first.split(':') ]
     if len(exprs) > 2 or not all(exprs):
         raise MCPLError(f'Histograms are of an expression, or two expressions'
                         f' separated by ":" for 2D histograms, in "{text}"')
     res = _hist_defaults(exprs)
     seen = set()
-    for opt in parts[1:]:
-        if not opt:
-            continue
-        name, eq, value = ( e.strip() for e in opt.partition('=') )
+    for name, value in opts:
+        eq = value is not None
         if name not in _hist_options:
             raise MCPLError(f'Unknown histogram option "{name}" in "{text}"'
                             ' (the options are: ' + ', '.join(_hist_options) + ')')
@@ -213,6 +211,36 @@ def _hist_key( text ):
         else:
             parts.append(f'{name}={v!r}')
     return ';'.join(parts)
+
+def _hist_parts( text ):
+    """The expressions of a histogram string, and its options as a list of
+    (name, value text), as written (value None for an option without a
+    value)"""
+    parts = [ e.strip() for e in text.split(';') ]
+    opts = []
+    for opt in parts[1:]:
+        if opt:
+            name, eq, value = ( e.strip() for e in opt.partition('=') )
+            opts.append( ( name, value if eq else None ) )
+    return parts[0], opts
+
+def _hist_set_option( text, name, value ):
+    """The histogram string with the option set to the value (a text, True
+    for the option without a value, or None to remove it), in its place if
+    it was given, else at the end, with the rest as written"""
+    exprs, opts = _hist_parts(text)
+    new = None if value is None else name if value is True else f'{name}={value}'
+    out, done = [ exprs ], False
+    for n, v in opts:
+        if n == name:
+            if new is not None and not done:
+                out.append(new)
+            done = True
+        else:
+            out.append(n if v is None else f'{n}={v}')
+    if not done and new is not None:
+        out.append(new)
+    return ';'.join(out)
 
 def _hist_with_args( expression, given ):
     """The options (as from _parse_hist) of a histogram of the expression,

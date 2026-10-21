@@ -823,31 +823,26 @@ class Viewer:
 
     def _blocks( self, f, settings, gen, progress ):
         """Blocks of the range of particles, picked and edited, with the
-        counts of all particles in the range (and their weights). progress is
-        called with the fraction of the range read."""
-        from ._blocks import _EditedParticleBlock
-        n = f.nparticles
-        skip = min( settings.skip or 0, n )
-        end = n if not settings.limit else min( n, skip + settings.limit )
-        self._range_counts = [ end - skip, 0.0 ]
-        for b in f.particle_blocks:
-            if self._cancelled(gen):
-                raise _Cancelled()
-            off = b.file_offset
-            if off + len(b) <= skip:
-                continue
-            if off >= end:
-                break
-            b = b[max(0,skip-off):min(len(b),end-off)]
-            self._range_counts[1] += float(b.weight.sum())
-            progress( ( max(off,skip) + len(b) - skip ) / max( 1, end - skip ) )
-            if settings.pick is not None:
-                b = b[settings.pick(b)]
-            if not len(b):
-                continue#(no particles picked in this block)
-            if settings.edit is not None:
-                b = _EditedParticleBlock(b,settings.edit(b))
-            yield b
+        counts of all particles in the range (and their weights), see
+        _range_blocks"""
+        self._range_counts = [ 0, 0.0 ]
+        yield from _range_blocks(f,settings,progress,self._range_counts,
+                                 lambda : self._cancelled(gen))
+
+    def preview( self, plot, nparticles = 20000 ):
+        """The figure of the plot (a histogram string) for the first nparticles
+        particles of the range of the file (then picked and edited), for
+        previews of plots before they are added, or None if there are no
+        values. The plot must be valid (see check)."""
+        from ._reader import MCPLFile
+        s = self._s.copy()
+        s.plots = [ plot ]
+        s.limit = min( s.limit, nparticles ) if s.limit else nparticles
+        with MCPLFile(self.filename) as f:
+            blocks = list(_range_blocks(f,s))
+            if not blocks:
+                return None
+            return _preview(f,s,blocks)[f'plot:{plot}']
 
     def _read( self, f, gen, settings ):
         """Read the file twice (for the ranges, and to fill the histograms),
@@ -1094,6 +1089,39 @@ class _Computation:
             hist.title = title
             res[f'plot:{p}'] = hist.figure()
         return res
+
+def _range_blocks( f, settings, progress = None, counts = None, cancelled = None ):
+    """Blocks of the range of particles of the file f (see settings), picked
+    and edited. progress (if given) is called with the fraction of the range
+    read, counts (if given) gets the number of particles in the range and the
+    sum of their weights, and cancelled (if given) tells when to stop (with
+    _Cancelled)."""
+    from ._blocks import _EditedParticleBlock
+    n = f.nparticles
+    skip = min( settings.skip or 0, n )
+    end = n if not settings.limit else min( n, skip + settings.limit )
+    if counts is not None:
+        counts[:] = [ end - skip, 0.0 ]
+    for b in f.particle_blocks:
+        if cancelled is not None and cancelled():
+            raise _Cancelled()
+        off = b.file_offset
+        if off + len(b) <= skip:
+            continue
+        if off >= end:
+            break
+        b = b[max(0,skip-off):min(len(b),end-off)]
+        if counts is not None:
+            counts[1] += float(b.weight.sum())
+        if progress is not None:
+            progress( ( max(off,skip) + len(b) - skip ) / max( 1, end - skip ) )
+        if settings.pick is not None:
+            b = b[settings.pick(b)]
+        if not len(b):
+            continue#(no particles picked in this block)
+        if settings.edit is not None:
+            b = _EditedParticleBlock(b,settings.edit(b))
+        yield b
 
 def _preview( f, settings, blocks ):
     """Figures from the blocks kept in memory (both passes over them)"""

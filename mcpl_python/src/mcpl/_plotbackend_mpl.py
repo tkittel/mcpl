@@ -276,6 +276,23 @@ def draw_in_box( fig, figure, left, right, bottom, top, fontsize = None ):
     with matplotlib.rc_context(rc):
         return Backend.__new__(Backend).draw_in(fig,gs[0,0],figure)
 
+def figure_png( figure, width, height ):
+    """The figure drawn as a PNG image of width x height pixels (with smaller
+    fonts, for previews of plots)"""
+    import io
+
+    import matplotlib
+    from matplotlib.figure import Figure
+    dpi = 80
+    fig = Figure(figsize=( width / dpi, height / dpi ),dpi=dpi)
+    with matplotlib.rc_context({ 'font.size' : 7 }):
+        axs = fig.subplots(figure.nrows,figure.ncols,squeeze=False)
+        Backend.__new__(Backend)._draw_axes(fig,list(axs.flat),figure)
+        fig.tight_layout()
+    out = io.BytesIO()
+    fig.savefig(out,format='png',dpi=dpi)
+    return out.getvalue()
+
 def thumbnail_png( figure, width, height ):
     """The figure drawn as a small PNG image of width x height pixels, without
     texts, ticks, legends and colour bars (for the lists of plots of the

@@ -60,6 +60,10 @@ class FakeToolkit(WidgetViewer):
     def show_plot_field( self, text, title ):
         self.state['shown plot field'] = ( text, title )
 
+    def show_controls( self, controls ):
+        self.state['settings'] = None if controls is None else ( controls[0], { name : shown
+                                                       for name, _, _, shown in controls[1] } )
+
     def draw_plot( self ):
         self.state['plot'] = f'{len(self.pane.axes)} axes'
 
@@ -157,6 +161,25 @@ t.on_title('Angle to the beam')
 t.on_drop(v.current_key,0,'Mine')
 t.shown()
 print('   state:', v.state(full = False))
+step('the settings of the shown plot')
+for name, shown in ( ('logy','linear'), ('split','particle type'), ('bins','40'),
+                     ('range','0:90'), ('split','none'), ('logx','nonsense') ):
+    print(f'  {name} set to {shown!r}:')
+    t.on_control(name,shown)
+t.shown()
+step('adding a plot with the builder')
+for x, y, settings in ( ('Energy','',()), ('Energy','',(('logx','linear'),('logy','log'))),
+                        ('Position x','Direction x',(('bins','30'),)),
+                        ('Particle types','',(('bar','5'),)), ('hypot(x,y)/cm','',()) ):
+    plot = t.compose(x,y,settings)
+    print(f'   {x!r} against {y!r} with {settings}: {plot!r}, settings {t.plot_controls(plot)[0]}')
+png, problem = t.preview_png(t.compose('Wavelength'),300,200)
+print('   preview:', png[:8] == b'\x89PNG\r\n\x1a\n', problem)
+print('   preview of an invalid plot:', t.preview_png('wavelength;logx=2',300,200))
+print('   added:', t.on_add_plot(t.compose('Time','',(('logy','linear'),)),'Arrival time'))
+t.shown()
+print('   added again, with another title:', t.on_add_plot(t.compose('Time'),'Another'))
+t.shown()
 step('the buttons of the actions, and quit')
 t.on_action('help')
 t.on_action('quit')

@@ -27,6 +27,7 @@ in the window by the toolkit."""
 __all__ = []
 
 from . import _viewer_ui as ui
+from ._common import MCPLError
 
 
 class WidgetViewer:
@@ -73,6 +74,11 @@ class WidgetViewer:
     def show_line( self, text, style ):
         """Show the line below the fields, with the style 'normal', 'dim',
         'ok' or 'error' (see _viewer_ui.hint_line)"""
+        raise NotImplementedError
+
+    def show_controls( self, controls ):
+        """Show the settings of the shown plot (see plot_controls), or none
+        (if controls is None)"""
         raise NotImplementedError
 
     def show_check( self, field, ok ):
@@ -151,6 +157,96 @@ class WidgetViewer:
         self.v.move_to(plot,index)
         self.v.set_group(plot,group or '')
         self.refresh(plot = False)
+
+    #The settings of the shown plot, and the plots added with settings:
+
+    def plot_controls( self, plot = None ):
+        """The settings of the plot (default the shown one) as (kind, controls),
+        where controls are (option, label, the texts of its choices, or None for
+        a text field, and the shown text), see _viewer_ui.plot_controls, or
+        None if the shown view is not a plot"""
+        from ._histstring import _hist_parts, _parse_hist
+        plot = plot or self._shown_plot()
+        if plot is None:
+            return None
+        try:
+            o = _parse_hist(plot)
+        except MCPLError:#(e.g. while it is composed, see compose)
+            return None
+        kind = '2d' if len(o['exprs']) == 2 else 'bar' if o['bar'] else '1d'
+        given = dict(_hist_parts(plot)[1])
+        res = []
+        for name, label, choices in ui.plot_controls[kind]:
+            v = given.get(name,False)
+            #(the option given without a value, or with 1, is True, and 0 is
+            #as if not given):
+            value = None if v is False or v == '0' else True if v in ( None, '1' ) else v
+            if choices is None:
+                shown = '' if value in ( None, True ) else value
+            else:
+                shown = next( ( t for t, cv in choices if cv == value ), value )
+            res.append( ( name, label, [ t for t, _ in choices ] if choices else None, shown ) )
+        return kind, res
+
+    def _option( self, plot, name, shown ):
+        """The plot with the option set from the shown text of its control"""
+        from ._histstring import _hist_set_option
+        choices = next( ( c for n, _, c in sum( ui.plot_controls.values(), () ) if n == name ), None )
+        text = shown.strip()
+        if choices is not None:
+            value = dict(choices).get(text,text or None)
+        else:
+            #(an empty number of bars is the default number):
+            value = text or ( True if name == 'bar' else None )
+        return _hist_set_option(plot,name,value)
+
+    def on_control( self, name, shown ):
+        """A setting of the shown plot was changed (to the shown text)"""
+        plot = self._shown_plot()
+        if plot is None:
+            return
+        done, msg, replot = ui.apply_text(self.v,'plot',self._option(plot,name,shown),
+                                          replaces = plot)
+        self.show_line(msg,'normal' if done else 'error')
+        self.refresh(plot = replot)
+
+    def compose( self, x, y = '', settings = () ):
+        """A plot string from the quantities x and y (names of
+        _viewer_ui.quantities or expressions, y empty for a 1D histogram) and
+        the settings, as (option, shown text) of the controls"""
+        from ._histstring import _hist_parts
+        q = dict(ui.quantities)
+        def parts( t ):
+            return _hist_parts(q.get(t.strip(),t.strip()))
+        ( ex, ox ), ( ey, _ ) = parts(x), parts(y)
+        #(the options of a quantity are kept only for 1D histograms):
+        plot = f'{ex} : {ey}' if ey else ';'.join( [ ex ] + [ n if v is None else f'{n}={v}'
+                                                             for n, v in ox ] )
+        for name, shown in settings:
+            plot = self._option(plot,name,shown)
+        return plot
+
+    def preview_png( self, plot, width, height ):
+        """A preview of the plot, as (PNG data, None), or (None, the problem)"""
+        from ._plotbackend_mpl import figure_png
+        ok, msg = self.v.check('plot',plot)
+        if not ok:
+            return None, msg
+        figure = self.v.preview(plot)
+        if figure is None:
+            return None, 'No particles to show'
+        return figure_png(figure,width,height), None
+
+    def on_add_plot( self, plot, title = '' ):
+        """A plot (with its title) is added from the builder. Returns whether
+        it was added (or shown, if it was there already, keeping its title)."""
+        new = len(self.v.views)
+        ok, msg = self.v.set('plot',plot)
+        if ok and title.strip() and len(self.v.views) > new:
+            self.v.set_title(self.v.current_key[5:],title)
+        self.show_line(msg,'normal' if ok else 'error')
+        self.refresh()
+        return ok
 
     def cards( self ):
         """The views as cards: the plot_info of the viewer (see
@@ -287,6 +383,7 @@ class WidgetViewer:
         self.show_status(*v.status_lines())
         shown = self._shown_plot()
         self.show_plot_field(shown,v.plot_info(f'plot:{shown}')['title'] if shown else None)
+        self.show_controls(self.plot_controls())
         if plot and self.pane.show(v):
             self.draw_plot()
 

@@ -103,6 +103,31 @@ def shortcut_text( name ):
         return 'Click to show this plot on its own'
     return ''
 
+#The settings of the shown plot in the viewers with windows (see
+#WidgetViewer.plot_controls), for 1D histograms, bar charts and 2D histograms:
+#(option, label, choices), with the choices as (shown text, value of the
+#option: None if it is not given, True if it is given without a value), or
+#None for a text field:
+_scale = ( ( 'linear', None ), ( 'log', True ), ( 'auto', 'auto' ) )
+_count = ( 'unweighted', 'Count', ( ( 'weights', None ), ( 'particles', True ) ) )
+plot_controls = {
+    '1d' : ( ( 'logx', 'X axis', _scale ), ( 'logy', 'Y axis', _scale ),
+             ( 'split', 'Split by', ( ( 'none', None ), ( 'particle type', 'pdgcode' ) ) ),
+             _count, ( 'bins', 'Bins', None ), ( 'range', 'Range', None ) ),
+    'bar' : ( ( 'logy', 'Scale', _scale ), _count, ( 'bar', 'Bars', None ) ),
+    '2d' : ( _count, ( 'bins', 'Bins', None ), ( 'xrange', 'X range', None ),
+             ( 'yrange', 'Y range', None ) ),
+}
+
+#The quantities offered when adding a plot in the viewers with windows (as the
+#start of a histogram string), besides any expression:
+quantities = ( ( 'Energy', 'ekin;logx=auto' ), ( 'Wavelength', 'wavelength' ),
+               ( 'Time', 'time;logx=auto' ), ( 'Position x', 'x' ), ( 'Position y', 'y' ),
+               ( 'Position z', 'z' ), ( 'Direction x', 'ux' ), ( 'Direction y', 'uy' ),
+               ( 'Direction z', 'uz' ), ( 'Angle to the z axis', 'angle_to(0,0,1)/deg' ),
+               ( 'Distance from the z axis', 'hypot(x,y)' ), ( 'Weight', 'weight' ),
+               ( 'Particle types', 'pdgcode;bar' ), ( 'User flags', 'userflags;bar' ) )
+
 #The fields with Tab completion of names:
 completing_fields = ( 'pick', 'edit', 'plot' )
 

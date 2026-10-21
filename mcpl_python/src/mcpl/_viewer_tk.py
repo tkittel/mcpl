@@ -100,6 +100,9 @@ class TkViewer(WidgetViewer):
         self.canvas = FigureCanvasTkAgg(fig,master=plot)
         self.toolbar = NavigationToolbar2Tk(self.canvas,plot,pack_toolbar=False)
         self.toolbar.update()
+        #(the settings of the shown plot, below its toolbar):
+        self._controls = _Controls(plot,self.on_control)
+        self._controls.frame.pack(side='bottom',fill='x',pady=(2,0))
         self.toolbar.pack(side='bottom',fill='x')
         self.canvas.get_tk_widget().pack(side='top',fill='both',expand=True)
         super().__init__(viewer,fig)
@@ -208,6 +211,9 @@ class TkViewer(WidgetViewer):
 
     def show_line( self, text, style ):
         self._line.configure(text=text,foreground=_colors.get(style,_colors['normal']))
+
+    def show_controls( self, controls ):
+        self._controls.show(controls)
 
     def show_check( self, field, ok ):
         mark = self._marks[field]
@@ -649,7 +655,137 @@ class _CardList:
         elif s[2] == 'card':
             self.tv.on_select(s[3][0])
         elif s[2] == 'add':
-            self.tv.focus_field('plot')
+            _AddPlot(self.tv)
+
+class _Controls:
+    """The settings of a plot (see WidgetViewer.plot_controls): a menu or a
+    text field for each, in a row, which call on_change(option, shown text)
+    when changed (with Enter, for the text fields). The row is made again
+    when the kind of plot changes."""
+    def __init__( self, parent, on_change ):
+        _, ttk = _tk()
+        self.frame = ttk.Frame(parent)
+        self._on_change = on_change
+        self._kind = None
+        self._widgets = {}
+
+    def show( self, controls ):
+        _, ttk = _tk()
+        kind = controls[0] if controls else None
+        if kind != self._kind:
+            for w in self.frame.winfo_children():
+                w.destroy()
+            self._kind, self._widgets = kind, {}
+            for name, label, choices, _ in ( controls[1] if controls else () ):
+                ttk.Label(self.frame,text=label).pack(side='left',padx=(8,3))
+                if choices is not None:
+                    #(split also takes an expression, the others only the choices):
+                    w = ttk.Combobox(self.frame,values=choices,width=12 if name == 'split' else 7,
+                                     state='normal' if name == 'split' else 'readonly')
+                    w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._on_change(n,w.get()))
+                else:
+                    w = ttk.Entry(self.frame,width=12 if 'range' in name else 5)
+                if name == 'split' or choices is None:
+                    w.bind('<Return>',lambda _e, n=name, w=w : self._on_change(n,w.get()))
+                w.pack(side='left')
+                self._widgets[name] = w
+        if not controls:
+            return
+        focus = self.frame.focus_get()
+        for name, _, choices, shown in controls[1]:
+            w = self._widgets[name]
+            if w is focus:
+                continue#(not while it is edited)
+            if choices is not None:
+                w.set(shown)
+            else:
+                w.delete(0,'end')
+                w.insert(0,shown)
+
+    def values( self ):
+        """The shown texts of the settings, as (option, text)"""
+        return [ ( n, w.get() ) for n, w in self._widgets.items() ]
+
+class _AddPlot:
+    """The window for adding a plot: what to plot (a quantity of
+    _viewer_ui.quantities, or an expression, and another one for a 2D
+    histogram), its settings and title, with a preview of the plot for the
+    first particles"""
+    preview_size = ( 460, 280 )
+
+    def __init__( self, tv ):
+        tk, ttk = _tk()
+        self.tv = tv
+        top = self.top = tk.Toplevel(tv.root)
+        top.title('Add a plot')
+        top.transient(tv.root)
+        f = ttk.Frame(top,padding=10)
+        f.pack(fill='both',expand=True)
+        names = [ n for n, _ in ui.quantities ]
+        ttk.Label(f,text='Plot of:').grid(row=0,column=0,sticky='w')
+        self._x = ttk.Combobox(f,values=names,width=30)
+        self._x.set(names[0])
+        self._x.grid(row=0,column=1,sticky='w',pady=2)
+        ttk.Label(f,text='Against (for 2D):').grid(row=1,column=0,sticky='w')
+        self._y = ttk.Combobox(f,values=[ '' ] + names,width=30)
+        self._y.grid(row=1,column=1,sticky='w',pady=2)
+        for w in ( self._x, self._y ):
+            w.bind('<<ComboboxSelected>>',lambda _e : self._changed(reset = True))
+            w.bind('<KeyRelease>',lambda _e : self._changed(reset = True))
+        ttk.Label(f,text='Settings:').grid(row=2,column=0,sticky='w')
+        self._controls = _Controls(f,lambda _n, _v : self._changed())
+        self._controls.frame.grid(row=2,column=1,sticky='w',pady=2)
+        ttk.Label(f,text='Title:').grid(row=3,column=0,sticky='w')
+        self._title = ttk.Entry(f,width=40)
+        self._title.grid(row=3,column=1,sticky='w',pady=2)
+        ttk.Label(f,text='Plot string:').grid(row=4,column=0,sticky='w')
+        self._plot = ttk.Label(f,font='TkFixedFont')
+        self._plot.grid(row=4,column=1,sticky='w',pady=2)
+        self._preview = ttk.Label(f)
+        self._preview.grid(row=5,column=0,columnspan=2,pady=6)
+        self._message = ttk.Label(f,foreground=_colors['error'],wraplength=self.preview_size[0])
+        self._message.grid(row=6,column=0,columnspan=2,sticky='w')
+        buttons = ttk.Frame(f)
+        buttons.grid(row=7,column=0,columnspan=2,sticky='e',pady=(6,0))
+        ttk.Button(buttons,text='Cancel',command=top.destroy).pack(side='right',padx=(6,0))
+        ttk.Button(buttons,text='Add plot',command=self._add).pack(side='right')
+        top.bind('<Escape>',lambda _e : top.destroy())
+        top.bind('<Return>',lambda _e : self._add())
+        self._image, self._pending = None, None
+        self._changed(reset = True)
+        self._x.focus_set()
+
+    def plot( self, reset = False ):
+        """The plot string (with the settings of the quantities if reset is set,
+        else with those shown)"""
+        return self.tv.compose(self._x.get(),self._y.get(),
+                               () if reset else self._controls.values())
+
+    def _changed( self, reset = False ):
+        """Show the plot string, and a preview of it (soon, after a change).
+        New quantities (reset) start with their own settings."""
+        plot = self.plot(reset)
+        self._plot.configure(text=plot)
+        self._controls.show(self.tv.plot_controls(plot))
+        if self._pending is not None:
+            self.top.after_cancel(self._pending)
+        self._pending = self.top.after(300,self._show_preview)
+
+    def _show_preview( self ):
+        tk, _ttk = _tk()
+        import base64
+        self._pending = None
+        png, problem = self.tv.preview_png(self.plot(),*self.preview_size)
+        self._message.configure(text=problem or '')
+        if png is not None:
+            self._image = tk.PhotoImage(data=base64.b64encode(png))
+            self._preview.configure(image=self._image)
+
+    def _add( self ):
+        if self.tv.on_add_plot(self.plot(),self._title.get()):
+            self.top.destroy()
+        else:
+            self._message.configure(text=self.tv.v.check('plot',self.plot())[1])
 
 def _root():
     """A Tk root window, or None if Tk can not show windows here (no tkinter,

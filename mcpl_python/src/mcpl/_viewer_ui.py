@@ -29,7 +29,7 @@ __all__ = []
 #position of the key in the label, text shown when the field is empty):
 fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
            ( 'limit', 'Limit', 'i', 1, 'all' ),
-           ( 'collection', 'Collection', 'c', 0, 'default' ),
+           ( 'collection', 'Plot collection', 'c', 5, 'default' ),
            ( 'pick', 'Pick', 'p', 0, 'all particles' ),
            ( 'edit', 'Edit', 'e', 0, 'no changes' ),
            ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy' ) )
@@ -92,11 +92,12 @@ def shortcut_text( name ):
     """Text of the status line when the mouse is over a field or action"""
     for f, label, k, _, _ in fields:
         if f == name:
-            verb = 'choose' if f in menu_fields else 'edit'
-            return f'{label}: press {k} to {verb} ({", ".join( f"{key} {does}" for key, does in field_keys(f) )})'
+            return f'{label} (key {k}): {", ".join( f"{key} {does}" for key, does in field_keys(f) )}'
     for a, label, keys, _ in actions + terminal_actions:
         if a == name:
             return f'{label.rstrip(".")}: press {" or ".join(keys)}'
+    if name == 'new_plot':#(the button of the viewers with windows)
+        return 'New plot: press a'
     if name == 'views':
         return 'Views: click on one, or press Up and Down (with Shift, Ctrl or Alt to move the plot)'
     if name == 'panel':

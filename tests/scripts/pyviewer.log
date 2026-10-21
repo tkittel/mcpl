@@ -183,7 +183,7 @@ To open the viewer like this again:
    |                                      -65                               2.5                                70
    |                                                                       x [cm]
    |                             per cell: 0.2 ██████████ 5.745 ██████████ 165 (log scale)
-   |  Skip: [0]  Limit: [all]  Collection: [default]
+   |  Skip: [0]  Limit: [all]  Plot collection: [default]
    |  Pick: [pdgcode == neutron]
    |  Edit: [no changes]
    |  Add plot: [e.g. hypot(x,y)/cm;logy]
@@ -225,7 +225,7 @@ To open the viewer like this again:
    |                                                                     ekin [eV]
    |                             ━━ n (2112)    ━━ γ (22)      ━━ e⁻ (11)     ━━ p (2212)    ━━ e⁺ (-11)
    |                             ━━ π⁺ (211)    ━━ π⁻ (-211)   ━━ νμ (14)
-   |  Skip: [0]  Limit: [all]  Collection: [default]
+   |  Skip: [0]  Limit: [all]  Plot collection: [default]
    |  Pick: [all particles]
    |  Edit: [no changes]
    |  Add plot: [e.g. hypot(x,y)/cm;logy]

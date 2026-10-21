@@ -68,8 +68,14 @@ class TkViewer(WidgetViewer):
         self.root = root
         root.title(f'MCPL viewer: {viewer.filename}')
         root.geometry('1400x900')
+        style = ttk.Style(root)
         if root.tk.call('tk','windowingsystem') == 'x11':
-            ttk.Style(root).theme_use('clam')#(the default of X11 looks dated)
+            style.theme_use('clam')#(the default of X11 looks dated)
+        #(the button of new plots, in the colour of the selected card):
+        accent = _card_colors['accent']
+        style.configure('Accent.TButton',foreground='white',background=accent,
+                        bordercolor=accent)
+        style.map('Accent.TButton',background=[ ( 'active', '#3d74ab' ) ])
         import tkinter.font
         bold = tkinter.font.nametofont('TkDefaultFont').copy()
         bold.configure(weight='bold')
@@ -118,7 +124,10 @@ class TkViewer(WidgetViewer):
         self._placeholders = {}#entry -> text shown in grey while it is empty
         self._showing = set()#(the entries showing their placeholder)
         info = { f[0] : f for f in ui.fields }
-        for r, row in enumerate(ui.field_rows):
+        #(plots are added with the window of "+ New plot", not with a field):
+        rows = [ tuple( f for f in row if f != 'plot' ) for row in ui.field_rows ]
+        rows = [ row for row in rows if row ]
+        for r, row in enumerate(rows):
             frame = ttk.Frame(bottom)
             frame.grid(row=r,column=0,sticky='ew',pady=1)
             for field in row:
@@ -145,9 +154,9 @@ class TkViewer(WidgetViewer):
         #(the field of the shown plot, which changes it, or removes it when
         #emptied):
         frame = ttk.Frame(bottom)
-        frame.grid(row=len(ui.field_rows),column=0,sticky='ew',pady=1)
+        frame.grid(row=len(rows),column=0,sticky='ew',pady=1)
         #(and its title, shown in the list of plots):
-        ttk.Label(frame,text='Title:').pack(side='left',padx=(0,4))
+        ttk.Label(frame,text='Plot title:').pack(side='left',padx=(0,4))
         t = ttk.Entry(frame,width=28)
         t.pack(side='left')
         self._placeholders[t] = 'the name in the list of plots'
@@ -157,24 +166,28 @@ class TkViewer(WidgetViewer):
         t.bind('<FocusIn>',lambda _e : self._on_title_focus(t),'+')
         t.bind('<FocusOut>',lambda _e : self._on_entry_unfocus(t),'+')
         self._title = t
-        ttk.Label(frame,text='Shown plot:').pack(side='left',padx=(12,4))
+        ttk.Label(frame,text='Plot expression:').pack(side='left',padx=(12,4))
         w = ttk.Entry(frame,width=60)
         w.pack(side='left',fill='x',expand=True)
         self._bind_entry(w,'shown_plot')
         mark = ttk.Label(frame,width=2)
         mark.pack(side='left')
         self._entries['shown_plot'], self._marks['shown_plot'] = w, mark
+        b = ttk.Button(frame,text='+  New plot',style='Accent.TButton',takefocus=0,
+                       command=lambda : self.focus_field('plot'))
+        b.pack(side='left',padx=(6,0))
+        self._hover(b,'new_plot')
         self._line = ttk.Label(bottom)
-        self._line.grid(row=len(ui.field_rows)+1,column=0,sticky='w',pady=(2,2))
+        self._line.grid(row=len(rows)+1,column=0,sticky='w',pady=(2,2))
         buttons = ttk.Frame(bottom)
-        buttons.grid(row=len(ui.field_rows)+2,column=0,sticky='w')
+        buttons.grid(row=len(rows)+2,column=0,sticky='w')
         for action, label, _keys, kpos in ui.actions:
             b = ttk.Button(buttons,text=label,underline=kpos,takefocus=0,
                            command=lambda a=action : self.on_action(a))
             b.pack(side='left',padx=(0,6))
             self._hover(b,action)
         self._statusbar = ttk.Label(bottom,foreground=_colors['dim'])
-        self._statusbar.grid(row=len(ui.field_rows)+3,column=0,sticky='w',pady=(4,0))
+        self._statusbar.grid(row=len(rows)+3,column=0,sticky='w',pady=(4,0))
         self._popup = None#(the list of completions: (field, start, Toplevel, Listbox))
         root.bind('<Key>',self._on_root_key)
         root.protocol('WM_DELETE_WINDOW',self.close_window)
@@ -189,6 +202,8 @@ class TkViewer(WidgetViewer):
         self._status[1].configure(text=second)
 
     def show_field( self, field, text ):
+        if field == 'plot':
+            return#(no field, see focus_field)
         w = self._entries[field]
         if field in ui.menu_fields:
             descr = dict(self.menu_choices(field)).get(text,'')
@@ -216,6 +231,8 @@ class TkViewer(WidgetViewer):
         self._controls.show(controls)
 
     def show_check( self, field, ok ):
+        if field == 'plot':
+            return
         mark = self._marks[field]
         if ok is None:
             mark.configure(text='')
@@ -227,6 +244,9 @@ class TkViewer(WidgetViewer):
         self.canvas.draw_idle()
 
     def focus_field( self, field ):
+        if field == 'plot':
+            _AddPlot(self)#(new plots are made in their own window)
+            return
         w = self._entries[field]
         w.focus_set()
         if field in ui.menu_fields:
@@ -562,7 +582,7 @@ class _CardList:
             y += h + 6
         #(the card adding a plot):
         self._rect(4,y,self.width,y+34,12,outline=col['border'],dash=(3,3),fill='')
-        c.create_text(self.width/2,y+17,text='+  Add plot',fill=col['accent'],
+        c.create_text(self.width/2,y+17,text='+  New plot',fill=col['accent'],
                       font=self.tv._bold)
         self._slots.append( ( y, y + 34, 'add', None ) )
         y += 40
@@ -717,7 +737,7 @@ class _AddPlot:
         tk, ttk = _tk()
         self.tv = tv
         top = self.top = tk.Toplevel(tv.root)
-        top.title('Add a plot')
+        top.title('New plot')
         top.transient(tv.root)
         f = ttk.Frame(top,padding=10)
         f.pack(fill='both',expand=True)
@@ -735,10 +755,10 @@ class _AddPlot:
         ttk.Label(f,text='Settings:').grid(row=2,column=0,sticky='w')
         self._controls = _Controls(f,lambda _n, _v : self._changed())
         self._controls.frame.grid(row=2,column=1,sticky='w',pady=2)
-        ttk.Label(f,text='Title:').grid(row=3,column=0,sticky='w')
+        ttk.Label(f,text='Plot title:').grid(row=3,column=0,sticky='w')
         self._title = ttk.Entry(f,width=40)
         self._title.grid(row=3,column=1,sticky='w',pady=2)
-        ttk.Label(f,text='Plot string:').grid(row=4,column=0,sticky='w')
+        ttk.Label(f,text='Plot expression:').grid(row=4,column=0,sticky='w')
         self._plot = ttk.Label(f,font='TkFixedFont')
         self._plot.grid(row=4,column=1,sticky='w',pady=2)
         self._preview = ttk.Label(f)

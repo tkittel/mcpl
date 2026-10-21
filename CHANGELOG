@@ -1,6 +1,6 @@
 v2.2.9  (work in progress)
       * New viewer: mcpltool -w FILE (or mcpl.view(FILE) in Python, also in
-        Jupyter) shows an overview and plots of the particles, in a window or
+        Jupyter) shows overviews and plots of the particles, in a window or
         in the terminal, where the particles can be picked and edited, and
         written to a new file. The plots come from collections for some uses
         (e.g. -wbeamz for a beam along z). New extras: "curses" and
@@ -248,6 +248,9 @@ v2.2.9  (work in progress)
         with the Python API are now always double precision numbers (like in
         the C API), also for files which store numbers in single precision
         (before, they were single precision numpy values for such files).
+      * Histogram strings (of mcpltool -H and mcpl.histogram) with three
+        expressions, like "x : y : z;split=pdgcode", give 3D plots of a sample
+        of the particles (in windows).
       * New function angle_to(x,y,z) in expressions, giving the angle between
         the direction of the particles and the vector (x,y,z), precise also for
         small angles (e.g. "angle_to(0,0,1) < 1deg").
@@ -262,7 +265,7 @@ v2.2.9  (work in progress)
         columns is given by mcpl.plotting.resolution(..)).
       * Unless the number of bins is given, mcpl.histogram, mcpl.histogram2d
         and mcpltool -H now choose it from the effective number of
-        entries N: sqrt(N) bins (the fourth root per axis for 2D histograms),
+        entries N: sqrt(N) bins (the cube root per axis for 2D histograms),
         between 10 and 400, rather than always 100.
       * Particles can now carry custom per-particle data ("userdata"): a fixed
         number of bytes per particle, described by a layout string stored in

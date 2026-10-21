@@ -29,7 +29,7 @@ from typing import ClassVar
 from ._common import _determine_version
 from ._numpy import np
 from ._plotbackend import PlotBackend, numbered_filenames
-from .plotting import Bars, Hist2D, StepHist, Text, _line_style
+from .plotting import Bars, Hist2D, Scatter3D, StepHist, Text, _line_style
 
 
 class Backend(PlotBackend):
@@ -135,6 +135,12 @@ class Backend(PlotBackend):
         import matplotlib.ticker
         #(the plots of a correlation plot share their axes, see _correlation_axes):
         correlation_plot = getattr(figure,'_correlation_plot',False)
+        for i, panel in enumerate(figure.panels[:len(axlist)]):
+            #(3D plots need axes with a 3D projection, instead of those made):
+            if panel is not None and any( isinstance(it,Scatter3D) for it in panel.items ):
+                spec = axlist[i].get_subplotspec()
+                axlist[i].remove()
+                axlist[i] = fig.add_subplot(spec,projection='3d')
         for ax, panel in zip(axlist,figure.panels):
             if panel is None:#(an empty cell of the grid)
                 ax.set_visible(False)
@@ -206,6 +212,11 @@ class Backend(PlotBackend):
                     ax.bar(pos,item.values,width=0.7,linewidth=0,color=colors)
                     ax.set_xticks(pos)
                     ax.set_xticklabels(item.labels,fontsize='small')
+            elif isinstance(item,Scatter3D):
+                c, _ = _line_style( item.color if item.color is not None else i )
+                ax.scatter(item.x,item.y,item.z,s=2,alpha=0.6,color=f'C{c}',label=item.label,
+                           depthshade=False)
+                has_legend |= item.label is not None
             elif isinstance(item,Text):
                 ax.text(0.5,0.5,item.text,ha='center',va='center',
                         transform=ax.transAxes)
@@ -223,8 +234,11 @@ class Backend(PlotBackend):
             ax.set_xlabel(panel.xlabel,fontsize='small')
         if panel.ylabel:
             ax.set_ylabel(panel.ylabel)
+        if getattr(panel,'zlabel',None) and hasattr(ax,'set_zlabel'):
+            ax.set_zlabel(panel.zlabel)
         if has_legend and not compact:
-            ax.legend(fontsize='small')
+            #(with larger points in the legend than in 3D plots):
+            ax.legend(fontsize='small',markerscale=4 if hasattr(ax,'set_zlabel') else 1)
         ax.grid(alpha=0.3)
 
 def _correlation_axes( axlist, nrows, ncols ):

@@ -44,7 +44,7 @@ For instance:
    save( Figure( panels = [ panel ] ), 'myplot.pdf' )
 """
 
-__all__ = [ 'Backend', 'Bars', 'Figure', 'Hist2D', 'Panel', 'StepHist', 'Text',
+__all__ = [ 'Backend', 'Bars', 'Figure', 'Hist2D', 'Panel', 'Scatter3D', 'StepHist', 'Text',
             'available_backends', 'formats', 'register_backend', 'resolution',
             'save', 'set_default_backend', 'show' ]
 
@@ -93,6 +93,15 @@ class Bars:
         self.labels, self.values, self.horizontal = labels, values, horizontal
         self.colors = colors
 
+class Scatter3D:
+    """Points in three dimensions, drawn as a 3D scatter plot by the backends
+    which can (others show a message instead), with a label for the legend
+    and a colour (an index into the colour cycle of the backend, as for
+    StepHist) if given. The coordinates x, y and z are arrays of the same
+    length, and the panel gives the label of the z axis (zlabel)."""
+    def __init__( self, x, y, z, label = None, color = None ):
+        self.x, self.y, self.z, self.label, self.color = x, y, z, label, color
+
 class Text:
     """Message shown in the middle of a panel (e.g. "No data")."""
     def __init__( self, text ):
@@ -100,11 +109,13 @@ class Text:
 
 class Panel:
     """One plot (a set of axes) with items like StepHist objects. Items with
-    labels are shown in a legend."""
+    labels are shown in a legend. The zlabel is that of the z axis of 3D
+    plots (see Scatter3D)."""
     def __init__( self, title = None, xlabel = None, ylabel = None,
                   logx = False, logy = False, xlim = None, ylim = None,
-                  items = None ):
+                  items = None, zlabel = None ):
         self.title, self.xlabel, self.ylabel = title, xlabel, ylabel
+        self.zlabel = zlabel
         self.logx, self.logy, self.xlim, self.ylim = logx, logy, xlim, ylim
         self.items = list(items or [])
     def add( self, item ):
@@ -124,8 +135,9 @@ def _map_texts( figure, fct ):
         if p is None:#(an empty cell of the grid)
             continue
         p.title, p.xlabel, p.ylabel = f(p.title), f(p.xlabel), f(p.ylabel)
+        p.zlabel = f(getattr(p,'zlabel',None))
         for item in p.items:
-            if isinstance(item,StepHist):
+            if isinstance(item,( StepHist, Scatter3D )):
                 item.label = f(item.label)
             elif isinstance(item,Bars):
                 item.labels = [ f(lbl) for lbl in item.labels ]

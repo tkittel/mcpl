@@ -1,3 +1,13 @@
+3D: Points3D {None: (100, 3)} ['x [cm]', 'y [cm]', 'z [cm]'] 1006
+same sample: True
+split: {'n (2112)': 726, 'gamma (22)': 239, 'other': 41} {'n (2112)': 0, 'gamma (22)': 8, 'other': 9}
+Figure 1 (1x1): None
+  Panel 'pick: ekin > 1keV' xlabel='ux' ylabel='uy' 
+    Scatter3D label='n (2112)' color=0 points=726 x=[-0.994109,0.993176] y=[-0.994904,0.979886] z=[0.0794396,0.999233]
+    Scatter3D label='γ (22)' color=8 points=239 x=[-0.934464,0.995773] y=[-0.943447,0.96159] z=[0.053197,0.999794]
+    Scatter3D label='other' color=9 points=41 x=[-0.900682,0.884409] y=[-0.947483,0.62116] z=[-0.734438,0.999994]
+['# 3D plot of: ux : uy : uz', '# pick: ekin > 1keV', '# values: 1006 points (of 1006 particles)', '# x | y | z | group']
+more points than particles: 1006 of 1006
 range of values from 0.3 to 20.5: 0 to 22
 range of values from -20.5 to -0.3: -22 to 0
 range of values from -9.83 to 10.21: -10 to 11
@@ -404,8 +414,14 @@ mcpltool -H x/cm : y/cm;logx=1 example.mcpl: exit code 1
    | ERROR: Histogram option "logx" can not be used for 2D histograms, in "x/cm : y/cm;logx=1"
    | 
    | Run with "-H help" for how to write histograms
-mcpltool -H x/cm : y/cm : z/cm example.mcpl: exit code 1
-   | ERROR: Histograms are of an expression, or two expressions separated by ":" for 2D histograms, in "x/cm : y/cm : z/cm"
+mcpltool -H x/cm : y/cm : z/cm example.mcpl: exit code 0
+   |            (3D plots are not shown in the terminal, only in windows)
+mcpltool -H x : y : z : x example.mcpl: exit code 1
+   | ERROR: Histograms are of an expression, or two expressions separated by ":" for 2D histograms (or three for 3D plots), in "x : y : z : x"
+   | 
+   | Run with "-H help" for how to write histograms
+mcpltool -H x : y : z;bins=5 example.mcpl: exit code 1
+   | ERROR: Histogram option "bins" can not be used for 3D plots, in "x : y : z;bins=5"
    | 
    | Run with "-H help" for how to write histograms
 mcpltool -H x/cm;bins example.mcpl: exit code 1
@@ -470,7 +486,7 @@ mcpltool -H x/cm;logx=1;logx=1 example.mcpl: exit code 1
    | 
    | Run with "-H help" for how to write histograms
 mcpltool -H x/cm;foo example.mcpl: exit code 1
-   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, lethargy, split, groups, bar, unweighted, print)
+   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, lethargy, split, groups, bar, unweighted, print, points)
    | 
    | Run with "-H help" for how to write histograms
 mcpltool -H x/cm -B foo example.mcpl: exit code 1
@@ -688,10 +704,10 @@ mcpltool --edit=help: exit code 0, 144 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    |   -E "z += 1cm"               Move the particles 1 cm along z.
    |   -E "weight *= 0.5"          Halve the weights.
-mcpltool -H help example.mcpl: exit code 0, 55 lines, starting with:
+mcpltool -H help example.mcpl: exit code 0, 61 lines, starting with:
    | HIST: what to plot, an expression of the particles (written as for -p),
-   | or two separated by ":" for a 2D histogram, followed by options separated by
-   | ";". For example:
+   | or two separated by ":" for a 2D histogram (or three for a 3D plot of a
+   | sample of the particles, in windows), followed by options separated by ";".
 nice numbers of bins: [(1200, 1080), (400, 360), (239, 216), (83, 72), (37, 36), (15, 15), (8, 8)]
 neff=1: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
 neff=100: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9

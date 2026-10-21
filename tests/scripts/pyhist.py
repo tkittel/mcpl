@@ -188,7 +188,7 @@ def test_cmdline():
                  ['-H','ekin/MeV;range=1',ex], ['-H','ekin/MeV;range=2:1',ex],
                  ['-H','ekin/MeV;range=1:2,3:4',ex], ['-H','ekin/MeV;xrange=1:2',ex],
                  ['-H','x/cm : y/cm;range=1:2',ex],
-                 ['-H','x/cm : y/cm;logx=1',ex], ['-H','x/cm : y/cm : z/cm',ex],
+                 ['-H','x/cm : y/cm;logx=1',ex], ['-H','x/cm : y/cm : z/cm',ex], ['-H','x : y : z : x',ex], ['-H','x : y : z;bins=5',ex],
                  ['-H','x/cm;bins',ex], ['-H','x/cm;logx',ex], ['-H','x/cm;logx=true',ex],
                  ['-H','x/cm;logy=yes',ex], ['-H','x/cm;logx=2',ex], ['-H','x/cm;logy=auto',ex],
                  ['-H','x/cm;logx=1;logx=1',ex], ['-H','x/cm;foo',ex],
@@ -324,6 +324,23 @@ def test_ranges_colors():
     print('colours of', keys, cols, [ _line_style(cols[k]) for k in keys ][-5:])
     print('line styles:', [ _line_style(c) for c in ( 0, 9, 10, 19, 20, 30 ) ])
 
+def test_3d():
+    #3D plots of a sample of the particles (the same for the same particles):
+    from mcpldev._plotbackend_test import describe
+    ex = str(example_file)
+    h = mcpl.histogram(ex,'x : y : z;points=100')
+    print('3D:', type(h).__name__, { k : v.shape for k, v in h.groups.items() }, h.labels,
+          h.nparticles)
+    same = mcpl.histogram(ex,'x : y : z;points=100')
+    print('same sample:', np.array_equal(h.groups[None],same.groups[None]))
+    h = mcpl.histogram(ex,'ux : uy : uz;split=pdgcode;groups=3',pick='ekin > 1keV')
+    print('split:', { k : len(v) for k, v in h.groups.items() }, h.colors)
+    print(describe([ h.figure() ]))
+    print(h.to_text().splitlines()[:4])
+    h = mcpl.histogram(ex,'x : y : z;unweighted;points=5000')
+    print('more points than particles:', len(h.groups[None]), 'of', h.nparticles)
+
+test_3d()
 test_ranges_colors()
 test_units()
 test_bars_groups_domains()

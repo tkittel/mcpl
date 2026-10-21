@@ -33,7 +33,8 @@ from ._expressions import _dimstr, _range_value
 _hist_options = { 'bins' : 'bins', 'range' : 'range', 'xrange' : 'range',
                   'yrange' : 'range', 'logx' : 'auto', 'logy' : 'auto',
                   'lethargy' : 'bool', 'split' : 'expr', 'groups' : 'count',
-                  'bar' : 'count', 'unweighted' : 'bool', 'print' : 'bool' }
+                  'bar' : 'count', 'unweighted' : 'bool', 'print' : 'bool',
+                  'points' : 'count' }
 #The values of the options given without a value (as "logy" or "bar"):
 _hist_implied = { 'logx' : '1', 'logy' : '1', 'lethargy' : '1', 'unweighted' : '1',
                   'print' : '1', 'bar' : 'auto' }
@@ -67,16 +68,17 @@ def _hist_count( name, value, text ):
                     f' (not "{value}"), in "{text}"')
 
 def _hist_defaults( exprs ):
-    """The options of a histogram of the expressions (one, or two for 2D
-    histograms) when none are given"""
+    """The options of a histogram of the expressions (one, two for 2D
+    histograms, or three for 3D plots) when none are given"""
     return { 'exprs' : list(exprs), 'bins' : None, 'range' : None, 'xrange' : None,
              'yrange' : None, 'logx' : False, 'logy' : None, 'lethargy' : False,
              'split' : None, 'unweighted' : False, 'print' : False, 'groups' : None,
-             'bar' : False }
+             'bar' : False, 'points' : None }
 
 def _parse_hist( text ):
     """Parse a histogram string: an expression (or two separated by ":" for 2D
-    histograms), followed by options NAME=VALUE separated by ";", like
+    histograms, or three for 3D plots of a sample of the particles), followed
+    by options NAME=VALUE separated by ";", like
     "ekin/MeV;logx;bins=50" or "x/cm : y/cm;xrange=-10:10". Returns a
     dict with the expressions (a list of one or two), and the options (with
     defaults for those not given)."""
@@ -84,9 +86,10 @@ def _parse_hist( text ):
     _check_chars(text,'histogram')
     first, opts = _hist_parts(text)
     exprs = [ e.strip() for e in first.split(':') ]
-    if len(exprs) > 2 or not all(exprs):
+    if len(exprs) > 3 or not all(exprs):
         raise MCPLError(f'Histograms are of an expression, or two expressions'
-                        f' separated by ":" for 2D histograms, in "{text}"')
+                        f' separated by ":" for 2D histograms (or three for 3D plots),'
+                        f' in "{text}"')
     res = _hist_defaults(exprs)
     seen = set()
     for name, value in opts:
@@ -118,6 +121,9 @@ def _parse_hist( text ):
                                 f' for 2D histograms, like bins=50,40) in "{text}"')
             res['bins'] = int(nb[0]) if len(nb) == 1 else tuple( int(e) for e in nb )
         elif name in ('range','xrange','yrange'):
+            if len(exprs) == 3:
+                raise MCPLError(f'Histogram option "{name}" can not be used for 3D plots,'
+                                f' in "{text}"')
             if ( name == 'range' ) != ( len(exprs) == 1 ):
                 use = 'range' if len(exprs) == 1 else 'xrange and yrange'
                 raise MCPLError(f'Histogram option "{name}" can only be used for'
@@ -137,6 +143,14 @@ def _check_hist_options( o, text ):
             if o[name]:
                 raise MCPLError(f'Histogram option "{name}" can not be used'
                                 f' for 2D histograms, in "{text}"')
+    if len(o['exprs']) == 3:
+        for name in ('logx','logy','lethargy','bar','bins'):
+            if o[name]:
+                raise MCPLError(f'Histogram option "{name}" can not be used'
+                                f' for 3D plots, in "{text}"')
+    elif o['points'] is not None:
+        raise MCPLError(f'Histogram option "points" can only be used for 3D plots'
+                        f' (of three expressions), in "{text}"')
     if o['bar'] is not False:
         for name in ('bins','range','logx','lethargy','split'):
             if o[name]:

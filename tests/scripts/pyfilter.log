@@ -24,6 +24,7 @@ histogram example 'wavelength/Aa;range=0:10': Histogram
 histogram example 'x : y;xrange=-10cm:10cm;yrange=-10cm:10cm': Histogram2D
 histogram example 'atan2(uy,ux)/deg : uz': Histogram2D
 histogram example 'pdgcode;bar': BarHistogram
+histogram example 'x : y : z;split=pdgcode': Points3D
 histogram example 'angle_to(0,0,1)/deg;logy;split=pdgcode in (neutron,gamma)': Histogram
 histogram example 'userdata.nscat;bar;unweighted': BarHistogram
 'pdgcode in (neutron,gamma)': 965 particles, normalised 'pdgcode in (neutron,gamma)', as expected: True

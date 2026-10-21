@@ -419,14 +419,14 @@ def test_terminal():
     _, t = run(['WAIT','O'],show=False,window=fail)
     print('   without a display:', next( ln.strip() for f in t.s.frames for ln in f.splitlines()
                                             if 'Not shown' in ln ))
-    #l and k toggle the log scales of the y and x axes of the shown plot (only
-    #how it is drawn, as in matplotlib, and for each plot):
-    v, t = run(['WAIT','l','k','Down','K','WAIT'],show=False)
-    for key, scales in t.scales.items():
-        print(f'   l and k: {key} {scales}')
-    fig = t._scaled(v.figure())
-    print('   drawn with:', 'logx' if fig.panels[0].logx else 'linear x',
-          '| the figure itself:', 'logx' if v.figure().panels[0].logx else 'linear x')
+    #l and k toggle the options logy and logx of the shown plot (from the
+    #scale shown, also for auto), in its histogram string:
+    v, t = run(['WAIT','l','WAIT','k','Down','WAIT','K','WAIT'],show=False)
+    print('   l and k:', [ k for k, _ in v.views ][:3])
+    print('   the figure:', 'logx' if v.figure().panels[0].logx else 'linear x')
+    v, t = run(['WAIT','l','k'],show=False)
+    print('   k before the changed plot is drawn:', next( ln.strip() for f in t.s.frames
+                                                          for ln in f.splitlines() if 'not drawn' in ln ))
     #c shows a menu of the collections of plots (Up and Down choose one, which
     #Enter applies; the keys work with Shift too):
     e = ui.editor_for(v,'collection')

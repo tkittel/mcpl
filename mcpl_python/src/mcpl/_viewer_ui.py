@@ -217,8 +217,8 @@ Keys:
   w            Write the picked and edited particles to a new file.
   v            Save the state of the viewer (the settings and plots) in a
                file, which -wFILE.json (or --view=FILE.json) opens again.
-  l, k         Log or linear scale of the y or x axis of the plot (in a GUI
-               window, of the plot under the mouse, as in matplotlib).
+  l, k         Log or linear y or x axis of the plot: its option logy or logx
+               (in the overview of a GUI window, of the plot under the mouse).
   o            Open the plot in a GUI window (in the terminal; the window
                shows the plot as it is, and stays open).
   g            Open the viewer in a GUI window, in the same state (in the

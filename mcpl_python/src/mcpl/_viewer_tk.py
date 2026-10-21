@@ -365,14 +365,10 @@ class TkViewer(WidgetViewer):
     def _on_mpl_key( self, event ):
         if event.key is None:
             return
-        #(l and k change the log scales of the plot under the mouse, as in
-        #matplotlib):
-        if event.key.lower() in ui.scale_keys and self._inaxes in self.pane.axes:
-            ax, axis = self._inaxes, ui.scale_keys[event.key.lower()]
-            get, set_ = ( ( ax.get_yscale, ax.set_yscale ) if axis == 'logy'
-                          else ( ax.get_xscale, ax.set_xscale ) )
-            set_('linear' if get() == 'log' else 'log')
-            self.canvas.draw_idle()
+        #(l and k change the log scales of the plot, or of the plot of the
+        #overview under the mouse):
+        if event.key.lower() in ui.scale_keys:
+            self.on_scale_key(event.key,self.pane.view_at(event))
             return
         k = { 'up' : 'Up', 'down' : 'Down', 'enter' : 'Enter', 'escape' : 'Esc',
               'f1' : 'F1' }.get(event.key,event.key)

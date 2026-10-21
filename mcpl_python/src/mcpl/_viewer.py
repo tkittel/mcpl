@@ -143,6 +143,10 @@ class Viewer:
         added, but not the changes of the plots of the previous collection)"""
         added = [ p for p in self._s.plots if p not in self._origins ]
         items = [ _plot_item(i) for i in _collections[name][1] ]
+        if name == _default_collection:
+            #(the overview of all particle fields also has those of the
+            #userdata, at the end):
+            items += self._userdata_items()
         self._collection = name
         self._base = [ p for p, _, _ in items ]
         self._base_meta = { p : ( t, g ) for p, t, g in items if ( t, g ) != ( None, None ) }
@@ -152,6 +156,17 @@ class Viewer:
         self._meta = { **{ p : self._meta[p] for p in added if p in self._meta },
                        **self._base_meta }
         self._s.plots = list(self._base) + added
+
+    def _userdata_items( self ):
+        """Plot items of the fields of the userdata (of each value, for arrays)"""
+        items = []
+        for name, _, n in self._ud_fields:
+            if n is None:
+                items.append( ( f'userdata.{name}', f'Userdata {name}', 'Fields' ) )
+            else:
+                items += [ ( f'userdata.{name}.at({i})', f'Userdata {name}.at({i})', 'Fields' )
+                           for i in range(n) ]
+        return items
 
     def _set_or_raise( self, field, text ):
         ok, msg = self.set(field, text, restart = False)
@@ -293,6 +308,39 @@ class Viewer:
         n = self._ntotal
         first = min( skip or 0, n )
         return first, n if not limit else min( n, first + limit )
+
+    def toggle_scale( self, option, key = None ):
+        """Toggle the option logx or logy of a plot (the view with the key,
+        default the shown one) between log and linear, from the scale which is
+        shown (also when it was decided for the values, with auto), changing
+        its histogram string: (ok, message)"""
+        from ._histstring import _hist_set_option, _parse_hist
+        key = key or self.current_key
+        axis = option[-1]
+        if not key.startswith('plot:'):
+            return False, f'Choose a plot to change its {axis} axis'
+        plot = key[5:]
+        o = _parse_hist(plot)
+        if len(o['exprs']) == 2:
+            return False, f'2D histograms have no log {axis} option'
+        if option == 'logx' and o['bar']:
+            return False, 'Bar charts have no log x option'
+        if option == 'logx' and o['lethargy']:
+            return False, 'Plots with lethargy always have a log x axis'
+        fig = self.figure(key = key)
+        if o[option] == 'auto' and ( fig is None or not fig.panels ):
+            return False, 'The plot is not drawn yet (try again when it is)'
+        if o[option] != 'auto':
+            shown = o[option] is True
+        else:
+            #(as decided for the values; the bars of bar charts are horizontal,
+            #with the values along the x axis of the panel):
+            panel = fig.panels[0]
+            shown = bool( panel.logx or panel.logy ) if o['bar'] else bool(getattr(panel,option))
+        ok, msg = self.change_plot(plot,_hist_set_option(plot,option,None if shown else True))
+        if not ok:
+            return ok, msg
+        return True, f'{"linear" if shown else "log"} {axis}' + ( ' (was auto)' if o[option] == 'auto' else '' )
 
     def change_plot( self, old, text ):
         """Replace the plot old (its histogram string) by the text, in its place
@@ -869,6 +917,10 @@ class Viewer:
     def _worker( self ):
         from ._reader import MCPLFile
         with MCPLFile(self.filename) as f:
+            #(small files are kept in memory, so they are only read, and
+            #decompressed, once):
+            if f.nparticles * f.particlesize <= _memory_limit:
+                f = _InMemory(f)
             while True:
                 with self._lock:
                     while self._job is None and not self._stopping:
@@ -1022,6 +1074,32 @@ def _free_filename( filename, suffix, ext, *other_exts ):
 
 class _Cancelled(Exception):
     pass
+
+#The largest particle data (in bytes) of files kept in memory by the viewer:
+_memory_limit = 500e6
+
+class _InMemory:
+    """An MCPLFile whose particle blocks are kept in memory when they were all
+    read once (as copies, since the file reuses its block objects)"""
+    def __init__( self, f ):
+        self._f = f
+        self._blocks = None
+
+    def __getattr__( self, name ):
+        return getattr(self._f,name)
+
+    @property
+    def particle_blocks( self ):
+        if self._blocks is not None:
+            yield from self._blocks
+            return
+        blocks = []
+        for b in self._f.particle_blocks:
+            b = b[:]
+            blocks.append(b)
+            yield b
+        #(only when all were read, not after a reading which stopped early):
+        self._blocks = blocks
 
 #The entries of the state (see Viewer.state), and of its changes of the plots:
 _state_keys = ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plots', 'view' )

@@ -108,16 +108,15 @@ class MplViewer:
             self._on_close(None)
 
     def _scale_key( self, event ):
-        """Pass the keys of matplotlib for log scales (l and k by default) to
-        matplotlib, for the plot under the mouse (except while editing)"""
-        import matplotlib
-        from matplotlib.backend_bases import key_press_handler
-        keys = ( matplotlib.rcParams['keymap.xscale']
-                 + matplotlib.rcParams['keymap.yscale'] )
-        if ( event.key not in keys or self.editor is not None or self.show_help
-             or event.inaxes not in self._pane.axes ):
+        """The keys of log scales (l and k, see ui.scale_keys) toggle the
+        scale of the plot, or of the plot of the overview under the mouse
+        (except while editing). Returns whether the key was one of them."""
+        if ( event.key.lower() not in ui.scale_keys or self.editor is not None
+             or self.show_help ):
             return False
-        key_press_handler(event,self.fig.canvas)
+        _, self.message = self.v.toggle_scale(ui.scale_keys[event.key.lower()],
+                                              self._pane.view_at(event))
+        self.refresh(plot=True)
         return True
 
     def key( self, k ):
@@ -148,6 +147,8 @@ class MplViewer:
             v.select(v.current + 1)
         elif action in ( 'move_up', 'move_down' ):
             v.move(-1 if action == 'move_up' else 1)
+        elif action == 'write' and not v.changes_particles:
+            self.message = v.nothing_to_write
         elif action in ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot', 'write', 'state',
                          'change' ):
             self.editor = ui.editor_for(v,action)

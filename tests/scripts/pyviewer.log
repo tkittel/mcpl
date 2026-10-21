@@ -452,10 +452,11 @@ To open the viewer like this again:
    g opens the viewer in a window: gui_viewer True | messages: ['The viewer is opened in a GUI window']
 ==> keys ['WAIT', 'O']:
    without a display: Not shown: The matplotlib plotting backend can not show plots here
-==> keys ['WAIT', 'l', 'k', 'Down', 'K', 'WAIT']:
-   l and k: plot:ekin;logx=auto;logy;split=pdgcode {'logy': False, 'logx': False}
-   l and k: plot:wavelength;logx;split=pdgcode {'logx': False}
-   drawn with: linear x | the figure itself: logx
+==> keys ['WAIT', 'l', 'WAIT', 'k', 'Down', 'WAIT', 'K', 'WAIT']:
+   l and k: ['plot:ekin;split=pdgcode', 'plot:wavelength;split=pdgcode', 'plot:angle_to(0,0,1)/deg;logy;split=pdgcode']
+   the figure: linear x
+==> keys ['WAIT', 'l', 'k']:
+   k before the changed plot is drawn: The plot is not drawn yet (try again when it is)
    c shows the collections: ['default', 'beamz', 'beamx', 'beamy', 'shielding'] chosen: beamx | key hint: Up/Down: choose   Enter: apply   Esc: cancel
 ==> keys ['WAIT', 'C', 'Down', 'Down', 'WAIT']:
    the menu on the screen: ['│beamy      a beam along the y axis: profiles and divergences    │', 'Up/Down: choose   Enter: apply   Esc: cancel']

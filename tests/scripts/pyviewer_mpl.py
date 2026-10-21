@@ -88,13 +88,21 @@ key('escape')
 def key_at( k, ax ):
     x, y = ax.transAxes.transform((0.5,0.5))
     fig.canvas.callbacks.process('key_press_event',KeyEvent('key_press_event',fig.canvas,k,x,y))
+v.select_key('plot:ekin')
+v.wait()
+g.refresh()
 ax = g._pane.axes[0]
 key_at('l',ax)
 key_at('k',ax)
-print('scales after l and k over the plot:', ax.get_yscale(), ax.get_xscale(),
-      'editing:', g.editor is not None)
+#(which change the options logy and logx of the plot, see Viewer.toggle_scale):
+print('plot after l and k over it:', v.current_key, 'editing:', g.editor is not None,
+      '| message:', repr(g.message))
+v.wait()
+g.refresh()
+ax = g._pane.axes[0]
+print('scales after l and k over the plot:', ax.get_yscale(), ax.get_xscale())
 key_at('l',ax)
-print('y scale after l again:', ax.get_yscale())
+print('plot after l again:', v.current_key, '| message:', repr(g.message))
 key_at('k',ax)
 key('h')
 print('help shown:', g.show_help)

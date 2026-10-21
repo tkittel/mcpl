@@ -222,7 +222,6 @@ class TextViewer:
         self.hover = None
         self.show_help = False
         self.scroll = 0
-        self.scales = {}#(view key -> { 'logx' or 'logy' : chosen with l or k })
         #(shows a figure or viewer in a window, replaced in tests):
         self.open_window = lambda action, what : ( _plot_in_window(what) if action == 'gui_plot'
                                                    else _viewer_in_window(what) )
@@ -270,32 +269,9 @@ class TextViewer:
             self.scroll = max( 0, self.scroll - 5 )
             return None
         if k.lower() in ui.scale_keys:
-            self._toggle_scale(ui.scale_keys[k.lower()])
+            _, self.message = self.v.toggle_scale(ui.scale_keys[k.lower()])
             return None
         return self._do( ui.key_action(k,terminal = True) )
-
-    def _toggle_scale( self, axis ):
-        """Toggle the log scale of the axis ('logx' or 'logy') of the shown plot
-        (only how it is drawn, as in matplotlib)"""
-        fig = self.v.figure()
-        if fig is None or not fig.panels:
-            return
-        key = self.v.current_key
-        scales = self.scales.setdefault(key,{})
-        scales[axis] = not scales.get(axis,getattr(fig.panels[0],axis))
-
-    def _scaled( self, fig ):
-        """The figure with the scales chosen with _toggle_scale"""
-        import copy
-        scales = self.scales.get(self.v.current_key)
-        if not scales:
-            return fig
-        fig = copy.copy(fig)
-        fig.panels = [ copy.copy(p) for p in fig.panels ]
-        for p in fig.panels:
-            for axis, log in scales.items():
-                setattr(p,axis,log)
-        return fig
 
     def _do( self, action ):
         v = self.v
@@ -308,6 +284,8 @@ class TextViewer:
             self.scroll = 0
         elif action in ( 'move_up', 'move_down' ):
             v.move(-1 if action == 'move_up' else 1)
+        elif action == 'write' and not v.changes_particles:
+            self.message = v.nothing_to_write
         elif action in ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot', 'write', 'state',
                          'change' ):
             self.editor = ui.editor_for(v,action)
@@ -482,7 +460,6 @@ class TextViewer:
         fig = self.v.figure()
         if fig is None or height < 6 or width < 40:
             return
-        fig = self._scaled(fig)
         npanels = max( 1, len(fig.panels) )
         #(as many rows per panel as fit, but at least 5):
         lines = None

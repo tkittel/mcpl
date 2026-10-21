@@ -7,8 +7,9 @@ view: plot:x/cm : y/cm axes (with the colour bar): 2
 view: plot:polz axes (colour bar removed): 1
 i edits the limit: True
 l while editing is text: 'l'
-scales after l and k over the plot: log log editing: False
-y scale after l again: linear
+plot after l and k over it: plot:ekin;logy;logx editing: False | message: 'log x'
+scales after l and k over the plot: log log
+plot after l again: plot:ekin;logx | message: 'linear y'
 help shown: True
 help closed by a key: True
 view after clicking on it: plot:angle_to(0,0,1)/deg;logy;split=pdgcode

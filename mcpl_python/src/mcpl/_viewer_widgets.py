@@ -361,6 +361,9 @@ class WidgetViewer:
     def on_key( self, key ):
         """A key pressed outside the text fields (with the names of
         _viewer_ui, e.g. 'Up', 'MoveDown' or 'p')"""
+        if key.lower() in ui.scale_keys:
+            self.on_scale_key(key)
+            return
         action = ui.key_action(key)
         if action is None:
             return
@@ -381,6 +384,14 @@ class WidgetViewer:
             self.close_window()
         else:
             self.focus_field(action)
+
+    def on_scale_key( self, key, view = None ):
+        """A key toggling a log scale (see ui.scale_keys) of the shown plot, or
+        of the view with the key view (e.g. a plot of the overview under the
+        mouse)"""
+        ok, msg = self.v.toggle_scale(ui.scale_keys[key.lower()],view)
+        self.show_line(msg,'normal' if ok else 'error')
+        self.refresh()
 
     def on_action( self, action ):
         """A button of ui.actions was pressed"""

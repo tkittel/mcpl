@@ -48,13 +48,20 @@ class FakeToolkit(WidgetViewer):
         self.state = {}
 
     def show_views( self, cards, current ):
-        c = cards[current]
-        self.state['views'] = ( f'{len(cards)} views, shown: {c["name"]!r} ({c["plot"]},'
-                                f' group {c["group"]}, badges {c["badges"]})' )
-        self.state['constant fields'] = [ c['name'] for c in cards if c['constant'] is not None ]
-        self.state['not in the file'] = [ c['name'] for c in cards if c['absent'] ]
-        self.state['problems'] = [ c['name'] for c in cards if c['problem'] ]
-        self.state['thumbnails'] = sum( self.thumbnail(c['key'],84,50) is not None for c in cards )
+        c = next( c for c in cards if c.key == self.v.current_key )
+        self.state['views'] = ( f'{len(cards)} views, shown: {c.name!r} ({c.plot},'
+                                f' group {c.group}, badges {c.badges})' )
+        self.state['compact cards'] = [ f'{c.name}: {c.status}' for c in cards if c.compact ]
+        self.state['problems'] = [ c.name for c in cards if c.problem ]
+        self.state['thumbnails'] = sum( c.image and self.thumbnail(c.key,84,50) is not None
+                                        for c in cards )
+        #(what the kinds of cards allow: selectable, draggable, removable and
+        #grouped, by their names, e.g. the overview, a plot and the reminder of
+        #userdata in files without it):
+        kinds = sorted({ ''.join( k[0] if getattr(c,k) else '-' for k in
+                                  ( 'selectable', 'draggable', 'removable', 'grouped' ) )
+                         for c in cards })
+        self.state['kinds of cards'] = kinds
 
     def show_status( self, first, second ):
         self.state['status'] = first

@@ -580,12 +580,12 @@ def _elided( text, font, width ):
     return text.rstrip() + '\u2026'
 
 class _CardList:
-    """The views as cards on a canvas which can be scrolled: a small image of
-    the plot, its name and badges (see Viewer.plot_info), or a smaller card
-    for a plot of a field where all particles have the same value, under the
-    headers of their groups (which can be folded), with the shown one
-    selected. A card is clicked to show it, and dragged to move it (also
-    into another group)."""
+    """The cards of the views (see WidgetViewer.cards and Card) on a canvas
+    which can be scrolled: a small image of the plot, its name and badges, or
+    a compact card with its name and status, under the headers of their
+    groups (which can be folded), with the shown one selected. Cards are
+    clicked to show them, dragged to move them (also into another group), and
+    removed with their menu (right click), as far as they allow it."""
     width, thumb = 300, ( 84, 50 )
 
     def __init__( self, parent, viewer ):
@@ -602,7 +602,7 @@ class _CardList:
         self.folded = set()#(the groups which are folded)
         self._images = {}#PNG data -> PhotoImage (kept, as Tk needs them)
         self._shown = None#(what is drawn, to only draw it again when changed)
-        self._slots = []#(top, bottom, kind, what): 'card' (index, key, group) or 'header' (group)
+        self._slots = []#(top, bottom, kind, what): 'card' (the Card), 'header' (group) or 'add'
         self._drag = None#(the key of the card dragged, and where it started)
         c = self.canvas
         c.bind('<ButtonPress-1>',self._on_press)
@@ -630,12 +630,13 @@ class _CardList:
         return self._images[png]
 
     def show( self, cards, current ):
-        """Draw the cards (see WidgetViewer.cards), with the one with the index
-        current selected (if anything changed)"""
+        """Draw the cards (see WidgetViewer.cards), with the one of the shown
+        view selected (if anything changed; current, the index of the shown
+        view, is not needed, since the cards have the keys of the views)"""
         self._used = set()
-        images = [ self._image(c['key']) if c['constant'] is None and not c['absent'] else None
-                   for c in cards ]
-        shown = ( repr(cards), current, tuple(sorted(self.folded)),
+        images = [ self._image(c.key) if c.image else None for c in cards ]
+        current = self.tv.v.current_key
+        shown = ( tuple(cards), current, tuple(sorted(self.folded)),
                   tuple( id(i) for i in images ) )
         if shown == self._shown:
             return
@@ -646,18 +647,18 @@ class _CardList:
         self._slots = []
         y, group = 6, False#(False: before the first header)
         selected = None#(where the shown card is, if it is a new one)
-        for i, ( card, img ) in enumerate(zip(cards,images)):
-            if card['plot'] is not None and card['group'] != group:
-                group = card['group']
+        for card, img in zip(cards,images):
+            if card.grouped and card.group != group:
+                group = card.group
                 self._header(y,group)
                 y += _card_heights['header']
-            if ( card['plot'] is not None or card['key'].startswith('info:') ) and group in self.folded and i != current:
+            shown = card.key == current
+            if card.grouped and group in self.folded and not shown:
                 continue
-            kind = 'small' if card['constant'] is not None or card['absent'] else 'card'
-            h = _card_heights[kind]
-            self._card(y,h,card,img,i == current)
-            self._slots.append( ( y, y + h, 'card', ( i, card['key'], card['group'] ) ) )
-            if i == current and new_current:
+            h = _card_heights['small' if card.compact else 'card']
+            self._card(y,h,card,img,shown)
+            self._slots.append( ( y, y + h, 'card', card ) )
+            if shown and new_current:
                 selected = ( y, y + h )
             y += h + 6
         #(the card adding a plot):
@@ -689,33 +690,32 @@ class _CardList:
         c, col = self.canvas, _card_colors
         self._rect(4,y,self.width,y+h,12,fill=col['selected'] if selected else col['card'],
                    outline=col['accent'] if selected else col['border'],width=2 if selected else 1)
-        if card['constant'] is not None or card['absent']:
-            what = 'not in this file' if card['absent'] else f'all {card["constant"]}'
+        if card.compact:
             c.create_text(16,y+h/2,anchor='w',fill=col['dim'],
-                          text=f'{card["name"]}  \u00b7  {what}')
+                          text=f'{card.name}  \u00b7  {card.status}')
             return
         x = 14
         if img is not None:
             c.create_image(x,y+h/2,image=img,anchor='w')
-        if card['problem']:
+        if card.problem:
             #(a plot which failed, e.g. with fields of the userdata which the
             #file does not have, with its problem):
             c.create_text(x+self.thumb[0]/2,y+h/2,text='\u2717',fill=_colors['error'],
                           font=( self.tv._bold.cget('family'), 22, 'bold' ))
         x += self.thumb[0] + 12
         c.create_text(x,y+20,anchor='w',fill=col['text'],font=self.tv._bold,
-                      text=_elided(card['name'],self.tv._bold,self.width-x-22))
-        if card['problem']:
+                      text=_elided(card.name,self.tv._bold,self.width-x-22))
+        if card.problem:
             c.create_text(x,y+43,anchor='w',fill=_colors['error'],
                           font=( self.tv._bold.cget('family'), 8 ),
-                          text=_elided(card['problem'],self.tv._bold,self.width-x-22))
-        for b in ( () if card['problem'] else card['badges'] ):
+                          text=_elided(card.problem,self.tv._bold,self.width-x-22))
+        for b in ( () if card.problem else card.badges ):
             w = 10 + 6.5 * len(b)
             self._rect(x,y+34,x+w,y+52,8,fill=col['badge'],outline='')
             c.create_text(x+w/2,y+43,text=b,fill=col['accent'],
                           font=( self.tv._bold.cget('family'), 8 ))
             x += w + 5
-        if card['plot'] is not None:
+        if card.draggable:
             c.create_text(self.width-10,y+h/2,text='\u2807',fill=col['border'])#(drag handle)
 
     def _slot( self, event ):
@@ -723,23 +723,24 @@ class _CardList:
         return next( ( s for s in self._slots if s[0] <= y < s[1] + 6 ), None )
 
     def _on_menu( self, event ):
-        """A menu for the card of a plot: show or remove it"""
+        """A menu for the card: show or remove it (as far as it allows it)"""
         tk, _ = _tk()
         s = self._slot(event)
-        if s is None or s[2] != 'card' or not s[3][1].startswith(( 'plot:', 'info:' )):
+        if s is None or s[2] != 'card' or not ( s[3].selectable or s[3].removable ):
             return
-        key = s[3][1]
+        card = s[3]
         menu = tk.Menu(self.canvas,tearoff=0)
-        if key.startswith('plot:'):
-            menu.add_command(label='Show',command=lambda : self.tv.on_select_key(key))
-        menu.add_command(label='Remove this card',command=lambda : self.tv.on_remove(key))
+        if card.selectable:
+            menu.add_command(label='Show',command=lambda : self.tv.on_select_key(card.key))
+        if card.removable:
+            menu.add_command(label='Remove this card',command=lambda : self.tv.on_remove(card.key))
         menu.tk_popup(event.x_root,event.y_root)
 
     def _on_press( self, event ):
         s = self._slot(event)
         self._drag = None
-        if s is not None and s[2] == 'card' and s[3][1].startswith('plot:'):
-            self._drag = ( s[3][1], event.y, False )
+        if s is not None and s[2] == 'card' and s[3].draggable:
+            self._drag = ( s[3].key, event.y, False )
 
     def _on_motion( self, event ):
         if self._drag is not None and abs( event.y - self._drag[1] ) > 6:
@@ -760,14 +761,15 @@ class _CardList:
             if s is None:
                 return
             if s[2] == 'card':
-                #(the plots come after the overview among the views):
-                index, group = s[3][0] - 1, s[3][2]
+                index, group = self.tv.plot_index(s[3].key), s[3].group
             elif s[2] == 'header':
+                #(at the start of the group: before its first plot):
                 group = s[3]
-                index = next( ( x[3][0] - 1 for x in self._slots if x[2] == 'card'
-                                and x[0] > s[0] ), len(self.tv.v.overview_keys()) )
+                index = next( ( self.tv.plot_index(x[3].key) for x in self._slots
+                                if x[2] == 'card' and x[0] > s[0] and x[3].draggable ),
+                              self.tv.plot_index(None) )
             else:
-                index, group = len(self.tv.cards()), None
+                index, group = self.tv.plot_index(None), None
             self.tv.on_drop(drag[0],index,group)
             return
         if s is None:
@@ -775,8 +777,8 @@ class _CardList:
         if s[2] == 'header':
             self.folded ^= { s[3] }
             self.tv.refresh(plot = False)
-        elif s[2] == 'card' and not s[3][1].startswith('info:'):#(not a view, see WidgetViewer.cards)
-            self.tv.on_select(s[3][0])
+        elif s[2] == 'card' and s[3].selectable:
+            self.tv.on_select_key(s[3].key)
         elif s[2] == 'add':
             _AddPlot(self.tv)
 
@@ -1064,6 +1066,8 @@ class _AddPlot:
             self._names.append(name)
             if row == 0:
                 self._x = w
+                #(x : y written for the x axis is split, see _split_x):
+                w.bind('<FocusOut>',lambda _e : self._split_x(),'+')
             else:
                 self._y = w
         ttk.Label(f,text=( 'Any expression of the particle fields, like hypot(x,y)/cm or'
@@ -1094,6 +1098,15 @@ class _AddPlot:
         self._x.set(self._menu[0])
         self._chosen(self._x)
         self._x.focus_set()
+
+    def _split_x( self ):
+        """Two expressions written for the x axis ("x : y") are shown on both
+        axes (if the y axis is empty)"""
+        x, _, y = self._x.get().partition(':')
+        if y.strip() and not self._y.get().strip():
+            self._x.set(x.strip())
+            self._y.set(y.strip())
+            self._changed()
 
     def _chosen( self, w ):
         """A quantity was chosen from the list: its expression is shown in the
@@ -1137,6 +1150,7 @@ class _AddPlot:
             self._preview.configure(image=self._image)
 
     def _add( self ):
+        self._split_x()
         if self.tv.on_add_plot(self.plot(),self._title.get()):
             self.top.destroy()
         else:

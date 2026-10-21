@@ -6,10 +6,10 @@
    field edit: ''
    field plot: ''
    views: 21 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 14
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 1006 particles, Σw = 1006
    shown plot field: (None, None)
    settings: None
@@ -25,10 +25,10 @@
    field pick: 'pdgcode == neutron'
    line (normal): 
    views: 21 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None)
    settings: None
@@ -51,10 +51,10 @@
    field collection: 'beamz'
    line (normal): 
    views: 13 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Particle type', 'Position z', 'Weight']
-   not in the file: []
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1']
    problems: []
-   thumbnails: 13
+   thumbnails: 10
+   kinds of cards: ['s---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None)
    settings: None
@@ -63,10 +63,10 @@
    field collection: 'default'
    line (normal): 
    views: 21 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None)
    settings: None
@@ -75,11 +75,11 @@
    check of plot: None
    field plot: ''
    line (normal): 
-   views: 22 views, shown: 'Userdata' (None, group Fields, badges [])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   views: 22 views, shown: 'hypot(x,y)/cm' (hypot(x,y)/cm;logy, group None, badges ['log y'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 21
+   thumbnails: 14
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/cm;logy', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
@@ -89,11 +89,11 @@
    line (dim): Enter: remove this plot   Esc: cancel
    check of shown_plot: None
    line (normal): 
-   views: 22 views, shown: 'Userdata' (None, group Fields, badges [])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   views: 22 views, shown: 'hypot(x,y)/mm' (hypot(x,y)/mm;logy, group None, badges ['log y'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 21
+   thumbnails: 14
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/mm;logy', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
@@ -101,10 +101,10 @@
    check of shown_plot: None
    line (normal): 
    views: 21 views, shown: 'User flags' (userflags;bar;logy=auto, group Fields, badges ['bars'])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('userflags;bar;logy=auto', None)
    settings: ('bar', {'logy': 'auto', 'unweighted': 'weights', 'bar': ''})
@@ -112,30 +112,30 @@
 ==> keys outside the fields
   key Down:
    views: 21 views, shown: 'User flags' (userflags;bar;logy=auto, group Fields, badges ['bars'])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('userflags;bar;logy=auto', None)
    settings: ('bar', {'logy': 'auto', 'unweighted': 'weights', 'bar': ''})
    plot: 1 axes
   key MoveDown:
    views: 21 views, shown: 'User flags' (userflags;bar;logy=auto, group Fields, badges ['bars'])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('userflags;bar;logy=auto', None)
    settings: ('bar', {'logy': 'auto', 'unweighted': 'weights', 'bar': ''})
    plot: 1 axes
   key Up:
    views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('polz', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
@@ -143,10 +143,10 @@
   key P:
    focus: pick
    views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('polz', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
@@ -154,10 +154,10 @@
   key Enter:
    focus: shown_plot
    views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('polz', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
@@ -165,10 +165,10 @@
   key w:
    asked for a file to write, suggested: example_selected.mcpl.gz
    views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('polz', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
@@ -176,10 +176,10 @@
   key v:
    asked for a file to state, suggested: example_viewer.json
    views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('polz', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
@@ -187,10 +187,10 @@
   key ?:
    help shown: 41 lines
    views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('polz', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
@@ -201,19 +201,19 @@
    written: ['example_selected.mcpl.gz']
 ==> a click on a plot of the overview shows it on its own
    views: 21 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None)
    settings: None
    plot: 7 axes
    views: 21 views, shown: 'Angle to the z axis' (angle_to(0,0,1)/deg;logy;split=pdgcode, group Main plots, badges ['log y', 'by particle'])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('angle_to(0,0,1)/deg;logy;split=pdgcode', 'Angle to the z axis')
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': ''})
@@ -221,10 +221,10 @@
 ==> the title of the shown plot, and dragging its card into another group
    line (normal): 
    views: 21 views, shown: 'Angle to the beam' (angle_to(0,0,1)/deg;logy;split=pdgcode, group Mine, badges ['log y', 'by particle'])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('angle_to(0,0,1)/deg;logy;split=pdgcode', 'Angle to the beam')
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': ''})
@@ -244,10 +244,10 @@
   logx set to 'nonsense':
    line (error): Histogram option "logx" must be 1, 0 or auto (not "nonsense"), in "angle_to(0,0,1)/deg;bins=40;range=0:90;logx=nonsense"
    views: 21 views, shown: 'Angle to the beam' (angle_to(0,0,1)/deg;bins=40;range=0:90, group Mine, badges ['range'])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('angle_to(0,0,1)/deg;bins=40;range=0:90', 'Angle to the beam')
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '40', 'range': '0:90'})
@@ -262,22 +262,22 @@
    preview of an invalid plot: (None, 'Histogram option "logx" must be 1, 0 or auto (not "2"), in "wavelength;logx=2"')
    line (normal): 
    added: True
-   views: 22 views, shown: 'Userdata' (None, group Fields, badges [])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   views: 22 views, shown: 'Arrival time' (time;logx=auto, group None, badges ['log x'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 21
+   thumbnails: 14
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('time;logx=auto', 'Arrival time')
    settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
    line (normal): 
    added again, with another title: True
-   views: 22 views, shown: 'Userdata' (None, group Fields, badges [])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   views: 22 views, shown: 'Arrival time' (time;logx=auto, group None, badges ['log x'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 21
+   thumbnails: 14
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('time;logx=auto', 'Arrival time')
    settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
@@ -290,10 +290,10 @@
    field pick: ''
    line (normal): 
    views: 22 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 21
+   thumbnails: 15
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 1006 particles, Σw = 1006
    shown plot field: (None, None)
    settings: None
@@ -305,10 +305,10 @@
    field pick: 'pdgcode == neutron'
    line (normal): 
    views: 22 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 21
+   thumbnails: 14
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None)
    settings: None
@@ -322,10 +322,10 @@
    line (normal): 
    opened: True
    views: 22 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 21
+   thumbnails: 14
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: other.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None)
    settings: None
@@ -336,10 +336,10 @@
 ==> removing plots, with Delete
    line (normal): Removed the plot "Energy spectrum"
    views: 21 views, shown: 'Angle to the beam' (angle_to(0,0,1)/deg;bins=40;range=0:90, group Mine, badges ['range'])
-   constant fields: ['Particle type', 'Position z', 'Weight', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
-   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []
-   thumbnails: 20
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
    status: other.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('angle_to(0,0,1)/deg;bins=40;range=0:90', 'Angle to the beam')
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '40', 'range': '0:90'})

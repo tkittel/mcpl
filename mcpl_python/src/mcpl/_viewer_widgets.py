@@ -30,6 +30,57 @@ from . import _viewer_ui as ui
 from ._common import MCPLError
 
 
+class Card:
+    """A card of the list of views of the viewers with windows (see
+    WidgetViewer.cards), which the front ends show as far as they can: the
+    name, the group (if grouped, else it is not in a group, as the
+    overview), the badges of the options of the plot, a short status for
+    compact cards (e.g. "all 0" for fields with one value, or "not in this
+    file"), the problem of a plot which failed, and whether it has an image
+    (see WidgetViewer.thumbnail), can be selected (shown), dragged (moved)
+    and removed (see WidgetViewer.on_remove). The key is that of the view, or
+    starts with info: for cards which are not views."""
+    __slots__ = (
+        'badges',
+        'draggable',
+        'group',
+        'grouped',
+        'image',
+        'key',
+        'name',
+        'plot',
+        'problem',
+        'removable',
+        'selectable',
+        'status',
+        'title' )
+
+    def __init__( self, key, name, *, title = None, plot = None, group = None,
+                  grouped = False, badges = (), status = None, problem = None,
+                  image = False, selectable = True, draggable = False, removable = False ):
+        self.key, self.name, self.title, self.plot = key, name, title, plot
+        self.group, self.grouped, self.badges = group, grouped, list(badges)
+        self.status, self.problem, self.image = status, problem, image
+        self.selectable, self.draggable, self.removable = selectable, draggable, removable
+
+    @property
+    def compact( self ):
+        """Whether the card only shows its name and status"""
+        return self.status is not None
+
+    def _values( self ):
+        return tuple( getattr(self,n) if n != 'badges' else tuple(self.badges)
+                      for n in self.__slots__ )
+
+    def __eq__( self, other ):
+        return isinstance(other,Card) and self._values() == other._values()
+
+    def __hash__( self ):
+        return hash(self._values())
+
+    def __repr__( self ):
+        return f'Card({self.key!r}, {self.name!r})'
+
 class WidgetViewer:
     """The viewer in a window with the widgets of a GUI toolkit. A subclass
     for the toolkit creates the widgets (the list of views, the status, the
@@ -283,30 +334,40 @@ class WidgetViewer:
         return self.v.code(plots)
 
     def cards( self ):
-        """The views as cards: the plot_info of the viewer (see
-        Viewer.plot_info), with the key of the view, and the problem of the
-        plot if it failed (e.g. for fields of the userdata which the file does
-        not have), else None. In the default collection, files without userdata
-        have a card for it which is not a view (with the key info:userdata,
-        which can be removed as the cards of plots), as a reminder that MCPL
-        files can have userdata."""
+        """The views as cards (see Card), in their order, and in the default
+        collection, for files without userdata, a card for it after the other
+        fields (which is not a view), as a reminder that MCPL files can have
+        userdata"""
         from ._stdviews import _default_collection
         from .plotting import Text
         res = []
         for key, _ in self.v.views:
-            fig = self.v.figure(key = key) if key.startswith('plot:') else None
+            info = self.v.plot_info(key)
+            if not key.startswith('plot:'):
+                res.append(Card(key,info['name'],badges=info['badges'],image=True))
+                continue
+            fig = self.v.figure(key = key)
             items = fig.panels[0].items if fig is not None and len(fig.panels) == 1 else []
             problem = items[0].text if len(items) == 1 and isinstance(items[0],Text) else None
-            res.append( { 'key' : key, **self.v.plot_info(key), 'problem' : problem } )
+            status = ( 'not in this file' if info['absent'] else
+                       f'all {info["constant"]}' if info['constant'] is not None else None )
+            res.append(Card(key,info['name'],title=info['title'],plot=info['plot'],
+                            group=info['group'],grouped=True,badges=info['badges'],
+                            status=status,problem=problem,image=status is None,
+                            draggable=True,removable=True))
         if ( self.v.collection == _default_collection and not self.v.has_userdata
              and 'info:userdata' not in self._removed ):
-            #(after the other fields):
-            i = 1 + max( ( i for i, c in enumerate(res) if c['group'] == 'Fields' ),
+            i = 1 + max( ( i for i, c in enumerate(res) if c.group == 'Fields' ),
                          default = len(res) - 1 )
-            res.insert(i,{ 'key' : 'info:userdata', 'title' : 'Userdata', 'name' : 'Userdata', 'plot' : None,
-                           'group' : 'Fields', 'badges' : [], 'constant' : None, 'absent' : True,
-                           'problem' : None })
+            res.insert(i,Card('info:userdata','Userdata',group='Fields',grouped=True,
+                              status='not in this file',selectable=False,removable=True))
         return res
+
+    def plot_index( self, key ):
+        """The position of the plot (view key) among the plots (as for
+        on_drop), or the number of plots for other keys"""
+        keys = [ k for k, _ in self.v.views if k.startswith('plot:') ]
+        return keys.index(key) if key in keys else len(keys)
 
     def thumbnail( self, key, width, height ):
         """A small image of the plot of the view, as PNG data (or None if

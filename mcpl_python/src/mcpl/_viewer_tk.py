@@ -106,7 +106,6 @@ class TkViewer(WidgetViewer):
         self._logo = tk.PhotoImage(data=base64.b64encode(logo_png())).subsample(3)
         ttk.Label(left,image=self._logo).pack(anchor='w',pady=(0,6))
         self._entries, self._marks = {}, {}
-        self._menu_descriptions = {}#(the labels of the descriptions of menu fields)
         self._cards = _CardList(left,self)
         self._hover(self._cards.canvas,'views')
         #The status and the plot (on the right):
@@ -120,12 +119,14 @@ class TkViewer(WidgetViewer):
         #(the part of the shown plot, in the colours of its selected card: the
         #plot with its toolbar, and its fields below them, see _plot_part):
         bg = _part_colors['Plot']
-        part = _part(main,'Plot','the shown plot',_card_colors['accent'])
+        part, head = _part(main,'Plot','the shown plot',_card_colors['accent'])
         part.master.grid(row=2,column=0,sticky='nsew')
         #(the fields at the bottom, packed first so the plot gets the rest):
         fields = ttk.Frame(part)
         fields.pack(side='bottom',fill='x')
+        self._plot_fields = fields#(not shown for views which are not plots)
         plot = tk.Frame(part,name='plotbox',background=bg)
+        self._plotbox = plot
         plot.pack(fill='both',expand=True,pady=(0,4))
         #(the widgets of the toolbar get the colour when they are made, as
         #matplotlib draws its icons on their background):
@@ -147,14 +148,14 @@ class TkViewer(WidgetViewer):
         self._actions = {}#(the buttons of ui.actions)
         self._placeholders = {}#entry -> text shown in grey while it is empty
         self._showing = set()#(the entries showing their placeholder)
-        self._plot_part(fields)
+        self._plot_part(fields,head)
         _tint(part,'Plot')
         #Below the plot: the part of the particles (for all plots), the line
         #below it and the actions:
         bottom = ttk.Frame(root,padding=(0,4,6,6))
         bottom.grid(row=1,column=1,sticky='ew')
         bottom.columnconfigure(0,weight=1)
-        part = _part(bottom,'Particles','of all plots',_card_colors['border'])
+        part, _ = _part(bottom,'Particles','of all plots',_card_colors['border'])
         part.master.grid(row=0,column=0,sticky='ew',pady=(2,0))
         info = { f[0] : f for f in ui.fields }
         #(plots are added with "+ New plot", and the collection is chosen
@@ -205,32 +206,52 @@ class TkViewer(WidgetViewer):
         root.protocol('WM_DELETE_WINDOW',self.close_window)
 
     def _menu_field( self, parent, field, before ):
-        """A field of _viewer_ui.menu_fields: its label and menu in a row, and
-        the description of the chosen value below them (packed before the
-        widget before)"""
+        """A field of _viewer_ui.menu_fields: its label and menu in a row
+        (packed before the widget before). The menu shows the chosen value,
+        and its list the values with their descriptions."""
         _, ttk = _tk()
         _, label, _key, kpos, _ = next( f for f in ui.fields if f[0] == field )
         choices = self.menu_choices(field)
         frame = ttk.Frame(parent)
         frame.pack(fill='x',pady=(0,6),before=before)
         lab = ttk.Label(frame,text=label + ':',underline=kpos)
-        lab.grid(row=0,column=0,sticky='w',padx=(0,4))
-        w = ttk.Combobox(frame,state='readonly',values=[ n for n, _ in choices ])
-        w.grid(row=0,column=1,sticky='ew')
+        lab.pack(side='left',padx=(0,4))
+        values = [ f'{n}  \u2013  {d}' for n, d in choices ]
+        w = ttk.Combobox(frame,state='readonly',values=values,style='Menu.TCombobox')
+        w.configure(postcommand=lambda : self._widen_list(w,values))
+        w.pack(side='left',fill='x',expand=True)
         w.bind('<<ComboboxSelected>>',lambda _e : self._on_menu(field,choices))
-        frame.columnconfigure(1,weight=1)
-        descr = ttk.Label(frame,foreground=_colors['dim'])
-        descr.grid(row=1,column=0,columnspan=2,sticky='w')
-        self._entries[field], self._menu_descriptions[field] = w, descr
+        self._entries[field] = w
         self._marks[field] = ttk.Label(frame)#(menus are not checked)
         self._hover(lab,field)
         self._hover(w,field)
 
-    def _plot_part( self, part ):
+    def _widen_list( self, w, values ):
+        """The list of the menu w is made as wide as its values (when it
+        opens), also beyond the menu"""
+        import tkinter.font
+        _, ttk = _tk()
+        font = tkinter.font.nametofont('TkTextFont')
+        extra = max( 0, max( font.measure(v) for v in values ) + 30 - w.winfo_width() )
+        ttk.Style(self.root).configure('Menu.TCombobox',postoffset=( 0, 0, extra, 0 ))
+
+    def _plot_part( self, part, head ):
         """The fields of the shown plot (or of a new plot): its title, its axes
         (with the quantities of _viewer_ui.quantities in their lists), its
-        settings and its plot expression, with the buttons of plots"""
+        settings and its plot expression, with the buttons of plots in the
+        header of the part (head)"""
         _, ttk = _tk()
+        #(the buttons at the right of the header):
+        b = ttk.Button(head,text='+  New plot',style='Accent.TButton',takefocus=0,
+                       command=self.on_new_plot)
+        b.pack(side='right',padx=(6,0))
+        self._hover(b,'new_plot')
+        self._remove = ttk.Button(head,text='Remove',takefocus=0,command=self.on_remove)
+        self._remove.pack(side='right',padx=(6,0))
+        self._code = ttk.Button(head,text='</>  Code',takefocus=0,
+                                command=lambda : _CodeWindow(self,'Code of the plot',
+                                                             self.plot_code()))
+        self._code.pack(side='right')
         frame = ttk.Frame(part)
         frame.pack(fill='x',pady=1)
         ttk.Label(frame,text='Title:',**_row_label).pack(side='left',padx=(0,4))
@@ -243,17 +264,6 @@ class TkViewer(WidgetViewer):
         t.bind('<FocusIn>',lambda _e : self._on_title_focus(t),'+')
         t.bind('<FocusOut>',lambda _e : self._on_entry_unfocus(t),'+')
         self._title = t
-        #(the buttons at the right):
-        b = ttk.Button(frame,text='+  New plot',style='Accent.TButton',takefocus=0,
-                       command=self.on_new_plot)
-        b.pack(side='right',padx=(6,0))
-        self._hover(b,'new_plot')
-        self._remove = ttk.Button(frame,text='Remove',takefocus=0,command=self.on_remove)
-        self._remove.pack(side='right',padx=(6,0))
-        self._code = ttk.Button(frame,text='</>  Code',takefocus=0,
-                                command=lambda : _CodeWindow(self,'Code of the plot',
-                                                             self.plot_code()))
-        self._code.pack(side='right')
         #(the axes, where choosing a quantity of the list puts its expression):
         frame = ttk.Frame(part)
         frame.pack(fill='x',pady=1)
@@ -325,7 +335,6 @@ class TkViewer(WidgetViewer):
         w = self._entries[field]
         if field in ui.menu_fields:
             w.set(text)
-            self._menu_descriptions[field].configure(text=dict(self.menu_choices(field)).get(text,''))
             return
         self._set_text(w,text)
 
@@ -344,6 +353,11 @@ class TkViewer(WidgetViewer):
                 if self._text(w) != ( value or '' ) or ( not value and w not in self._showing ):
                     self._set_text(w,value or '')
         self._remove.configure(state='disabled' if text is None else 'normal')
+        #(the fields are only shown for plots, so the overview gets more room):
+        if text is None:
+            self._plot_fields.pack_forget()
+        elif not self._plot_fields.winfo_manager():
+            self._plot_fields.pack(side='bottom',fill='x',before=self._plotbox)
         #(a new plot has no code yet):
         self._code.configure(state='disabled' if self._new_plot is not None else 'normal')
 
@@ -676,15 +690,18 @@ _row_label = { 'width' : 15, 'anchor' : 'e' }
 def _part( parent, name, what, border ):
     """A part below the plot (with the colours of _part_colors[name]), with a
     header with its name and what it is for. Returns the frame for its
-    contents (in a frame with the border, its master)."""
+    contents (in a frame with the border, its master), and the frame of the
+    header (e.g. for buttons at its right)."""
     tk, ttk = _tk()
     box = tk.Frame(parent,background=_part_colors[name],highlightthickness=1,
                    highlightbackground=border,highlightcolor=border)
     frame = ttk.Frame(box,style=f'{name}.TFrame',padding=(10,4,10,6))
     frame.pack(fill='both',expand=True)
-    ttk.Label(frame,text=f'{name.upper()}  \u00b7  {what}',
-              style=f'{name}Head.TLabel').pack(anchor='w',pady=(0,3))
-    return frame
+    head = ttk.Frame(frame,style=f'{name}.TFrame')
+    head.pack(fill='x',pady=(0,3))
+    ttk.Label(head,text=f'{name.upper()}  \u00b7  {what}',
+              style=f'{name}Head.TLabel').pack(side='left')
+    return frame, head
 
 def _tint( part, name ):
     """Give the frames and labels in the part (see _part) its colours (those
@@ -1100,9 +1117,12 @@ class _CodeWindow:
             text.configure(state='disabled')
 
     def _copy( self, text ):
+        """Copy the code to the clipboard (for Ctrl+V), and select it, which
+        makes it the primary selection (for the middle mouse button)"""
         root = self.tv.root
         root.clipboard_clear()
         root.clipboard_append(text.get('1.0','end-1c'))
+        text.tag_add('sel','1.0','end-1c')
         self.tv.show_line('Copied','normal')
 
 class _WriteWindow:

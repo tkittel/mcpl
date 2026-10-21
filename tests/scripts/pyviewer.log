@@ -185,7 +185,12 @@ pick 'mod(fileidx,10) == 0' in cpp: None  []
 edit 'z += 1m;weight *= 0.5': ['q.position[2] += 100.0;', 'q.weight *= 0.5;']
 edit 'x = 2*y;ekin = ekin/2': ['q.position[0] = 2 * q.position[1];', 'q.ekin /= 2;']
 edit 'time = time + 1ms*abs(x)/1cm': ['q.time += fabs( q.position[0] );']
-edit 'rotate_z(90deg)': None
+edit 'rotate_z(90deg)': ['{', '  const double a = q.position[0], b = q.position[1];', '  q.position[0] = 0.0 - b;', '  q.position[1] = a;', '}', '{', '  const double a = q.direction[0], b = q.direction[1];', '  q.direction[0] = 0.0 - b;', '  q.direction[1] = a;', '}', '{', '  const double a = q.polarisation[0], b = q.polarisation[1];', '  q.polarisation[0] = 0.0 - b;', '  q.polarisation[1] = a;', '}']
+edit 'rotate_y(-90deg)': ['{', '  const double a = q.position[2], b = q.position[0];', '  q.position[2] = b;', '  q.position[0] = 0.0 - a;', '}', '{', '  const double a = q.direction[2], b = q.direction[0];', '  q.direction[2] = b;', '  q.direction[0] = 0.0 - a;', '}', '{', '  const double a = q.polarisation[2], b = q.polarisation[0];', '  q.polarisation[2] = b;', '  q.polarisation[0] = 0.0 - a;', '}']
+edit 'rotate_x(30deg)': ['{', '  const double a = q.position[1], b = q.position[2];', '  q.position[1] = 0.8660254037844387 * a - 0.49999999999999994 * b;', '  q.position[2] = 0.49999999999999994 * a + 0.8660254037844387 * b;', '}', '{', '  const double a = q.direction[1], b = q.direction[2];', '  q.direction[1] = 0.8660254037844387 * a - 0.49999999999999994 * b;', '  q.direction[2] = 0.49999999999999994 * a + 0.8660254037844387 * b;', '}', '{', '  const double a = q.polarisation[1], b = q.polarisation[2];', '  q.polarisation[1] = 0.8660254037844387 * a - 0.49999999999999994 * b;', '  q.polarisation[2] = 0.49999999999999994 * a + 0.8660254037844387 * b;', '}']
+edit 'swap(x,y)': ['{', '  double tmp = q.position[0];', '  q.position[0] = q.position[1];', '  q.position[1] = tmp;', '}']
+edit 'swap(pdgcode,userflags)': None
+edit 'rotate_z(x/cm*1deg)': None
 edit 'ux = 1': None
 edit 'a = 2*x;y = a': None
 highlighted command: option[-e] option[-s5] option[-p] string["pdgcode == neutron"]

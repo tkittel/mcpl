@@ -844,15 +844,17 @@ class _CodeWindow:
                        command=lambda : self._copy(text)).pack(side='right')
             self._texts[key] = text
         section(f,'command','Command line:')
-        ttk.Label(f,text='Code:',font=tv._bold).pack(anchor='w',pady=(10,0))
-        tabs = ttk.Notebook(f)
-        tabs.pack(fill='both',expand=True,pady=(2,0))
-        for key, label in kinds[1:]:
-            if key not in code:
-                continue#(no C++ and C for plots)
-            page = ttk.Frame(tabs,padding=(6,0,6,6))
-            tabs.add(page,text=f'  {label}  ')
-            section(page,key,None)
+        langs = [ ( k, label ) for k, label in kinds[1:] if k in code ]#(no C++ and C for plots)
+        if len(langs) == 1:
+            section(f,langs[0][0],f'{langs[0][1]}:')
+        else:
+            ttk.Label(f,text='Code:',font=tv._bold).pack(anchor='w',pady=(10,0))
+            tabs = ttk.Notebook(f)
+            tabs.pack(fill='both',expand=True,pady=(2,0))
+            for key, label in langs:
+                page = ttk.Frame(tabs,padding=(6,0,6,6))
+                tabs.add(page,text=f'  {label}  ')
+                section(page,key,None)
         self.show(code)
         ttk.Button(f,text='Close',command=w.destroy).pack(side='right',pady=(10,0))
         w.bind('<Escape>',lambda _e : w.destroy())
@@ -1044,15 +1046,26 @@ class _AddPlot:
         else:
             self._message.configure(text=self.tv.v.check('plot',self.plot())[1])
 
+def _has_xft( root ):
+    """Whether Tk uses Xft for its fonts, or None if not known: as Tk says
+    (which Tk without Xft can not, as the default Tk of conda-forge), else
+    whether the Xft library was loaded (on Linux)"""
+    import pathlib
+    import tkinter
+    try:
+        return str(root.tk.call('::tk::pkgconfig','get','fontsystem')) == 'xft'
+    except tkinter.TclError:
+        pass
+    maps = pathlib.Path('/proc/self/maps')
+    try:
+        return 'libXft' in maps.read_text()
+    except OSError:
+        return None
+
 def _check_fonts( root ):
     """Warn if the fonts are not antialiased, as with a Tk built without Xft on
     X11 (like the default Tk of conda-forge)"""
-    import tkinter
-    try:
-        system = str(root.tk.call('::tk::pkgconfig','get','fontsystem'))
-    except tkinter.TclError:
-        return#(not known)
-    if system != 'xft':
+    if _has_xft(root) is False:
         from ._messages import _warning
         _warning('The fonts of the viewer are not smooth (antialiased), since the Tk'
                  ' library used by Python was built without Xft. In a conda'

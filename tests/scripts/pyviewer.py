@@ -543,7 +543,8 @@ def test_c_translation():
             tr = _CTranslator(lang,'p',kind)
             print(f'pick {pick!r} in {lang}: {_c_condition(pick,tr)}  {sorted(tr.headers)}')
     for edit in ( 'z += 1m;weight *= 0.5', 'x = 2*y;ekin = ekin/2', 'time = time + 1ms*abs(x)/1cm',
-                  'rotate_z(90deg)', 'ux = 1', 'a = 2*x;y = a' ):
+                  'rotate_z(90deg)', 'rotate_y(-90deg)', 'rotate_x(30deg)', 'swap(x,y)',
+                  'swap(pdgcode,userflags)', 'rotate_z(x/cm*1deg)', 'ux = 1', 'a = 2*x;y = a' ):
         print(f'edit {edit!r}: {_c_edit(edit,_CTranslator("c","q","struct"),"")}')
     #The highlighting of the code (the styles of its parts):
     from mcpldev._viewer_code import highlight

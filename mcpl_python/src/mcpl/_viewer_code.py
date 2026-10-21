@@ -268,27 +268,83 @@ def _c_condition( pick, tr ):
 
 def _c_edit( edit, tr, indent ):
     """The C or C++ statements of the edit (of the struct of tr), or None"""
-    import ast
-
-    from ._expressions import ParticleEdit
+    from ._expressions import ParticleEdit, _rotation_planes
     lines = []
     for st in ParticleEdit(edit)._statements:
-        if st[0] != 'assign' or st[1] not in _c_assignable:
-            return None
-        node = st[2].tree.body
-        target = tr.field(st[1])
-        ops = { ast.Add : '+=', ast.Sub : '-=', ast.Mult : '*=', ast.Div : '/=' }
-        if ( isinstance(node,ast.BinOp) and type(node.op) in ops
-             and isinstance(node.left,ast.Name) and node.left.id == st[1] ):
-            #(as x += ..):
-            value = tr(node.right)
-            op = ops[type(node.op)]
+        if st[0] == 'swap':
+            res = _c_swap(st[1],st[2],tr,indent)
+        elif st[0] in _rotation_planes:
+            res = _c_rotation(st[0],st[1],tr,indent)
         else:
-            value, op = tr(node), '='
-        if value is None:
+            res = _c_assignment(st,tr,indent)
+        if res is None:
             return None
-        lines.append(f'{indent}{target} {op} {value[0]};')
+        lines += res
     return lines
+
+def _c_swap( a, b, tr, indent ):
+    """The C or C++ code of swap(a,b), for fields of the same type"""
+    if a not in _c_fields or b not in _c_fields:
+        return None#(variables)
+    types = [ 'int32_t' if n == 'pdgcode' else 'uint32_t' if n == 'userflags' else 'double'
+              for n in ( a, b ) ]
+    if types[0] != types[1]:
+        return None
+    t = types[0] if tr.lang == 'c' or types[0] == 'double' else f'std::{types[0]}'
+    A, B = tr.field(a), tr.field(b)
+    return [ f'{indent}{{', f'{indent}  {t} tmp = {A};', f'{indent}  {A} = {B};',
+             f'{indent}  {B} = tmp;', f'{indent}}}' ]
+
+def _c_rotation( fname, angle, tr, indent ):
+    """The C or C++ code of a rotation (rotate_x, rotate_y or rotate_z) by a
+    constant angle, as done by the edits: exactly for multiples of 90 degrees
+    (by swapping and negating values), else with the cos and sin of the
+    angle"""
+    import math
+
+    from ._expressions import _rotation_planes
+    value = tr(angle.tree)
+    if value is None or value[3] is None:
+        return None#(angles which are not constants)
+    a = float(value[3])
+    q = a / ( 0.5 * math.pi )
+    k = round(q)
+    lines = []
+    if abs( q - k ) <= 8 * 2.220446049250313e-16 * max( 1.0, abs(k) ):
+        #(as (A,B) -> (A,B), (-B,A), (-A,-B) or (B,-A), with 0.0 - v for -v, to
+        #avoid negative zeros as the edits do):
+        new = { 0 : None, 1 : ( '0.0 - {B}', '{A}' ), 2 : ( '0.0 - {A}', '0.0 - {B}' ),
+                3 : ( '{B}', '0.0 - {A}' ) }[k % 4]
+        if new is None:
+            return []
+        for pa, pb in _rotation_planes[fname]:
+            lines += _c_plane(tr,pa,pb,new[0].format(A='a',B='b'),new[1].format(A='a',B='b'),indent)
+        return lines
+    c, s = math.cos(a), math.sin(a)
+    for pa, pb in _rotation_planes[fname]:
+        lines += _c_plane(tr,pa,pb,f'{c!r} * a - {s!r} * b',f'{s!r} * a + {c!r} * b',indent)
+    return lines
+
+def _c_plane( tr, pa, pb, new_a, new_b, indent ):
+    """The fields pa and pb set to new_a and new_b (of their values a and b)"""
+    A, B = tr.field(pa), tr.field(pb)
+    return [ f'{indent}{{', f'{indent}  const double a = {A}, b = {B};',
+             f'{indent}  {A} = {new_a};', f'{indent}  {B} = {new_b};', f'{indent}}}' ]
+
+def _c_assignment( st, tr, indent ):
+    """The C or C++ code of an assignment of an edit (to a field), or None"""
+    import ast
+    if st[0] != 'assign' or st[1] not in _c_assignable:
+        return None
+    node = st[2].tree.body
+    ops = { ast.Add : '+=', ast.Sub : '-=', ast.Mult : '*=', ast.Div : '/=' }
+    if ( isinstance(node,ast.BinOp) and type(node.op) in ops
+         and isinstance(node.left,ast.Name) and node.left.id == st[1] ):
+        #(as x += ..):
+        value, op = tr(node.right), ops[type(node.op)]
+    else:
+        value, op = tr(node), '='
+    return None if value is None else [ f'{indent}{tr.field(st[1])} {op} {value[0]};' ]
 
 def _custom( lang, what, text, indent ):
     """A comment saying where to add code for something which is not

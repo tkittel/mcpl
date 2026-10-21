@@ -115,14 +115,23 @@ class TkViewer(WidgetViewer):
         self._status = [ ttk.Label(main,font=bold), ttk.Label(main,foreground=_colors['dim']) ]
         for i, label in enumerate(self._status):
             label.grid(row=i,column=0,sticky='w')
-        plot = ttk.Frame(main)
+        #(the plot, with its toolbar, in the colour and border of the part of
+        #the shown plot and of its selected card):
+        bg = _part_colors['Plot']
+        plot = tk.Frame(main,name='plotbox',background=bg,highlightthickness=1,
+                        highlightbackground=_card_colors['accent'],
+                        highlightcolor=_card_colors['accent'])
         plot.grid(row=2,column=0,sticky='nsew')
+        #(the widgets of the toolbar get the colour when they are made, as
+        #matplotlib draws its icons on their background):
+        for option in ( 'background', 'highlightBackground', 'activeBackground' ):
+            root.option_add(f'*plotbox*{option}',bg)
         fig = Figure(figsize=(10,6),dpi=100)
         self.canvas = FigureCanvasTkAgg(fig,master=plot)
         self.toolbar = NavigationToolbar2Tk(self.canvas,plot,pack_toolbar=False)
         self.toolbar.update()
-        self.toolbar.pack(side='bottom',fill='x')
-        self.canvas.get_tk_widget().pack(side='top',fill='both',expand=True)
+        self.toolbar.pack(side='bottom',fill='x',padx=6,pady=(0,2))
+        self.canvas.get_tk_widget().pack(side='top',fill='both',expand=True,padx=6,pady=(6,0))
         super().__init__(viewer,fig)
         self.canvas.mpl_connect('button_press_event',self._on_mpl_click)
         self.canvas.mpl_connect('key_press_event',self._on_mpl_key)

@@ -103,7 +103,7 @@ class WidgetViewer:
         from ._plotbackend_mpl import FigurePane
         self.v, self.fig = viewer, fig
         viewer.multi_overview = True#(the overview with all its plots)
-        self.pane = FigurePane(fig,( 0.08, 0.98, 0.09, 0.93 ),title_space=0.05,
+        self.pane = FigurePane(fig,( 0.08, 0.98, 0.11, 0.93 ),title_space=0.05,
                                title_y=0.98)
         self._histories = {}#field -> ui.History, while it is edited
         self._thumbnails = {}#view key -> (figure, PNG data, time)

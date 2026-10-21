@@ -52,6 +52,8 @@ class FakeToolkit(WidgetViewer):
         self.state['views'] = ( f'{len(cards)} views, shown: {c["name"]!r} ({c["plot"]},'
                                 f' group {c["group"]}, badges {c["badges"]})' )
         self.state['constant fields'] = [ c['name'] for c in cards if c['constant'] is not None ]
+        self.state['not in the file'] = [ c['name'] for c in cards if c['absent'] ]
+        self.state['problems'] = [ c['name'] for c in cards if c['problem'] ]
         self.state['thumbnails'] = sum( self.thumbnail(c['key'],84,50) is not None for c in cards )
 
     def show_status( self, first, second ):
@@ -198,6 +200,10 @@ t.shown()
 print('   file:', v.filename, '| the viewer:', t.v.filename, t.v.field_text('pick'))
 print('   a file which does not exist:', t.on_open_file('nonexisting.mcpl'), t.v.filename)
 v = t.v
+step('removing plots, with Delete')
+t.on_select(2)
+t.on_key('Delete')
+t.shown()
 step('the buttons of the actions, and quit')
 t.on_action('help')
 t.on_action('quit')

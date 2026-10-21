@@ -575,6 +575,28 @@ class _EmptyBlock:
         return np.zeros(0,dtype = int if name in ('pdgcode','userflags','fileidx')
                         else float)
 
+def _check_conditions( node, expr ):
+    """Raise MCPLError where a PDG code is used as a condition (in the
+    expression of a pick, or a part of it combined with and, or and not), as
+    in "neutron" or "pdgcode and x > 0cm", which would be true for all
+    particles (other integers can be conditions, as in userflags & 0x10)"""
+    if isinstance(node,ast.BoolOp):
+        for v in node.values:
+            _check_conditions(v,expr)
+        return
+    if isinstance(node,ast.UnaryOp) and isinstance(node.op,ast.Not):
+        _check_conditions(node.operand,expr)
+        return
+    if ( isinstance(node,ast.Call) and isinstance(node.func,ast.Name)
+         and node.func.id == 'abs' and len(node.args) == 1 ):
+        node = node.args[0]
+    if isinstance(node,ast.Name) and node.id in _particle_names:
+        raise MCPLError(f'{node.id} is a PDG code ({_particle_names[node.id]}), not a condition'
+                        f' (e.g. pdgcode == {node.id}), in expression "{expr}"')
+    if isinstance(node,ast.Name) and node.id == 'pdgcode':
+        raise MCPLError(f'pdgcode is not a condition (e.g. pdgcode == neutron), in'
+                        f' expression "{expr}"')
+
 class ParticleFilter:
     """Picks particles with an expression, which is evaluated with numpy on
     blocks of particles (this is also what the pick arguments of MCPLFile,
@@ -625,6 +647,7 @@ class ParticleFilter:
     def __init__( self, expression ):
         self._e = _Expr(expression)
         self._expr = self._e.text
+        _check_conditions(self._e.tree.body,self._expr)
         self(_EmptyBlock())#check units etc.
         #(for marking stat:sum entries as not available when particles are
         #picked by their positions in the file):

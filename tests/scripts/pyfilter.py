@@ -448,6 +448,15 @@ def test_in_and_userdata():
                and np.array_equal(mcpl.ParticleFilter(k)(b),ref) and _expr_canonical(k) == k )
         print(f'{e!r}: {int(ref.sum())} particles, normalised {k!r}, as expected: {ok}')
         assert ok
+    #PDG codes are not conditions (they would be true for all particles), but
+    #other integers are (as bits of userflags):
+    for e in ( 'neutron', 'pdgcode', 'neutron or gamma', 'x > 0cm and not antineutron',
+               'abs(pdgcode)', 'userflags & 0x10', 'not userflags' ):
+        try:
+            mcpl.ParticleFilter(e)
+            print(f'{e!r}: a condition')
+        except mcpl.MCPLError as x:
+            print(f'{e!r}: {x}')
     #(abs of integers gives integers):
     print('abs(pdgcode):', mcpl.ParticleValue('abs(pdgcode)')(b).dtype.kind)
     for bad in ( 'pdgcode in neutron', 'pdgcode in ()', 'pdgcode in (1cm)', '0 < pdgcode in (1,2)',

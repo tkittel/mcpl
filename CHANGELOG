@@ -21,7 +21,9 @@ v2.2.9  (work in progress)
       * Expressions (with -p, -E and -H, and in the Python API) use the
         logical operators and, or and not (&&, || and ! give an error saying
         what to write instead), mod(a,b) for remainders of integers, and in
-        and not in for lists of values (e.g. pdgcode in (neutron,gamma)).
+        and not in for lists of values (e.g. pdgcode in (neutron,gamma)), and
+        PDG codes can not be used as conditions (as in "neutron" instead of
+        "pdgcode == neutron").
         Fields of the userdata can be used as userdata.NAME (and the values of
         arrays as userdata.NAME.at(INDEX), counting from 0), and
         the position of the particles in the file as fileidx (e.g.

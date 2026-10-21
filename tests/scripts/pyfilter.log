@@ -30,6 +30,13 @@ histogram example 'userdata.nscat;bar;unweighted': BarHistogram
 'pdgcode not in ( neutron, gamma )': 41 particles, normalised 'pdgcode not in (neutron,gamma)', as expected: True
 'abs(pdgcode) in (11)': 23 particles, normalised 'abs(pdgcode) in (11)', as expected: True
 'not ekin in (1MeV,2MeV) and pdgcode in (22,2112)': 965 particles, normalised 'not ekin in (1MeV,2MeV) and pdgcode in (22,2112)', as expected: True
+'neutron': neutron is a PDG code (2112), not a condition (e.g. pdgcode == neutron), in expression "neutron"
+'pdgcode': pdgcode is not a condition (e.g. pdgcode == neutron), in expression "pdgcode"
+'neutron or gamma': neutron is a PDG code (2112), not a condition (e.g. pdgcode == neutron), in expression "neutron or gamma"
+'x > 0cm and not antineutron': antineutron is a PDG code (-2112), not a condition (e.g. pdgcode == antineutron), in expression "x > 0cm and not antineutron"
+'abs(pdgcode)': pdgcode is not a condition (e.g. pdgcode == neutron), in expression "abs(pdgcode)"
+'userflags & 0x10': a condition
+'not userflags': a condition
 abs(pdgcode): i
 pdgcode in neutron: Syntax error in expression "pdgcode in neutron", after "pdgcode in": "(" is expected, not "neutron"
 pdgcode in (): Syntax error in expression "pdgcode in ()", after "pdgcode in (": a value is expected, not ")"

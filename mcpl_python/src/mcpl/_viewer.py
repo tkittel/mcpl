@@ -75,6 +75,13 @@ class Viewer(_Reading):
                     name, kind = e.split(':',1)
                     kind, _, n = kind.partition('[')
                     self._ud_fields.append( ( name, kind, int(n[:-1]) if n else None ) )
+            #(the fields which the file does not have, which are 0):
+            self._absent = ( set() if f.opt_userflags else { 'userflags' } ) | (
+                set() if f.opt_polarisation else { 'polx', 'poly', 'polz' } )
+        #(set while a state is applied, when the plots are not checked against
+        #the fields of the userdata, so the plots of another file are kept, see
+        #for_file, and show the problem instead):
+        self._loading = False
         self._dry_run = dry_run
         self._progname = progname
         self._texts = { 'skip' : '', 'limit' : '', 'pick' : '', 'edit' : '',
@@ -95,6 +102,9 @@ class Viewer(_Reading):
         #(the figures of the last reading which was done, for its particles,
         #which are kept for plots which do not change, see _read):
         self._done = None#(particles key, {view key: figure}, constants, counts)
+        #(the last change of toggle_scale, which the same key undoes: the
+        #option, the plot after the change, and before):
+        self._scale_undo = None
         self._seen = -1
         self._updates = 0
         self._job = None
@@ -113,7 +123,11 @@ class Viewer(_Reading):
             view = { 'collection' : view }
         state = _as_state(view)
         if state is not None:
-            self._apply_state(state)
+            self._loading = True
+            try:
+                self._apply_state(state)
+            finally:
+                self._loading = False
             view = state.get('view')
         for field, value in ( ('skip',skip), ('limit',limit), ('pick',pick),
                               ('edit',edit) ):
@@ -191,7 +205,7 @@ class Viewer(_Reading):
 
     def _parse( self, field, text ):
         text = text.strip()
-        if field in ( 'pick', 'edit', 'plot' ):
+        if field in ( 'pick', 'edit' ) or ( field == 'plot' and not self._loading ):
             self._check_userdata(text)
         if field in ('skip','limit'):
             if not text or ( field == 'limit' and text == 'all' ):
@@ -298,13 +312,20 @@ class Viewer(_Reading):
         """Toggle the option logx or logy of a plot (the view with the key,
         default the shown one) between log and linear, from the scale which is
         shown (also when it was decided for the values, with auto), changing
-        its histogram string: (ok, message)"""
+        its histogram string: (ok, message). Toggling the same option of the
+        plot again undoes it (also giving back auto), unless the plot was
+        changed otherwise in between."""
         from ._histstring import _hist_set_option, _parse_hist
         key = key or self.current_key
         axis = option[-1]
         if not key.startswith('plot:'):
             return False, f'Choose a plot to change its {axis} axis'
         plot = key[5:]
+        undo = self._scale_undo
+        if undo is not None and undo[:2] == ( option, plot ):
+            ok, msg = self.change_plot(plot,undo[2])
+            self._scale_undo = None
+            return ( True, f'{axis} axis as before' ) if ok else ( ok, msg )
         o = _parse_hist(plot)
         if len(o['exprs']) == 2:
             return False, f'2D histograms have no log {axis} option'
@@ -322,15 +343,18 @@ class Viewer(_Reading):
             #with the values along the x axis of the panel):
             panel = fig.panels[0]
             shown = bool( panel.logx or panel.logy ) if o['bar'] else bool(getattr(panel,option))
-        ok, msg = self.change_plot(plot,_hist_set_option(plot,option,None if shown else True))
+        new = _hist_set_option(plot,option,None if shown else True)
+        ok, msg = self.change_plot(plot,new)
         if not ok:
             return ok, msg
+        self._scale_undo = ( option, new, plot )
         return True, f'{"linear" if shown else "log"} {axis}' + ( ' (was auto)' if o[option] == 'auto' else '' )
 
     def change_plot( self, old, text ):
         """Replace the plot old (its histogram string) by the text, in its place
         among the views, or remove it if the text is empty (restarting the
         reading): (ok, message)"""
+        self._scale_undo = None#(see toggle_scale, which sets it again)
         text = text.strip()
         plots = self._s.plots
         if old not in plots:
@@ -359,6 +383,7 @@ class Viewer(_Reading):
             h.append(text)
         origin = self._origins.pop(old,None)
         meta = self._meta.pop(old,None)#(the title and group stay with the plot)
+        meta = _doubtful_title(meta,old,text)
         if same is not None:
             plots.pop(i)#(the plot is already there)
             if meta is not None and same not in self._meta:
@@ -441,7 +466,8 @@ class Viewer(_Reading):
         from ._histstring import _parse_hist
         if not key.startswith('plot:'):
             return { 'title' : None, 'name' : 'Overview', 'plot' : None, 'group' : None,
-                     'badges' : [ f'{len(self.overview_keys())} plots' ], 'constant' : None }
+                     'badges' : [ f'{len(self.overview_keys())} plots' ], 'constant' : None,
+                     'absent' : False }
         p = key[5:]
         title, group = self._meta.get(p,( None, None ))
         o = _parse_hist(p)
@@ -473,7 +499,9 @@ class Viewer(_Reading):
         field = _plot_field(p)
         return { 'title' : title, 'name' : title or ' : '.join(o['exprs']), 'plot' : p,
                  'group' : group, 'badges' : badges,
-                 'constant' : constants.get(field) if field else None }
+                 'constant' : ( '0' if field in self._absent else
+                                constants.get(field) if field else None ),
+                 'absent' : field in self._absent }
 
     def _same_plot( self, text, plots = None ):
         """The plot (of plots, default all) giving the same histogram as the
@@ -812,6 +840,16 @@ class Viewer(_Reading):
 
     #Writing:
 
+    @property
+    def has_userdata( self ):
+        """Whether the particles of the file have userdata"""
+        return bool(self._ud_fields)
+
+    @property
+    def collection( self ):
+        """The name of the collection of plots the plots started from"""
+        return self._collection
+
     def for_file( self, filename, particles = True ):
         """A viewer of another file, in the same state, but without skip and
         limit (which are of this file), and without the pick and edit unless
@@ -878,6 +916,18 @@ class Viewer(_Reading):
             _mcpltool_extract([self.filename,filename],s.limit,s.skip,s.pick,
                               s.edit,False,False,self._dry_run,bad)
         return out.getvalue().strip()
+
+def _doubtful_title( meta, old, new ):
+    """The title and group (meta) of a plot changed from old to new (histogram
+    strings), with " (??)" after the title if the expressions changed (not
+    just the options), since the title might no longer fit"""
+    from ._expressions import _expr_canonical
+    from ._histstring import _hist_parts
+    if meta is None or meta[0] is None or meta[0].endswith('(??)'):
+        return meta
+    def exprs( text ):
+        return [ _expr_canonical(e) for e in _hist_parts(text)[0].split(':') ]
+    return meta if exprs(old) == exprs(new) else ( meta[0] + ' (??)', meta[1] )
 
 def _free_filename( filename, suffix, ext, *other_exts ):
     """The name <input><suffix><ext> next to the file (without its extensions

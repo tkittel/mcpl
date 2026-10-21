@@ -152,6 +152,10 @@ class WidgetViewer:
         self.v.select(index)
         self.refresh()
 
+    def on_select_key( self, key ):
+        self.v.select_key(key)
+        self.refresh()
+
     def on_move( self, delta ):
         if self.v.move(delta):
             self.refresh()
@@ -279,8 +283,27 @@ class WidgetViewer:
 
     def cards( self ):
         """The views as cards: the plot_info of the viewer (see
-        Viewer.plot_info), with the key of the view"""
-        return [ { 'key' : key, **self.v.plot_info(key) } for key, _ in self.v.views ]
+        Viewer.plot_info), with the key of the view, and the problem of the
+        plot if it failed (e.g. for fields of the userdata which the file does
+        not have), else None. In the default collection, files without userdata
+        have a card for it which is not a view (with the key None), as a
+        reminder that MCPL files can have userdata."""
+        from ._stdviews import _default_collection
+        from .plotting import Text
+        res = []
+        for key, _ in self.v.views:
+            fig = self.v.figure(key = key) if key.startswith('plot:') else None
+            items = fig.panels[0].items if fig is not None and len(fig.panels) == 1 else []
+            problem = items[0].text if len(items) == 1 and isinstance(items[0],Text) else None
+            res.append( { 'key' : key, **self.v.plot_info(key), 'problem' : problem } )
+        if self.v.collection == _default_collection and not self.v.has_userdata:
+            #(after the other fields):
+            i = 1 + max( ( i for i, c in enumerate(res) if c['group'] == 'Fields' ),
+                         default = len(res) - 1 )
+            res.insert(i,{ 'key' : None, 'title' : 'Userdata', 'name' : 'Userdata', 'plot' : None,
+                           'group' : 'Fields', 'badges' : [], 'constant' : None, 'absent' : True,
+                           'problem' : None })
+        return res
 
     def thumbnail( self, key, width, height ):
         """A small image of the plot of the view, as PNG data (or None if
@@ -367,6 +390,9 @@ class WidgetViewer:
         if key.lower() in ui.scale_keys:
             self.on_scale_key(key)
             return
+        if key == 'Delete':
+            self.on_remove()
+            return
         action = ui.key_action(key)
         if action is None:
             return
@@ -407,6 +433,17 @@ class WidgetViewer:
         self.start()
         self.show_line(msg,'error' if msg else 'normal')
         return True
+
+    def on_remove( self, key = None ):
+        """Remove the plot (the view with the key, default the shown one)"""
+        key = key or self.v.current_key
+        if not key.startswith('plot:'):
+            self.show_line('Choose a plot to remove it','error')
+            return
+        name = self.v.plot_info(key)['name']
+        ok, msg = self.v.change_plot(key[5:],'')
+        self.show_line(f'Removed the plot "{name}"' if ok else msg,'normal' if ok else 'error')
+        self.refresh()
 
     def on_scale_key( self, key, view = None ):
         """A key toggling a log scale (see ui.scale_keys) of the shown plot, or

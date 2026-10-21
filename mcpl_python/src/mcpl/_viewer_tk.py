@@ -41,7 +41,7 @@ def _tk():
 _colors = { 'normal' : 'black', 'dim' : '#777777', 'ok' : '#2ca02c', 'error' : '#d62728' }
 
 #Tk key names, as names of _viewer_ui (the others are characters):
-_keymap = { 'Return' : 'Enter', 'KP_Enter' : 'Enter', 'Escape' : 'Esc',
+_keymap = { 'Return' : 'Enter', 'KP_Enter' : 'Enter', 'Escape' : 'Esc', 'Delete' : 'Delete',
             'F1' : 'F1', 'Up' : 'Up', 'Down' : 'Down', 'Prior' : 'PageUp',
             'Next' : 'PageDown' }
 #(Shift, Control, Alt, and the Windows or Command key, in Tk event states):
@@ -394,13 +394,13 @@ class TkViewer(WidgetViewer):
             self.on_scale_key(event.key,self.pane.view_at(event))
             return
         k = { 'up' : 'Up', 'down' : 'Down', 'enter' : 'Enter', 'escape' : 'Esc',
-              'f1' : 'F1' }.get(event.key,event.key)
+              'f1' : 'F1', 'delete' : 'Delete' }.get(event.key,event.key)
         for arrow, name in ( ( '+up', 'MoveUp' ), ( '+down', 'MoveDown' ) ):
             if k.endswith(arrow):
                 k = name
         if k.startswith('shift+') and len(k) == 7:
             k = k[-1].upper()
-        if len(k) == 1 or k in ( 'Up', 'Down', 'MoveUp', 'MoveDown', 'Enter', 'F1' ):
+        if len(k) == 1 or k in ( 'Up', 'Down', 'MoveUp', 'MoveDown', 'Enter', 'F1', 'Delete' ):
             self.on_key(k)
 
     def _on_mpl_motion( self, event ):
@@ -605,6 +605,9 @@ class _CardList:
         c.bind('<ButtonPress-1>',self._on_press)
         c.bind('<B1-Motion>',self._on_motion)
         c.bind('<ButtonRelease-1>',self._on_release)
+        #(a menu of the card, with the right button, or Ctrl and a click on macOS):
+        for button in ( '<Button-3>', '<Control-Button-1>' if c.tk.call('tk','windowingsystem') == 'aqua' else '<Button-2>' ):
+            c.bind(button,self._on_menu)
         #(scrolling with the wheel, as given by Windows and macOS, or X11):
         c.bind('<MouseWheel>',lambda e : c.yview_scroll(-1 if e.delta > 0 else 1,'units'))
         c.bind('<Button-4>',lambda _e : c.yview_scroll(-1,'units'))
@@ -627,7 +630,8 @@ class _CardList:
         """Draw the cards (see WidgetViewer.cards), with the one with the index
         current selected (if anything changed)"""
         self._used = set()
-        images = [ self._image(c['key']) if c['constant'] is None else None for c in cards ]
+        images = [ self._image(c['key']) if c['constant'] is None and not c['absent'] else None
+                   for c in cards ]
         shown = ( repr(cards), current, tuple(sorted(self.folded)),
                   tuple( id(i) for i in images ) )
         if shown == self._shown:
@@ -644,9 +648,9 @@ class _CardList:
                 group = card['group']
                 self._header(y,group)
                 y += _card_heights['header']
-            if card['plot'] is not None and group in self.folded and i != current:
+            if ( card['plot'] is not None or card['key'] is None ) and group in self.folded and i != current:
                 continue
-            kind = 'small' if card['constant'] is not None else 'card'
+            kind = 'small' if card['constant'] is not None or card['absent'] else 'card'
             h = _card_heights[kind]
             self._card(y,h,card,img,i == current)
             self._slots.append( ( y, y + h, 'card', ( i, card['key'], card['group'] ) ) )
@@ -682,17 +686,27 @@ class _CardList:
         c, col = self.canvas, _card_colors
         self._rect(4,y,self.width,y+h,12,fill=col['selected'] if selected else col['card'],
                    outline=col['accent'] if selected else col['border'],width=2 if selected else 1)
-        if card['constant'] is not None:
+        if card['constant'] is not None or card['absent']:
+            what = 'not in this file' if card['absent'] else f'all {card["constant"]}'
             c.create_text(16,y+h/2,anchor='w',fill=col['dim'],
-                          text=f'{card["name"]}  \u00b7  all {card["constant"]}')
+                          text=f'{card["name"]}  \u00b7  {what}')
             return
         x = 14
         if img is not None:
             c.create_image(x,y+h/2,image=img,anchor='w')
+        if card['problem']:
+            #(a plot which failed, e.g. with fields of the userdata which the
+            #file does not have, with its problem):
+            c.create_text(x+self.thumb[0]/2,y+h/2,text='\u2717',fill=_colors['error'],
+                          font=( self.tv._bold.cget('family'), 22, 'bold' ))
         x += self.thumb[0] + 12
         c.create_text(x,y+20,anchor='w',fill=col['text'],font=self.tv._bold,
                       text=_elided(card['name'],self.tv._bold,self.width-x-22))
-        for b in card['badges']:
+        if card['problem']:
+            c.create_text(x,y+43,anchor='w',fill=_colors['error'],
+                          font=( self.tv._bold.cget('family'), 8 ),
+                          text=_elided(card['problem'],self.tv._bold,self.width-x-22))
+        for b in ( () if card['problem'] else card['badges'] ):
             w = 10 + 6.5 * len(b)
             self._rect(x,y+34,x+w,y+52,8,fill=col['badge'],outline='')
             c.create_text(x+w/2,y+43,text=b,fill=col['accent'],
@@ -705,10 +719,22 @@ class _CardList:
         y = self.canvas.canvasy(event.y)
         return next( ( s for s in self._slots if s[0] <= y < s[1] + 6 ), None )
 
+    def _on_menu( self, event ):
+        """A menu for the card of a plot: show or remove it"""
+        tk, _ = _tk()
+        s = self._slot(event)
+        if s is None or s[2] != 'card' or not ( s[3][1] or '' ).startswith('plot:'):
+            return
+        key = s[3][1]
+        menu = tk.Menu(self.canvas,tearoff=0)
+        menu.add_command(label='Show',command=lambda : self.tv.on_select_key(key))
+        menu.add_command(label='Remove this plot',command=lambda : self.tv.on_remove(key))
+        menu.tk_popup(event.x_root,event.y_root)
+
     def _on_press( self, event ):
         s = self._slot(event)
         self._drag = None
-        if s is not None and s[2] == 'card' and s[3][1].startswith('plot:'):
+        if s is not None and s[2] == 'card' and ( s[3][1] or '' ).startswith('plot:'):
             self._drag = ( s[3][1], event.y, False )
 
     def _on_motion( self, event ):
@@ -745,7 +771,7 @@ class _CardList:
         if s[2] == 'header':
             self.folded ^= { s[3] }
             self.tv.refresh(plot = False)
-        elif s[2] == 'card':
+        elif s[2] == 'card' and s[3][1] is not None:#(not the card of absent userdata)
             self.tv.on_select(s[3][0])
         elif s[2] == 'add':
             _AddPlot(self.tv)

@@ -553,6 +553,32 @@ def test_c_translation():
         print(f'highlighted {kind}:', ' '.join( f'{style}[{code[kind][a:b]}]'
                                                 for a, b, style in highlight(code[kind],kind) ))
 
+def test_plot_changes():
+    #k and l toggle logx and logy from what is shown, and the same key again
+    #undoes it (also back to auto), unless the plot was changed otherwise:
+    v = Viewer(ex)
+    v.start()
+    v.wait()
+    v.select_key('plot:ekin;logx=auto;logy;split=pdgcode')
+    for option in ( 'logx', 'logx', 'logx', 'logy', 'logx' ):
+        print(f'toggle {option}:', v.toggle_scale(option), v.current_key)
+        v.wait()
+    v.change_plot(v.current_key[5:],'ekin;logx=auto')
+    v.wait()
+    print('after another change:', v.toggle_scale('logx'), v.toggle_scale('logx'), v.current_key)
+    #Titles get (??) when the expressions of the plot change (not its options):
+    p = 'wavelength;logx;split=pdgcode'
+    for new in ( 'wavelength;split=pdgcode', 'wavelength/nm;split=pdgcode', 'ekin/MeV;split=pdgcode' ):
+        v.change_plot(p,new)
+        print(f'title after {new!r}:', v.plot_info(f'plot:{new}')['title'])
+        p = new
+    v.set('plot','x;bins=10')
+    v.change_plot('x;bins=10','y;bins=10')
+    print('without a title:', v.plot_info('plot:y;bins=10')['title'], v.plot_info('plot:y;bins=10')['name'])
+    #Fields the file does not have:
+    print('absent:', [ v.plot_info(k)['name'] for k, _ in v.views if v.plot_info(k)['absent'] ])
+    v.stop()
+
 def test_range_and_userdata():
     #A limit beyond the end of the file gives the same particles, so the
     #reading is not restarted:
@@ -594,6 +620,7 @@ def test_range_and_userdata():
 test_figures()
 test_code()
 test_c_translation()
+test_plot_changes()
 test_range_and_userdata()
 test_fields()
 test_reading()

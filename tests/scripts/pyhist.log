@@ -696,9 +696,9 @@ nice numbers of bins: [(1200, 1080), (400, 360), (239, 216), (83, 72), (37, 36),
 neff=1: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
 neff=100: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
 neff=1000: bins of 1080 -> 30, of 216 -> 36, 2D of 216 -> 9
-neff=10000: bins of 1080 -> 108, of 216 -> 108, 2D of 216 -> 9
-neff=100000: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 18
-neff=1e+06: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 36
+neff=10000: bins of 1080 -> 108, of 216 -> 108, 2D of 216 -> 24
+neff=100000: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 54
+neff=1e+06: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 108
 2756 (ncols,neff) cases, 0 bad, ratio to target 0.72..1.25 when not capped, 1035 capped by narrow plots, at most 15% unused columns
 auto: 30 bins, sum 1006 (1080 bins: 1006), merged exactly: True, same edges: True, for display: 1080
 auto with few particles: 10 bins, sum 10

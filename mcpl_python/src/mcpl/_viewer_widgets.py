@@ -257,8 +257,9 @@ class WidgetViewer:
     def plot_controls( self, plot = None ):
         """The settings of the plot (default the shown one) as (kind, controls),
         where controls are (option, label, the texts of its choices, or None for
-        a text field, and the shown text), see _viewer_ui.plot_controls, or
-        None if the shown view is not a plot"""
+        a text field, the shown text, and the text shown greyed in an empty
+        text field: what is used, e.g. the numbers of bins), see
+        _viewer_ui.plot_controls, or None if the shown view is not a plot"""
         from ._histstring import _hist_parts, _parse_hist
         plot = plot or self._shown_plot()
         if plot is None:
@@ -279,8 +280,20 @@ class WidgetViewer:
                 shown = '' if value in ( None, True ) else value
             else:
                 shown = next( ( t for t, cv in choices if cv == value ), value )
-            res.append( ( name, label, [ t for t, _ in choices ] if choices else None, shown ) )
+            res.append( ( name, label, [ t for t, _ in choices ] if choices else None, shown,
+                          self._used_bins(plot) if name == 'bins' else '' ) )
         return kind, res
+
+    def _used_bins( self, plot ):
+        """The numbers of bins of the drawn plot, as a text ("40", or "40,30"
+        for 2D histograms), or an empty text if it is not drawn yet"""
+        fig = self.v.figure(key = f'plot:{plot}')
+        for item in ( fig.panels[0].items if fig is not None and len(fig.panels) == 1 else () ):
+            if hasattr(item,'xedges'):
+                return f'{len(item.xedges)-1},{len(item.yedges)-1}'
+            if hasattr(item,'edges'):
+                return str(len(item.edges)-1)
+        return ''
 
     def _option( self, plot, name, shown ):
         """The plot with the option set from the shown text of its control"""

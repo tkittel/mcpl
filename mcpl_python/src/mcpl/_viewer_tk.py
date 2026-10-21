@@ -283,8 +283,9 @@ class TkViewer(WidgetViewer):
             self._axes.append(w)
         self._marks['axes'] = ttk.Label(frame,width=2)
         self._marks['axes'].pack(side='left')
-        ttk.Label(frame,text='(Y axis empty: 1D histogram)',
-                  foreground=_colors['dim']).pack(side='left',padx=(6,0))
+        #(shown while the y axis is empty):
+        self._axes_note = ttk.Label(frame,foreground=_colors['dim'])
+        self._axes_note.pack(side='left',padx=(6,0))
         #(the settings):
         frame = ttk.Frame(part)
         frame.pack(fill='x',pady=1)
@@ -353,6 +354,7 @@ class TkViewer(WidgetViewer):
                 if self._text(w) != ( value or '' ) or ( not value and w not in self._showing ):
                     self._set_text(w,value or '')
         self._remove.configure(state='disabled' if text is None else 'normal')
+        self._axes_note.configure(text='' if y else '(Y axis empty: 1D histogram)')
         #(the fields are only shown for plots, so the overview gets more room):
         if text is None:
             self._plot_fields.pack_forget()
@@ -439,6 +441,17 @@ class TkViewer(WidgetViewer):
         ttk.Button(top,text='Close',command=top.destroy).pack(pady=4)
         top.bind('<Escape>',lambda _e : top.destroy())
         top.focus_set()
+
+    def copy_text( self, text ):
+        """Copy the text to the clipboard (for Ctrl+V) and to the primary
+        selection (for the middle mouse button), both owned by the main window,
+        so they stay after the window which copied is closed"""
+        root = self.root
+        root.clipboard_clear()
+        root.clipboard_append(text)
+        root.selection_handle(lambda offset, length : text[int(offset):int(offset)+int(length)],
+                              selection='PRIMARY')
+        root.selection_own(selection='PRIMARY')
 
     def close_window( self ):
         tk, _ttk = _tk()
@@ -943,7 +956,7 @@ class _Controls:
         self._on_change = on_change
         self._on_hint = on_hint
         self._kind = None
-        self._widgets = {}
+        self._widgets, self._used, self._greyed = {}, {}, set()
 
     def show( self, controls ):
         _, ttk = _tk()
@@ -952,7 +965,9 @@ class _Controls:
             for w in self.frame.winfo_children():
                 w.destroy()
             self._kind, self._widgets = kind, {}
-            for i, ( name, label, choices, _ ) in enumerate( controls[1] if controls else () ):
+            self._used = {}#entry -> its greyed text (what is used)
+            self._greyed = set()#(the entries showing it)
+            for i, ( name, label, choices, _, _ ) in enumerate( controls[1] if controls else () ):
                 ttk.Label(self.frame,text=label,**self._styles).pack(side='left',
                                                                      padx=(0 if i == 0 else 10,3))
                 if choices is not None:
@@ -963,23 +978,48 @@ class _Controls:
                                      state='normal' if name == 'split' else 'readonly')
                     w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._chosen(n,w))
                 else:
-                    w = ttk.Entry(self.frame,width=12 if 'range' in name else 5)
+                    w = ttk.Entry(self.frame,width=12 if 'range' in name else 7)
+                    #(the greyed text is removed while it is edited):
+                    w.bind('<FocusIn>',lambda _e, w=w : self._show_used(w,None),'+')
+                    w.bind('<FocusOut>',lambda _e, w=w : self._show_used(w,self._used.get(w)),'+')
                 if name == 'split' or choices is None:
-                    w.bind('<Return>',lambda _e, n=name, w=w : self._on_change(n,w.get()))
+                    w.bind('<Return>',lambda _e, n=name, w=w : self._on_change(n,self._text(w)))
                 w.pack(side='left')
                 self._widgets[name] = w
         if not controls:
             return
         focus = self.frame.focus_get()
-        for name, _, choices, shown in controls[1]:
+        for name, _, choices, shown, used in controls[1]:
             w = self._widgets[name]
             if w is focus:
                 continue#(not while it is edited)
             if choices is not None:
                 w.set(shown)
             else:
+                self._show_used(w,None)
                 w.delete(0,'end')
                 w.insert(0,shown)
+                if not shown and used:
+                    self._show_used(w,used)
+
+    def _show_used( self, w, used ):
+        """Show the text of what is used greyed in the empty entry w (or remove
+        it, if used is None)"""
+        if used is None:
+            if w in self._greyed:
+                w.delete(0,'end')
+                w.configure(foreground=_colors['normal'])
+                self._greyed.discard(w)
+            return
+        if not w.get():
+            self._used[w] = used
+            w.insert(0,used)
+            w.configure(foreground=_colors['dim'])
+            self._greyed.add(w)
+
+    def _text( self, w ):
+        """The text of the entry w (empty while it shows a greyed text)"""
+        return '' if w in self._greyed else w.get()
 
     def _chosen( self, name, w ):
         if w.get() != self.expression_choice:
@@ -1117,13 +1157,8 @@ class _CodeWindow:
             text.configure(state='disabled')
 
     def _copy( self, text ):
-        """Copy the code to the clipboard (for Ctrl+V), and select it, which
-        makes it the primary selection (for the middle mouse button)"""
-        root = self.tv.root
-        root.clipboard_clear()
-        root.clipboard_append(text.get('1.0','end-1c'))
-        text.tag_add('sel','1.0','end-1c')
-        self.tv.show_line('Copied','normal')
+        self.tv.copy_text(text.get('1.0','end-1c'))
+        self.tv.show_line('Copied (paste with Ctrl+V or the middle mouse button)','normal')
 
 class _WriteWindow:
     """The window for writing the picked and edited particles to a new file:

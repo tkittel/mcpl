@@ -478,12 +478,14 @@ def _nice_nbins( maxbins ):
     return best[1] if best else maxbins
 
 def _auto_nbins( neff, nbins, ndim = 1 ):
-    """Number of bins for showing a histogram made with nbins bins of data with
-    an effective number of entries neff: the square-root rule (per axis for
-    ndim=2), clamped to [10,400], and then the closest divisor of nbins (in
-    log distance, so the bins can be merged exactly)."""
+    """Number of bins (per axis) for showing a histogram made with nbins bins
+    of data with an effective number of entries neff: neff^(1/(ndim+1)), which
+    is the square-root rule for ndim=1, and for ndim=2 gives bins with as many
+    entries on average as there are bins per axis (as for the square-root
+    rule), clamped to [10,400], and then the closest divisor of nbins (in log
+    distance, so the bins can be merged exactly)."""
     import math
-    target = max( 1.0, neff ) ** ( 0.5 / ndim )
+    target = max( 1.0, neff ) ** ( 1.0 / ( ndim + 1 ) )
     target = max( 10, min( 400, round(target) ) )
     divs = [ d for d in _range(1,nbins+1) if nbins % d == 0 ]
     return min( divs, key = lambda d : abs(math.log(d/target)) )
@@ -549,8 +551,8 @@ def histogram2d( files, xexpression, yexpression, *, pick = None, bins = 'auto',
        h.plot()
 
     The number of bins can be given for both axes, or as a tuple (nx,ny), and
-    is otherwise chosen from the effective number of entries N (the fourth
-    root of N per axis, between 10 and 400). The ranges of the axes can be
+    is otherwise chosen from the effective number of entries N (the cube root
+    of N per axis, between 10 and 400). The ranges of the axes can be
     given as tuples (low,high) with xrange and yrange, otherwise they cover
     all values. The histogram contains the sum of weights in each bin, or the
     number of particles if unweighted is True.

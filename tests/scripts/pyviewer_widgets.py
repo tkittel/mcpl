@@ -71,7 +71,9 @@ class FakeToolkit(WidgetViewer):
 
     def show_controls( self, controls ):
         self.state['settings'] = None if controls is None else ( controls[0], { name : shown
-                                                       for name, _, _, shown in controls[1] } )
+                                                       for name, _, _, shown, _ in controls[1] } )
+        self.state['bins used'] = None if controls is None else next(
+            ( used for name, _, _, _, used in controls[1] if name == 'bins' ), None )
 
     def draw_plot( self ):
         self.state['plot'] = f'{len(self.pane.axes)} axes'

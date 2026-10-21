@@ -351,6 +351,10 @@ class FigurePane:
         self._key, self._figure = key, figure
         return True
 
+    def show_message( self, text ):
+        """Show the text instead of a plot (until the next show or clear)"""
+        self._title = self.fig.text(0.5,0.5,text,ha='center',va='center',color='0.5')
+
     def clear( self ):
         """Remove the plot (so the next show() draws it again)"""
         for ax in self.axes:

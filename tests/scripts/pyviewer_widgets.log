@@ -11,7 +11,7 @@
    thumbnails: 14
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 1006 particles, Σw = 1006
-   shown plot field: (None, None)
+   shown plot field: (None, None, ('', ''))
    settings: None
    plot: 7 axes
 ==> typing in the pick field: invalid, then valid with a hint
@@ -30,7 +30,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: (None, None)
+   shown plot field: (None, None, ('', ''))
    settings: None
    plot: 7 axes
 ==> Esc in the edit field restores its text
@@ -56,7 +56,7 @@
    thumbnails: 10
    kinds of cards: ['s---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: (None, None)
+   shown plot field: (None, None, ('', ''))
    settings: None
    plot: 10 axes
    check of collection: None
@@ -68,7 +68,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: (None, None)
+   shown plot field: (None, None, ('', ''))
    settings: None
    plot: 7 axes
 ==> adding a plot (the field is emptied, and the plot shown)
@@ -81,7 +81,7 @@
    thumbnails: 14
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('hypot(x,y)/cm;logy', None)
+   shown plot field: ('hypot(x,y)/cm;logy', None, ('hypot(x,y)/cm', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
 ==> changing the shown plot, and removing it (empty text)
@@ -95,7 +95,7 @@
    thumbnails: 14
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('hypot(x,y)/mm;logy', None)
+   shown plot field: ('hypot(x,y)/mm;logy', None, ('hypot(x,y)/mm', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
    check of shown_plot: None
@@ -106,7 +106,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('userflags;bar;logy=auto', None)
+   shown plot field: ('userflags;bar;logy=auto', None, ('userflags', ''))
    settings: ('bar', {'logy': 'auto', 'unweighted': 'weights', 'bar': ''})
    plot: 1 axes
 ==> keys outside the fields
@@ -117,7 +117,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('userflags;bar;logy=auto', None)
+   shown plot field: ('userflags;bar;logy=auto', None, ('userflags', ''))
    settings: ('bar', {'logy': 'auto', 'unweighted': 'weights', 'bar': ''})
    plot: 1 axes
   key MoveDown:
@@ -127,7 +127,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('userflags;bar;logy=auto', None)
+   shown plot field: ('userflags;bar;logy=auto', None, ('userflags', ''))
    settings: ('bar', {'logy': 'auto', 'unweighted': 'weights', 'bar': ''})
    plot: 1 axes
   key Up:
@@ -137,7 +137,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('polz', None)
+   shown plot field: ('polz', None, ('polz', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key P:
@@ -148,7 +148,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('polz', None)
+   shown plot field: ('polz', None, ('polz', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key Enter:
@@ -159,7 +159,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('polz', None)
+   shown plot field: ('polz', None, ('polz', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key w:
@@ -170,7 +170,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('polz', None)
+   shown plot field: ('polz', None, ('polz', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key v:
@@ -181,7 +181,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('polz', None)
+   shown plot field: ('polz', None, ('polz', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key ?:
@@ -192,7 +192,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('polz', None)
+   shown plot field: ('polz', None, ('polz', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
 ==> the file names (the suggested one is written, the same again is refused)
@@ -206,7 +206,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: (None, None)
+   shown plot field: (None, None, ('', ''))
    settings: None
    plot: 7 axes
    views: 21 views, shown: 'Angle to the z axis' (angle_to(0,0,1)/deg;logy;split=pdgcode, group Main plots, badges ['log y', 'by particle'])
@@ -215,7 +215,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('angle_to(0,0,1)/deg;logy;split=pdgcode', 'Angle to the z axis')
+   shown plot field: ('angle_to(0,0,1)/deg;logy;split=pdgcode', 'Angle to the z axis', ('angle_to(0,0,1)/deg', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
 ==> the title of the shown plot, and dragging its card into another group
@@ -226,7 +226,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('angle_to(0,0,1)/deg;logy;split=pdgcode', 'Angle to the beam')
+   shown plot field: ('angle_to(0,0,1)/deg;logy;split=pdgcode', 'Angle to the beam', ('angle_to(0,0,1)/deg', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
    state: {'plots': {'change': {'angle_to(0,0,1)/deg;logy;split=pdgcode': {'title': 'Angle to the beam', 'plot': 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'group': 'Mine'}}, 'order': ['angle_to(0,0,1)/deg;logy;split=pdgcode', 'ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto']}, 'view': 'angle_to(0,0,1)/deg;logy;split=pdgcode'}
@@ -249,17 +249,15 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('angle_to(0,0,1)/deg;bins=40;range=0:90', 'Angle to the beam')
+   shown plot field: ('angle_to(0,0,1)/deg;bins=40;range=0:90', 'Angle to the beam', ('angle_to(0,0,1)/deg', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '40', 'range': '0:90'})
    plot: 1 axes
-==> adding a plot with the builder
+==> plot strings of quantities and expressions
    'Energy' against '' with (): 'ekin;logx=auto', settings 1d
    'Energy' against '' with (('logx', 'linear'), ('logy', 'log')): 'ekin;logy', settings 1d
    'Position x' against 'Direction x' with (('bins', '30'),): 'x : ux;bins=30', settings 2d
    'Particle type' against '' with (('bar', '5'),): 'pdgcode;bar=5', settings bar
    'hypot(x,y)/cm' against '' with (): 'hypot(x,y)/cm', settings 1d
-   preview: True None
-   preview of an invalid plot: (None, 'Histogram option "logx" must be 1, 0 or auto (not "2"), in "wavelength;logx=2"')
    line (normal): 
    added: True
    views: 22 views, shown: 'Arrival time' (time;logx=auto, group None, badges ['log x'])
@@ -268,7 +266,7 @@
    thumbnails: 14
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('time;logx=auto', 'Arrival time')
+   shown plot field: ('time;logx=auto', 'Arrival time', ('time', ''))
    settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
    line (normal): 
@@ -279,12 +277,74 @@
    thumbnails: 14
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('time;logx=auto', 'Arrival time')
+   shown plot field: ('time;logx=auto', 'Arrival time', ('time', ''))
    settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
+==> changing the axes of the shown plot (keeping the options which can be kept)
+   line (normal): 
+  'wavelength', '': True plot:wavelength;logx=auto
+   line (normal): 
+  'Energy', '': True plot:ekin;logx=auto
+   line (normal): 
+  'ekin : time', '': True plot:ekin : time
+   line (normal): 
+  'x', 'y': True plot:x : y
+   line (normal): 
+  'x', '': True plot:x
+   line (error): Choose or type what to plot on the X axis
+  '', '': False plot:x
+   line (error): Unknown name "nonsense" in expression "nonsense" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  'nonsense', '': False plot:x
+   check of axes: False
+   line (error): Unknown name "nonsense" in expression "nonsense" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+   views: 20 views, shown: 'Position x' (x, group Fields, badges [])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
+   problems: []
+   thumbnails: 12
+   kinds of cards: ['--rg', 's---', 'sdrg']
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('x', None, ('x', ''))
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
+   plot: 1 axes
+==> a new plot: shown as a card until its axes are chosen, or given up
+   focus: x_axis
+   line (dim): Choose or type what to plot on the X axis (and on the Y axis for 2D histograms)
+   views: 21 views, shown: 'New plot' (None, group None, badges ['choose what to plot'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
+   problems: []
+   thumbnails: 12
+   kinds of cards: ['--rg', 's---', 'sdrg']
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('', '', ('', ''))
+   settings: None
+   plot: 0 axes
+   check of axes: None
+   line (dim): Choose or type what to plot on the X axis (and on the Y axis for 2D histograms), and press Enter
+   line (normal): 
+   added: True
+   views: 21 views, shown: 'Radius' (hypot(x,y)/cm, group None, badges [])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
+   problems: []
+   thumbnails: 13
+   kinds of cards: ['--rg', 's---', 'sdrg']
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('hypot(x,y)/cm', 'Radius', ('hypot(x,y)/cm', ''))
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
+   plot: 1 axes
+   focus: x_axis
+   line (dim): Choose or type what to plot on the X axis (and on the Y axis for 2D histograms)
+   given up when another view is shown: plot:angle_to(0,0,1)/deg;bins=40;range=0:90 21
+   focus: x_axis
+   line (dim): Choose or type what to plot on the X axis (and on the Y axis for 2D histograms)
+   given up when removed: plot:angle_to(0,0,1)/deg;bins=40;range=0:90 21
+   focus: x_axis
+   line (dim): Choose or type what to plot on the X axis (and on the Y axis for 2D histograms)
+   line (normal): 
+   check of shown_plot: None
+   added with a plot expression: True plot:uz;bins=20
 ==> the command of the shown plot, and of the plots of the overview
-   mcpltool -p "pdgcode == neutron" -H "time;logx=auto" example.mcpl
-   mcpltool -p "pdgcode == neutron" -H "angle_to(0,0,1)/deg;bins=40;range=0:90" -H "ekin;logx=auto;logy;split=pdgcode" -H "wavelength;logx;split=pdgcode" -H "x : y" -H "time;logx=auto;logy" -H "pdgcode;bar;logy=auto" example.mcpl
+   mcpltool -p "pdgcode == neutron" -H "uz;bins=20" example.mcpl
+   mcpltool -p "pdgcode == neutron" -H "angle_to(0,0,1)/deg;bins=40;range=0:90" -H "ekin;logx=auto;logy;split=pdgcode" -H "wavelength;logx;split=pdgcode" -H "time;logx=auto;logy" -H "pdgcode;bar;logy=auto" -H "ekin" example.mcpl
 ==> writing needs a pick, an edit or a range of particles
    check of pick: None
    field pick: ''
@@ -295,9 +355,9 @@
    thumbnails: 15
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 1006 particles, Σw = 1006
-   shown plot field: (None, None)
+   shown plot field: (None, None, ('', ''))
    settings: None
-   plot: 7 axes
+   plot: 6 axes
    changes particles: False
    line (error): Pick, edit or choose a range of particles first, to write them to a new file
 ==> another file, with the same plots, pick and edit
@@ -310,9 +370,9 @@
    thumbnails: 14
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: (None, None)
+   shown plot field: (None, None, ('', ''))
    settings: None
-   plot: 7 axes
+   plot: 6 axes
    field skip: ''
    field limit: ''
    field collection: 'default'
@@ -327,9 +387,9 @@
    thumbnails: 14
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: other.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: (None, None)
+   shown plot field: (None, None, ('', ''))
    settings: None
-   plot: 7 axes
+   plot: 6 axes
    file: example.mcpl | the viewer: other.mcpl pdgcode == neutron
    line (error): Not opened: Unable to open file!
    a file which does not exist: False other.mcpl
@@ -341,7 +401,7 @@
    thumbnails: 13
    kinds of cards: ['--rg', 's---', 'sdrg']
    status: other.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('angle_to(0,0,1)/deg;bins=40;range=0:90', 'Angle to the beam')
+   shown plot field: ('angle_to(0,0,1)/deg;bins=40;range=0:90', 'Angle to the beam', ('angle_to(0,0,1)/deg', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '40', 'range': '0:90'})
    plot: 1 axes
 ==> the buttons of the actions, and quit

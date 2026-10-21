@@ -123,7 +123,7 @@ def shortcut_text( name ):
 _scale = ( ( 'linear', None ), ( 'log', True ), ( 'auto', 'auto' ) )
 _count = ( 'unweighted', 'Count', ( ( 'weights', None ), ( 'particles', True ) ) )
 plot_controls = {
-    '1d' : ( ( 'logx', 'X axis', _scale ), ( 'logy', 'Y axis', _scale ),
+    '1d' : ( ( 'logx', 'X scale', _scale ), ( 'logy', 'Y scale', _scale ),
              ( 'split', 'Split by', ( ( 'none', None ), ( 'particle type', 'pdgcode' ) ) ),
              _count, ( 'bins', 'Bins', None ), ( 'range', 'Range', None ) ),
     'bar' : ( ( 'logy', 'Scale', _scale ), _count, ( 'bar', 'Bars', None ) ),

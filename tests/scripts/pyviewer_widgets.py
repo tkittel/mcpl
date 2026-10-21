@@ -48,7 +48,7 @@ class FakeToolkit(WidgetViewer):
         self.state = {}
 
     def show_views( self, cards, current ):
-        c = next( c for c in cards if c.key == self.v.current_key )
+        c = next( c for c in cards if c.key == self.shown_key )
         self.state['views'] = ( f'{len(cards)} views, shown: {c.name!r} ({c.plot},'
                                 f' group {c.group}, badges {c.badges})' )
         self.state['compact cards'] = [ f'{c.name}: {c.status}' for c in cards if c.compact ]
@@ -66,8 +66,8 @@ class FakeToolkit(WidgetViewer):
     def show_status( self, first, second ):
         self.state['status'] = first
 
-    def show_plot_field( self, text, title ):
-        self.state['shown plot field'] = ( text, title )
+    def show_plot_field( self, text, title, axes ):
+        self.state['shown plot field'] = ( text, title, axes )
 
     def show_controls( self, controls ):
         self.state['settings'] = None if controls is None else ( controls[0], { name : shown
@@ -176,19 +176,37 @@ for name, shown in ( ('logy','linear'), ('split','particle type'), ('bins','40')
     print(f'  {name} set to {shown!r}:')
     t.on_control(name,shown)
 t.shown()
-step('adding a plot with the builder')
+step('plot strings of quantities and expressions')
 for x, y, settings in ( ('Energy','',()), ('Energy','',(('logx','linear'),('logy','log'))),
                         ('Position x','Direction x',(('bins','30'),)),
                         ('Particle type','',(('bar','5'),)), ('hypot(x,y)/cm','',()) ):
     plot = t.compose(x,y,settings)
     print(f'   {x!r} against {y!r} with {settings}: {plot!r}, settings {t.plot_controls(plot)[0]}')
-png, problem = t.preview_png(t.compose('Wavelength'),300,200)
-print('   preview:', png[:8] == b'\x89PNG\r\n\x1a\n', problem)
-print('   preview of an invalid plot:', t.preview_png('wavelength;logx=2',300,200))
 print('   added:', t.on_add_plot(t.compose('Time','',(('logy','linear'),)),'Arrival time'))
 t.shown()
 print('   added again, with another title:', t.on_add_plot(t.compose('Time'),'Another'))
 t.shown()
+step('changing the axes of the shown plot (keeping the options which can be kept)')
+for x, y in ( ('wavelength',''), ('Energy',''), ('ekin : time',''), ('x','y'), ('x',''), ('',''),
+              ('nonsense','') ):
+    print(f'  {x!r}, {y!r}:', t.on_axes(x,y), v.current_key)
+t.on_axes_edited('ekin : nonsense')
+t.shown()
+step('a new plot: shown as a card until its axes are chosen, or given up')
+t.on_key('a')
+t.shown()
+t.on_title('Radius')
+t.on_axes_edited('')
+print('   added:', t.on_axes('hypot(x,y)/cm',''))
+t.shown()
+t.on_new_plot()
+t.on_select(1)
+print('   given up when another view is shown:', t.shown_key, len(t.cards()))
+t.on_new_plot()
+t.on_remove()
+print('   given up when removed:', t.shown_key, len(t.cards()))
+t.on_new_plot()
+print('   added with a plot expression:', t.on_field_apply('shown_plot','uz;bins=20'), v.current_key)
 step('the command of the shown plot, and of the plots of the overview')
 print('  ', t.plot_code()['command'])
 v.select_key('overview:multi')

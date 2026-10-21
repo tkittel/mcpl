@@ -100,6 +100,7 @@ class WidgetViewer:
         self._histories = {}#field -> ui.History, while it is edited
         self._thumbnails = {}#view key -> (figure, PNG data, time)
         self._removed = set()#(the cards removed which are not views, see cards)
+        self._new_plot = None#(the title of a new plot, while it has no axes, see on_new_plot)
         #(when the plot was drawn, how long it took, and whether a newer figure
         #is not drawn yet, see on_timer):
         self._drawn_at, self._draw_time, self._plot_pending = 0.0, 0.0, False
@@ -120,10 +121,11 @@ class WidgetViewer:
         """Set the text of the field (without calling on_field_edited)"""
         raise NotImplementedError
 
-    def show_plot_field( self, text, title ):
-        """Set the texts of the fields of the shown plot (its histogram string
-        and its title), or disable them if text is None (the shown view is
-        not a plot)"""
+    def show_plot_field( self, text, title, axes ):
+        """Set the texts of the fields of the shown plot: its histogram string,
+        its title and the expressions of its axes (x, y), or disable them if
+        text is None (the shown view is not a plot). For a new plot (see
+        on_new_plot), they are empty but for the title."""
         raise NotImplementedError
 
     def show_line( self, text, style ):
@@ -154,7 +156,7 @@ class WidgetViewer:
 
     def focus_field( self, field ):
         """Move the keyboard focus to the text field (field is 'shown_plot' for
-        the field of the shown plot)"""
+        the field of the shown plot, and 'x_axis' for its x axis)"""
         raise NotImplementedError
 
     def ask_file( self, action ):
@@ -201,10 +203,12 @@ class WidgetViewer:
             self.v.stop()
 
     def on_select( self, index ):
+        self._new_plot = None#(a new plot without axes is given up)
         self.v.select(index)
         self.refresh()
 
     def on_select_key( self, key ):
+        self._new_plot = None
         self.v.select_key(key)
         self.refresh()
 
@@ -222,6 +226,10 @@ class WidgetViewer:
 
     def on_title( self, text ):
         """The title of the shown plot is set (an empty text removes it)"""
+        if self._new_plot is not None:
+            self._new_plot = text#(for when it is added)
+            self.refresh(plot = False)
+            return
         plot = self._shown_plot()
         if plot is not None:
             ok, msg = self.v.set_title(plot,text)
@@ -291,9 +299,12 @@ class WidgetViewer:
     def compose( self, x, y = '', settings = () ):
         """A plot string from the quantities x and y (names of
         _viewer_ui.quantities or expressions, y empty for a 1D histogram) and
-        the settings, as (option, shown text) of the controls"""
+        the settings, as (option, shown text) of the controls. The expressions
+        of the quantities come with their options (as their names)."""
         from ._histstring import _hist_parts
         q = dict(ui.quantities)
+        for _, p in reversed(ui.quantities):
+            q[p.split(';')[0]] = p
         def parts( t ):
             return _hist_parts(q.get(t.strip(),t.strip()))
         ( ex, ox ), ( ey, _ ) = parts(x), parts(y)
@@ -304,20 +315,9 @@ class WidgetViewer:
             plot = self._option(plot,name,shown)
         return plot
 
-    def preview_png( self, plot, width, height ):
-        """A preview of the plot, as (PNG data, None), or (None, the problem)"""
-        from ._plotbackend_mpl import figure_png
-        ok, msg = self.v.check('plot',plot)
-        if not ok:
-            return None, msg
-        figure = self.v.preview(plot)
-        if figure is None:
-            return None, 'No particles to show'
-        return figure_png(figure,width,height), None
-
     def on_add_plot( self, plot, title = '' ):
-        """A plot (with its title) is added from the builder. Returns whether
-        it was added (or shown, if it was there already, keeping its title)."""
+        """A plot (with its title) is added. Returns whether it was added (or
+        shown, if it was there already, keeping its title)."""
         new = len(self.v.views)
         ok, msg = self.v.set('plot',plot)
         if ok and title.strip() and len(self.v.views) > new:
@@ -325,6 +325,79 @@ class WidgetViewer:
         self.show_line(msg,'normal' if ok else 'error')
         self.refresh()
         return ok
+
+    #The axes of the shown plot, and new plots:
+
+    @property
+    def shown_key( self ):
+        """The key of the card shown: that of the view, or info:new while a new
+        plot is made (see on_new_plot)"""
+        return 'info:new' if self._new_plot is not None else self.v.current_key
+
+    def axis_texts( self ):
+        """The expressions of the x and y axes of the shown plot (y empty for
+        1D histograms), as texts"""
+        from ._histstring import _hist_parts
+        plot = self._shown_plot()
+        if plot is None:
+            return '', ''
+        x, _, y = _hist_parts(plot)[0].partition(':')
+        return x.strip(), y.strip()
+
+    def on_new_plot( self ):
+        """Start a new plot, which is added when what to plot is chosen (see
+        on_axes), and given up when another view is shown"""
+        self._new_plot = ''#(its title, see on_title)
+        self.refresh()
+        self.focus_field('x_axis')
+        self.show_line('Choose or type what to plot on the X axis (and on the Y axis for 2D'
+                       ' histograms)','dim')
+
+    def on_axes( self, x, y = '' ):
+        """The expressions of the x and y axes of the shown plot (or of a new
+        plot) are given (names of _viewer_ui.quantities, or expressions, y
+        empty for 1D histograms; "x : y" for the x axis is split). The options
+        of the plot are kept if they can be used for the new axes. Returns
+        whether the plot was changed (or added)."""
+        from ._histstring import _hist_parts
+        x, y = x.strip(), y.strip()
+        if not y and ':' in x:
+            x, _, y = ( e.strip() for e in x.partition(':') )
+        if not x:
+            self.show_line('Choose or type what to plot on the X axis','error')
+            return False
+        if self._new_plot is not None:
+            title, self._new_plot = self._new_plot, None
+            return self.on_add_plot(self.compose(x,y),title)
+        plot = self._shown_plot()
+        if plot is None:
+            return False
+        q = dict(ui.quantities)
+        exprs = ' : '.join( _hist_parts(q.get(e,e))[0] for e in ( x, y ) if e )
+        opts = [ n if v is None else f'{n}={v}' for n, v in _hist_parts(plot)[1] ]
+        new = ';'.join( [ exprs ] + opts )
+        if not self.v.check('plot',new)[0] and self.v.check('plot',exprs)[0]:
+            new = exprs#(options which can not be used for the new axes, e.g. logx in 2D)
+        done, msg, replot = ui.apply_text(self.v,'plot',new,replaces = plot)
+        self.show_line(msg,'normal' if done else 'error')
+        self.refresh(plot = replot)
+        return done
+
+    def on_axes_edited( self, x, y = '' ):
+        """The expressions of the axes are edited (see on_axes): they are
+        checked (as the field 'axes')"""
+        x, y = x.strip(), y.strip()
+        if not y and ':' in x:
+            x, _, y = ( e.strip() for e in x.partition(':') )
+        if not x:
+            self.show_check('axes',None)
+            self.show_line('Choose or type what to plot on the X axis (and on the Y axis for 2D'
+                           ' histograms), and press Enter','dim')
+            return
+        ok, msg = self.v.check('plot',self.compose(x,y))
+        self.show_check('axes',ok)
+        self.show_line(msg if not ok else 'Enter: show this   Esc: cancel',
+                       'error' if not ok else 'dim')
 
     def plot_code( self ):
         """The command and Python code of the shown plot (or of the plots of
@@ -337,7 +410,8 @@ class WidgetViewer:
         """The views as cards (see Card), in their order, and in the default
         collection, for files without userdata, a card for it after the other
         fields (which is not a view), as a reminder that MCPL files can have
-        userdata"""
+        userdata, and the card of a new plot while it is made (see
+        on_new_plot)"""
         from ._stdviews import _default_collection
         from .plotting import Text
         res = []
@@ -361,6 +435,9 @@ class WidgetViewer:
                          default = len(res) - 1 )
             res.insert(i,Card('info:userdata','Userdata',group='Fields',grouped=True,
                               status='not in this file',selectable=False,removable=True))
+        if self._new_plot is not None:
+            res.append(Card('info:new',self._new_plot or 'New plot',grouped=True,
+                            badges=( 'choose what to plot', ),selectable=False,removable=True))
         return res
 
     def plot_index( self, key ):
@@ -411,6 +488,14 @@ class WidgetViewer:
     def on_field_apply( self, field, text ):
         """The text of the field is applied (Enter, or chosen in a menu).
         Returns whether it was applied."""
+        if field == 'shown_plot' and self._new_plot is not None:
+            title, self._new_plot = self._new_plot, None
+            if not self.on_add_plot(text,title):
+                self._new_plot = title#(still to be made)
+                self.refresh(plot = False)
+                return False
+            self.show_check(field,None)
+            return True
         if field == 'shown_plot':
             done, msg, replot = ui.apply_text(self.v,'plot',text,replaces = self._shown_plot())
         else:
@@ -469,6 +554,8 @@ class WidgetViewer:
         elif action == 'change':
             if self._shown_plot() is not None:
                 self.focus_field('shown_plot')
+        elif action == 'plot':
+            self.on_new_plot()
         elif action == 'write' and not self.v.changes_particles:
             self.show_line(self.v.nothing_to_write,'error')
         elif action in ui.file_prompts:
@@ -502,7 +589,11 @@ class WidgetViewer:
 
     def on_remove( self, key = None ):
         """Remove the plot (the view with the key, default the shown one)"""
-        key = key or self.v.current_key
+        key = key or self.shown_key
+        if key == 'info:new':
+            self._new_plot = None#(given up, see on_new_plot)
+            self.refresh()
+            return
         if key.startswith('info:'):
             self._removed.add(key)#(a card which is not a view, see cards)
             self.refresh(plot = False)
@@ -541,7 +632,10 @@ class WidgetViewer:
     #The common part:
 
     def _shown_plot( self ):
-        """The plot string of the shown view, if it is a plot (else None)"""
+        """The plot string of the shown view, if it is a plot (else None, also
+        while a new plot is made)"""
+        if self._new_plot is not None:
+            return None
         key = self.v.current_key
         return key[5:] if key.startswith('plot:') else None
 
@@ -551,10 +645,18 @@ class WidgetViewer:
         self.show_views(self.cards(),v.current)
         self.show_status(*v.status_lines())
         shown = self._shown_plot()
-        self.show_plot_field(shown,v.plot_info(f'plot:{shown}')['title'] if shown else None)
+        if self._new_plot is not None:
+            self.show_plot_field('',self._new_plot,( '', '' ))
+        else:
+            self.show_plot_field(shown,v.plot_info(f'plot:{shown}')['title'] if shown else None,
+                                 self.axis_texts())
         self.show_controls(self.plot_controls())
         self.show_enabled('write',self.v.changes_particles)
-        if plot:
+        if plot and self._new_plot is not None:
+            self.pane.clear()
+            self.pane.show_message('Choose or type what to plot below (X axis)')
+            self.draw_plot()
+        elif plot:
             import time
             t = time.monotonic()
             if self.pane.show(v):

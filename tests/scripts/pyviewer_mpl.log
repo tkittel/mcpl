@@ -4,7 +4,7 @@ pick being edited: 'pdgcode == neutron' True neutron  PDG code 2112
 status after the pick: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
 view: plot:angle_to(0,0,1)/deg;logy;split=pdgcode axes: 1
 view: plot:x/cm : y/cm axes (with the colour bar): 2
-view: plot:polz axes (colour bar removed): 1
+view: plot:userflags;bar;logy=auto axes (colour bar removed): 1
 i edits the limit: True
 l while editing is text: 'l'
 plot after l and k over it: plot:ekin;logy;logx editing: False | message: 'log x'

@@ -83,6 +83,15 @@ def _beam( axis, a, b ):
              _item(f'{axis}',f'Position {axis}','Other'),
              _item('weight;unweighted;logy','Weights','Other') )
 
+#The titles of plots of single fields (also divided by units, as in ekin/MeV),
+#when they have no title of their own (see _viewer._auto_title):
+_field_titles = { 'ekin' : 'Energy', 'x' : 'Position x', 'y' : 'Position y',
+                  'z' : 'Position z', 'ux' : 'Direction x', 'uy' : 'Direction y',
+                  'uz' : 'Direction z', 'polx' : 'Polarisation x', 'poly' : 'Polarisation y',
+                  'polz' : 'Polarisation z', 'time' : 'Time', 'weight' : 'Weight',
+                  'pdgcode' : 'Particle types', 'userflags' : 'User flags',
+                  'wavelength' : 'Wavelength', 'fileidx' : 'Position in the file' }
+
 _collections = {
     'default' : ( 'an overview of all particle fields', (
         _item('ekin;logx=auto;logy;split=pdgcode','Energy spectrum','Main plots'),
@@ -91,13 +100,13 @@ _collections = {
         _item('x : y','Position x-y','Main plots'),
         _item('time;logx=auto;logy','Time','Main plots'),
         _item('pdgcode;bar;logy=auto','Particle types','Main plots'),
-        _item('userflags;bar;logy=auto','User flags','Fields'),
+        #(the fields in the order of mcpltool, mostly with the titles from their
+        #expressions, see _auto_title):
         *( _item(f,t,'Fields') for f, t in (
-            ( 'ekin', 'Energy' ), ( 'x', 'Position x' ), ( 'y', 'Position y' ),
-            ( 'z', 'Position z' ), ( 'ux', 'Direction x' ), ( 'uy', 'Direction y' ),
-            ( 'uz', 'Direction z' ), ( 'time', 'Time (linear)' ),
-            ( 'weight;unweighted', 'Weights' ), ( 'polx', 'Polarisation x' ),
-            ( 'poly', 'Polarisation y' ), ( 'polz', 'Polarisation z' ) ) ) ) ),
+            ( 'ekin', None ), ( 'x', None ), ( 'y', None ), ( 'z', None ), ( 'ux', None ),
+            ( 'uy', None ), ( 'uz', None ), ( 'time', 'Time (linear)' ),
+            ( 'weight;unweighted', 'Weights' ), ( 'polx', None ), ( 'poly', None ),
+            ( 'polz', None ), ( 'userflags;bar;logy=auto', None ) ) ) ) ),
     'beamz' : ( 'a beam along the z axis: profiles and divergences', _beam('z','x','y') ),
     'beamx' : ( 'a beam along the x axis: profiles and divergences', _beam('x','y','z') ),
     'beamy' : ( 'a beam along the y axis: profiles and divergences', _beam('y','z','x') ),

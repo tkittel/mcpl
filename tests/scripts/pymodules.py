@@ -79,6 +79,7 @@ layers = {
     '_viewer_widgets' : 9,
     '_viewer_tk' : 10,
     '_viewer_reading' : 9,
+    '_thumbnails' : 8,
     '_viewer' : 10,
     '_clistats' : 10,
     '_cli' : 11,
@@ -91,7 +92,7 @@ public_submodules = ['constants', 'plotting']
 
 allowed_external_imports = {
     'numpy' : ['_numpy'],
-    'matplotlib' : ['_plotbackend_mpl', '_plotbackend_mpl_gui', '_viewer_tk'],
+    'matplotlib' : ['_plotbackend_mpl', '_plotbackend_mpl_gui', '_thumbnails', '_viewer_tk'],
     'tkinter' : ['_viewer_tk'],
     'scipp' : ['_scipp'],
     'ipywidgets' : ['_viewer_jupyter'],

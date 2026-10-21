@@ -30,12 +30,19 @@ file."""
 __all__ = ['view']
 
 import copy
+import functools
 import pathlib
 import re
 import threading
 
 from ._common import MCPLError
-from ._stdviews import _collections, _default_collection, _item, _plot_item
+from ._stdviews import (
+    _collections,
+    _default_collection,
+    _field_titles,
+    _item,
+    _plot_item,
+)
 from ._viewer_reading import _make_filler, _Reading
 
 _fields = ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot' )
@@ -161,10 +168,9 @@ class Viewer(_Reading):
         items = []
         for name, _, n in self._ud_fields:
             if n is None:
-                items.append( ( f'userdata.{name}', f'Userdata {name}', 'Fields' ) )
+                items.append( ( f'userdata.{name}', None, 'Fields' ) )
             else:
-                items += [ ( f'userdata.{name}.at({i})', f'Userdata {name}.at({i})', 'Fields' )
-                           for i in range(n) ]
+                items += [ ( f'userdata.{name}.at({i})', None, 'Fields' ) for i in range(n) ]
         return items
 
     def _set_or_raise( self, field, text ):
@@ -463,14 +469,13 @@ class Viewer(_Reading):
         badges (short texts for its options) and the value all particles have
         (for a plot of a field where they all have the same value, else
         None)"""
-        from ._histstring import _parse_hist
         if not key.startswith('plot:'):
             return { 'title' : None, 'name' : 'Overview', 'plot' : None, 'group' : None,
                      'badges' : [ f'{len(self.overview_keys())} plots' ], 'constant' : None,
                      'absent' : False }
         p = key[5:]
         title, group = self._meta.get(p,( None, None ))
-        o = _parse_hist(p)
+        o = _parsed_plot(p)#(cached, for the cards, which are shown often)
         with self._lock:
             figure = self._figures.get(key)
             constants = self._constants
@@ -497,7 +502,7 @@ class Viewer(_Reading):
         if o['range'] or o['xrange'] or o['yrange']:
             badges.append('range')
         field = _plot_field(p)
-        return { 'title' : title, 'name' : title or ' : '.join(o['exprs']), 'plot' : p,
+        return { 'title' : title, 'name' : title or _auto_title(p) or ' : '.join(o['exprs']), 'plot' : p,
                  'group' : group, 'badges' : badges,
                  'constant' : ( '0' if field in self._absent else
                                 constants.get(field) if field else None ),
@@ -920,14 +925,18 @@ class Viewer(_Reading):
 def _doubtful_title( meta, old, new ):
     """The title and group (meta) of a plot changed from old to new (histogram
     strings), with " (??)" after the title if the expressions changed (not
-    just the options), since the title might no longer fit"""
+    just the options, or the unit of a field), since the title might no longer
+    fit. Plots without a title of their own get the new title from their
+    expression (see _auto_title)."""
     from ._expressions import _expr_canonical
     from ._histstring import _hist_parts
     if meta is None or meta[0] is None or meta[0].endswith('(??)'):
         return meta
     def exprs( text ):
         return [ _expr_canonical(e) for e in _hist_parts(text)[0].split(':') ]
-    return meta if exprs(old) == exprs(new) else ( meta[0] + ' (??)', meta[1] )
+    #(the same field in other units, e.g. ekin/MeV for ekin, is the same):
+    same_field = _auto_title(old) is not None and _auto_title(old) == _auto_title(new)
+    return meta if exprs(old) == exprs(new) or same_field else ( meta[0] + ' (??)', meta[1] )
 
 def _free_filename( filename, suffix, ext, *other_exts ):
     """The name <input><suffix><ext> next to the file (without its extensions
@@ -1009,6 +1018,39 @@ def _as_state( view ):
             check(all( isinstance(x,str) for x in items ),f'the {k} of plots must be a list of texts')
     return state
 
+@functools.lru_cache(maxsize = 4096)
+def _auto_title( plot ):
+    """The title of a plot (histogram string) from its expression, if it is a
+    single field, maybe divided by a unit (e.g. Energy for ekin/MeV), or a
+    field of the userdata, else None"""
+    import ast
+
+    from ._common import MCPLError
+    from ._expressions import _Expr
+    from ._exprsyntax import _Unit
+    from ._histstring import _hist_parts
+    exprs = _hist_parts(plot)[0].split(':')
+    if len(exprs) != 1:
+        return None
+    try:
+        node = _Expr(exprs[0]).tree.body
+    except MCPLError:#(e.g. while a plot is written, see WidgetViewer.compose)
+        return None
+    if isinstance(node,ast.BinOp) and isinstance(node.op,ast.Div) and isinstance(node.right,_Unit):
+        node = node.left
+    if not isinstance(node,ast.Name):
+        return None
+    if node.id.startswith('userdata.'):
+        return f'Userdata {node.id[9:]}'
+    return _field_titles.get(node.id)
+
+@functools.lru_cache(maxsize = 4096)
+def _parsed_plot( text ):
+    """The parsed plot (see _parse_hist, which must not be changed)"""
+    from ._histstring import _parse_hist
+    return _parse_hist(text)
+
+@functools.lru_cache(maxsize = 4096)
 def _plot_field( text ):
     """The field if the plot (a histogram string) is of exactly one field
     (e.g. "z" or "weight;unweighted"), else None"""

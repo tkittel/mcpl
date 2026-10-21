@@ -311,7 +311,7 @@ class WidgetViewer:
         most every 2 seconds."""
         import time
 
-        from ._plotbackend_mpl import thumbnail_png
+        from ._thumbnails import thumbnail_png
         figure = self.v.figure(key = key)
         old = self._thumbnails.get(key)
         if figure is None:

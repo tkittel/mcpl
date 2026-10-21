@@ -204,10 +204,10 @@ toggle logy: (True, 'linear y') plot:ekin;split=pdgcode
 toggle logx: (True, 'log x') plot:ekin;split=pdgcode;logx
 after another change: (True, 'linear x (was auto)') (True, 'x axis as before') plot:ekin;logx=auto
 title after 'wavelength;split=pdgcode': Wavelength
-title after 'wavelength/nm;split=pdgcode': Wavelength (??)
+title after 'wavelength/nm;split=pdgcode': Wavelength
 title after 'ekin/MeV;split=pdgcode': Wavelength (??)
-without a title: None y
-absent: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z']
+without a title: None Position y
+absent: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
 limit 1e9: read again: False
 limit 500: read again: True
 limit all: read again: True
@@ -227,7 +227,7 @@ without userdata: (False, 'There are no userdata fields in this file, in "userda
 for example.mcpl (particles True): pick '', edit '', skip '', 20 views, message 'Not kept for this file: the pick and edit (There are no userdata fields in this file, in "userdata.nscat > 0")'
 for ud_viewer.mcpl (particles True): pick 'userdata.nscat > 0', edit 'z += 1m', skip '', 25 views, message ''
 for ud_viewer.mcpl (particles False): pick '', edit '', skip '', 25 views, message ''
-views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:angle_to(0,0,1)/deg;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:userflags;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz
+views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:angle_to(0,0,1)/deg;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz, plot:userflags;bar;logy=auto
 check('skip','10'): (True, '')
 check('skip','x'): (False, 'Skip must be a number of particles')
 check('limit','all'): (True, '')
@@ -285,14 +285,14 @@ command extract: mcpltool -e example.mcpl example_selected.mcpl.gz
 commands of the overview: {'view': 'mcpltool --view="{\'plots\':{\'add\':[\'time/ms;logx=1\',\'ekin/MeV\']}}" example.mcpl', 'extract': 'mcpltool -e example.mcpl example_selected.mcpl.gz'}
 same pick, written differently: (True, '') restarted: False 'pdgcode==neutron'
 limit 1e3 then 1000: (True, '') (True, '') restarts: 1
-same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'ekin/MeV;logx=1;bins=50'] current: plot:ekin/MeV;logx=1;bins=50
-changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'ekin/MeV;logx=1;bins=50']
+same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'ekin/MeV;logx=1;bins=50'] current: plot:ekin/MeV;logx=1;bins=50
+changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'ekin/MeV;logx=1;bins=50']
 unchanged: (True, '') ['plot:time/ms;logx=1', 'plot:ekin/MeV'] current: plot:ekin/MeV
 change to keV: (True, '') ['plot:time/ms;logx=1', 'plot:ekin/keV'] current: plot:ekin/keV
-change to an existing plot: (True, '') ['plot:polz', 'plot:time/ms;logx=1']
+change to an existing plot: (True, '') ['plot:userflags;bar;logy=auto', 'plot:time/ms;logx=1']
 invalid change: (False, 'Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)')
 unknown plot: (False, 'No plot "nope"')
-remove: (True, '') ['plot:polz'] current: plot:polz
+remove: (True, '') ['plot:userflags;bar;logy=auto'] current: plot:userflags;bar;logy=auto
 collection default: an overview of all particle fields, 19 plots, first: ('ekin;logx=auto;logy;split=pdgcode', 'Energy spectrum', 'Main plots'), groups: ['Main plots', 'Fields']
 collection beamz: a beam along the z axis: profiles and divergences, 12 plots, first: ('x : y', 'Beam profile', 'Profiles and divergences'), groups: ['Profiles and divergences', 'Spectra', 'Other']
 collection beamx: a beam along the x axis: profiles and divergences, 12 plots, first: ('y : z', 'Beam profile', 'Profiles and divergences'), groups: ['Profiles and divergences', 'Spectra', 'Other']
@@ -308,10 +308,10 @@ opened with the command: same state: True
 opened with the state as a dict: same state: True
 titles: (True, '') (True, '') (True, '') (False, 'The title must be a text on one line') (False, 'No plot "nope"')
 info of a changed plot: {'title': 'Beam spot (??)', 'name': 'Beam spot (??)', 'plot': 'x/mm : y/mm', 'group': 'Main plots', 'badges': ['2D'], 'constant': None, 'absent': False}
-info of a plot of the collection: {'title': 'Polarisation x', 'name': 'Polarisation x', 'plot': 'polx', 'group': 'Fields', 'badges': [], 'constant': '0', 'absent': True}
-info of a plot with its title removed: {'title': None, 'name': 'polx', 'plot': 'polx', 'group': 'Fields', 'badges': [], 'constant': '0', 'absent': True}
+info of a plot of the collection: {'title': None, 'name': 'Polarisation x', 'plot': 'polx', 'group': 'Fields', 'badges': [], 'constant': '0', 'absent': True}
+info of a plot with its title removed: {'title': None, 'name': 'Polarisation x', 'plot': 'polx', 'group': 'Fields', 'badges': [], 'constant': '0', 'absent': True}
 moved: True ['hypot(x,y)/cm;logy', 'ekin;logx=auto;logy;split=pdgcode']
-state: {'plots': {'change': {'polx': {'plot': 'polx', 'group': 'Fields'}, 'x : y': {'title': 'Beam spot (??)', 'plot': 'x/mm : y/mm', 'group': 'Main plots'}}, 'add': [{'title': 'Radius', 'plot': 'hypot(x,y)/cm;logy', 'group': 'Mine'}], 'order': ['hypot(x,y)/cm;logy', 'ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x/mm : y/mm', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz']}, 'view': 'x/mm : y/mm'}
+state: {'plots': {'change': {'x : y': {'title': 'Beam spot (??)', 'plot': 'x/mm : y/mm', 'group': 'Main plots'}}, 'add': [{'title': 'Radius', 'plot': 'hypot(x,y)/cm;logy', 'group': 'Mine'}], 'order': ['hypot(x,y)/cm;logy', 'ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x/mm : y/mm', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto']}, 'view': 'x/mm : y/mm'}
 opened with it: same state: True
 view "{'plots':{'add':[{'title':'A'}]}}": The viewer state "{'plots':{'add':[{'title':'A'}]}}" is not valid: in the add of plots, a plot without its histogram string ("plot")
 view "{'plots':{'add':[{'plot':'x','color':'red'}]}}": The viewer state "{'plots':{'add':[{'plot':'x','color':'red'}]}}" is not valid: in the add of plots, unknown entry "color" of a plot (the entries are: plot, title, group)
@@ -323,9 +323,9 @@ state at the start: {} | command: mcpltool -w example.mcpl
 move up: True down twice: True True | current: plot:wavelength;logx;split=pdgcode
 move the overview: False
 move the last down: False
-state: {'limit': 500, 'pick': 'pdgcode != gamma', 'plots': {'change': {'ekin': {'title': 'Energy (??)', 'plot': 'ekin/keV;logy=1', 'group': 'Fields'}}, 'remove': ['polx'], 'add': ['hypot(x,y)/cm'], 'order': ['ekin;logx=auto;logy;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin/keV;logy=1', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'poly', 'polz', 'hypot(x,y)/cm']}, 'view': 'hypot(x,y)/cm'}
-state without the options: {'plots': {'change': {'ekin': {'title': 'Energy (??)', 'plot': 'ekin/keV;logy=1', 'group': 'Fields'}}, 'remove': ['polx'], 'add': ['hypot(x,y)/cm'], 'order': ['ekin;logx=auto;logy;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin/keV;logy=1', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'poly', 'polz', 'hypot(x,y)/cm']}, 'view': 'hypot(x,y)/cm'}
-command: mcpltool --view="{'plots':{'change':{'ekin':{'title':'Energy (??)','plot':'ekin/keV;logy=1','group':'Fields'}},'remove':['polx'],'add':['hypot(x,y)/cm'],'order':['ekin;logx=auto;logy;split=pdgcode','angle_to(0,0,1)/deg;logy;split=pdgcode','wavelength;logx;split=pdgcode','x : y','time;logx=auto;logy','pdgcode;bar;logy=auto','userflags;bar;logy=auto','ekin/keV;logy=1','x','y','z','ux','uy','uz','time','weight;unweighted','poly','polz','hypot(x,y)/cm']},'view':'hypot(x,y)/cm'}" -l500 -p "pdgcode != gamma" example.mcpl
+state: {'limit': 500, 'pick': 'pdgcode != gamma', 'plots': {'change': {'ekin': {'plot': 'ekin/keV;logy=1', 'group': 'Fields'}}, 'remove': ['polx'], 'add': ['hypot(x,y)/cm'], 'order': ['ekin;logx=auto;logy;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin/keV;logy=1', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'poly', 'polz', 'userflags;bar;logy=auto', 'hypot(x,y)/cm']}, 'view': 'hypot(x,y)/cm'}
+state without the options: {'plots': {'change': {'ekin': {'plot': 'ekin/keV;logy=1', 'group': 'Fields'}}, 'remove': ['polx'], 'add': ['hypot(x,y)/cm'], 'order': ['ekin;logx=auto;logy;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin/keV;logy=1', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'poly', 'polz', 'userflags;bar;logy=auto', 'hypot(x,y)/cm']}, 'view': 'hypot(x,y)/cm'}
+command: mcpltool --view="{'plots':{'change':{'ekin':{'plot':'ekin/keV;logy=1','group':'Fields'}},'remove':['polx'],'add':['hypot(x,y)/cm'],'order':['ekin;logx=auto;logy;split=pdgcode','angle_to(0,0,1)/deg;logy;split=pdgcode','wavelength;logx;split=pdgcode','x : y','time;logx=auto;logy','pdgcode;bar;logy=auto','ekin/keV;logy=1','x','y','z','ux','uy','uz','time','weight;unweighted','poly','polz','userflags;bar;logy=auto','hypot(x,y)/cm']},'view':'hypot(x,y)/cm'}" -l500 -p "pdgcode != gamma" example.mcpl
 opened with the command: same state: True | current: plot:hypot(x,y)/cm
 suggested state file: example_viewer.json
 save: (True, 'Saved the viewer state in example_viewer.json')
@@ -372,19 +372,19 @@ To open the viewer like this again:
    | ▸ x : y                           60 ┤       ▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   time;logx=auto;logy                │       ▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   pdgcode;bar;logy=auto (a           │       ▀▀▀▀▀▀▀▄▄▄▄▄▄▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-   |   userflags;bar;logy=auto            │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   ekin                               │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   x                                  │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   y                                  │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   y                                  │       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   z (all 20 cm)                      │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   ux                                 │▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   ux                                 │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   uy                                 │▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   uz                                 │▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   time                               │▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   time                               │▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   weight;unweighted (all 1           │▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   polx (all 0)                       │▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄▄▄▄▄▄▄
-   |   poly (all 0)                       │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   polx (all 0)                       │▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   poly (all 0)                       │▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄▄▄▄▄▄▄
    |   polz (all 0)                       │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   userflags;bar;logy=auto            │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |                                      │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |                                      │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |                                      │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
@@ -414,19 +414,19 @@ To open the viewer like this again:
    |   x : y                              │                   ⣀⣀⡖⠒⠋      ⢸
    |   time;logx=auto;logy                │                  ⢀⡇          ⠘⠒⢲
    |   pdgcode;bar;logy=auto              │                  ⢸           ⣀⣀⣸⡄
-   |   userflags;bar;logy=auto            │                  ⢸       ⣀⣀⡏⠉⠁ ⠸⡧⠤⡄
-   |   ekin                               │                ⢀⣀⣸      ⢀⡇      ⠉⠉⡇
-   |   x                                  │                ⡼        ⢸         ⣇⣀⡀
-   |   y                                  │              ⡏⠉⠁        ⢸         ⡇ ⢳⣀⣀
-   |   z (all 20 cm)                      │              ⡇          ⢸         ⣇⣀⡞⠒⢺
-   |   ux                                 │              ⡇        ⢸⠉⠉             ⢸⡄   ⢰⠒⢲
-   |   uy                                 │              ⡇        ⢸               ⠈⡇   ⣸ ⠈⠧⠤⡄
-   |   uz                                 │           ⢀⡤⠤⠇        ⢸                ⠯⠭⡧⠤⠇    ⡇
-   |   time                               │         ⢠⠤⠼           ⢸                  ⡇      ⠉⠉⢧
-   |   weight;unweighted (all 1           │         ⢸             ⡼                  ⡇        ⠘⠒⢲
-   |   polx (all 0)                       │         ⢸             ⡇                  ⡇          ⢸
-   |   poly (all 0)                       │         ⣸             ⡇                  ⡇          ⠘⡆
-   |   polz (all 0)                       │         ⡇             ⡇         ⡤⠤⡄      ⡇           ⠧⠤⡄    ⡤⠤⡄    ⡤⠤
+   |   ekin                               │                  ⢸       ⣀⣀⡏⠉⠁ ⠸⡧⠤⡄
+   |   x                                  │                ⢀⣀⣸      ⢀⡇      ⠉⠉⡇
+   |   y                                  │                ⡼        ⢸         ⣇⣀⡀
+   |   z (all 20 cm)                      │              ⡏⠉⠁        ⢸         ⡇ ⢳⣀⣀
+   |   ux                                 │              ⡇          ⢸         ⣇⣀⡞⠒⢺
+   |   uy                                 │              ⡇        ⢸⠉⠉             ⢸⡄   ⢰⠒⢲
+   |   uz                                 │              ⡇        ⢸               ⠈⡇   ⣸ ⠈⠧⠤⡄
+   |   time                               │           ⢀⡤⠤⠇        ⢸                ⠯⠭⡧⠤⠇    ⡇
+   |   weight;unweighted (all 1           │         ⢠⠤⠼           ⢸                  ⡇      ⠉⠉⢧
+   |   polx (all 0)                       │         ⢸             ⡼                  ⡇        ⠘⠒⢲
+   |   poly (all 0)                       │         ⢸             ⡇                  ⡇          ⢸
+   |   polz (all 0)                       │         ⣸             ⡇                  ⡇          ⠘⡆
+   |   userflags;bar;logy=auto            │         ⡇             ⡇         ⡤⠤⡄      ⡇           ⠧⠤⡄    ⡤⠤⡄    ⡤⠤
    |                                      │         ⡇             ⡇        ⢰⠃ ⡇      ⡇             ⡇   ⢰⠃ ⡇    ⡇
    |                                      │⠤⠤⡄    ⠤⠤⠇             ⡇  ⡤⠤⡄ ⢠⠤⠼⡤⠤⠧⠤⡤⠤⢤  ⠧⠤⠤⠤⠤⠤⠤⡄    ⡤⠤⡧⠤⣤⠤⠼  ⡇   ⠠⠇
    |                                      │  ⡇                    ⡇  ⡇ ⡇ ⢸ ⢰⠃   ⢳ ⢸         ⡇    ⡇ ⡇ ⢻    ⡇
@@ -456,7 +456,7 @@ To open the viewer like this again:
    Enter twice keeps the plot: plot:ekin/MeV current: plot:ekin/MeV
    Enter on an added plot, editing: 'ekin/MeV' | hint line when emptied: ('Enter: remove this plot   Esc: cancel', 'dim') True
 ==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Enter', 'WAIT']:
-   removed with an empty text: plot:polz current: plot:polz
+   removed with an empty text: plot:userflags;bar;logy=auto current: plot:userflags;bar;logy=auto
    Enter on another view, editing: True
 ==> keys ['WAIT', 'h']:
 ==> keys ['WAIT', 'Down', 'Down', 'MoveUp', 'WAIT']:

@@ -6,8 +6,8 @@
    field edit: ''
    field plot: ''
    views: 21 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 1006 particles, Σw = 1006
@@ -25,8 +25,8 @@
    field pick: 'pdgcode == neutron'
    line (normal): 
    views: 21 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
@@ -63,8 +63,8 @@
    field collection: 'default'
    line (normal): 
    views: 21 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
@@ -76,8 +76,8 @@
    field plot: ''
    line (normal): 
    views: 22 views, shown: 'Userdata' (None, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 22
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
@@ -90,8 +90,8 @@
    check of shown_plot: None
    line (normal): 
    views: 22 views, shown: 'Userdata' (None, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 22
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
@@ -100,99 +100,99 @@
    plot: 1 axes
    check of shown_plot: None
    line (normal): 
-   views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   views: 21 views, shown: 'User flags' (userflags;bar;logy=auto, group Fields, badges ['bars'])
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('polz', 'Polarisation z')
-   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
+   shown plot field: ('userflags;bar;logy=auto', None)
+   settings: ('bar', {'logy': 'auto', 'unweighted': 'weights', 'bar': ''})
    plot: 1 axes
 ==> keys outside the fields
   key Down:
-   views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   views: 21 views, shown: 'User flags' (userflags;bar;logy=auto, group Fields, badges ['bars'])
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('polz', 'Polarisation z')
-   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
+   shown plot field: ('userflags;bar;logy=auto', None)
+   settings: ('bar', {'logy': 'auto', 'unweighted': 'weights', 'bar': ''})
    plot: 1 axes
   key MoveDown:
-   views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   views: 21 views, shown: 'User flags' (userflags;bar;logy=auto, group Fields, badges ['bars'])
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('polz', 'Polarisation z')
-   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
+   shown plot field: ('userflags;bar;logy=auto', None)
+   settings: ('bar', {'logy': 'auto', 'unweighted': 'weights', 'bar': ''})
    plot: 1 axes
   key Up:
-   views: 21 views, shown: 'Polarisation y' (poly, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('poly', 'Polarisation y')
+   shown plot field: ('polz', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key P:
    focus: pick
-   views: 21 views, shown: 'Polarisation y' (poly, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('poly', 'Polarisation y')
+   shown plot field: ('polz', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key Enter:
    focus: shown_plot
-   views: 21 views, shown: 'Polarisation y' (poly, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('poly', 'Polarisation y')
+   shown plot field: ('polz', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key w:
    asked for a file to write, suggested: example_selected.mcpl.gz
-   views: 21 views, shown: 'Polarisation y' (poly, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('poly', 'Polarisation y')
+   shown plot field: ('polz', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key v:
    asked for a file to state, suggested: example_viewer.json
-   views: 21 views, shown: 'Polarisation y' (poly, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('poly', 'Polarisation y')
+   shown plot field: ('polz', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
   key ?:
    help shown: 41 lines
-   views: 21 views, shown: 'Polarisation y' (poly, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   views: 21 views, shown: 'Polarisation z' (polz, group Fields, badges [])
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('poly', 'Polarisation y')
+   shown plot field: ('polz', None)
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
 ==> the file names (the suggested one is written, the same again is refused)
@@ -201,8 +201,8 @@
    written: ['example_selected.mcpl.gz']
 ==> a click on a plot of the overview shows it on its own
    views: 21 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
@@ -210,8 +210,8 @@
    settings: None
    plot: 7 axes
    views: 21 views, shown: 'Angle to the z axis' (angle_to(0,0,1)/deg;logy;split=pdgcode, group Main plots, badges ['log y', 'by particle'])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
@@ -221,15 +221,15 @@
 ==> the title of the shown plot, and dragging its card into another group
    line (normal): 
    views: 21 views, shown: 'Angle to the beam' (angle_to(0,0,1)/deg;logy;split=pdgcode, group Mine, badges ['log y', 'by particle'])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('angle_to(0,0,1)/deg;logy;split=pdgcode', 'Angle to the beam')
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': ''})
    plot: 1 axes
-   state: {'plots': {'change': {'angle_to(0,0,1)/deg;logy;split=pdgcode': {'title': 'Angle to the beam', 'plot': 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'group': 'Mine'}}, 'order': ['angle_to(0,0,1)/deg;logy;split=pdgcode', 'ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'userflags;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz']}, 'view': 'angle_to(0,0,1)/deg;logy;split=pdgcode'}
+   state: {'plots': {'change': {'angle_to(0,0,1)/deg;logy;split=pdgcode': {'title': 'Angle to the beam', 'plot': 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'group': 'Mine'}}, 'order': ['angle_to(0,0,1)/deg;logy;split=pdgcode', 'ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto']}, 'view': 'angle_to(0,0,1)/deg;logy;split=pdgcode'}
 ==> the settings of the shown plot
   logy set to 'linear':
    line (normal): 
@@ -244,8 +244,8 @@
   logx set to 'nonsense':
    line (error): Histogram option "logx" must be 1, 0 or auto (not "nonsense"), in "angle_to(0,0,1)/deg;bins=40;range=0:90;logx=nonsense"
    views: 21 views, shown: 'Angle to the beam' (angle_to(0,0,1)/deg;bins=40;range=0:90, group Mine, badges ['range'])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
@@ -263,8 +263,8 @@
    line (normal): 
    added: True
    views: 22 views, shown: 'Userdata' (None, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 22
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
@@ -274,8 +274,8 @@
    line (normal): 
    added again, with another title: True
    views: 22 views, shown: 'Userdata' (None, group Fields, badges [])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 22
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
@@ -290,8 +290,8 @@
    field pick: ''
    line (normal): 
    views: 22 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 22
    status: example.mcpl: 1006 particles, Σw = 1006
@@ -305,8 +305,8 @@
    field pick: 'pdgcode == neutron'
    line (normal): 
    views: 22 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 22
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
@@ -322,8 +322,8 @@
    line (normal): 
    opened: True
    views: 22 views, shown: 'Overview' (None, group None, badges ['6 plots'])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 22
    status: other.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
@@ -336,8 +336,8 @@
 ==> removing plots, with Delete
    line (normal): Removed the plot "Energy spectrum"
    views: 21 views, shown: 'Angle to the beam' (angle_to(0,0,1)/deg;bins=40;range=0:90, group Mine, badges ['range'])
-   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
-   not in the file: ['User flags', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'Userdata']
+   constant fields: ['Particle types', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+   not in the file: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags', 'Userdata']
    problems: []
    thumbnails: 21
    status: other.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)

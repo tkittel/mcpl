@@ -9,7 +9,7 @@ message for an invalid edit: <span style="color:#c00">Can not assign value witho
 view: ekin/MeV;logx=1 field emptied: True
 This plot box shown: True 'ekin/MeV;logx=1'
 changed in the box: plot:ekin/keV;logx=1 current: plot:ekin/keV;logx=1 message: ''
-emptied, plot removed: plot:polz box shown: True
+emptied, plot removed: plot:userflags;bar;logy=auto box shown: True
 view selected: plot:angle_to(0,0,1)/deg;logy;split=pdgcode
 suggested name: example_selected.mcpl.gz
 written: MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz

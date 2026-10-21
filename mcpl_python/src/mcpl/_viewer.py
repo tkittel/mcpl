@@ -346,8 +346,8 @@ class Viewer(_Reading):
             self._scale_undo = None
             return ( True, f'{axis} axis as before' ) if ok else ( ok, msg )
         o = _parse_hist(plot)
-        if len(o['exprs']) == 2:
-            return False, f'2D histograms have no log {axis} option'
+        if len(o['exprs']) > 1:
+            return False, f'{len(o["exprs"])}D plots have no log {axis} option'
         if option == 'logx' and o['bar']:
             return False, 'Bar charts have no log x option'
         if option == 'logx' and o['lethargy']:
@@ -498,8 +498,8 @@ class Viewer(_Reading):
         logx = panel.logx if panel is not None else o['logx'] is True
         logy = panel.logy if panel is not None else o['logy'] is True
         badges = []
-        if len(o['exprs']) == 2:
-            badges.append('2D')
+        if len(o['exprs']) > 1:
+            badges.append(f'{len(o["exprs"])}D')
         if o['bar']:
             #(the bars are horizontal, with their log scale on x):
             badges.append('bars')

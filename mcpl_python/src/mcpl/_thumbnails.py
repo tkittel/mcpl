@@ -81,7 +81,7 @@ def _range( values, log, lim ):
     return ( lo, hi ) if hi > lo else ( ( lo / 2, lo * 2 ) if log else ( lo - 0.5, hi + 0.5 ) )
 
 def _panel( img, panel ):
-    from .plotting import Bars, Hist2D, StepHist, _line_style
+    from .plotting import Bars, Hist2D, Scatter3D, StepHist, _line_style
     cycle, lut = _colors()
     h, w = img.shape[:2]
     curves = [ ( i, it ) for i, it in enumerate(panel.items) if isinstance(it,StepHist) ]
@@ -118,6 +118,20 @@ def _panel( img, panel ):
                 if x + 1 < w:
                     img[max(0,row-1):row+1,x+1] = color
                 prev = row
+    #(3D points in an oblique projection, with y going into the picture):
+    points = [ ( i, it ) for i, it in enumerate(panel.items) if isinstance(it,Scatter3D) ]
+    if points:
+        xyz = [ np.concatenate([ np.asarray(getattr(it,c),dtype=float) for _, it in points ])
+                for c in 'xyz' ]
+        lims = [ ( v.min(), v.max() ) if len(v) else ( 0.0, 1.0 ) for v in xyz ]
+        for i, it in points:
+            fx, fy, fz = ( _scaled(np.asarray(getattr(it,c),dtype=float),False,*lim)
+                           for c, lim in zip('xyz',lims) )
+            u, v = 0.7 * fx + 0.3 * fy, 0.7 * fz + 0.3 * fy
+            cols = np.clip(( u * ( w - 1 ) ).round(),0,w - 1).astype(int)
+            rows = np.clip(( ( 1 - v ) * ( h - 1 ) ).round(),0,h - 1).astype(int)
+            ok = np.isfinite(u) & np.isfinite(v)
+            img[rows[ok],cols[ok]] = cycle[_line_style(it.color if it.color is not None else i)[0]]
     for it in panel.items:
         if isinstance(it,Hist2D):
             v = np.asarray(it.values,dtype=float)

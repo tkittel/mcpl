@@ -129,6 +129,9 @@ plot_controls = {
     'bar' : ( ( 'logy', 'Scale', _scale ), _count, ( 'bar', 'Bars', None ) ),
     '2d' : ( _count, ( 'bins', 'Bins', None ), ( 'xrange', 'X range', None ),
              ( 'yrange', 'Y range', None ) ),
+    '3d' : ( ( 'split', 'Split by', ( ( 'none', None ), ( 'particle type', 'pdgcode' ) ) ),
+             ( 'unweighted', 'Sample by', ( ( 'weights', None ), ( 'particles', True ) ) ),
+             ( 'points', 'Points', None ) ),
 }
 
 #The quantities offered when adding a plot in the viewers with windows (as the

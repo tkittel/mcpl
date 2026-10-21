@@ -285,7 +285,7 @@ class WidgetViewer:
             o = _parse_hist(plot)
         except MCPLError:#(e.g. while it is composed, see compose)
             return None
-        kind = '2d' if len(o['exprs']) == 2 else 'bar' if o['bar'] else '1d'
+        kind = { 2 : '2d', 3 : '3d' }.get(len(o['exprs']),'bar' if o['bar'] else '1d')
         given = dict(_hist_parts(plot)[1])
         res = []
         for name, label, choices in ui.plot_controls[kind]:
@@ -298,14 +298,20 @@ class WidgetViewer:
             else:
                 shown = next( ( t for t, cv in choices if cv == value ), value )
             res.append( ( name, label, [ t for t, _ in choices ] if choices else None, shown,
-                          self._used_bins(plot) if name == 'bins' else '' ) )
+                          self._used(plot,name) ) )
         return kind, res
 
-    def _used_bins( self, plot ):
-        """The numbers of bins of the drawn plot, as a text ("40", or "40,30"
-        for 2D histograms), or an empty text if it is not drawn yet"""
+    def _used( self, plot, name ):
+        """What the drawn plot uses for the option (if it is not given): the
+        numbers of bins ("40", or "40,30" for 2D histograms) or of the points
+        of 3D plots, as a text, or an empty text (also while it is not
+        drawn)"""
         fig = self.v.figure(key = f'plot:{plot}')
-        for item in ( fig.panels[0].items if fig is not None and len(fig.panels) == 1 else () ):
+        items = fig.panels[0].items if fig is not None and len(fig.panels) == 1 else ()
+        if name == 'points':
+            n = sum( len(item.x) for item in items if hasattr(item,'z') )
+            return str(n) if n else ''
+        for item in ( items if name == 'bins' else () ):
             if hasattr(item,'xedges'):
                 return f'{len(item.xedges)-1},{len(item.yedges)-1}'
             if hasattr(item,'edges'):

@@ -256,6 +256,9 @@ _hints = (
     ( 'histoptions', 'unweighted=1|0',
       'count particles',
       'count particles instead of summing their weights' ),
+    ( 'histoptions', 'points=N|auto',
+      'points of 3D plots',
+      'the number of points of a 3D plot, a sample of the particles chosen with their weights (auto: 5000)' ),
     ( 'histoptions', 'print=1|0',
       'print contents instead of plotting',
       'print the contents of the histogram instead of plotting it' ),)
@@ -310,6 +313,8 @@ examples = {
         ( 'x : y;xrange=-10cm:10cm;yrange=-10cm:10cm', 'The positions in the x-y plane.' ),
         ( 'atan2(uy,ux)/deg : uz', 'The directions: the azimuth around the z axis, and uz.' ),
         ( 'pdgcode;bar', 'A bar chart of the particle types.' ),
+        ( 'x : y : z;split=pdgcode',
+          'The positions in 3D, as points for a sample of the particles, by particle type (in windows).' ),
         ( 'angle_to(0,0,1)/deg;logy;split=pdgcode in (neutron,gamma)',
           'The angles to the z axis, for neutrons and gammas, and for the others.' ),
         ( 'userdata.nscat;bar;unweighted', 'The numbers of particles for each value of nscat.' ),
@@ -346,8 +351,9 @@ to variables (other lowercase names, which can be used in later statements),
 and the statements listed below. The expressions are written as for -p (see
 -p help).''' ),
     'hist' : ( '''HIST: what to plot, an expression of the particles (written as for -p),
-or two separated by ":" for a 2D histogram, followed by options separated by
-";". For example:''',
+or two separated by ":" for a 2D histogram (or three for a 3D plot of a
+sample of the particles, in windows), followed by options separated by ";".
+For example:''',
                '''The plots are shown in a window, or in the terminal (with -t), or saved in a
 file (with -o FILE). -H can be given several times, for several plots, and
 with -w it adds plots to the viewer.''' ),

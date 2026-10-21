@@ -326,6 +326,52 @@ class Histogram2D(_Plot):
                                        ( xe[i], xe[i+1], ye[j], ye[j+1], self.contents[i,j] ) ))
         return '\n'.join(lines)
 
+class Points3D(_Plot):
+    """3D plot of the values of three expressions for a sample of the particles
+    (as many as points, chosen at random with their weights, unless
+    unweighted, so they are distributed as the particles), in groups (label
+    -> array of shape (n,3), with the label None without split). For
+    expressions with units, the values are in the units (texts like "cm",
+    else None). The sample is the same for the same particles.
+
+    Objects of this class are made by histogram() for histogram strings of
+    three expressions, and the class itself is not part of the public API (it
+    is not made directly)."""
+    def __init__( self, expressions, *, weighted, title, units, nparticles ):
+        super().__init__(weighted,title)
+        self.expressions, self.units = list(expressions), list(units)
+        self.notes = [ None ] * 3
+        self.nparticles = nparticles#(of which the points are a sample)
+        self.groups = {}
+        self.colors = {}#(label -> colour index, see StepHist)
+
+    @property
+    def labels( self ):
+        """The labels of the axes, with their units and notes (see
+        Histogram.label)"""
+        return [ _with_unit(e,u,n) for e, u, n in zip(self.expressions,self.units,self.notes) ]
+
+    def panel( self ):
+        """Panel (see mcpl.plotting) with the points"""
+        from .plotting import Panel, Scatter3D
+        x, y, z = self.labels
+        p = Panel( title = self.title, xlabel = x, ylabel = y, zlabel = z )
+        for i, ( label, pts ) in enumerate(self.groups.items()):
+            p.add(Scatter3D(pts[:,0],pts[:,1],pts[:,2],label = self._plot_label(label),
+                            color = self.colors.get(label,i)))
+        return p
+
+    def to_text( self ):
+        """Text table with the points."""
+        n = sum( len(p) for p in self.groups.values() )
+        lines = self._text_header(f'3D plot of: {" : ".join(self.labels)}',
+                                  f'{n} points (of {self.nparticles} particles)',
+                                  [ 'x', 'y', 'z', 'group' ])
+        for label, pts in self.groups.items():
+            lines += [ ' '.join( f'{v:.8g}' for v in pt ) + f' {label or ""}'.rstrip()
+                       for pt in pts ]
+        return '\n'.join(lines)
+
 def _with_unit( expression, unit, note = None ):
     """Axis label of an expression, with its unit and note (see _DomainNote)"""
     label = f'{expression} [{unit}]' if unit else expression
@@ -583,6 +629,10 @@ def _filler_for( o, pick = None, labels = ( None, ), _maxbins = None ):
     (picked) particles of the files with the labels are given to it as in
     _histogram, and its result() is the histogram of the blocks so far."""
     bins = o['bins'] or 'auto'
+    if len(o['exprs']) == 3:
+        return _Points3DFiller(o['exprs'],pick = pick,points = o['points'],
+                               unweighted = o['unweighted'],split = o['split'],
+                               max_curves = o['groups'] or 8)
     if len(o['exprs']) == 2:
         return _Hist2DFiller(o['exprs'][0],o['exprs'][1],pick = pick,bins = bins,
                              xrange = o['xrange'],yrange = o['yrange'],
@@ -868,6 +918,68 @@ class _Hist2DFiller(_Filler):
         h.contents += contents
         h._display_bins = ( bx, by ) if self._auto else None
         return h
+
+class _Points3DFiller(_Filler):
+    """The filler of 3D plots (see Points3D): a random sample of the points
+    (weighted, with the method of Efraimidis and Spirakis: the points with the
+    largest u^(1/w), for random u in [0,1)), which needs no ranges"""
+    def __init__( self, expressions, pick = None, points = None, unweighted = False,
+                  split = None, max_curves = 8 ):
+        super().__init__(list(expressions),pick,unweighted,( None, ))
+        self._npoints = points or 5000
+        self._spl = _SplitValue(split) if split is not None else None
+        self._max_curves = max_curves
+        #(a fixed seed, so the same particles give the same sample):
+        self._rng = np.random.default_rng(12345)
+        self._keys, self._pts, self._sv = np.zeros(0), np.zeros((0,3)), np.zeros(0)
+        self._n = 0
+
+    def add( self, flabel, b ):
+        vals, w, defined = self._values(b)
+        pts = np.column_stack(vals)
+        sv = ( np.asarray(self._spl(b),dtype=float)[defined] if self._spl is not None
+               else np.zeros(len(pts)) )
+        ok = np.isfinite(pts).all(axis=1) & ( w > 0 )
+        pts, w, sv = pts[ok], w[ok], sv[ok]
+        self._n += len(pts)
+        keys = self._rng.random(len(pts)) ** ( 1.0 / w )
+        keys, pts, sv = ( np.concatenate(( a, b )) for a, b in ( ( self._keys, keys ),
+                                                                ( self._pts, pts ),
+                                                                ( self._sv, sv ) ) )
+        if len(keys) > self._npoints:
+            keep = np.argpartition(keys,-self._npoints)[-self._npoints:]
+            keys, pts, sv = keys[keep], pts[keep], sv[keep]
+        self._keys, self._pts, self._sv = keys, pts, sv
+
+    def result( self ):
+        pts, spl = self._pts, self._spl
+        units = []
+        for i, v in enumerate(self._vals):
+            lo, hi = ( pts[:,i].min(), pts[:,i].max() ) if len(pts) else ( 0.0, 1.0 )
+            units.append(_plot_unit(v.dim,lo,hi,False,v.wavelength) or ( None, 1.0 ))
+        res = Points3D([ v.expression for v in self._vals ],weighted = self._weighted,
+                       title = self._title,units = [ u for u, _ in units ],
+                       nparticles = self._n)
+        res.notes = [ n.note() for n in self._notes ]
+        scaled = pts / np.array([ s for _, s in units ]) if len(pts) else pts
+        if spl is None:
+            res.groups[None] = scaled
+            return res
+        counts = { k : int(( self._sv == k ).sum()) for k in np.unique(self._sv) }
+        shown, rest = _top_keys(counts or { None : 0 },self._max_curves)
+        colors = _value_colors(spl.field,[ *shown, *( [ 'other' ] if rest else [] ) ])
+        for k in shown:
+            label, plabel = ( _split_label(spl,k,u) for u in ( False, True ) )
+            if plabel != label:
+                res._plot_labels[label] = plabel
+            res.groups[label] = scaled[self._sv == k]
+            if k in colors:
+                res.colors[label] = colors[k]
+        if rest:
+            res.groups['other'] = scaled[np.isin(self._sv,rest)]
+            if 'other' in colors:
+                res.colors['other'] = colors['other']
+        return res
 
 def plot_histograms( histograms, filename = None, backend = None, logy = None,
                      overlay = False, labels = None, **options ):

@@ -39,7 +39,7 @@ from ._particles import _pdg_symbols
 from ._physics import _ascii_symbols
 from ._plotbackend import PlotBackend
 from ._termcolor import _check_setting, _curve_rgb, _map_rgb, _ncolors, _paint
-from .plotting import Bars, Hist2D, StepHist, Text, _line_style, _map_texts
+from .plotting import Bars, Hist2D, Scatter3D, StepHist, Text, _line_style, _map_texts
 
 
 class _Chars:
@@ -225,6 +225,10 @@ class _TextBackend(PlotBackend):
                 out += self._draw_bars(item)
             elif isinstance(item,Text):
                 out += [ _center(line,self._width) for line in item.text.split('\n') ]
+        if any( isinstance(i,Scatter3D) for i in panel.items ):
+            out.append(_center('(3D plots are not shown in the terminal, only in windows)',
+                               self._width))
+            return out
         if panel.xlabel and not steps and not any( isinstance(i,Hist2D) for i in panel.items ):
             out += [ _center(line,self._width) for line in panel.xlabel.split('\n') ]
         return out

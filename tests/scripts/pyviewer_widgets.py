@@ -187,7 +187,8 @@ t.shown()
 print('   added again, with another title:', t.on_add_plot(t.compose('Time'),'Another'))
 t.shown()
 step('changing the axes of the shown plot (keeping the options which can be kept)')
-for x, y in ( ('wavelength',''), ('Energy',''), ('ekin : time',''), ('x','y'), ('x',''), ('',''),
+for x, y in ( ('wavelength',''), ('Energy',''), ('ekin : time',''), ('','time : ekin'), ('x','y'),
+              ('x',''), ('',''),
               ('nonsense','') ):
     print(f'  {x!r}, {y!r}:', t.on_axes(x,y), v.current_key)
 t.on_axes_edited('ekin : nonsense')

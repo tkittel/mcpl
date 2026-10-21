@@ -30,6 +30,14 @@ from . import _viewer_ui as ui
 from ._common import MCPLError
 
 
+def _split_axes( x, y ):
+    """The expressions of the x and y axes, with "x : y" written in one of them
+    (while the other is empty) split onto both"""
+    x, y = x.strip(), y.strip()
+    if ':' in ( x or y ) and not ( x and y ):
+        x, _, y = ( e.strip() for e in ( x or y ).partition(':') )
+    return x, y
+
 class Card:
     """A card of the list of views of the viewers with windows (see
     WidgetViewer.cards), which the front ends show as far as they can: the
@@ -356,13 +364,11 @@ class WidgetViewer:
     def on_axes( self, x, y = '' ):
         """The expressions of the x and y axes of the shown plot (or of a new
         plot) are given (names of _viewer_ui.quantities, or expressions, y
-        empty for 1D histograms; "x : y" for the x axis is split). The options
+        empty for 1D histograms; "x : y" in either is split, see _split_axes). The options
         of the plot are kept if they can be used for the new axes. Returns
         whether the plot was changed (or added)."""
         from ._histstring import _hist_parts
-        x, y = x.strip(), y.strip()
-        if not y and ':' in x:
-            x, _, y = ( e.strip() for e in x.partition(':') )
+        x, y = _split_axes(x,y)
         if not x:
             self.show_line('Choose or type what to plot on the X axis','error')
             return False
@@ -386,9 +392,7 @@ class WidgetViewer:
     def on_axes_edited( self, x, y = '' ):
         """The expressions of the axes are edited (see on_axes): they are
         checked (as the field 'axes')"""
-        x, y = x.strip(), y.strip()
-        if not y and ':' in x:
-            x, _, y = ( e.strip() for e in x.partition(':') )
+        x, y = _split_axes(x,y)
         if not x:
             self.show_check('axes',None)
             self.show_line('Choose or type what to plot on the X axis (and on the Y axis for 2D'

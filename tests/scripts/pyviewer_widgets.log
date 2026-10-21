@@ -288,6 +288,8 @@
    line (normal): 
   'ekin : time', '': True plot:ekin : time
    line (normal): 
+  '', 'time : ekin': True plot:time : ekin
+   line (normal): 
   'x', 'y': True plot:x : y
    line (normal): 
   'x', '': True plot:x

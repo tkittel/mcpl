@@ -656,23 +656,44 @@ class Viewer(_Reading):
 
     def status_lines( self, weights = '\u03a3w' ):
         """The two status lines: the file, the numbers of particles and the sum
-        of their weights (named weights), and the progress of the reading (or
-        an error)"""
+        of their weights (named weights, see counts_text), and the progress of
+        the reading (or an error)"""
         with self._lock:
-            counts, progress, error = self._counts, self._progress, self._error
-        name = pathlib.Path(self.filename).name
+            progress, error = self._progress, self._error
+        counts = self.counts_text(weights)
+        first = self.file_text() if counts is None else f'{self._name}: {counts}'
+        return first, ( f'error: {error}' if error else progress )
+
+    @property
+    def _name( self ):
+        return pathlib.Path(self.filename).name
+
+    def file_text( self ):
+        """The name of the file, with its number of particles"""
+        return f'{self._name}: {self._ntotal} particles'
+
+    @property
+    def nused( self ):
+        """The number of particles used (picked), or None while not known"""
+        with self._lock:
+            return None if self._counts is None else self._counts[0]
+
+    def counts_text( self, weights = '\u03a3w' ):
+        """The numbers of particles used (of those in the range, when picked)
+        and the sum of their weights (named weights), as a text, or None while
+        they are not known"""
+        with self._lock:
+            counts = self._counts
         if counts is None:
-            first = f'{name}: {self._ntotal} particles'
-        elif self._s.pick is None:
+            return None
+        if self._s.pick is None:
             #(all particles of the range are used, so only the numbers):
             n, _, w, _ = counts
-            first = f'{name}: {n} particles, {weights} = {w:g}'
-        else:
-            n, ntot, w, wtot = counts
-            pct = f'{100.0*n/ntot:.1f}%' if ntot else '-'
-            wpct = f'{100.0*w/wtot:.1f}%' if wtot else '-'
-            first = f'{name}: {n}/{ntot} particles ({pct}), {weights} = {w:g} ({wpct})'
-        return first, ( f'error: {error}' if error else progress )
+            return f'{n} particles, {weights} = {w:g}'
+        n, ntot, w, wtot = counts
+        pct = f'{100.0*n/ntot:.1f}%' if ntot else '-'
+        wpct = f'{100.0*w/wtot:.1f}%' if wtot else '-'
+        return f'{n}/{ntot} particles ({pct}), {weights} = {w:g} ({wpct})'
 
     #The state:
 

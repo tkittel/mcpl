@@ -182,8 +182,11 @@ class TkViewer(WidgetViewer):
         bottom = ttk.Frame(root,padding=(0,4,6,6))
         bottom.grid(row=1,column=1,sticky='ew')
         bottom.columnconfigure(0,weight=1)
-        part, _ = _part(bottom,'Particles','Pick & edit','particles from the input file',
-                        card_colors['border'])
+        part, head = _part(bottom,'Particles','Pick & edit','particles from the input file',
+                           card_colors['border'])
+        #(the numbers of the particles used, at the right of the header):
+        self._counts = ttk.Label(head,foreground=colors['dim'],style='Particles.TLabel')
+        self._counts.pack(side='right')
         part.master.grid(row=0,column=0,sticky='ew',pady=(2,0))
         info = { f[0] : f for f in ui.fields }
         #(plots are added with "+ New plot", and the collection is chosen
@@ -367,8 +370,12 @@ class TkViewer(WidgetViewer):
         self._cards.show(cards,current)
 
     def show_status( self, first, second ):
-        self._status[0].configure(text=first)
+        #(the numbers of the particles used are shown with the pick and edit,
+        #and on the button writing them):
+        v = self.v
+        self._status[0].configure(text=v.file_text())
         self._status[1].configure(text=second)
+        self._counts.configure(text=v.counts_text() or '')
 
     def show_field( self, field, text ):
         if field == 'plot':
@@ -421,7 +428,12 @@ class TkViewer(WidgetViewer):
 
     def show_enabled( self, action, enabled ):
         if action == 'write':
+            #(in blue only when there is something to write):
             self._write.state([ '!disabled' if enabled else 'disabled' ])
+            n = self.v.nused
+            self._write.configure(style='Head.Accent.TButton' if enabled else 'Head.TButton',
+                                  text=( f'Create new MCPL file with {n} particles...'
+                                         if enabled and n is not None else 'Create new MCPL file...' ))
             return
         self._actions_menu.entryconfigure(self._actions[action],
                                           state='normal' if enabled else 'disabled')

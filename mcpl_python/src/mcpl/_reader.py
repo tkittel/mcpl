@@ -871,7 +871,7 @@ class MCPLFile:
                 s += '  ' + raw[:16].hex() + ( '...' if udsize > 16 else '' )
             print(s)
 
-    def to_scipp(self, skip = 0, limit = None, pick = None, coords = None,
+    def to_scipp(self, *, skip = 0, limit = None, pick = None, coords = None,
                  vectors = False, variances = True, dim = 'particle'):
         """Particles of the file as a scipp DataArray. The particles are read
         from the start of the file (after any pick and edit given when
@@ -911,7 +911,7 @@ class MCPLFile:
                               coord_functions = fcts, vectors = vectors,
                               variances = variances, dim = dim )
 
-    def scipp_blocks(self, pick = None, coords = None, vectors = False,
+    def scipp_blocks(self, *, pick = None, coords = None, vectors = False,
                      variances = True, dim = 'particle'):
         """Iterate over the particles of the file as scipp DataArrays, one for
         each block of particles (see the particle_blocks property), with the

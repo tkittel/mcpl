@@ -1223,7 +1223,7 @@ def _parse_count( text ):
         return None
     return i if i == f else None
 
-def view( filename, pick = None, edit = None, skip = 0, limit = None,
+def view( filename, *, pick = None, edit = None, skip = 0, limit = None,
           plots = (), view = None, backend = None, terminal = False ):
     """Show the particles of a file in the viewer: an overview and plots
     (histograms as for mcpltool -H, to which the plots, histogram strings like

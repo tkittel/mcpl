@@ -473,7 +473,7 @@ def test_in_and_userdata():
         print('value userdata.dir.at(1):', mcpl.ParticleValue('userdata.dir.at(1)')(u).tolist())
         for bad in ( 'userdata.nope > 1', 'userdata.dir > 1', 'userdata.dir.at(3) > 0',
                      'userdata.nscat.at(0) > 0', 'userdata.dir.at(x) > 0', 'userdata.dir.at(1.5) > 0',
-                     'userdata.dir.get(1) > 0', 'ud.nscat > 1', 'x.y > 1', 'userdata > 1', 'userdata. > 1' ):
+                     'userdata.dir.get(1) > 0', 'x.y > 1', 'userdata > 1', 'userdata. > 1' ):
             try:
                 mcpl.ParticleFilter(bad)(u)
             except mcpl.MCPLError as e:

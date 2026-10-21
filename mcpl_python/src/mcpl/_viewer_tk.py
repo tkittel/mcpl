@@ -848,6 +848,8 @@ class _CodeWindow:
         tabs = ttk.Notebook(f)
         tabs.pack(fill='both',expand=True,pady=(2,0))
         for key, label in kinds[1:]:
+            if key not in code:
+                continue#(no C++ and C for plots)
             page = ttk.Frame(tabs,padding=(6,0,6,6))
             tabs.add(page,text=f'  {label}  ')
             section(page,key,None)

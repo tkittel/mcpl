@@ -36,7 +36,7 @@ Modules of the mcpl package and their imports from the package:
   layer   9 : _viewer_widgets      <- _common, _histstring, _plotbackend_mpl, _viewer_ui
   layer  10 : _clistats            <- _common, _histogram, _histstring, _plotbackend, _reader, _stats, plotting
   layer  10 : _viewer              <- _blocks, _common, _expressions, _exprhelp, _extract, _histogram, _histstring, _numpy, _plotbackend, _reader, _stdviews, _viewer_code, _viewer_jupyter, plotting
-  layer  10 : _viewer_tk           <- _exprhelp, _logo, _viewer_code, _viewer_ui, _viewer_widgets
+  layer  10 : _viewer_tk           <- _exprhelp, _logo, _messages, _viewer_code, _viewer_ui, _viewer_widgets
   layer  11 : _cli                 <- _clistats, _common, _examples, _expressions, _exprhelp, _extract, _fileops, _histogram, _histstring, _messages, _particles, _plotbackend, _reader, _stdviews, _viewer, _viewer_ui
   layer  11 : _plotbackend_mpl_gui <- _plotbackend_mpl, _viewer_tk, _viewer_ui, _viewer_widgets
   layer top : __init__             <- _blocks, _common, _fileops, _messages, _reader, _statsum, _writer, constants

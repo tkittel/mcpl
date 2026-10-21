@@ -485,8 +485,8 @@ def test_tool():
 def test_code():
     print('The command and code of plots, and of writing files:')
     def show( code, kinds = ( 'command', 'python' ) ):
-        print(f'  {code["command"]}')
-        for k in kinds[1:]:
+        print(f'  {code["command"]}  (code: {", ".join(code)})')
+        for k in ( k for k in kinds[1:] if k in code ):
             print(''.join( f'     {k:>6} | {line}\n' for line in code[k].splitlines() ),end='')
     for pick, edit, skip, limit in ( (None,None,0,None),
                                      ('pdgcode == neutron','z += 1m;weight *= 2',0,None),
@@ -547,7 +547,7 @@ def test_c_translation():
         print(f'edit {edit!r}: {_c_edit(edit,_CTranslator("c","q","struct"),"")}')
     #The highlighting of the code (the styles of its parts):
     from mcpldev._viewer_code import highlight
-    code = Viewer(ex,pick='pdgcode == neutron',skip=5).code(['ekin;logx'])
+    code = Viewer(ex,pick='pdgcode == neutron',skip=5).code(filename = 'out.mcpl')
     for kind in ( 'command', 'python', 'cpp', 'c' ):
         print(f'highlighted {kind}:', ' '.join( f'{style}[{code[kind][a:b]}]'
                                                 for a, b, style in highlight(code[kind],kind) ))

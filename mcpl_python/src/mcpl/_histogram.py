@@ -486,7 +486,7 @@ def _neff( sumw, sumw2 ):
 
 _range = range#(the name range is shadowed by arguments below)
 
-def histogram( files, expression, pick = None, bins = 'auto', range = None,
+def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
                logx = False, unweighted = False, split = None, lethargy = False,
                max_curves = 8, bar = False, _maxbins = None ):
     """Histogram of the values of an expression (see ParticleValue) for the
@@ -529,7 +529,7 @@ def histogram( files, expression, pick = None, bins = 'auto', range = None,
                         ' instead)')
     return _histogram(files,o,pick = pick,_maxbins = _maxbins)
 
-def histogram2d( files, xexpression, yexpression, pick = None, bins = 'auto',
+def histogram2d( files, xexpression, yexpression, *, pick = None, bins = 'auto',
                  xrange = None, yrange = None, unweighted = False,
                  _maxbins = None ):
     """2D histogram of the values of two expressions (see histogram()) for the

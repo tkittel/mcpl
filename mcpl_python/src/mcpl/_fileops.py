@@ -221,7 +221,7 @@ def _stablesum_add(s, x):
     s[1] += (s[0] - t) + x if abs(s[0]) >= abs(x) else (x - t) + s[0]
     s[0] = t
 
-def merge_files(file_output, files, dry_run = False):
+def merge_files(file_output, files, *, dry_run = False):
     """Merge the particle contents of a list of compatible files into a new file
     (like mcpl_merge_files in the C API). Values of stat:sum entries are
     added up. Returns the new file as an open MCPLOutFile object, which must
@@ -309,7 +309,7 @@ def merge_files(file_output, files, dry_run = False):
         return None
     return out
 
-def forcemerge_files(file_output, files, keep_userflags = False, dry_run = False):
+def forcemerge_files(file_output, files, *, keep_userflags = False, dry_run = False):
     """Merge particle contents of a list of files, even if they are not
     compatible, at the price of discarding most meta-data like comments and
     blobs (like mcpl_forcemerge_files in the C API). Userflags are discarded
@@ -418,7 +418,7 @@ def forcemerge_files(file_output, files, keep_userflags = False, dry_run = False
         return None
     return out
 
-def merge_inplace(file1, file2, dry_run = False):
+def merge_inplace(file1, file2, *, dry_run = False):
     """Append the particle contents of file2 to file1 (like mcpl_merge_inplace in
     the C API). The files must be compatible, and file1 must not be
     gzipped. Values of stat:sum entries are added up. With dry_run=True,
@@ -477,7 +477,7 @@ def merge_inplace(file1, file2, dry_run = False):
                     write_at(pos, encode_stat_sum(key, newval).encode('ascii'))
             write_at(8, struct.pack('=Q', np1 + np2))
 
-def repair(filename, dry_run = False):
+def repair(filename, *, dry_run = False):
     """Repair a file which was not properly closed, or which was truncated, by
     updating the number of particles in the header and removing any
     incomplete particle data at the end (like mcpl_repair in the C API).

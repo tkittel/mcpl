@@ -51,7 +51,6 @@ userdata.nscat.at(0) > 0: The userdata field "nscat" has one value per particle 
 userdata.dir.at(x) > 0: Syntax error in expression "userdata.dir.at(x) > 0", after "userdata.dir.at(": the index of a value in an array must be a whole number (counting from 0)
 userdata.dir.at(1.5) > 0: Syntax error in expression "userdata.dir.at(1.5) > 0", after "userdata.dir.at(": the index of a value in an array must be a whole number (counting from 0)
 userdata.dir.get(1) > 0: Syntax error in expression "userdata.dir.get(1) > 0", after "userdata.dir.": values of arrays in the userdata are written as userdata.NAME.at(INDEX)
-ud.nscat > 1: Syntax error in expression "ud.nscat > 1", after "ud": "." can only be used for fields of the userdata (as userdata.NAME)
 x.y > 1: Syntax error in expression "x.y > 1", after "x": "." can only be used for fields of the userdata (as userdata.NAME)
 userdata > 1: Fields of the userdata are written as userdata.NAME, in expression "userdata > 1"
 userdata. > 1: Syntax error in expression "userdata. > 1", after "userdata.": the name of a userdata field is missing

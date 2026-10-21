@@ -53,10 +53,12 @@ class _Job:
         self.plots, self.out, self.mark_statsums = plots, out, mark_statsums
 
 def code( job, progname ):
-    """The command and the code of the job, as a dict with the keys of
-    kinds"""
-    return { 'command' : _command(job,progname), 'python' : _python(job),
-             'cpp' : _cpp(job), 'c' : _c(job) }
+    """The command and the code of the job, as a dict with the keys of kinds
+    (without C++ and C for histograms, which C++ and C can not make)"""
+    res = { 'command' : _command(job,progname), 'python' : _python(job) }
+    if job.plots is None:
+        res.update( { 'cpp' : _cpp(job), 'c' : _c(job) } )
+    return res
 
 def _command( job, prog ):
     fn = _shell(job.filename) if ' ' in job.filename else job.filename
@@ -296,9 +298,9 @@ def _custom( lang, what, text, indent ):
 
 def _c_body( job, lang, particle, pointer, indent ):
     """The lines in the loop over the particles: the pick (as an if
-    statement, if translated), the edit (of the copy q, if translated), and
-    the values of the plots, with comments where custom code is needed,
-    and the headers which the code needs"""
+    statement, if translated), and the edit (of the copy q, if translated),
+    with comments where custom code is needed, and the headers which the code
+    needs"""
     tr = _CTranslator(lang,particle,'c' if pointer else 'cpp')
     lines = []
     if job.pick is not None:
@@ -306,7 +308,7 @@ def _c_body( job, lang, particle, pointer, indent ):
         if cond is None:
             lines.append(_custom(lang,'pick',job.pick,indent))
         else:
-            lines += [ f'{indent}{"//" if lang == "cpp" else "/*"} the pick: {job.pick}{"" if lang == "cpp" else " */"}',
+            lines += [ f'{indent}{"//" if lang == "cpp" else "/*"} the pick: "{job.pick}"{"" if lang == "cpp" else " */"}',
                        f'{indent}if ( !( {cond} ) )', f'{indent}  continue;' ]
     if job.edit is not None:
         tr_q = _CTranslator(lang,'q','struct')
@@ -316,10 +318,7 @@ def _c_body( job, lang, particle, pointer, indent ):
         if edited is None:
             lines.append(_custom(lang,'edit',job.edit,indent))
         else:
-            lines += [ f'{indent}{"//" if lang == "cpp" else "/*"} the edit: {job.edit}{"" if lang == "cpp" else " */"}' ] + edited
-    if job.plots is not None:
-        for p in job.plots:
-            lines.append(_custom(lang,'histogram',p,indent))
+            lines += [ f'{indent}{"//" if lang == "cpp" else "/*"} the edit: "{job.edit}"{"" if lang == "cpp" else " */"}' ] + edited
     return lines, tr.headers
 
 def _loop_head( job, read, lang ):
@@ -342,56 +341,45 @@ def _gz( out ):
     return ( out[:-3], True ) if out.endswith('.gz') else ( out, False )
 
 def _includes( lang, headers ):
-    first = [ 'mcplcpp.h', 'cstdint' ] if lang == 'cpp' else [ 'mcpl.h', 'stdint.h' ]
-    return [ f'#include "{first[0]}"' ] + [ f'#include <{h}>' + ( '  /* (link with -lm) */'
-                                                                 if h == 'math.h' else '' )
-                                            for h in [ first[1] ] + sorted(headers) ]
+    """The includes (the MCPL header, which includes stdint.h or cstdint, and
+    the headers of the functions used)"""
+    return [ f'#include "{"mcplcpp.h" if lang == "cpp" else "mcpl.h"}"' ] + [
+        f'#include <{h}>' + ( '  /* (link with -lm) */' if h == 'math.h' else '' )
+        for h in sorted(headers) ]
 
 def _cpp( job ):
     fn = _c_string(job.filename)
     body, headers = _c_body(job,'cpp','p',False,'    ')
-    if job.plots is not None:
-        lines = [ f'  mcpl::MCPLFile f( {fn} );' ]
-        if job.skip:
-            lines.append(f'  f.seek( {job.skip} );')
-        lines += _loop_head(job,'f','cpp') + body + [ '  }' ]
-    else:
-        out, gz = _gz(job.out)
-        lines = [ f'  mcpl::MCPLFile fin( {fn} );',
-                  f'  mcpl::MCPLOutFile fout( {_c_string(out)} );',
-                  '  fout.transfer_metadata( fin );  // copy the header' ]
-        if job.mark_statsums:
-            lines.append('  fout.scale_stat_sums( -1.0 );  // stat:sum entries not available')
-        if job.skip:
-            lines.append(f'  fin.seek( {job.skip} );')
-        lines += _loop_head(job,'fin','cpp') + body
-        lines += ( [ '    fout.add( q );' ] if job.edit is not None
-                   else [ '    fout.transfer_last_read_particle( fin );' ] )
-        lines += [ '  }', f'  fout.{"close_and_gzip" if gz else "close"}();' ]
+    out, gz = _gz(job.out)
+    lines = [ f'  mcpl::MCPLFile fin( {fn} );',
+              f'  mcpl::MCPLOutFile fout( {_c_string(out)} );',
+              '  fout.transfer_metadata( fin );  // copy the header' ]
+    if job.mark_statsums:
+        lines.append('  fout.scale_stat_sums( -1.0 );  // stat:sum entries not available')
+    if job.skip:
+        lines.append(f'  fin.seek( {job.skip} );')
+    lines += _loop_head(job,'fin','cpp') + body
+    lines += ( [ '    fout.add( q );' ] if job.edit is not None
+               else [ '    fout.transfer_last_read_particle( fin );' ] )
+    lines += [ '  }', f'  fout.{"close_and_gzip" if gz else "close"}();' ]
     return '\n'.join( _includes('cpp',headers) + [ '', 'int main()', '{' ] + lines + [ '}' ] )
 
 def _c( job ):
     fn = _c_string(job.filename)
     body, headers = _c_body(job,'c','p',True,'    ')
-    if job.plots is not None:
-        lines = [ f'  mcpl_file_t f = mcpl_open_file( {fn} );' ]
-        if job.skip:
-            lines.append(f'  mcpl_seek( f, {job.skip} );')
-        lines += _loop_head(job,'f','c') + body + [ '  }', '  mcpl_close_file( f );' ]
-    else:
-        out, gz = _gz(job.out)
-        lines = [ f'  mcpl_file_t fin = mcpl_open_file( {fn} );',
-                  f'  mcpl_outfile_t fout = mcpl_create_outfile( {_c_string(out)} );',
-                  '  mcpl_transfer_metadata( fin, fout );  /* copy the header */' ]
-        if job.mark_statsums:
-            lines.append('  mcpl_hdr_scale_stat_sums( fout, -1.0 );  /* stat:sum entries not available */')
-        if job.skip:
-            lines.append(f'  mcpl_seek( fin, {job.skip} );')
-        lines += _loop_head(job,'fin','c') + body
-        lines += ( [ '    mcpl_add_particle( fout, &q );' ] if job.edit is not None
-                   else [ '    mcpl_transfer_last_read_particle( fin, fout );' ] )
-        lines += [ '  }', f'  mcpl_close{"andgzip" if gz else ""}_outfile( fout );',
-                   '  mcpl_close_file( fin );' ]
+    out, gz = _gz(job.out)
+    lines = [ f'  mcpl_file_t fin = mcpl_open_file( {fn} );',
+              f'  mcpl_outfile_t fout = mcpl_create_outfile( {_c_string(out)} );',
+              '  mcpl_transfer_metadata( fin, fout );  /* copy the header */' ]
+    if job.mark_statsums:
+        lines.append('  mcpl_hdr_scale_stat_sums( fout, -1.0 );  /* stat:sum entries not available */')
+    if job.skip:
+        lines.append(f'  mcpl_seek( fin, {job.skip} );')
+    lines += _loop_head(job,'fin','c') + body
+    lines += ( [ '    mcpl_add_particle( fout, &q );' ] if job.edit is not None
+               else [ '    mcpl_transfer_last_read_particle( fin, fout );' ] )
+    lines += [ '  }', f'  mcpl_close{"andgzip" if gz else ""}_outfile( fout );',
+               '  mcpl_close_file( fin );' ]
     return '\n'.join( _includes('c',headers) + [ '', 'int main( void )', '{' ] + lines
                       + [ '  return 0;', '}' ] )
 

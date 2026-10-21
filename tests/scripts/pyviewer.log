@@ -11,12 +11,12 @@ skip=0 limit=None pick='mod(fileidx,3) == 0' edit='weight *= 2':
    example.mcpl: 336/1006 particles (33.4%), Σw = 672 (66.8%)
    23 views, same figures as mcpltool -H: True
 The command and code of plots, and of writing files:
-  mcpltool -H "ekin;logx" example.mcpl
+  mcpltool -H "ekin;logx" example.mcpl  (code: command, python)
      python | import mcpl
      python | f = mcpl.MCPLFile( 'example.mcpl' )
      python | h = mcpl.histogram( f, 'ekin;logx' )
      python | h.plot()
-  mcpltool -H "x" -H "y : z;bins=10" example.mcpl
+  mcpltool -H "x" -H "y : z;bins=10" example.mcpl  (code: command, python)
      python | import mcpl
      python | f = mcpl.MCPLFile( 'example.mcpl' )
      python | hs = [ mcpl.histogram( f, p ) for p in (
@@ -24,7 +24,7 @@ The command and code of plots, and of writing files:
      python |     'y : z;bins=10',
      python | ) ]
      python | mcpl.plot_histograms( hs )
-  mcpltool -e example.mcpl by_python.mcpl
+  mcpltool -e example.mcpl by_python.mcpl  (code: command, python, cpp, c)
      python | import mcpl
      python | fin = mcpl.MCPLFile( 'example.mcpl' )
      python | with mcpl.MCPLOutFile( 'by_python.mcpl' ) as fout:
@@ -32,12 +32,12 @@ The command and code of plots, and of writing files:
      python |     for block in fin.particle_blocks:
      python |         fout.add_particles( block )
   same figures: True, same particles: True
-  mcpltool -p "pdgcode == neutron" -E "z += 1m;weight *= 2" -H "ekin;logx" example.mcpl
+  mcpltool -p "pdgcode == neutron" -E "z += 1m;weight *= 2" -H "ekin;logx" example.mcpl  (code: command, python)
      python | import mcpl
      python | f = mcpl.MCPLFile( 'example.mcpl', pick = 'pdgcode == neutron', edit = 'z += 1m;weight *= 2' )
      python | h = mcpl.histogram( f, 'ekin;logx' )
      python | h.plot()
-  mcpltool -p "pdgcode == neutron" -E "z += 1m;weight *= 2" -H "x" -H "y : z;bins=10" example.mcpl
+  mcpltool -p "pdgcode == neutron" -E "z += 1m;weight *= 2" -H "x" -H "y : z;bins=10" example.mcpl  (code: command, python)
      python | import mcpl
      python | f = mcpl.MCPLFile( 'example.mcpl', pick = 'pdgcode == neutron', edit = 'z += 1m;weight *= 2' )
      python | hs = [ mcpl.histogram( f, p ) for p in (
@@ -45,7 +45,7 @@ The command and code of plots, and of writing files:
      python |     'y : z;bins=10',
      python | ) ]
      python | mcpl.plot_histograms( hs )
-  mcpltool -e -p "pdgcode == neutron" -E "z += 1m;weight *= 2" example.mcpl by_python.mcpl
+  mcpltool -e -p "pdgcode == neutron" -E "z += 1m;weight *= 2" example.mcpl by_python.mcpl  (code: command, python, cpp, c)
      python | import mcpl
      python | fin = mcpl.MCPLFile( 'example.mcpl', pick = 'pdgcode == neutron', edit = 'z += 1m;weight *= 2' )
      python | with mcpl.MCPLOutFile( 'by_python.mcpl' ) as fout:
@@ -53,7 +53,6 @@ The command and code of plots, and of writing files:
      python |     for block in fin.particle_blocks:
      python |         fout.add_particles( block )
         cpp | #include "mcplcpp.h"
-        cpp | #include <cstdint>
         cpp | 
         cpp | int main()
         cpp | {
@@ -61,11 +60,11 @@ The command and code of plots, and of writing files:
         cpp |   mcpl::MCPLOutFile fout( "by_python.mcpl" );
         cpp |   fout.transfer_metadata( fin );  // copy the header
         cpp |   for ( auto p : fin ) {
-        cpp |     // the pick: pdgcode == neutron
+        cpp |     // the pick: "pdgcode == neutron"
         cpp |     if ( !( p.pdgcode() == 2112 ) )
         cpp |       continue;
         cpp |     mcpl_particle_t q = p.c_struct();
-        cpp |     // the edit: z += 1m;weight *= 2
+        cpp |     // the edit: "z += 1m;weight *= 2"
         cpp |     q.position[2] += 100.0;
         cpp |     q.weight *= 2;
         cpp |     fout.add( q );
@@ -73,7 +72,6 @@ The command and code of plots, and of writing files:
         cpp |   fout.close();
         cpp | }
           c | #include "mcpl.h"
-          c | #include <stdint.h>
           c | 
           c | int main( void )
           c | {
@@ -82,11 +80,11 @@ The command and code of plots, and of writing files:
           c |   mcpl_transfer_metadata( fin, fout );  /* copy the header */
           c |   const mcpl_particle_t * p;
           c |   while ( ( p = mcpl_read( fin ) ) ) {
-          c |     /* the pick: pdgcode == neutron */
+          c |     /* the pick: "pdgcode == neutron" */
           c |     if ( !( p->pdgcode == 2112 ) )
           c |       continue;
           c |     mcpl_particle_t q = *p;
-          c |     /* the edit: z += 1m;weight *= 2 */
+          c |     /* the edit: "z += 1m;weight *= 2" */
           c |     q.position[2] += 100.0;
           c |     q.weight *= 2;
           c |     mcpl_add_particle( fout, &q );
@@ -96,12 +94,12 @@ The command and code of plots, and of writing files:
           c |   return 0;
           c | }
   same figures: True, same particles: True
-  mcpltool -s100 -l300 -p "ekin > 1MeV" -H "ekin;logx" example.mcpl
+  mcpltool -s100 -l300 -p "ekin > 1MeV" -H "ekin;logx" example.mcpl  (code: command, python)
      python | import mcpl
      python | f = mcpl.MCPLFile( 'example.mcpl', skip = 100, limit = 300, pick = 'ekin > 1MeV' )
      python | h = mcpl.histogram( f, 'ekin;logx' )
      python | h.plot()
-  mcpltool -s100 -l300 -p "ekin > 1MeV" -H "x" -H "y : z;bins=10" example.mcpl
+  mcpltool -s100 -l300 -p "ekin > 1MeV" -H "x" -H "y : z;bins=10" example.mcpl  (code: command, python)
      python | import mcpl
      python | f = mcpl.MCPLFile( 'example.mcpl', skip = 100, limit = 300, pick = 'ekin > 1MeV' )
      python | hs = [ mcpl.histogram( f, p ) for p in (
@@ -109,46 +107,12 @@ The command and code of plots, and of writing files:
      python |     'y : z;bins=10',
      python | ) ]
      python | mcpl.plot_histograms( hs )
-  mcpltool -s100 -l300 -p "ekin > 1MeV" -H "ekin;logx" example.mcpl
+  mcpltool -s100 -l300 -p "ekin > 1MeV" -H "ekin;logx" example.mcpl  (code: command, python)
      python | import mcpl
      python | f = mcpl.MCPLFile( 'example.mcpl', skip = 100, limit = 300, pick = 'ekin > 1MeV' )
      python | h = mcpl.histogram( f, 'ekin;logx' )
      python | h.plot()
-        cpp | #include "mcplcpp.h"
-        cpp | #include <cstdint>
-        cpp | 
-        cpp | int main()
-        cpp | {
-        cpp |   mcpl::MCPLFile f( "example.mcpl" );
-        cpp |   f.seek( 100 );
-        cpp |   std::uint64_t n = 0;
-        cpp |   for ( auto p : f ) {
-        cpp |     if ( n++ == 300 )
-        cpp |       break;
-        cpp |     // the pick: ekin > 1MeV
-        cpp |     if ( !( p.ekin() > 1.0 ) )
-        cpp |       continue;
-        cpp |     // Insert custom C++ logic here to mimic the histogram: "ekin;logx"
-        cpp |   }
-        cpp | }
-          c | #include "mcpl.h"
-          c | #include <stdint.h>
-          c | 
-          c | int main( void )
-          c | {
-          c |   mcpl_file_t f = mcpl_open_file( "example.mcpl" );
-          c |   mcpl_seek( f, 100 );
-          c |   const mcpl_particle_t * p;
-          c |   for ( uint64_t n = 0; n < 300 && ( p = mcpl_read( f ) ); ++n ) {
-          c |     /* the pick: ekin > 1MeV */
-          c |     if ( !( p->ekin > 1.0 ) )
-          c |       continue;
-          c |     /* Insert custom C logic here to mimic the histogram: "ekin;logx" */
-          c |   }
-          c |   mcpl_close_file( f );
-          c |   return 0;
-          c | }
-  mcpltool -e -s100 -l300 -p "ekin > 1MeV" example.mcpl by_python.mcpl
+  mcpltool -e -s100 -l300 -p "ekin > 1MeV" example.mcpl by_python.mcpl  (code: command, python, cpp, c)
      python | import mcpl
      python | fin = mcpl.MCPLFile( 'example.mcpl', skip = 100, limit = 300, pick = 'ekin > 1MeV' )
      python | with mcpl.MCPLOutFile( 'by_python.mcpl' ) as fout:
@@ -156,7 +120,6 @@ The command and code of plots, and of writing files:
      python |     for block in fin.particle_blocks:
      python |         fout.add_particles( block )
         cpp | #include "mcplcpp.h"
-        cpp | #include <cstdint>
         cpp | 
         cpp | int main()
         cpp | {
@@ -168,7 +131,7 @@ The command and code of plots, and of writing files:
         cpp |   for ( auto p : fin ) {
         cpp |     if ( n++ == 300 )
         cpp |       break;
-        cpp |     // the pick: ekin > 1MeV
+        cpp |     // the pick: "ekin > 1MeV"
         cpp |     if ( !( p.ekin() > 1.0 ) )
         cpp |       continue;
         cpp |     fout.transfer_last_read_particle( fin );
@@ -176,7 +139,6 @@ The command and code of plots, and of writing files:
         cpp |   fout.close();
         cpp | }
           c | #include "mcpl.h"
-          c | #include <stdint.h>
           c | 
           c | int main( void )
           c | {
@@ -186,7 +148,7 @@ The command and code of plots, and of writing files:
           c |   mcpl_seek( fin, 100 );
           c |   const mcpl_particle_t * p;
           c |   for ( uint64_t n = 0; n < 300 && ( p = mcpl_read( fin ) ); ++n ) {
-          c |     /* the pick: ekin > 1MeV */
+          c |     /* the pick: "ekin > 1MeV" */
           c |     if ( !( p->ekin > 1.0 ) )
           c |       continue;
           c |     mcpl_transfer_last_read_particle( fin, fout );
@@ -226,10 +188,10 @@ edit 'time = time + 1ms*abs(x)/1cm': ['q.time += fabs( q.position[0] );']
 edit 'rotate_z(90deg)': None
 edit 'ux = 1': None
 edit 'a = 2*x;y = a': None
-highlighted command: option[-s5] option[-p] string["pdgcode == neutron"] option[-H] string["ekin;logx"]
-highlighted python: keyword[import] string['example.mcpl'] number[5] string['pdgcode == neutron'] string['ekin;logx']
-highlighted cpp: preprocessor[#include] string["mcplcpp.h"] preprocessor[#include] string[<cstdint>] keyword[int] string["example.mcpl"] number[5] keyword[for] keyword[auto] comment[// the pick: pdgcode == neutron] keyword[if] number[2112] keyword[continue] comment[// Insert custom C++ logic here to mimic the histogram: "ekin;logx"]
-highlighted c: preprocessor[#include] string["mcpl.h"] preprocessor[#include] string[<stdint.h>] keyword[int] keyword[void] string["example.mcpl"] number[5] keyword[const] keyword[while] comment[/* the pick: pdgcode == neutron */] keyword[if] number[2112] keyword[continue] comment[/* Insert custom C logic here to mimic the histogram: "ekin;logx" */] keyword[return] number[0]
+highlighted command: option[-e] option[-s5] option[-p] string["pdgcode == neutron"]
+highlighted python: keyword[import] string['example.mcpl'] number[5] string['pdgcode == neutron'] keyword[with] string['out.mcpl'] keyword[as] comment[# copy the header] keyword[for] keyword[in]
+highlighted cpp: preprocessor[#include] string["mcplcpp.h"] keyword[int] string["example.mcpl"] string["out.mcpl"] comment[// copy the header] number[5] keyword[for] keyword[auto] comment[// the pick: "pdgcode == neutron"] keyword[if] number[2112] keyword[continue]
+highlighted c: preprocessor[#include] string["mcpl.h"] keyword[int] keyword[void] string["example.mcpl"] string["out.mcpl"] comment[/* copy the header */] number[5] keyword[const] keyword[while] comment[/* the pick: "pdgcode == neutron" */] keyword[if] number[2112] keyword[continue] keyword[return] number[0]
 limit 1e9: read again: False
 limit 500: read again: True
 limit all: read again: True

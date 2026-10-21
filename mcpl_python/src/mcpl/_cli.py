@@ -582,7 +582,7 @@ def _mcpltool_merge(filelist, opt_forcemerge, opt_inplace, opt_keepuserflags,
     if err:
         bad(err)
     if opt_forcemerge:
-        out = forcemerge_files(outfn,filelist[1:],opt_keepuserflags,dry_run=dry_run)
+        out = forcemerge_files(outfn,filelist[1:],keep_userflags=opt_keepuserflags,dry_run=dry_run)
     else:
         out = merge_files(outfn,filelist[1:],dry_run=dry_run)
     if out is not None:

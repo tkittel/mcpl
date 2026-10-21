@@ -78,6 +78,7 @@ layers = {
     '_viewer_jupyter' : 9,
     '_viewer_widgets' : 9,
     '_viewer_tk' : 10,
+    '_viewer_reading' : 9,
     '_viewer' : 10,
     '_clistats' : 10,
     '_cli' : 11,

@@ -84,6 +84,9 @@ class WidgetViewer:
         (if controls is None)"""
         raise NotImplementedError
 
+    def show_title( self, filename ):
+        """Show the name of the file (e.g. in the title of the window)"""
+
     def show_enabled( self, action, enabled ):
         """Show the button of the action as enabled or not (if the toolkit has
         such buttons)"""
@@ -384,6 +387,26 @@ class WidgetViewer:
             self.close_window()
         else:
             self.focus_field(action)
+
+    def on_open_file( self, filename, particles = True ):
+        """Show another file (with the same plots, and the same pick and edit
+        if particles is set, see Viewer.for_file). Returns whether it was
+        opened."""
+        try:
+            new, msg = self.v.for_file(filename,particles)
+        except MCPLError as e:
+            self.show_line(f'Not opened: {e}','error')
+            return False
+        self.v.stop()
+        self.v = new
+        new.multi_overview = True
+        self._thumbnails = {}
+        self._plot_pending = False
+        self.pane.clear()
+        self.show_title(new.filename)
+        self.start()
+        self.show_line(msg,'error' if msg else 'normal')
+        return True
 
     def on_scale_key( self, key, view = None ):
         """A key toggling a log scale (see ui.scale_keys) of the shown plot, or

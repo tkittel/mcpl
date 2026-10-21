@@ -213,6 +213,9 @@ check of 'userdata.dir.at(2) > 0': (True, '')
 check of 'userdata.dir.at(3) > 0': (False, 'The userdata field "dir" has 3 values per particle (use userdata.dir.at(0) to userdata.dir.at(2)), in "userdata.dir.at(3) > 0"')
 check of 'userdata.nscat.at(0) > 0': (False, 'The userdata field "nscat" has one value per particle (use userdata.nscat), in "userdata.nscat.at(0) > 0"')
 without userdata: (False, 'There are no userdata fields in this file, in "userdata.nscat;bar"') (False, 'There are no userdata fields in this file, in "x > 0cm and userdata."') userdata.  there are no userdata fields in this file
+for example.mcpl (particles True): pick '', edit '', skip '', 20 views, message 'Not kept for this file: the pick and edit (There are no userdata fields in this file, in "userdata.nscat > 0")'
+for ud_viewer.mcpl (particles True): pick 'userdata.nscat > 0', edit 'z += 1m', skip '', 25 views, message ''
+for ud_viewer.mcpl (particles False): pick '', edit '', skip '', 25 views, message ''
 views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:angle_to(0,0,1)/deg;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:userflags;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz
 check('skip','10'): (True, '')
 check('skip','x'): (False, 'Skip must be a number of particles')

@@ -580,6 +580,15 @@ def test_range_and_userdata():
     w = Viewer(ex)
     print('without userdata:', w.check('plot','userdata.nscat;bar'), w.check('pick','x > 0cm and userdata.'),
           w.hint('pick','userdata.'))
+    #Another file in the same state (without skip and limit, and without what
+    #does not work for the other file):
+    v = Viewer(fn,pick='userdata.nscat > 0',edit='z += 1m',skip=1)
+    v.set('plot','ekin;bins=20')
+    for other, particles in ( ( ex, True ), ( fn, True ), ( fn, False ) ):
+        w, msg = v.for_file(other,particles)
+        print(f'for {other} (particles {particles}): pick {w.field_text("pick")!r}, edit'
+              f' {w.field_text("edit")!r}, skip {w.field_text("skip")!r}, {len(w.views)} views,'
+              f' message {msg!r}')
     pathlib.Path(fn).unlink()
 
 test_figures()

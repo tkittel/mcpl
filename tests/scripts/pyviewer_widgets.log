@@ -256,6 +256,35 @@
    plot: 7 axes
    changes particles: False
    line (error): Pick, edit or choose a range of particles first, to write them to a new file
+==> another file, with the same plots, pick and edit
+   check of pick: None
+   field pick: 'pdgcode == neutron'
+   line (normal): 
+   views: 21 views, shown: 'Overview' (None, group None, badges ['6 plots'])
+   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
+   thumbnails: 21
+   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: (None, None)
+   settings: None
+   plot: 7 axes
+   field skip: ''
+   field limit: ''
+   field collection: 'default'
+   field pick: 'pdgcode == neutron'
+   field edit: ''
+   field plot: ''
+   line (normal): 
+   opened: True
+   views: 21 views, shown: 'Overview' (None, group None, badges ['6 plots'])
+   constant fields: ['Particle types', 'User flags', 'Position z', 'Weights', 'Polarisation x', 'Polarisation y', 'Polarisation z']
+   thumbnails: 21
+   status: other.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: (None, None)
+   settings: None
+   plot: 7 axes
+   file: example.mcpl | the viewer: other.mcpl pdgcode == neutron
+   line (error): Not opened: Unable to open file!
+   a file which does not exist: False other.mcpl
 ==> the buttons of the actions, and quit
    help shown: 41 lines
    window closed

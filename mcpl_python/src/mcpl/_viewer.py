@@ -812,6 +812,28 @@ class Viewer(_Reading):
 
     #Writing:
 
+    def for_file( self, filename, particles = True ):
+        """A viewer of another file, in the same state, but without skip and
+        limit (which are of this file), and without the pick and edit unless
+        particles is set (not for a file written with them): (viewer, message),
+        with the message saying what could not be kept (e.g. a pick with fields
+        of the userdata which the other file does not have), or empty"""
+        drop = ( 'skip', 'limit' ) + ( () if particles else ( 'pick', 'edit' ) )
+        state = { k : v for k, v in self.state().items() if k not in drop }
+        kw = { 'dry_run' : self._dry_run, 'progname' : self._progname }
+        try:
+            return Viewer(filename,view=state,**kw), ''
+        except MCPLError as e:
+            problem = e
+        for drop, what in ( ( ( 'pick', 'edit' ), 'the pick and edit' ),
+                            ( ( 'pick', 'edit', 'plots', 'view' ), 'the pick, edit and plots' ) ):
+            try:
+                return ( Viewer(filename,view={ k : v for k, v in state.items() if k not in drop },**kw),
+                         f'Not kept for this file: {what} ({problem})' )
+            except MCPLError:
+                pass
+        return Viewer(filename,**kw), f'Not kept for this file: the state of the viewer ({problem})'
+
     @property
     def changes_particles( self ):
         """Whether the particles shown are not just those of the file (with

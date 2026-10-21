@@ -66,7 +66,7 @@ class TkViewer(WidgetViewer):
         )
         from matplotlib.figure import Figure
         self.root = root
-        root.title(f'MCPL viewer: {viewer.filename}')
+        root.title(f'MCPL viewer: {viewer.filename}')#(see show_title)
         root.geometry('1400x900')
         style = ttk.Style(root)
         if root.tk.call('tk','windowingsystem') == 'x11':
@@ -77,6 +77,12 @@ class TkViewer(WidgetViewer):
         style.configure('Accent.TButton',foreground='white',background=accent,
                         bordercolor=accent)
         style.map('Accent.TButton',background=[ ( 'active', '#3d74ab' ) ])
+        #(choices shown as a row of buttons, with the chosen one in the colour
+        #of the selected card):
+        style.configure('Choice.Toolbutton',relief='raised',borderwidth=1,padding=(8,3),
+                        background='#e3e8ee')
+        style.map('Choice.Toolbutton',background=[ ( 'selected', accent ), ( 'active', '#d0d8e2' ) ],
+                  foreground=[ ( 'selected', 'white' ) ],relief=[ ( 'selected', 'sunken' ) ])
         #(the small buttons next to fields, as high as the fields):
         style.configure('Small.TButton',padding=(2,0))
         import tkinter.font
@@ -193,6 +199,9 @@ class TkViewer(WidgetViewer):
         self._line.grid(row=len(rows)+1,column=0,sticky='w',pady=(2,2))
         buttons = ttk.Frame(bottom)
         buttons.grid(row=len(rows)+2,column=0,sticky='w')
+        #(another file, with the same plots, pick and edit, see on_open_file):
+        ttk.Button(buttons,text='Open file...',takefocus=0,
+                   command=self._ask_open).pack(side='left',padx=(0,6))
         for action, label, _keys, kpos in ui.actions:
             #(writing opens a window, with the name of the file and the code):
             label = 'Write file / code...' if action == 'write' else label
@@ -241,6 +250,20 @@ class TkViewer(WidgetViewer):
 
     def show_line( self, text, style ):
         self._line.configure(text=text,foreground=_colors.get(style,_colors['normal']))
+
+    def show_title( self, filename ):
+        self.root.title(f'MCPL viewer: {filename}')
+
+    def _ask_open( self ):
+        """Ask for another file to show (see on_open_file)"""
+        import os
+        from tkinter import filedialog
+        chosen = filedialog.askopenfilename(parent=self.root,title='Open an MCPL file',
+                                            initialdir=os.path.dirname(os.path.abspath(self.v.filename)),
+                                            filetypes=[ ( 'MCPL files', '*.mcpl *.mcpl.gz' ),
+                                                        ( 'All files', '*' ) ])
+        if chosen:
+            self.on_open_file(chosen)
 
     def show_enabled( self, action, enabled ):
         self._actions[action].state([ '!disabled' if enabled else 'disabled' ])
@@ -854,23 +877,34 @@ class _CodeWindow:
         if len(langs) == 1:
             section(f,langs[0][0],f'{langs[0][1]}:')
         else:
-            ttk.Label(f,text='Code:',font=tv._bold).pack(anchor='w',pady=(10,0))
-            tabs = ttk.Notebook(f)
-            tabs.pack(fill='both',expand=True,pady=(2,0))
+            #(the languages as buttons in a row, which are hard to miss, and one
+            #text with the code of the chosen language):
+            row = ttk.Frame(f)
+            row.pack(fill='x',pady=(10,0))
+            ttk.Label(row,text='Code in:',font=tv._bold).pack(side='left',padx=(0,6))
+            self._lang = tk.StringVar(value=langs[0][0])
             for key, label in langs:
-                page = ttk.Frame(tabs,padding=(6,0,6,6))
-                tabs.add(page,text=f'  {label}  ')
-                section(page,key,None)
+                ttk.Radiobutton(row,text=label,value=key,variable=self._lang,
+                                style='Choice.Toolbutton',command=self._show_lang).pack(side='left',padx=(0,4))
+            page = ttk.Frame(f)
+            page.pack(fill='both',expand=True)
+            section(page,'code',None)
         self.show(code)
         ttk.Button(f,text='Close',command=w.destroy).pack(side='right',pady=(10,0))
         w.bind('<Escape>',lambda _e : w.destroy())
 
+    def _show_lang( self ):
+        self.show(self._code)
+
     def show( self, code ):
         from ._viewer_code import highlight
-        #(the code in the tabs as high as the longest one):
+        self._code = code
+        #(the kind of code in each text, with one text for the language chosen,
+        #as high as the longest code of all languages):
+        kinds = { k : ( self._lang.get() if k == 'code' else k ) for k in self._texts }
         height = max( v.count('\n') + 1 for k, v in code.items() if k != 'command' )
         for key, text in self._texts.items():
-            value = code[key]
+            value = code[kinds[key]]
             #(as wide as the longest line, up to a maximum):
             longest = max( len(line) for line in value.splitlines() )
             text.configure(state='normal',height=1 if key == 'command' else height,
@@ -881,7 +915,7 @@ class _CodeWindow:
                 text._bar.pack_forget()
             text.delete('1.0','end')
             text.insert('1.0',value)
-            for start, end, style in highlight(value,key):
+            for start, end, style in highlight(value,kinds[key]):
                 text.tag_add(style,f'1.0+{start}c',f'1.0+{end}c')
             text.configure(state='disabled')
 
@@ -914,6 +948,8 @@ class _WriteWindow:
                    command=lambda : self.tv._ask_file_name('write',self._chosen)).pack(side='left',padx=(6,0))
         ttk.Button(row,text='Write now',style='Accent.TButton',
                    command=self._write).pack(side='left',padx=(6,0))
+        ttk.Button(row,text='Write now and view it',
+                   command=lambda : self._write(view = True)).pack(side='left',padx=(6,0))
         self._message = ttk.Label(f,foreground=_colors['error'])
         self._message.pack(anchor='w')
 
@@ -926,13 +962,18 @@ class _WriteWindow:
     def _changed( self ):
         self._code.show(self.tv.v.code(filename = self._name.get().strip() or None))
 
-    def _write( self ):
-        ok, msg = self.tv.v.try_write(self._name.get().strip() or None)
-        if ok:
-            self.tv.show_line(msg,'normal')
-            self._code.window.destroy()
-        else:
+    def _write( self, view = False ):
+        """Write the file (and show it in the viewer, if view is set)"""
+        name = self._name.get().strip() or self.tv.suggested_filename('write')
+        ok, msg = self.tv.v.try_write(name)
+        if not ok:
             self._message.configure(text=msg)
+            return
+        self._code.window.destroy()
+        #(the new file has the picked and edited particles, so only the plots
+        #are kept):
+        if not view or not self.tv.on_open_file(name,particles = False):
+            self.tv.show_line(msg,'normal')
 
 def _quantity( expression ):
     """The name of the quantity of _viewer_ui.quantities with the expression,

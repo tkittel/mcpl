@@ -67,8 +67,12 @@ class TkViewer(WidgetViewer):
         root.title(f'MCPL viewer: {viewer.filename}')#(see show_title)
         root.geometry('1400x900')
         style = ttk.Style(root)
-        if root.tk.call('tk','windowingsystem') == 'x11':
-            style.theme_use('clam')#(the default of X11 looks dated)
+        system = root.tk.call('tk','windowingsystem')
+        if system in ( 'x11', 'aqua' ):
+            #(the default theme of X11 looks dated, and the native theme of
+            #macOS ignores the colours of the parts and buttons):
+            style.theme_use('clam')
+        if system == 'x11':
             _check_fonts(root)
         #(the button of new plots, in the colour of the selected card):
         accent = card_colors['accent']
@@ -77,7 +81,7 @@ class TkViewer(WidgetViewer):
         style.map('Accent.TButton',background=[ ( 'disabled', '#a9bdd2' ), ( 'active', '#3d74ab' ) ],
                   foreground=[ ( 'disabled', '#eef2f7' ) ])
         #(the other buttons light, in the colours of the cards, instead of the
-        #grey of the theme of X11; native themes keep their own look):
+        #grey of the clam theme; the native theme of Windows keeps its look):
         for name in ( 'TButton', 'TMenubutton' ):
             style.configure(name,background='#f7f9fc',bordercolor=card_colors['border'])
             style.map(name,background=[ ( 'active', '#e4ebf4' ) ])

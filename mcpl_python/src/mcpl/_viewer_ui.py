@@ -29,7 +29,7 @@ __all__ = []
 #position of the key in the label, text shown when the field is empty):
 fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
            ( 'limit', 'Limit', 'i', 1, 'all' ),
-           ( 'collection', 'Plot collection', 'c', 5, 'default' ),
+           ( 'collection', 'Plot groups', 'c', 5, 'default' ),
            ( 'pick', 'Pick', 'p', 0, 'all particles' ),
            ( 'edit', 'Edit', 'e', 0, 'no changes' ),
            ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy' ) )
@@ -38,7 +38,7 @@ fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
 field_descriptions = {
     'skip' : 'the number of particles at the start of the file which are left out',
     'limit' : 'the largest number of particles to use, after those skipped',
-    'collection' : 'the plots to start from, for some uses',
+    'collection' : 'the groups of plots shown, chosen by a preset',
     'pick' : 'an expression which is true for the particles to use',
     'edit' : 'statements which change the particles, after they are picked',
     'plot' : 'a histogram string of a new plot',
@@ -198,10 +198,11 @@ def hint_line( editor, popup = False ):
     return field_hint(editor.field), 'dim'
 
 help_text = '''\
-The viewer shows the particles of an MCPL file: each plot on its own, and in
-windows also overviews of several plots (e.g. the first ones, or a correlation plot
-of the correlations of the fields), which depend on the collection. The plots are histograms of expressions (as
-for -H), which can be changed, removed and reordered, and further ones added.
+The viewer shows the particles of an MCPL file in groups of plots (in windows
+with an overview of each group: its plots together, or a correlation plot of the
+correlations of the fields). The plots are histograms of expressions (as for
+-H). New plots are added to the custom group, where they can be changed,
+removed and reordered (changing a plot of the other groups copies it there).
 Plots are updated while the file is read, and are complete when the reading
 is done.
 
@@ -221,8 +222,8 @@ Keys:
                edited.
   a            Add a plot of an expression, with options as for -H, e.g.
                hypot(x,y)/cm;logy (see mcpltool -H help).
-  c            Choose the collection of plots to start from, e.g. beamz for a
-               beam along the z axis (added plots are kept).
+  c            Choose the groups of plots shown by a preset, e.g. beamz for a
+               beam along the z axis (the custom plots are kept).
   Enter        Change the shown plot (an empty text removes it).
   w            Write the picked and edited particles to a new file.
   v            Save the state of the viewer (the settings and plots) in a

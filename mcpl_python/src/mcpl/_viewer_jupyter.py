@@ -49,15 +49,18 @@ class JupyterViewer:
         self._views.observe(self._on_view,'index')
         self._status = w.HTML()
         self._image = w.Image(format='png',layout=w.Layout(width='100%'))
-        #The overview as a grid of its plots, each with a button showing it on
-        #its own (images in ipywidgets can not be clicked), by position (the
-        #plots of the overview are the first ones, see Viewer.overview_keys):
+        #The first overview as a grid of its plots, each with a button showing
+        #it on its own (images in ipywidgets can not be clicked), by position
+        #(see Viewer.overview_keys; the other overviews are shown as images):
+        overviews = viewer.overviews()
+        self._panels_key = overviews[0][0] if overviews else None
         self._panels = []
         cells = []
-        for i in range(len(viewer.overview_keys())):
+        keys = viewer.overview_keys(self._panels_key) if overviews else []
+        for i in range(len(keys)):
             img = w.Image(format='png',layout=w.Layout(width='100%'))
             b = w.Button(layout=w.Layout(width='auto'))
-            b.on_click(lambda _, i=i : self._on_panel(self.v.overview_keys()[i]))
+            b.on_click(lambda _, i=i : self._on_panel(self.v.overview_keys(self._panels_key)[i]))
             self._panels.append( ( img, b ) )
             cells.append(w.VBox([ img, b ]))
         self._grid = w.GridBox(cells,layout=w.Layout(
@@ -284,8 +287,8 @@ class JupyterViewer:
             if self._pane.show(self.v,key):
                 self._mplfig.canvas.draw_idle()
             shown = self._mplfig.canvas
-        elif key == 'overview:multi':
-            for ( img, b ), k in zip(self._panels,self.v.overview_keys()):
+        elif key == self._panels_key:
+            for ( img, b ), k in zip(self._panels,self.v.overview_keys(key)):
                 b.description = labels.get(k,k[5:])
                 self._show(img,k)
             shown = self._grid

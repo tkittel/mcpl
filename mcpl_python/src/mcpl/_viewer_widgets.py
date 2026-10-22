@@ -62,8 +62,10 @@ class Card:
     compact cards (e.g. "all 0" for fields with one value, or "not in this
     file"), the problem of a plot which failed, and whether it has an image
     (see WidgetViewer.thumbnail), can be selected (shown), dragged (moved)
-    and removed (see WidgetViewer.on_remove). The key is that of the view, or
-    starts with info: for cards which are not views."""
+    and removed (see WidgetViewer.on_remove, with remove_text saying what
+    that does, if not just removing the card), and whether it is shown also
+    when its group is folded (pinned). The key is that of the view, or starts
+    with info: for cards which are not views."""
     __slots__ = (
         'badges',
         'draggable',
@@ -72,17 +74,21 @@ class Card:
         'image',
         'key',
         'name',
+        'pinned',
         'plot',
         'problem',
         'removable',
+        'remove_text',
         'selectable',
         'status',
         'title' )
 
     def __init__( self, key, name, *, title = None, plot = None, group = None,
                   grouped = False, badges = (), status = None, problem = None,
-                  image = False, selectable = True, draggable = False, removable = False ):
+                  image = False, selectable = True, draggable = False, removable = False,
+                  pinned = False, remove_text = None ):
         self.key, self.name, self.title, self.plot = key, name, title, plot
+        self.pinned, self.remove_text = pinned, remove_text
         self.group, self.grouped, self.badges = group, grouped, list(badges)
         self.status, self.problem, self.image = status, problem, image
         self.selectable, self.draggable, self.removable = selectable, draggable, removable
@@ -261,27 +267,30 @@ class WidgetViewer:
             self.show_line(msg,'normal' if ok else 'error')
             self.refresh(plot = False)
 
-    def on_group_overview( self, group ):
-        """Show the plots of the group (None for those without a group) as an
-        overview: a new one (see Viewer.add_overview), unless there is one with
-        its name"""
-        title = group or 'More plots'
-        key = next( ( k for k, ov in self.v.overviews() if ov.title == title ), None )
-        if key is None:
-            ok, msg = self.v.add_overview({ 'title' : title, 'group' : group or '' })
-            if not ok:
-                self.show_line(msg,'error')
-                return
-            key = self.v.overviews()[-1][0]
-            self.show_line(f'New overview "{title}" (removed with Delete)','normal')
-        self.on_select_key(key)
+    def on_show_group( self, key, shown = True ):
+        """Show (or hide) the standard group of plots with the key (see
+        Viewer.show_group)"""
+        if self.v.show_group(key,shown):
+            title = { k : t for k, t, _, _ in self.v.group_list() }[key]
+            self.show_line(f'{"Shown" if shown else "Hidden"}: the group {title}','normal')
+            if shown:
+                self.v.select_key(f'overview:{key}')
+        self.refresh()
 
-    def on_drop( self, key, index, group ):
-        """A card was dragged: its plot (of the view with the key) is moved to
-        the index in the list of plots, and into the group (None for none)"""
-        plot = key[5:]
-        self.v.move_to(plot,index)
-        self.v.set_group(plot,group or '')
+    def group_key( self, title ):
+        """The key of the standard group with the title, or None"""
+        return next( ( k for k, t, _, _ in self.v.group_list() if t == title ), None )
+
+    def on_drop( self, key, target ):
+        """A card was dragged onto the card of the view with the key target
+        (None: before the first custom plot): the custom plot of the view with
+        the key is moved there (only custom plots are reordered)"""
+        plots = [ k[5:] for k, _ in self.v.views if k.startswith('plot:')
+                  and self.v.is_custom(k[5:]) ]
+        if target is None or target[5:] in plots:
+            self.v.move_to(key[5:],0 if target is None else plots.index(target[5:]))
+        else:
+            self.show_line('Only the custom plots are reordered','error')
         self.refresh(plot = False)
 
     #The settings of the shown plot, and the plots added with settings:
@@ -467,40 +476,39 @@ class WidgetViewer:
         fields (which is not a view), as a reminder that MCPL files can have
         userdata, and the card of a new plot while it is made (see
         on_new_plot)"""
-        from ._stdviews import _default_collection
         from .plotting import Text
         res = []
         for key, _ in self.v.views:
             info = self.v.plot_info(key)
             if not key.startswith('plot:'):
-                #(an overview, see Viewer.overviews):
-                res.append(Card(key,info['name'],badges=info['badges'],image=True,removable=True))
+                #(the overview of a group, see Viewer.overviews, which is shown
+                #also when the group is folded, and hides the group):
+                custom = key == 'overview:custom'
+                res.append(Card(key,info['name'],group=info['group'],grouped=True,
+                                badges=info['badges'],image=True,pinned=True,
+                                removable=not custom,remove_text='Hide this group'))
                 continue
             fig = self.v.figure(key = key)
             items = fig.panels[0].items if fig is not None and len(fig.panels) == 1 else []
             problem = items[0].text if len(items) == 1 and isinstance(items[0],Text) else None
             status = ( 'not in this file' if info['absent'] else
                        f'all {info["constant"]}' if info['constant'] is not None else None )
+            #(only custom plots are moved and removed, see Viewer.change_plot):
+            custom = self.v.is_custom(info['plot'])
             res.append(Card(key,info['name'],title=info['title'],plot=info['plot'],
                             group=info['group'],grouped=True,badges=info['badges'],
                             status=status,problem=problem,image=status is None,
-                            draggable=True,removable=True))
-        if ( self.v.collection == _default_collection and not self.v.has_userdata
+                            draggable=custom,removable=custom))
+        if ( 'fields' in self.v.groups and not self.v.has_userdata
              and 'info:userdata' not in self._removed ):
             i = 1 + max( ( i for i, c in enumerate(res) if c.group == 'Fields' ),
                          default = len(res) - 1 )
             res.insert(i,Card('info:userdata','Userdata',group='Fields',grouped=True,
                               status='not in this file',selectable=False,removable=True))
         if self._new_plot is not None:
-            res.append(Card('info:new',self._new_plot or 'New plot',grouped=True,
+            res.append(Card('info:new',self._new_plot or 'New plot',group='Custom',grouped=True,
                             badges=( 'choose what to plot', ),selectable=False,removable=True))
         return res
-
-    def plot_index( self, key ):
-        """The position of the plot (view key) among the plots (as for
-        on_drop), or the number of plots for other keys"""
-        keys = [ k for k, _ in self.v.views if k.startswith('plot:') ]
-        return keys.index(key) if key in keys else len(keys)
 
     def thumbnail( self, key, width, height ):
         """A small image of the plot of the view, as PNG data (or None if
@@ -652,11 +660,11 @@ class WidgetViewer:
             self.refresh()
             return
         if key.startswith('overview:'):
-            name = self.v.plot_info(key)['name']
-            self.v.remove_overview(key)
-            self.show_line(f'Removed the overview "{name}" (choosing the collection again'
-                           ' gives it back)','normal')
-            self.refresh()
+            #(the overview of a group hides the group):
+            if key == 'overview:custom':
+                self.show_line('The custom plots are removed one by one','error')
+                return
+            self.on_show_group(key[9:],False)
             return
         if key.startswith('info:'):
             self._removed.add(key)#(a card which is not a view, see cards)

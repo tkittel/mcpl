@@ -2,8 +2,8 @@ v2.2.9  (work in progress)
       * New viewer: mcpltool -w FILE (or mcpl.view(FILE) in Python, also in
         Jupyter) shows overviews and plots of the particles, in a window or
         in the terminal, where the particles can be picked and edited, and
-        written to a new file. The plots come from collections for some uses
-        (e.g. -wbeamz for a beam along z). New extras: "curses" and
+        written to a new file. The plots are in groups for some uses (e.g.
+        -wbeamz for a beam along z), each with an overview. New extras: "curses" and
         "jupyter".
       * Plots in the terminal (the unicode and ascii plotting backends) are
         shown in colour: curves with the colours of matplotlib, and 2D maps

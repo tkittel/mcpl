@@ -37,13 +37,14 @@ jobs:
         run: |
           pip install PyYAML
           echo "FREEBSD_PKGS=$(python ./src/devel/bin/mcpldevtool depdb --mode freebsdpkgs --pyflavour py312)" >> $GITHUB_ENV
+          echo "FREEBSD_PIPS=$(python ./src/devel/bin/mcpldevtool depdb --mode freebsdpips --pyflavour py312)" >> $GITHUB_ENV
           cat $GITHUB_ENV
 
       - name: FreeBSD
         uses: cross-platform-actions/action@5ea7e8e4677bd726033a10b094ba1c5762b15dee
 
         with:
-          environment_variables: CMAKE_BUILD_PARALLEL_LEVEL CTEST_PARALLEL_LEVEL FREEBSD_PKGS
+          environment_variables: CMAKE_BUILD_PARALLEL_LEVEL CTEST_PARALLEL_LEVEL FREEBSD_PKGS FREEBSD_PIPS
           operating_system: freebsd
           #Increase "memory" from 6G to 10G for bigfile ctests:
           #memory: 10G
@@ -55,7 +56,10 @@ jobs:
             export CTEST_PARALLEL_LEVEL=1
             echo "CMAKE_BUILD_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL}"
             echo "CTEST_PARALLEL_LEVEL=${CTEST_PARALLEL_LEVEL}"
-            sudo pkg install -y cmake python3 ${FREEBSD_PKGS}
+            sudo pkg install -y cmake python3 py312-pip ${FREEBSD_PKGS}
+            #(dependencies without FreeBSD packages, see dependency_database.yml):
+            python3 -m pip install --user --upgrade "pip>=26.2.2"
+            python3 -m pip install --user ${FREEBSD_PIPS}
             df -h
             sudo pkg autoremove -y
             df -h
@@ -83,12 +87,13 @@ jobs:
         run: |
           pip install PyYAML
           echo "FREEBSD_PKGS=$(python ./src/devel/bin/mcpldevtool depdb --mode freebsdpkgs --pyflavour py312)" >> $GITHUB_ENV
+          echo "FREEBSD_PIPS=$(python ./src/devel/bin/mcpldevtool depdb --mode freebsdpips --pyflavour py312)" >> $GITHUB_ENV
           cat $GITHUB_ENV
 
       - name: FreeBSD
         uses: cross-platform-actions/action@5ea7e8e4677bd726033a10b094ba1c5762b15dee
         with:
-          environment_variables: CMAKE_BUILD_PARALLEL_LEVEL CTEST_PARALLEL_LEVEL FREEBSD_PKGS
+          environment_variables: CMAKE_BUILD_PARALLEL_LEVEL CTEST_PARALLEL_LEVEL FREEBSD_PKGS FREEBSD_PIPS
           operating_system: freebsd
           version: '15.1'
           run: |
@@ -98,6 +103,9 @@ jobs:
             #Make sure pip --user bin dir is in PATH:
             PATH="/home/runner/.local/bin:${PATH}"
             export PATH
+            #(dependencies without FreeBSD packages, see dependency_database.yml):
+            python3 -m pip install --user --upgrade "pip>=26.2.2"
+            python3 -m pip install --user ${FREEBSD_PIPS}
             echo "PATH IS NOW: ${PATH}"
             ./src/devel/bin/mcpldevtool check -n "fix""me"
             python3 -mpip install --user ./src/mcpl_python

@@ -237,7 +237,8 @@ def _prepare_data_and_check_errors( rawdata ):
     #Then dependencies:
     known_keys = { 'min_version', 'max_version', 'import_check', 'cmd_check',
                    'pypi_pkgname', 'conda_pkgname', 'in_pystdlib_from',
-                   'min_python', 'unavailable_on', 'only_on', 'freebsd_pkgname' }
+                   'min_python', 'unavailable_on', 'only_on', 'freebsd_pkgname',
+                   'freebsd_pip' }
     for depname,info in rawdata['dependencies'].items():
         check_name_ok(depname)
         if depname not in all_deps_used:
@@ -380,17 +381,23 @@ def minversion_reqs( db ):
         res.append( f'{info["pypi_pkgname"]}=={info["min_version"]}.*' )
     return res
 
-def freebsd_pkgnames( db, group, pyflavour ):
+def freebsd_pkgnames( db, group, pyflavour, pip = False ):
     """Names of the FreeBSD packages needed for the given group of the
     metapackage (like "all_and_devel"), skipping dependencies which are not
     available there or not needed with the Python version of pyflavour (like
-    "py312")."""
+    "py312"). With pip set, the requirements (like "ipympl>=0.9") of those
+    installed with pip instead (the dependencies with freebsd_pip)."""
     deplist = _produce_expected_deplists_for_env_files(db)[group]
     pyversion = ( int(pyflavour[2]), int(pyflavour[3:]) )
     res = []
     for dep in sorted(deplist):
         info = db['dependencies'][dep]
         if not install_needed(info, pyversion = pyversion, system = 'FreeBSD'):
+            continue
+        if bool(info.get('freebsd_pip')) != pip:
+            continue
+        if pip:
+            res.append( info['py_spec'] )
             continue
         if not info.get('freebsd_pkgname'):
             raise SystemExit(f'No freebsd_pkgname for "{dep}" in {dbfilerelpath}')

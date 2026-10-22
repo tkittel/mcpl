@@ -651,6 +651,36 @@ def test_range_and_userdata():
               f' message {msg!r}')
     pathlib.Path(fn).unlink()
 
+def test_memory():
+    #The particles are kept in memory from the start of the file up to the
+    #memory limit, giving the same figures as without, and only those after
+    #them are read again:
+    import numpy as np
+    from mcpldev._viewer_reading import _InMemory
+    v = Viewer(ex,plots = [ 'ekin;bins=20' ])
+    info = v.memory_info()
+    print('memory:', info)
+    v.set_memory_limit(info['size'] * 300)
+    print('with a lower limit:', { k : v.memory_info()[k] for k in ( 'limit', 'fits', 'nfit' ) })
+    v.start()
+    for pick in ( '', 'ekin < 1MeV', '' ):
+        v.set('pick',pick)
+        v.wait()
+        vals = np.concatenate([ np.asarray(it.values) for it in
+                                v.figure(key = 'custom:ekin;bins=20').panels[0].items
+                                if hasattr(it,'values') ])
+        h = mcpl.histogram(mcpl.MCPLFile(ex,pick = pick or None),'ekin;bins=20')
+        ref = np.concatenate([ np.asarray(c) for c in h.contents.values() ])
+        print(f'  pick {pick!r}: as without memory: {np.array_equal(vals,ref)}')
+    v.stop()
+    class Limit:
+        memory_limit = info['size'] * 300
+    f = _InMemory(mcpl.MCPLFile(ex,blocklength = 100),Limit())
+    for i in range(2):
+        offsets = [ b.file_offset for b in f.particle_blocks ]
+        print(f'  reading {i}: blocks from {offsets[:4]} to {offsets[-1]}, kept: {f._end}')
+
+test_memory()
 test_figures()
 test_code()
 test_c_translation()

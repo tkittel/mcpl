@@ -105,10 +105,9 @@ class _Reading:
     def _worker( self ):
         from ._reader import MCPLFile
         with MCPLFile(self.filename) as f:
-            #(small files are kept in memory, so they are only read, and
-            #decompressed, once):
-            if f.nparticles * f.particlesize <= _memory_limit:
-                f = _InMemory(f)
+            #(the particles are kept in memory up to the memory limit, so
+            #those are only read, and decompressed, once):
+            f = _InMemory(f,self)
             while True:
                 with self._lock:
                     while self._job is None and not self._stopping:
@@ -150,6 +149,39 @@ class _Reading:
                 self._counts = counts
             self._error = error
             self._updates += 1
+
+    #The memory used for the particles (see _InMemory):
+
+    @property
+    def memory_limit( self ):
+        """The largest particle data (in bytes) kept in memory"""
+        return getattr(self,'_memory_limit',_memory_limit)
+
+    def set_memory_limit( self, nbytes ):
+        """Set the largest particle data (in bytes) kept in memory, e.g. to keep
+        all particles used in memory (see memory_info). Particles which then
+        fit are kept when they are read the next time."""
+        self._memory_limit = max( 0.0, float(nbytes) )
+
+    def memory_info( self ):
+        """The particles of the range in memory, as a dict: the number of
+        particles in the file (nfile) and the end of the range (end, the
+        particles before it are kept, also those skipped), the bytes per
+        particle (size), the bytes the range needs (needed), the memory limit
+        (limit), whether the range fits in it (fits), and the number of
+        particles from the start of the file which fit (nfit)"""
+        if getattr(self,'_particlesize',None) is None:
+            from ._reader import MCPLFile
+            with MCPLFile(self.filename) as f:
+                self._particlesize = f.particlesize
+        size, n = self._particlesize, self._ntotal
+        s = self._s
+        skip = min( s.skip or 0, n )
+        end = n if not s.limit else min( n, skip + s.limit )
+        limit = self.memory_limit
+        return { 'nfile' : n, 'end' : end, 'size' : size, 'needed' : end * size,
+                 'limit' : limit, 'fits' : end * size <= limit,
+                 'nfit' : min( n, int( limit // size ) ) }
 
     def _blocks( self, f, settings, gen, progress ):
         """Blocks of the range of particles, picked and edited, with the
@@ -247,31 +279,42 @@ class _Reading:
 class _Cancelled(Exception):
     pass
 
-#The largest particle data (in bytes) of files kept in memory by the viewer:
+#The largest particle data (in bytes) kept in memory by the viewer, unless
+#changed (see _Reading.set_memory_limit):
 _memory_limit = 500e6
 
 class _InMemory:
-    """An MCPLFile whose particle blocks are kept in memory when they were all
-    read once (as copies, since the file reuses its block objects)"""
-    def __init__( self, f ):
-        self._f = f
-        self._blocks = None
+    """An MCPLFile whose particle blocks are kept in memory once they were read
+    (as copies, since the file reuses its block objects), from the start of
+    the file up to the memory limit of the viewer (see _Reading.memory_info),
+    so only the particles after those are read from the file again"""
+    def __init__( self, f, viewer ):
+        self._f, self._viewer = f, viewer
+        self._blocks, self._end = [], 0#(the blocks kept, up to the particle end)
 
     def __getattr__( self, name ):
         return getattr(self._f,name)
 
     @property
     def particle_blocks( self ):
-        if self._blocks is not None:
-            yield from self._blocks
+        yield from list(self._blocks)
+        f, n = self._f, self._f.nparticles
+        if self._end >= n:
             return
-        blocks = []
-        for b in self._f.particle_blocks:
+        #(the blocks after those kept, which are kept while they fit):
+        f.rewind()
+        if self._end:
+            f.skip_forward(self._end - 1)#(so the next block starts at the end)
+        while True:
+            b = f.read_block()
+            if b is None:
+                return
             b = b[:]
-            blocks.append(b)
+            if ( b.file_offset == self._end
+                 and ( self._end + len(b) ) * f.particlesize <= self._viewer.memory_limit ):
+                self._blocks.append(b)
+                self._end += len(b)
             yield b
-        #(only when all were read, not after a reading which stopped early):
-        self._blocks = blocks
 
 def _make_filler( text, pick ):
     """Histogram filler of a plot (a histogram string)"""

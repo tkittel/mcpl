@@ -195,6 +195,18 @@ t.on_control('logz','linear')
 print('   linear:', v.current_key, t.colour_bar_menu())
 t.on_control('logz','log')
 print('   log again:', v.current_key)
+step('particles which do not fit in memory: a marker and choices')
+print('   marker:', t.memory_text())
+v.set_memory_limit(v.memory_info()['size'] * 300)
+print('   marker:', t.memory_text())
+print('  ', t.memory_summary())
+for limit in ( '', '200', '2000', 'all', 'nonsense' ):
+    print(f'   limit {limit!r}:', t.memory_choice(limit))
+t.on_memory_fit()
+print('   fitting: limit', v.field_text('limit'), '| marker:', t.memory_text())
+t.on_field_apply('limit','')
+t.on_memory_keep_all()
+print('   all kept: marker', t.memory_text(), '| limit:', v.memory_info()['limit'])
 step('plot strings of quantities and expressions')
 for x, y, settings in ( ('Energy','',()), ('Energy','',(('logx','linear'),('logy','log'))),
                         ('Position x','Direction x',(('bins','30'),)),

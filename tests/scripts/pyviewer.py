@@ -568,6 +568,16 @@ def test_c_translation():
                   'rotate_z(90deg)', 'rotate_y(-90deg)', 'rotate_x(30deg)', 'swap(x,y)',
                   'swap(pdgcode,userflags)', 'rotate_z(x/cm*1deg)', 'ux = 1', 'a = 2*x;y = a' ):
         print(f'edit {edit!r}: {_c_edit(edit,_CTranslator("c","q","struct"),"")}')
+    #In files with userdata, the edited particles keep it:
+    import numpy as np
+    with mcpl.MCPLOutFile('ud.mcpl', userdata_layout = 'temp:float32') as f:
+        f.add_particles( pdgcode = 2112, position = np.zeros((3,3)), direction = (0,0,1),
+                         ekin = 1.0, weight = 1.0, userdata = { 'temp' : 300.0 } )
+    code = Viewer('ud.mcpl',edit = 'z += 1cm').code(filename = 'out.mcpl')
+    for kind in ( 'cpp', 'c' ):
+        print(f'{kind} with userdata:', [ line.strip() for line in code[kind].splitlines()
+                                          if 'userdata' in line or 'add' in line or 'out.' in line ])
+    pathlib.Path('ud.mcpl').unlink()
     #The highlighting of the code (the styles of its parts):
     from mcpldev._viewer_code import highlight
     code = Viewer(ex,pick='pdgcode == neutron',skip=5).code(filename = 'out.mcpl')

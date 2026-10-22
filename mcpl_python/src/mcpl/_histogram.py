@@ -32,6 +32,7 @@ from ._common import MCPLError
 from ._expressions import (
     ParticleFilter,
     ParticleValue,
+    _dimstr,
     _plot_unit,
     _PlotValue,
 )
@@ -292,6 +293,9 @@ class Histogram2D(_Plot):
         self.xedges, self.yedges = xedges, yedges
         self.contents = np.zeros((len(xedges)-1,len(yedges)-1))
         self.logz = True#(the colour scale of the plot, see panel)
+        #(the length per unit of the y axis relative to the x axis of the
+        #plot, for equal scales of axes with the same units, or None):
+        self.aspect = None
 
     @property
     def xlabel( self ):
@@ -312,7 +316,8 @@ class Histogram2D(_Plot):
         notes = self._plot_notes
         p = Panel( title = self.title,
                    xlabel = _with_unit(self.xexpression,self.xunit,notes.get('x',self.xnote)),
-                   ylabel = _with_unit(self.yexpression,self.yunit,notes.get('y',self.ynote)) )
+                   ylabel = _with_unit(self.yexpression,self.yunit,notes.get('y',self.ynote)),
+                   aspect = self.aspect )
         p.add(Hist2D(self.xedges,self.yedges,self.contents,logz = logz))
         return p
 
@@ -640,7 +645,7 @@ def _filler_for( o, pick = None, labels = ( None, ), _maxbins = None ):
         return _Hist2DFiller(o['exprs'][0],o['exprs'][1],pick = pick,bins = bins,
                              xrange = o['xrange'],yrange = o['yrange'],
                              unweighted = o['unweighted'],_maxbins = _maxbins,
-                             logz = o['logz'] is not False)
+                             logz = o['logz'] is not False,equal = o['equal'])
     if o['bar'] is not False:
         return _BarFiller(o['exprs'][0],pick = pick,
                           limit = 10 if o['bar'] is True else o['bar'],
@@ -868,9 +873,14 @@ class _Hist2DFiller(_Filler):
     combined)"""
     def __init__( self, xexpression, yexpression, pick = None, bins = 'auto',
                   xrange = None, yrange = None, unweighted = False,
-                  _maxbins = None, logz = True ):
+                  _maxbins = None, logz = True, equal = False ):
         super().__init__([ xexpression, yexpression ],pick,unweighted,( None, ))
-        self._bins, self._maxbins, self._logz = bins, _maxbins, logz
+        self._bins, self._maxbins, self._logz, self._equal = bins, _maxbins, logz, equal
+        if equal and self._vals[0].dim != self._vals[1].dim:
+            raise MCPLError('Equal scales of the axes (the histogram option "equal")'
+                            ' need expressions with the same units, not'
+                            f' {_dimstr(self._vals[0].dim)} and {_dimstr(self._vals[1].dim)}'
+                            f' (of {self._vals[0].expression} and {self._vals[1].expression})')
         self._ranges = [ self._range_of(xrange,0,'xrange'), self._range_of(yrange,1,'yrange') ]
         self.needs_range = None in self._ranges
         if not self.needs_range:
@@ -922,6 +932,9 @@ class _Hist2DFiller(_Filler):
         h.contents += contents
         h._display_bins = ( bx, by ) if self._auto else None
         h.logz = self._logz
+        if self._equal:
+            #(the axes are in the units of the scales xscale and yscale):
+            h.aspect = yscale / xscale
         return h
 
 class _Points3DFiller(_Filler):

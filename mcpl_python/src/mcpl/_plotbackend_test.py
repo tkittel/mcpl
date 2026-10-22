@@ -69,6 +69,8 @@ def describe( figures ):
             opts = [ o for o,v in (('logx',p.logx),('logy',p.logy)) if v ]
             if p.xlim:
                 opts.append(f'xlim=[{_fmt(p.xlim[0])},{_fmt(p.xlim[1])}]')
+            if getattr(p,'aspect',None):
+                opts.append(f'aspect={_fmt(p.aspect)}')
             lines.append(f'  Panel {p.title!r} xlabel={p.xlabel!r} ylabel={p.ylabel!r} '
                          + ' '.join(opts))
             for item in p.items:

@@ -110,12 +110,13 @@ class Text:
 class Panel:
     """One plot (a set of axes) with items like StepHist objects. Items with
     labels are shown in a legend. The zlabel is that of the z axis of 3D
-    plots (see Scatter3D)."""
+    plots (see Scatter3D). With aspect, the y axis is drawn aspect times as
+    long per unit as the x axis (e.g. 1 for the same scale on both axes)."""
     def __init__( self, title = None, xlabel = None, ylabel = None,
                   logx = False, logy = False, xlim = None, ylim = None,
-                  items = None, zlabel = None ):
+                  items = None, zlabel = None, aspect = None ):
         self.title, self.xlabel, self.ylabel = title, xlabel, ylabel
-        self.zlabel = zlabel
+        self.zlabel, self.aspect = zlabel, aspect
         self.logx, self.logy, self.xlim, self.ylim = logx, logy, xlim, ylim
         self.items = list(items or [])
     def add( self, item ):

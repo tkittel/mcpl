@@ -152,7 +152,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
-   settings: ('2d', {'logz': 'log', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key P:
@@ -164,7 +164,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
-   settings: ('2d', {'logz': 'log', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key Enter:
@@ -176,7 +176,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
-   settings: ('2d', {'logz': 'log', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key w:
@@ -188,7 +188,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
-   settings: ('2d', {'logz': 'log', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key v:
@@ -200,7 +200,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
-   settings: ('2d', {'logz': 'log', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key ?:
@@ -212,7 +212,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
-   settings: ('2d', {'logz': 'log', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
 ==> the file names (the suggested one is written, the same again is refused)

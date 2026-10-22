@@ -193,6 +193,8 @@ edit 'swap(pdgcode,userflags)': None
 edit 'rotate_z(x/cm*1deg)': None
 edit 'ux = 1': None
 edit 'a = 2*x;y = a': None
+cpp with userdata: ['mcpl::MCPLOutFile fout( "out.mcpl" );', 'fout.transfer_metadata( fin );  // copy the header', 'auto out = fout.new_particle();', 'out.c_struct() = p.c_struct();', 'std::copy( p.raw_userdata(), p.raw_userdata() + p.userdata_size(),', 'out.raw_userdata() );  // (the userdata)', 'mcpl_particle_t & q = out.c_struct();', 'fout.add( out );', 'fout.close();']
+c with userdata: ['mcpl_outfile_t fout = mcpl_create_outfile( "out.mcpl" );', 'mcpl_add_particle_with_userdata( fout, &q, mcpl_last_read_userdata( fin ) );']
 highlighted command: option[-e] option[-s5] option[-p] string["pdgcode == neutron"]
 highlighted python: keyword[import] string['example.mcpl'] number[5] string['pdgcode == neutron'] keyword[with] string['out.mcpl'] keyword[as] comment[# copy the header] keyword[for] keyword[in]
 highlighted cpp: preprocessor[#include] string["mcplcpp.h"] keyword[int] string["example.mcpl"] string["out.mcpl"] comment[// copy the header] number[5] keyword[for] keyword[auto] comment[// the pick: "pdgcode == neutron"] keyword[if] number[2112] keyword[continue]

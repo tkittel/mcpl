@@ -45,12 +45,14 @@ class _Job:
     of skip and limit, picked and edited with the expressions pick and edit,
     or None), and then the histograms of the plots (if plots is not None), or
     else writing them to the file out (marking its stat:sum entries as not
-    available if mark_statsums is set)"""
+    available if mark_statsums is set, and keeping the userdata of the
+    particles if userdata is set, for files with userdata)"""
     def __init__( self, filename, skip, limit, pick, edit, plots, out,
-                  mark_statsums ):
+                  mark_statsums, userdata = False ):
         self.filename, self.skip, self.limit = filename, skip or 0, limit or None
         self.pick, self.edit = pick, edit
         self.plots, self.out, self.mark_statsums = plots, out, mark_statsums
+        self.userdata = userdata
 
 def code( job, progname ):
     """The command and the code of the job, as a dict with the keys of kinds
@@ -369,7 +371,16 @@ def _c_body( job, lang, particle, pointer, indent ):
         tr_q = _CTranslator(lang,'q','struct')
         edited = _c_edit(job.edit,tr_q,indent)
         tr.headers |= tr_q.headers
-        lines.append(f'{indent}mcpl_particle_t q = {"*p" if pointer else "p.c_struct()"};')
+        if lang == 'cpp' and job.userdata:
+            #(a particle of the output file, which has room for the userdata):
+            tr.headers.add('algorithm')
+            lines += [ f'{indent}auto out = fout.new_particle();',
+                       f'{indent}out.c_struct() = p.c_struct();',
+                       f'{indent}std::copy( p.raw_userdata(), p.raw_userdata() + p.userdata_size(),',
+                       f'{indent}           out.raw_userdata() );  // (the userdata)',
+                       f'{indent}mcpl_particle_t & q = out.c_struct();' ]
+        else:
+            lines.append(f'{indent}mcpl_particle_t q = {"*p" if pointer else "p.c_struct()"};')
         if edited is None:
             lines.append(_custom(lang,'edit',job.edit,indent))
         else:
@@ -414,7 +425,7 @@ def _cpp( job ):
     if job.skip:
         lines.append(f'  fin.seek( {job.skip} );')
     lines += _loop_head(job,'fin','cpp') + body
-    lines += ( [ '    fout.add( q );' ] if job.edit is not None
+    lines += ( [ f'    fout.add( {"out" if job.userdata else "q"} );' ] if job.edit is not None
                else [ '    fout.transfer_last_read_particle( fin );' ] )
     lines += [ '  }', f'  fout.{"close_and_gzip" if gz else "close"}();' ]
     return '\n'.join( _includes('cpp',headers) + [ '', 'int main()', '{' ] + lines + [ '}' ] )
@@ -431,7 +442,9 @@ def _c( job ):
     if job.skip:
         lines.append(f'  mcpl_seek( fin, {job.skip} );')
     lines += _loop_head(job,'fin','c') + body
-    lines += ( [ '    mcpl_add_particle( fout, &q );' ] if job.edit is not None
+    add = ( [ '    mcpl_add_particle_with_userdata( fout, &q, mcpl_last_read_userdata( fin ) );' ]
+            if job.userdata else [ '    mcpl_add_particle( fout, &q );' ] )
+    lines += ( add if job.edit is not None
                else [ '    mcpl_transfer_last_read_particle( fin, fout );' ] )
     lines += [ '  }', f'  mcpl_close{"andgzip" if gz else ""}_outfile( fout );',
                '  mcpl_close_file( fin );' ]

@@ -857,18 +857,19 @@ class Viewer(_Reading):
         from ._viewer_code import _Job, code
         s = self._s
         expr = lambda e : None if e is None else e.expression
-        mark = False
+        mark, userdata = False, False
         if plots is None:
             n = self._ntotal
             with MCPLFile(self.filename) as f:
                 has_statsums = any( v is not None for v in f.stat_sum.values() )
+                userdata = f.userdata_layout is not None
             #(stat:sum entries are marked as not available as by mcpltool -e,
             #see _mcpltool_extract):
             mark = has_statsums and bool( s.skip or 0 < ( s.limit or 0 ) < n
                          or ( s.pick is not None and s.pick._uses_fileidx )
                          or ( s.edit is not None and 'weight' in s.edit.modified_fields ) )
         job = _Job(self.filename,s.skip,s.limit,expr(s.pick),expr(s.edit),plots,
-                   filename or self.suggested_filename(),mark)
+                   filename or self.suggested_filename(),mark,userdata)
         return code(job,self._progname)
 
     #Writing:

@@ -1,0 +1,22 @@
+name: tmp_mactk
+#TEMPORARY workflow: the open-file dialog and screenshots of the viewer on
+#macOS. Not to be merged.
+on: push
+jobs:
+  mactk:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-latest, macos-26-intel ]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      with:
+        python-version: "3.13"
+    - run: python -m pip install --upgrade "pip>=26.2.2"
+    - run: python -m pip install "./mcpl_python[all]"
+    - name: Font caches of matplotlib and Tk (so tests do not wait for them)
+      run: python ./devel/bin/mcpldevtool fontcache
+    - run: python .github/tmp_mactk/mactk_test.py
+      timeout-minutes: 10

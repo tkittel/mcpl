@@ -113,6 +113,9 @@ def shortcut_text( name ):
         return 'Views: click on one, or press Up and Down (with Shift, Ctrl or Alt to move the plot)'
     if name == 'panel':
         return 'Click to show this plot on its own'
+    if name == 'advanced':
+        return ( 'Advanced: show the plot expression (the histogram string of the plot,'
+                 ' with its axes and settings)' )
     return ''
 
 #The settings of the shown plot in the viewers with windows (see

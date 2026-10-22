@@ -16,6 +16,16 @@
 # the name of the FreeBSD package, with "{py}" for the Python flavour (like
 # py312), for the FreeBSD CI.
 
+#Added to all the conda environment files, for building from source (pip at
+#least 26.2.2, which no longer trusts the root certificate "emSign ECC Root CA
+#- G3", see discuss.python.org/t/109576):
+conda_env_tools:
+  - c-compiler
+  - cmake
+  - make
+  - pip >=26.2.2
+  - python
+
 packages:
   mcpl-core:
     tomlfiles:

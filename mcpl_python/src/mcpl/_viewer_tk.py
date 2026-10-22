@@ -286,7 +286,7 @@ class TkViewer(WidgetViewer):
         (with the quantities of _viewer_ui.quantities in their lists), its
         settings and its plot expression, with the buttons of plots in the
         header of the part (head)"""
-        _, ttk = tk_modules()
+        tk, ttk = tk_modules()
         #(the buttons at the right of the header):
         b = ttk.Button(head,text='+  New plot',style='Head.Accent.TButton',takefocus=0,
                        command=self.on_new_plot)
@@ -336,12 +336,21 @@ class TkViewer(WidgetViewer):
         y.bind('<FocusOut>',lambda _e : self._on_entry_unfocus(y),'+')
         self._marks['axes'] = ttk.Label(frame,width=2)
         self._marks['axes'].pack(side='left')
-        ttk.Label(frame,text='Expression:').pack(side='left',padx=(10,4))
-        w = ttk.Entry(frame,width=30)
+        #(the plot expression, which has the axes and the settings, shown
+        #with the toggle "Advanced", see _show_advanced):
+        self._advanced = tk.BooleanVar(frame,value=False)
+        toggle = ttk.Checkbutton(frame,text='Advanced',variable=self._advanced,takefocus=0,
+                                 style='Choice.Toolbutton',command=self._show_advanced)
+        toggle.pack(side='right',padx=(6,0))
+        self._hover(toggle,'advanced')
+        expr = ttk.Frame(frame)
+        self._expression = expr
+        ttk.Label(expr,text='Expression:').pack(side='left',padx=(10,4))
+        w = ttk.Entry(expr,width=16)
         w.pack(side='left',fill='x',expand=True)
-        self._apply_button(frame,'shown_plot').pack(side='left',padx=(2,0))
-        self._examples_button(frame,'shown_plot').pack(side='left',padx=(2,0))
-        mark = ttk.Label(frame,width=2)
+        self._apply_button(expr,'shown_plot').pack(side='left',padx=(2,0))
+        self._examples_button(expr,'shown_plot').pack(side='left',padx=(2,0))
+        mark = ttk.Label(expr,width=2)
         mark.pack(side='left')
         self._bind_entry(w,'shown_plot')
         self._entries['shown_plot'], self._marks['shown_plot'] = w, mark
@@ -485,10 +494,20 @@ class TkViewer(WidgetViewer):
     def draw_plot( self ):
         self.canvas.draw_idle()
 
+    def _show_advanced( self ):
+        """Show or hide the plot expression (see the toggle "Advanced")"""
+        if self._advanced.get():
+            self._expression.pack(side='left',fill='x',expand=True)
+        else:
+            self._expression.pack_forget()
+
     def focus_field( self, field ):
         if field == 'x_axis':
             self._axes[0].focus_set()
             return
+        if field == 'shown_plot' and not self._advanced.get():
+            self._advanced.set(True)
+            self._show_advanced()
         if field == 'collection':
             b = self._groups_button
             self._groups_menu.post(b.winfo_rootx(),b.winfo_rooty() + b.winfo_height())

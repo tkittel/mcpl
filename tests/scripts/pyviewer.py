@@ -117,6 +117,13 @@ def test_collections():
     for name, ( descr, items, *overviews ) in _collections.items():
         plots = [ _plot_item(i) for i in items ]
         assert len({ p for p, _, _ in plots }) == len(plots)
+        #(plots whose title follows from their expressions have no title of
+        #their own, so it follows changes of the expressions, see
+        #_viewer._auto_title):
+        from mcpldev._viewer import _auto_title
+        for p, t, _ in plots:
+            assert t is None or _auto_title(p) is None, ( f'{name}: the plot {p!r} has the title'
+                                                         f' {t!r}, but gets one from its expression' )
         for p, _, _ in plots:
             mcpl.histogram(ex,p)
         groups = list(dict.fromkeys( g for _, _, g in plots ))

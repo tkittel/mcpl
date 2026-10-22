@@ -88,13 +88,13 @@ def _beam( axis, a, b ):
              _item(f'{div_a} : {div_b}','Divergences',beam),
              _item(f'{a} : {div_a}',f'Phase space {a}',beam),
              _item(f'{b} : {div_b}',f'Phase space {b}',beam),
-             _item('ekin;logx=auto;logy;split=pdgcode','Energy spectrum','Spectra'),
-             _item('wavelength;logx=auto;logy=auto;split=pdgcode','Wavelength','Spectra'),
+             _item('ekin;logx=auto;logy;split=pdgcode',None,'Spectra'),
+             _item('wavelength;logx=auto;logy=auto;split=pdgcode',None,'Spectra'),
              _item(f'hypot({a},{b})','Distance from the axis','Other'),
              _item(f'angle_to({vector})/deg;logy',f'Angle to the {axis} axis','Other'),
-             _item('time;logx=auto;logy','Time','Other'),
-             _item('pdgcode;bar;logy=auto','Particle type','Other'),
-             _item(f'{axis}',f'Position {axis}','Other'),
+             _item('time;logx=auto;logy',None,'Other'),
+             _item('pdgcode;bar;logy=auto',None,'Other'),
+             _item(f'{axis}',None,'Other'),
              _item('weight;unweighted;logy',None,'Other') )
 
 #The titles of plots of single fields (also divided by units, as in ekin/MeV),
@@ -108,12 +108,12 @@ _field_titles = { 'ekin' : 'Energy', 'x' : 'Position x', 'y' : 'Position y',
 
 _collections = {
     'default' : ( 'an overview of all particle fields', (
-        _item('ekin;logx=auto;logy;split=pdgcode','Energy spectrum','Main plots'),
-        _item('wavelength;logx;split=pdgcode','Wavelength','Main plots'),
+        _item('ekin;logx=auto;logy;split=pdgcode',None,'Main plots'),
+        _item('wavelength;logx;split=pdgcode',None,'Main plots'),
         _item('angle_to(0,0,1)/deg;logy;split=pdgcode','Angle to the z axis','Main plots'),
         _item('x : y','Position x-y','Main plots'),
-        _item('time;logx=auto;logy','Time','Main plots'),
-        _item('pdgcode;bar;logy=auto','Particle type','Main plots'),
+        _item('time;logx=auto;logy',None,'Main plots'),
+        _item('pdgcode;bar;logy=auto',None,'Main plots'),
         #(the fields in the order of mcpltool, with the titles from their
         #expressions, see _viewer._auto_title):
         *( _item(f,t,'Fields') for f, t in (
@@ -130,15 +130,14 @@ _collections = {
     'beamy' : ( 'a beam along the y axis: profiles and divergences', _beam('y','z','x'),
                 _beam_overviews('y','z','x') ),
     'shielding' : ( 'spectra, directions and weights of all particle types', (
-        _item('pdgcode;bar;logy=auto','Particle type','Main plots'),
-        _item('ekin;logx=auto;logy;split=pdgcode','Energy spectrum','Main plots'),
-        _item('ekin;lethargy;logy;split=pdgcode','Lethargy spectrum','Main plots'),
+        _item('pdgcode;bar;logy=auto',None,'Main plots'),
+        _item('ekin;logx=auto;logy;split=pdgcode',None,'Main plots'),
         _item('angle_to(0,0,1)/deg;logy;split=pdgcode','Angle to the z axis','Main plots'),
-        _item('time;logx=auto;logy;split=pdgcode','Time','Main plots'),
+        _item('time;logx=auto;logy;split=pdgcode',None,'Main plots'),
         _item('weight;logx=auto;logy;unweighted;split=pdgcode',None,'Main plots'),
         _item('x : y','Position x-y','More plots'),
         _item('hypot(x,y);logy;split=pdgcode','Distance from the z axis','More plots'),
-        _item('wavelength;logx;split=pdgcode','Wavelength','More plots') ) ),
+        _item('wavelength;logx;split=pdgcode',None,'More plots') ) ),
 }
 
 _default_collection = 'default'

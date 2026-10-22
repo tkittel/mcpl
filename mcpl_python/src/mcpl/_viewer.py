@@ -114,6 +114,9 @@ class Viewer(_Reading):
         #(the front ends which can show several plots at once set
         #multi_overview, see views):
         self.multi_overview = False
+        #(whether Tab completion was used, after which the hints of the fields
+        #no longer mention it, see _viewer_ui.field_hint):
+        self.tab_used = False
         self._current = None#(key of the view shown, None for the first)
         self._overviews = {}#view key -> (what its figure was made from, figure)
         #The view argument is the name of a preset of groups of plots (or of a

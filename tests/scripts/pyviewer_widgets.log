@@ -44,7 +44,12 @@
 ==> earlier texts of the pick field (Up and Down)
    up: 'pdgcode == neutron' | down: ''
 ==> Tab completion
+   check of pick: False
+   line (error): Unknown name "e" in expression "ekin < 1MeV and e" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    ('ekin < 1MeV and e', 17, [('ekin', 'kinetic energy (an energy)'), ('electron', 'PDG code 11'), ('eV', 'energy unit, 1e-6 MeV'), ('exp(', 'exponential (a without unit)')])
+   (not mentioned after it was used)
+   check of pick: True
+   line (dim): Enter: apply   Up/Down: earlier texts   Esc: cancel
 ==> the collection is chosen from a menu
    choices: ['default', 'beamz', 'beamx', 'beamy', 'shielding', 'all', 'overview', 'fields', '3d', 'correlations']
    check of collection: True
@@ -199,7 +204,7 @@
    bins used: 10,10
    plot: 2 axes
   key ?:
-   help shown: 43 lines
+   help shown: 44 lines
    views: 45 views, shown: 'log10(ekin/eV) : weight' (log10(ekin/eV) : weight, group Correlations, badges ['2D'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1']
    problems: []
@@ -452,6 +457,6 @@
    line (error): The custom plots are removed one by one
    the custom group is not hidden: overview:custom
 ==> the buttons of the actions, and quit
-   help shown: 43 lines
+   help shown: 44 lines
    window closed
 closed: True

@@ -895,6 +895,14 @@ def _root():
 
 def run_viewer( viewer, root ):
     """Run the viewer in the Tk window root (from _root) until it is closed"""
+    tk, _ttk = tk_modules()
+    if tk.TkVersion < 8.6:
+        #(which can not show PNG images, e.g. the Tk of the Python of Apple's
+        #command line tools):
+        root.destroy()
+        from ._common import MCPLError
+        raise MCPLError(f'The viewer needs Tk 8.6 or later, but this Python has Tk {tk.TkVersion}'
+                        ' (use a Python with a newer Tk, e.g. from conda-forge or python.org)')
     tv = TkViewer(viewer,root)
     tv.start()
     root.after(200,tv._tick)

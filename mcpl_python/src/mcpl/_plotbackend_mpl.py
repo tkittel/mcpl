@@ -193,7 +193,8 @@ class Backend(PlotBackend):
                                        norm=( matplotlib.colors.LogNorm()
                                               if item.logz else None ))
                     if not compact:
-                        fig.colorbar(im,ax=ax)
+                        #(marked, see Pane.on_colour_bar):
+                        fig.colorbar(im,ax=ax).ax._mcpl_colour_bar = True
             elif isinstance(item,Bars):
                 pos = list(range(len(item.values)))
                 colors = [ f'C{c%10}' for c in item.colors ] if item.colors else None
@@ -411,6 +412,12 @@ class FigurePane:
             self._title.remove()
         self.axes, self._title, self._panels = [], None, []
         self._key = self._figure = None
+
+    def on_colour_bar( self, event ):
+        """Whether the mouse (of a matplotlib mouse event) is over the colour
+        bar of a plot shown on its own"""
+        return ( not self._panels and event.inaxes is not None
+                 and getattr(event.inaxes,'_mcpl_colour_bar',False) )
 
     def view_at( self, event ):
         """The key of the view of the plot of the overview under the mouse (of

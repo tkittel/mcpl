@@ -291,6 +291,7 @@ class Histogram2D(_Plot):
         self.xnote, self.ynote = None, None
         self.xedges, self.yedges = xedges, yedges
         self.contents = np.zeros((len(xedges)-1,len(yedges)-1))
+        self.logz = True#(the colour scale of the plot, see panel)
 
     @property
     def xlabel( self ):
@@ -302,9 +303,11 @@ class Histogram2D(_Plot):
         """The y expression, with its unit and note (see Histogram.label)"""
         return _with_unit(self.yexpression,self.yunit,self.ynote)
 
-    def panel( self, logz = True ):
+    def panel( self, logz = None ):
         """Panel (see mcpl.plotting) with the histogram, with a logarithmic
-        colour scale if logz is True."""
+        colour scale if logz is True (default: the logz attribute, which is
+        True unless the histogram string had logz=0)."""
+        logz = self.logz if logz is None else logz
         from .plotting import Hist2D, Panel
         notes = self._plot_notes
         p = Panel( title = self.title,
@@ -636,7 +639,8 @@ def _filler_for( o, pick = None, labels = ( None, ), _maxbins = None ):
     if len(o['exprs']) == 2:
         return _Hist2DFiller(o['exprs'][0],o['exprs'][1],pick = pick,bins = bins,
                              xrange = o['xrange'],yrange = o['yrange'],
-                             unweighted = o['unweighted'],_maxbins = _maxbins)
+                             unweighted = o['unweighted'],_maxbins = _maxbins,
+                             logz = o['logz'] is not False)
     if o['bar'] is not False:
         return _BarFiller(o['exprs'][0],pick = pick,
                           limit = 10 if o['bar'] is True else o['bar'],
@@ -864,9 +868,9 @@ class _Hist2DFiller(_Filler):
     combined)"""
     def __init__( self, xexpression, yexpression, pick = None, bins = 'auto',
                   xrange = None, yrange = None, unweighted = False,
-                  _maxbins = None ):
+                  _maxbins = None, logz = True ):
         super().__init__([ xexpression, yexpression ],pick,unweighted,( None, ))
-        self._bins, self._maxbins = bins, _maxbins
+        self._bins, self._maxbins, self._logz = bins, _maxbins, logz
         self._ranges = [ self._range_of(xrange,0,'xrange'), self._range_of(yrange,1,'yrange') ]
         self.needs_range = None in self._ranges
         if not self.needs_range:
@@ -917,6 +921,7 @@ class _Hist2DFiller(_Filler):
         h._plot_notes['x'], h._plot_notes['y'] = ( n.note(True) for n in self._notes )
         h.contents += contents
         h._display_bins = ( bx, by ) if self._auto else None
+        h.logz = self._logz
         return h
 
 class _Points3DFiller(_Filler):

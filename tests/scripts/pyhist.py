@@ -340,6 +340,23 @@ def test_3d():
     h = mcpl.histogram(ex,'x : y : z;unweighted;points=5000')
     print('more points than particles:', len(h.groups[None]), 'of', h.nparticles)
 
+def test_logz():
+    #The colour scale of 2D histograms is logarithmic unless logz=0, which
+    #makes another plot (logz and logz=1 make the same as without logz):
+    from mcpldev._histstring import _hist_key
+    ex = str(example_file)
+    for text in ( 'x : y', 'x : y;logz', 'x : y;logz=0' ):
+        h = mcpl.histogram(ex,text)
+        print(f'{text!r}: logz {h.logz}, panel {h.panel().items[0].logz},'
+              f' key {_hist_key(text)!r}')
+    print('panel(logz=False) of the default:', mcpl.histogram(ex,'x : y').panel(logz = False).items[0].logz)
+    for bad in ( 'x;logz=0', 'x : y : z;logz', 'x : y;logz=2' ):
+        try:
+            mcpl.histogram(ex,bad)
+        except mcpl.MCPLError as e:
+            print(f'{bad!r}: {e}')
+
+test_logz()
 test_3d()
 test_ranges_colors()
 test_units()

@@ -1,3 +1,10 @@
+'x : y': logz True, panel True, key 'x:y'
+'x : y;logz': logz True, panel True, key 'x:y'
+'x : y;logz=0': logz False, panel False, key 'x:y;logz=0'
+panel(logz=False) of the default: False
+'x;logz=0': Histogram option "logz" (the colour scale) can only be used for 2D histograms, in "x;logz=0"
+'x : y : z;logz': Histogram option "logz" (the colour scale) can only be used for 2D histograms, in "x : y : z;logz"
+'x : y;logz=2': Histogram option "logz" must be 1 or 0 (not "2"), in "x : y;logz=2"
 3D: Points3D {None: (100, 3)} ['x [cm]', 'y [cm]', 'z [cm]'] 1006
 same sample: True
 split: {'n (2112)': 726, 'gamma (22)': 239, 'other': 41} {'n (2112)': 0, 'gamma (22)': 8, 'other': 9}
@@ -486,7 +493,7 @@ mcpltool -H x/cm;logx=1;logx=1 example.mcpl: exit code 1
    | 
    | Run with "-H help" for how to write histograms
 mcpltool -H x/cm;foo example.mcpl: exit code 1
-   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, lethargy, split, groups, bar, unweighted, print, points)
+   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, split, groups, bar, unweighted, print, points)
    | 
    | Run with "-H help" for how to write histograms
 mcpltool -H x/cm -B foo example.mcpl: exit code 1
@@ -704,7 +711,7 @@ mcpltool --edit=help: exit code 0, 157 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    |   -E "z += 1cm"               Move the particles 1 cm along z.
    |   -E "weight *= 0.5"          Halve the weights.
-mcpltool -H help example.mcpl: exit code 0, 61 lines, starting with:
+mcpltool -H help example.mcpl: exit code 0, 63 lines, starting with:
    | HIST: what to plot, an expression of the particles (written as for -p),
    | or two separated by ":" for a 2D histogram (or three for a 3D plot of a
    | sample of the particles, in windows), followed by options separated by ";".

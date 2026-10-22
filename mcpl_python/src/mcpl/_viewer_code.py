@@ -270,13 +270,15 @@ def _c_condition( pick, tr ):
 
 def _c_edit( edit, tr, indent ):
     """The C or C++ statements of the edit (of the struct of tr), or None"""
-    from ._expressions import ParticleEdit, _rotation_planes
+    from ._expressions import ParticleEdit, _rotation_matrix_args, _rotation_planes
     lines = []
     for st in ParticleEdit(edit)._statements:
         if st[0] == 'swap':
             res = _c_swap(st[1],st[2],tr,indent)
         elif st[0] in _rotation_planes:
             res = _c_rotation(st[0],st[1],tr,indent)
+        elif st[0] in _rotation_matrix_args:
+            res = _c_rotation_matrix(st[0],st[1],tr,indent)
         else:
             res = _c_assignment(st,tr,indent)
         if res is None:
@@ -326,6 +328,39 @@ def _c_rotation( fname, angle, tr, indent ):
         A, B = tr.field(pa), tr.field(pb)
         lines += _c_block(indent,f'double tmp = {A};',f'{A} = {c!r} * tmp - {s!r} * {B};',
                           f'{B} = {s!r} * tmp + {c!r} * {B};')
+    return lines
+
+def _c_rotation_matrix( fname, args, tr, indent ):
+    """The C or C++ code of rotate_around or rotate_frame with constant
+    arguments: the rotation matrix (as for the edits) applied to the position,
+    direction and polarisation, without its zero elements (so the rotations
+    around the axes by multiples of 90 degrees are exact)"""
+    from ._expressions import _rotated_vectors, _rotation_matrix
+    values = []
+    for a in args:
+        value = tr(a.tree)
+        if value is None or value[3] is None:
+            return None#(arguments which are not constants)
+        values.append(float(value[3]))
+    R = _rotation_matrix(fname,values)
+    if isinstance(R,str):
+        return None
+    lines = []
+    for names in _rotated_vectors:
+        F = [ tr.field(c) for c in names ]
+        rows = []
+        for i in range(3):
+            terms = []
+            for j in range(3):
+                r = float(R[0,i,j])
+                if r != 0.0:
+                    terms.append( ( '-' if r < 0 else '+',
+                                    f't{j}' if abs(r) == 1.0 else f'{abs(r)!r} * t{j}' ) )
+            expr = ' '.join( f'{sign} {t}' for sign, t in terms ).lstrip('+ ')
+            #(0.0 - v and + 0.0 for -v, to avoid negative zeros, as the edits do):
+            expr = '0.0' if not terms else f'0.0 {expr}' if terms[0][0] == '-' else f'{expr} + 0.0'
+            rows.append(f'{F[i]} = {expr};')
+        lines += _c_block(indent,f'double t0 = {F[0]}, t1 = {F[1]}, t2 = {F[2]};',*rows)
     return lines
 
 def _c_block( indent, *statements ):

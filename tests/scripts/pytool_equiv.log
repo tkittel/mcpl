@@ -511,7 +511,7 @@ mcpltool --extract a1.mcpl out.mcpl --pick x>1: exit code 1
    | 
    | Run with "-p help" for how to pick particles with expressions
 mcpltool --extract a1.mcpl out.mcpl --edit x==1cm: exit code 1
-   | ERROR: Expected assignments like "x = 2*y" (or swap(..) or rotate_x/y/z(..)) in "x==1cm"
+   | ERROR: Expected assignments like "x = 2*y" (or swap(..) or rotations like rotate_z(..)) in "x==1cm"
    | 
    | Run with "-E help" for how to edit particles with expressions
 mcpltool --extract a1.mcpl out.mcpl --edit x=2*ux: exit code 1

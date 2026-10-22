@@ -700,7 +700,7 @@ mcpltool -p help: exit code 0, 148 lines, starting with:
    | PICK: an expression which is true for the particles to use, for example:
    |   -p "pdgcode == neutron"     Neutrons.
    |   -p "pdgcode in (neutron,gamma)"
-mcpltool --edit=help: exit code 0, 144 lines, starting with:
+mcpltool --edit=help: exit code 0, 157 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    |   -E "z += 1cm"               Move the particles 1 cm along z.
    |   -E "weight *= 0.5"          Halve the weights.

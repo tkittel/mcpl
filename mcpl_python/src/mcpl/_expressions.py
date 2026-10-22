@@ -76,15 +76,78 @@ _expr_functions_samedim = { 'abs' : np.abs, 'min' : np.minimum,
                             'max' : np.maximum, 'hypot' : np.hypot,
                             'clamp' : np.clip }
 #Functions used as statements in edits:
-_edit_statements = ( 'swap', 'rotate_x', 'rotate_y', 'rotate_z' )
+_edit_statements = ( 'swap', 'rotate_x', 'rotate_y', 'rotate_z', 'rotate_around',
+                     'rotate_frame' )
 #Components of position, direction and polarisation changed by rotations:
 _rotation_planes = { 'rotate_x' : ( ('y','z'), ('uy','uz'), ('poly','polz') ),
                      'rotate_y' : ( ('z','x'), ('uz','ux'), ('polz','polx') ),
                      'rotate_z' : ( ('x','y'), ('ux','uy'), ('polx','poly') ) }
+#The rotations given by a matrix, with the numbers of their arguments (an
+#axis and an angle, or the vectors v, u, vout, uout), and the vectors they
+#rotate:
+_rotation_matrix_args = { 'rotate_around' : 4, 'rotate_frame' : 12 }
+_rotated_vectors = ( ('x','y','z'), ('ux','uy','uz'), ('polx','poly','polz') )
+#(the tolerance of rotate_frame, as in NCrystal's RotMatrix):
+_rotate_frame_tolerance = 1e-6
 _expr_functions = dict( sqrt = np.sqrt, atan2 = np.arctan2, angle_to = None,
                         mod = np.mod,
                         **_expr_functions_nodim, **_expr_functions_toint,
                         **_expr_functions_samedim )
+
+def _exact_cos_sin( angle ):
+    """The cos and sin of the angles (in radians), exact (0 and +-1) for
+    multiples of 90 degrees (whose cos and sin in radians are not exactly 0
+    and +-1)"""
+    q = np.asarray(angle,dtype=float) / ( 0.5 * np.pi )
+    k = np.round(q)
+    quarter = np.abs( q - k ) <= 8 * np.finfo(float).eps * np.maximum( 1.0, np.abs(k) )
+    kq = np.mod(k,4).astype(int)
+    c = np.where(quarter,np.choose(kq,(1.0,0.0,-1.0,0.0)),np.cos(angle))
+    s = np.where(quarter,np.choose(kq,(0.0,1.0,0.0,-1.0)),np.sin(angle))
+    return c, s
+
+def _rotation_matrix( fname, args ):
+    """The rotation matrices (shape (n,3,3), or (1,3,3) for constants) of
+    rotate_around(ax,ay,az,angle) or of rotate_frame(v,u,vout,uout) (12
+    numbers), from the values of the arguments (arrays or numbers), or a text
+    saying what is wrong with them. Matrix elements within 1e-15 of 0 or +-1
+    are exactly 0 or +-1, so rotations around the axes by multiples of 90
+    degrees are exact."""
+    a = [ np.atleast_1d(np.asarray(x,dtype=float)) for x in args ]
+    n = np.broadcast_shapes(*( x.shape for x in a ))[0]
+    vec = lambda i : np.stack([ np.broadcast_to(x,(n,)) for x in a[i:i+3] ],axis=-1)
+    def unit( v ):
+        norm = np.linalg.norm(v,axis=-1,keepdims=True)
+        return None if np.any( norm == 0.0 ) or not np.all(np.isfinite(norm)) else v / norm
+    if fname == 'rotate_around':
+        k = unit(vec(0))
+        if k is None:
+            return 'the axis must not be zero'
+        c, s = _exact_cos_sin(np.broadcast_to(a[3],(n,)))
+        c, s = c[:,None,None], s[:,None,None]
+        kx, ky, kz = k[:,0], k[:,1], k[:,2]
+        zero = np.zeros(n)
+        cross = np.stack([ np.stack([zero,-kz,ky],-1), np.stack([kz,zero,-kx],-1),
+                           np.stack([-ky,kx,zero],-1) ],-2)
+        R = c * np.eye(3) + s * cross + ( 1.0 - c ) * k[:,:,None] * k[:,None,:]
+    else:
+        tol = _rotate_frame_tolerance
+        v, u, vo, uo = ( unit(vec(i)) for i in ( 0, 3, 6, 9 ) )
+        if v is None or u is None or vo is None or uo is None:
+            return 'the vectors must not be zero'
+        if np.any( np.linalg.norm(np.cross(v,u),axis=-1) <= tol ):
+            return 'v and u must not be parallel'
+        if np.any( np.abs( np.sum(v*u,axis=-1) - np.sum(vo*uo,axis=-1) ) > tol ):
+            return 'the angle between v and u must be that between vout and uout'
+        def frame( e1, w ):
+            e2 = w - np.sum(w*e1,axis=-1,keepdims=True) * e1
+            e2 /= np.linalg.norm(e2,axis=-1,keepdims=True)
+            return np.stack([ e1, e2, np.cross(e1,e2) ],axis=-1)#(columns)
+        E, F = frame(v,u), frame(vo,uo)
+        R = F @ np.swapaxes(E,-1,-2)
+    for exact in ( 0.0, 1.0, -1.0 ):
+        R = np.where( np.abs( R - exact ) <= 1e-15, exact, R )
+    return R
 
 def _angle_highres( a, b ):
     """Angles between the vectors a and b (given as tuples of components),
@@ -838,6 +901,15 @@ class ParticleEdit:
         origin. Rotations by multiples of 90 degrees are exact (e.g.
         "rotate_z(90deg)" changes (x,y) to exactly (-y,x)), and rotations never
         give negative zeros (-0.0).
+      * rotate_around(ax,ay,az,angle), which rotates them around the axis
+        (ax,ay,az) through the origin (which need not be a unit vector),
+        counter-clockwise when looking from the axis towards the origin, e.g.
+        "rotate_around(1,1,0,30deg)".
+      * rotate_frame(vx,vy,vz,ux,uy,uz,vox,voy,voz,uox,uoy,uoz), the rotation
+        which turns the direction of the vector v into that of vout, and u
+        into uout (e.g. a beam direction and an "up" direction of one frame
+        into those of another). The angle between v and u must be that
+        between vout and uout, and v and u must not be parallel.
     """
     _assignable = tuple( f for f in _expr_fields if f != 'fileidx' )
     def __init__( self, expression ):
@@ -866,7 +938,7 @@ class ParticleEdit:
                 continue
             if not isinstance(stmt,(ast.Assign,ast.AugAssign)):
                 raise MCPLError(f'Expected assignments like "x = 2*y" (or'
-                                ' swap(..) or rotate_x/y/z(..)) in'
+                                ' swap(..) or rotations like rotate_z(..)) in'
                                 f' "{expression}"')
             target = stmt.targets if isinstance(stmt,ast.Assign) else [stmt.target]
             if len(target) != 1 or not isinstance(target[0],ast.Name):
@@ -900,6 +972,9 @@ class ParticleEdit:
             elif st[0] in _rotation_planes:
                 for plane in _rotation_planes[st[0]]:
                     mod.update(plane)
+            elif st[0] in _rotation_matrix_args:
+                for vector in _rotated_vectors:
+                    mod.update(vector)
         self._modified = frozenset(mod)
         unused = sorted(variables - used)
         if unused:
@@ -927,6 +1002,20 @@ class ParticleEdit:
                     raise MCPLError(f'Can not swap "{n}" in "{self._expr}"'
                                     ' (it is not a field or variable)')
             return ( 'swap', names[0], names[1] )
+        if fname in _rotation_matrix_args:
+            nargs = _rotation_matrix_args[fname]
+            if len(call.args) != nargs:
+                what = ( 'an axis and an angle, as in rotate_around(0,0,1,90deg)'
+                         if fname == 'rotate_around' else 'the components of the vectors'
+                         ' v, u, vout and uout, as in rotate_frame(0,0,1,0,1,0,1,0,0,0,1,0)' )
+                raise MCPLError(f'{fname}(..) takes {nargs} arguments ({what}) in'
+                                f' "{self._expr}"')
+            args = tuple( _Expr(self._expr, tree = a, variables = variables)
+                          for a in call.args )
+            self._used_in_angles = getattr(self,'_used_in_angles',set())
+            for a in args:
+                self._used_in_angles.update( a.names & variables )
+            return ( fname, args )
         if len(call.args) != 1:
             raise MCPLError(f'{fname}(..) takes one argument (an angle) in'
                             f' "{self._expr}"')
@@ -1004,6 +1093,8 @@ class ParticleEdit:
                 ev.same(qa,qb,'swap(..)')
                 state[a], state[b] = qb, qa
                 modified.update( e for e in (a,b) if e in self._assignable )
+            elif st[0] in _rotation_matrix_args:
+                self._rotate_by_matrix(ev,st[0],st[1],modified)
             else:
                 fname, angle = st
                 qa = ev(angle.tree)
@@ -1041,6 +1132,30 @@ class ParticleEdit:
                 v = vi
             res[name] = np.broadcast_to(v,(n,))
         return res
+
+    def _rotate_by_matrix( self, ev, fname, args, modified ):
+        """Rotate the positions, directions and polarisations with the matrix
+        of rotate_around or rotate_frame (see _rotation_matrix)"""
+        qs = [ ev(a.tree) for a in args ]
+        #(vectors whose components have the same units, and an angle):
+        for i in range(0,len(qs) - len(qs) % 3,3):
+            ev.same(qs[i],qs[i+1],f'{fname}(..)')
+            ev.same(qs[i],qs[i+2],f'{fname}(..)')
+        if fname == 'rotate_around' and qs[3].d is not None:
+            ev.error(f'{fname}(..) requires an angle (e.g. 90deg) as its last'
+                     f' argument, not {_dimstr(qs[3].d)}')
+        R = _rotation_matrix(fname,[ q.v for q in qs ])
+        if isinstance(R,str):
+            ev.error(f'In {fname}(..), {R}')
+        state, n = ev.state, len(ev._block)
+        for names in _rotated_vectors:
+            qv = [ ev.name(c) for c in names ]
+            V = np.stack([ np.broadcast_to(np.asarray(q.v,dtype=float),(n,)) for q in qv ],
+                         axis=-1)
+            res = np.einsum('...ij,...j->...i',R,V) + 0.0#(no negative zeros)
+            for i, c in enumerate(names):
+                state[c] = _Q(res[:,i],qv[i].d)
+                modified.add(c)
 
     def _set_wavelength( self, ev, wl, modified ):
         """Set kinetic energy from wavelength (given in cm)"""

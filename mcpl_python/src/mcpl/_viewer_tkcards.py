@@ -61,8 +61,14 @@ class CardList:
         c.bind('<ButtonPress-1>',self._on_press)
         c.bind('<B1-Motion>',self._on_motion)
         c.bind('<ButtonRelease-1>',self._on_release)
-        #(a menu of the card, with the right button, or Ctrl and a click on macOS):
-        for button in ( '<Button-3>', '<Control-Button-1>' if c.tk.call('tk','windowingsystem') == 'aqua' else '<Button-2>' ):
+        #(a menu of the card, with the right button, or Ctrl and a click on
+        #macOS, where Tk before 8.7 gives the right button as button 2):
+        if c.tk.call('tk','windowingsystem') == 'aqua':
+            old = tk.TkVersion < 8.7
+            buttons = ( '<Button-2>' if old else '<Button-3>', '<Control-Button-1>' )
+        else:
+            buttons = ( '<Button-3>', '<Button-2>' )
+        for button in buttons:
             c.bind(button,self._on_menu)
         #(scrolling with the wheel, as given by Windows and macOS, or X11):
         c.bind('<MouseWheel>',lambda e : c.yview_scroll(-1 if e.delta > 0 else 1,'units'))

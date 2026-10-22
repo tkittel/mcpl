@@ -148,6 +148,11 @@ class _ExprParser:
             for t in tokenize.generate_tokens(io.StringIO(expr).readline):
                 if t.type in skip:
                     continue
+                if t.type == tokenize.ERRORTOKEN and t.string.isspace():
+                    continue#(Python before 3.12 gives spaces before unknown characters)
+                if ( t.type == tokenize.ERRORTOKEN and len(t.string) == 1
+                     and t.string not in '"\'' ):
+                    t = t._replace(type = tokenize.OP)#(as from Python 3.12)
                 if t.type not in kinds:
                     raise _ExprSyntaxError(t.start[1],f'"{t.string}" can not be used here')
                 self._toks.append( ( kinds[t.type], t.string ) )

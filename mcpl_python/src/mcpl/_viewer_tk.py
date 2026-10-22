@@ -29,7 +29,7 @@ __all__ = []
 from . import _viewer_ui as ui
 from ._viewer_tkbase import tk_modules
 from ._viewer_tkcards import CardList
-from ._viewer_tkwindows import CodeWindow, Examples, WriteWindow
+from ._viewer_tkwindows import CodeWindow, Examples, MemoryWindow, WriteWindow
 from ._viewer_widgets import (
     WidgetViewer,
     card_colors,
@@ -193,6 +193,12 @@ class TkViewer(WidgetViewer):
         #(the numbers of the particles used, at the right of the header):
         self._counts = ttk.Label(head,foreground=colors['dim'],style='Particles.TLabel')
         self._counts.pack(side='right')
+        #(left of them, a marker when the particles do not fit in memory, which
+        #shows the choices, see show_memory):
+        self._memory = ttk.Label(head,foreground=colors['error'],style='Particles.TLabel',
+                                 cursor='hand2')
+        self._memory.pack(side='right',padx=(0,12))
+        self._memory.bind('<Button-1>',lambda _e : self.show_memory())
         part.master.grid(row=0,column=0,sticky='ew',pady=(2,0))
         info = { f[0] : f for f in ui.fields }
         #(plots are added with "+ New plot", and the collection is chosen
@@ -393,6 +399,8 @@ class TkViewer(WidgetViewer):
         self._status[0].configure(text=v.file_text())
         self._status[1].configure(text=second)
         self._counts.configure(text=v.counts_text() or '')
+        memory = self.memory_text()
+        self._memory.configure(text=f'\u26a0 {memory}...' if memory else '')
 
     def show_field( self, field, text ):
         if field == 'plot':
@@ -471,6 +479,10 @@ class TkViewer(WidgetViewer):
         else:
             mark.configure(text='\u2713' if ok else '\u2717',
                            foreground=colors['ok' if ok else 'error'])
+
+    def show_memory( self ):
+        if self.memory_text():
+            MemoryWindow(self)
 
     def show_colour_bar_menu( self, entries ):
         tk, _ttk = tk_modules()

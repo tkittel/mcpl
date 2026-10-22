@@ -197,3 +197,51 @@ class WriteWindow:
         #are kept):
         if not view or not self.tv.on_open_file(name,particles = False):
             self.tv.show_line(msg,'normal')
+
+class MemoryWindow:
+    """The window with the memory used for the particles, when they do not
+    fit in the memory of the viewer: all can be kept in memory, or a limit
+    of the number of particles set (see WidgetViewer.memory_summary)"""
+    def __init__( self, tv ):
+        tk, ttk = tk_modules()
+        self.tv = tv
+        info = tv.v.memory_info()
+        w = self.window = tk.Toplevel(tv.root)
+        w.title('Memory')
+        w.transient(tv.root)
+        f = ttk.Frame(w,padding=10)
+        f.pack(fill='both',expand=True)
+        ttk.Label(f,text=tv.memory_summary(),wraplength=520,justify='left').pack(anchor='w')
+        def choice( text, command ):
+            ttk.Button(f,text=text,command=lambda : ( command(), w.destroy() )).pack(
+                anchor='w',fill='x',pady=(8,0))
+        choice(f'Keep them all in memory ({tv.memory_choice("",note = False)})',
+               tv.on_memory_keep_all)
+        skip = tv.v._parse('skip',tv.v.field_text('skip'))
+        if info['nfit'] > skip:
+            fit = str(info['nfit'] - skip)
+            choice(f'Use only the first {tv.memory_choice(fit)}',tv.on_memory_fit)
+        #(another limit, with what it uses while it is typed):
+        ttk.Label(f,text='Or use another limit of the number of particles:',
+                  font=tv.bold).pack(anchor='w',pady=(12,0))
+        row = ttk.Frame(f)
+        row.pack(fill='x',pady=(4,0))
+        self._limit = ttk.Entry(row,width=14)
+        self._limit.insert(0,tv.v.field_text('limit') or '')
+        self._limit.pack(side='left')
+        self._what = ttk.Label(row,foreground=colors['dim'])
+        self._what.pack(side='left',padx=(8,0))
+        ttk.Button(f,text='Use this limit',command=self._use).pack(anchor='w',pady=(6,0))
+        self._limit.bind('<KeyRelease>',lambda _e : self._show())
+        self._limit.bind('<Return>',lambda _e : self._use())
+        ttk.Button(f,text='Close',command=w.destroy).pack(side='right',pady=(12,0))
+        w.bind('<Escape>',lambda _e : w.destroy())
+        self._show()
+        self._limit.focus_set()
+
+    def _show( self ):
+        self._what.configure(text=self.tv.memory_choice(self._limit.get()))
+
+    def _use( self ):
+        if self.tv.on_field_apply('limit',self._limit.get()):
+            self.window.destroy()

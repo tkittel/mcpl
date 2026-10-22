@@ -54,6 +54,12 @@ def _split_axes( x, y ):
         x, _, y = ( e.strip() for e in ( x or y ).partition(':') )
     return x, y
 
+def _bytes( n ):
+    """A number of bytes as a text (like 1.2 GB or 500 MB)"""
+    if n >= 1e9:
+        return f'{n/1e9:.1f} GB'
+    return f'{n/1e6:.0f} MB' if n >= 1e6 else f'{n/1e3:.0f} kB'
+
 class Card:
     """A card of the list of views of the viewers with windows (see
     WidgetViewer.cards), which the front ends show as far as they can: the
@@ -181,6 +187,11 @@ class WidgetViewer:
         for no mark)"""
         raise NotImplementedError
 
+    def show_memory( self ):
+        """Show the memory used for the particles, with choices (see
+        memory_summary, on_memory_keep_all, on_memory_fit and memory_choice),
+        if the toolkit has such windows"""
+
     def show_colour_bar_menu( self, entries ):
         """Show the menu of the colour bar (see colour_bar_menu), where choosing
         an entry calls on_control('logz',shown) with its shown text (if the
@@ -266,6 +277,53 @@ class WidgetViewer:
             self.refresh()
         elif self.pane.on_colour_bar(event) and self.colour_bar_menu():
             self.show_colour_bar_menu(self.colour_bar_menu())
+
+    #The memory used for the particles (see Viewer.memory_info):
+
+    def memory_text( self ):
+        """A short text when the particles used do not fit in the memory of the
+        viewer (so each change reads them again), else None"""
+        info = self.v.memory_info()
+        return None if info['fits'] else f'Not kept in memory ({_bytes(info["needed"])})'
+
+    def memory_summary( self ):
+        """What the memory is used for, as a text (see memory_text)"""
+        info = self.v.memory_info()
+        return ( f'The particles used need {_bytes(info["needed"])} of memory (the first'
+                 f' {info["end"]} of the {info["nfile"]} particles in the file), but the'
+                 f' viewer keeps at most {_bytes(info["limit"])} of particles in memory,'
+                 ' so each change reads those which do not fit from the file again.' )
+
+    def memory_choice( self, limit, note = True ):
+        """The particles used with the limit (a text, as of the limit field),
+        as a text with their part of the file and the memory they need (noting
+        if it is more than is kept in memory, if note is set), or an error"""
+        ok, msg = self.v.check('limit',limit)
+        if not ok:
+            return msg
+        info = self.v.memory_info()
+        skip = min( info['nfile'], self.v._parse('skip',self.v.field_text('skip')) )
+        n = info['nfile'] - skip
+        n = min( n, self.v._parse('limit',limit) or n )
+        end = skip + n
+        pct = 100.0 * n / max( 1, info['nfile'] )
+        fits = ( '' if not note or end * info['size'] <= info['limit']
+                 else ', more than is kept in memory' )
+        return f'{n} particles, {pct:.1f}% of the file, {_bytes(end*info["size"])}{fits}'
+
+    def on_memory_keep_all( self ):
+        """All particles used are kept in memory (they are when they are read
+        the next time)"""
+        self.v.set_memory_limit(self.v.memory_info()['needed'])
+        self.show_line('The particles used are kept in memory when they are read the next time',
+                       'normal')
+        self.refresh(plot = False)
+
+    def on_memory_fit( self ):
+        """The limit is set to the particles which fit in the memory"""
+        info = self.v.memory_info()
+        skip = self.v._parse('skip',self.v.field_text('skip'))
+        self.on_field_apply('limit',str(max( 1, info['nfit'] - skip )))
 
     def colour_bar_menu( self ):
         """The entries of the menu of the colour bar of the shown 2D histogram,

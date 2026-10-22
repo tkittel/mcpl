@@ -1,3 +1,10 @@
+memory: {'nfile': 1006, 'end': 1006, 'size': 36, 'needed': 36216, 'limit': 500000000.0, 'fits': True, 'nfit': 1006}
+with a lower limit: {'limit': 10800.0, 'fits': False, 'nfit': 300}
+  pick '': as without memory: True
+  pick 'ekin < 1MeV': as without memory: True
+  pick '': as without memory: True
+  reading 0: blocks from [0, 100, 200, 300] to 1000, kept: 300
+  reading 1: blocks from [0, 100, 200, 300] to 1000, kept: 300
 skip=0 limit=None pick=None edit=None:
    example.mcpl: 1006 particles, Σw = 1006
    48 views, same figures as mcpltool -H: True

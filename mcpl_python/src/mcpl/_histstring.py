@@ -34,10 +34,10 @@ _hist_options = { 'bins' : 'bins', 'range' : 'range', 'xrange' : 'range',
                   'yrange' : 'range', 'logx' : 'auto', 'logy' : 'auto', 'logz' : 'bool',
                   'lethargy' : 'bool', 'split' : 'expr', 'groups' : 'count',
                   'bar' : 'count', 'unweighted' : 'bool', 'print' : 'bool',
-                  'points' : 'count' }
+                  'points' : 'count', 'equal' : 'bool' }
 #The values of the options given without a value (as "logy" or "bar"):
 _hist_implied = { 'logx' : '1', 'logy' : '1', 'logz' : '1', 'lethargy' : '1', 'unweighted' : '1',
-                  'print' : '1', 'bar' : 'auto' }
+                  'print' : '1', 'bar' : 'auto', 'equal' : '1' }
 #(words for booleans, which are written 1 or 0):
 _bool_words = ( 'true', 'false', 'on', 'off', 'yes', 'no' )
 
@@ -73,7 +73,7 @@ def _hist_defaults( exprs ):
     return { 'exprs' : list(exprs), 'bins' : None, 'range' : None, 'xrange' : None,
              'yrange' : None, 'logx' : False, 'logy' : None, 'logz' : None, 'lethargy' : False,
              'split' : None, 'unweighted' : False, 'print' : False, 'groups' : None,
-             'bar' : False, 'points' : None }
+             'bar' : False, 'points' : None, 'equal' : False }
 
 def _parse_hist( text ):
     """Parse a histogram string: an expression (or two separated by ":" for 2D
@@ -157,6 +157,9 @@ def _check_hist_options( o, text ):
                 hint = ' (logy=1 gives a logarithmic scale of the bars)' if name == 'logx' else ''
                 raise MCPLError(f'Histogram option "{name}" can not be used for bar'
                                 f' charts{hint}, in "{text}"')
+    if o['equal'] and len(o['exprs']) != 2:
+        raise MCPLError(f'Histogram option "equal" (equal scales of the axes) can only'
+                        f' be used for 2D histograms, in "{text}"')
     if o['logz'] is not None and len(o['exprs']) != 2:
         raise MCPLError(f'Histogram option "logz" (the colour scale) can only be used'
                         f' for 2D histograms, in "{text}"')

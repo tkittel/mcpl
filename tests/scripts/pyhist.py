@@ -356,7 +356,23 @@ def test_logz():
         except mcpl.MCPLError as e:
             print(f'{bad!r}: {e}')
 
+def test_equal():
+    #Equal scales of the axes of 2D histograms with the same units, also when
+    #they are shown in different units (as cm and mm):
+    from mcpldev._plotbackend_test import describe
+    ex = str(example_file)
+    for text in ( 'x : y;equal', 'x : 0.02*y;equal', 'ux : uy;equal', 'x : y' ):
+        h = mcpl.histogram(ex,text)
+        print(f'{text!r}: aspect {h.aspect} ({h.xunit}, {h.yunit}), panel {h.panel().aspect}')
+    print(describe([ mcpl.histogram(ex,'x : y;equal').figure() ]).splitlines()[1])
+    for bad in ( 'x : ekin;equal', 'x;equal', 'x : y : z;equal' ):
+        try:
+            mcpl.histogram(ex,bad)
+        except mcpl.MCPLError as e:
+            print(f'{bad!r}: {e}')
+
 test_logz()
+test_equal()
 test_3d()
 test_ranges_colors()
 test_units()

@@ -229,6 +229,8 @@ class Backend(PlotBackend):
             ax.set_xlim(*panel.xlim)
         if panel.ylim:
             ax.set_ylim(*panel.ylim)
+        if getattr(panel,'aspect',None):
+            ax.set_aspect(panel.aspect,adjustable='box')
         if panel.title:
             ax.set_title(panel.title)
         if panel.xlabel:

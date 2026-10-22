@@ -165,6 +165,9 @@ def test_expressions():
                 'x', 'foo = 1', 'wl = 1.8Aa', 'tmp = x; x = y', 'Tmp = 1', 'tmp += 1cm', 'x = tmp', 'clamp = 1',
                 'swap(x,ekin)', 'swap(x)', 'swap(x,2)', 'rotate_z(1cm)', 'rotate_q(1)',
                 'rotate_z(1,2)', 'x = clamp(x,1cm)', 'x = min(x)',
+                'rotate_around(0,0,1)', 'rotate_around(0,0,0,10deg)', 'rotate_around(0,0,1,1cm)',
+                'rotate_around(1cm,0,1,10deg)', 'rotate_frame(0,0,1,0,1,0)',
+                'rotate_frame(0,0,1, 0,0,2, 1,0,0, 0,1,0)', 'rotate_frame(0,0,1, 0,1,0, 1,0,0, 1,1,0)',
                 'x == 1cm', 'pi = 3', 'wl = 1Aa', 'x = 1cm, y = 1cm',
                 'fileidx = 2', 'fileidx += 1', 'swap(fileidx,pdgcode)',
                 'x = y = 1cm', 'x, y = y, x', '', 'pdgcode = 1.5',
@@ -272,6 +275,35 @@ def test_exact_rotations():
     c = np.cos(np.pi/4)
     assert np.allclose(r['x'], c*x - c*y) and np.allclose(r['y'], c*x + c*y)
     print('rotations with other angles use cos and sin')
+    #rotate_around and rotate_frame (exact like rotate_x/y/z for the axes and
+    #multiples of 90 degrees):
+    for a, b2 in ( ('rotate_around(0,0,1,90deg)','rotate_z(90deg)'),
+                   ('rotate_around(0,0,7,-90deg)','rotate_z(-90deg)'),
+                   ('rotate_around(1,0,0,180deg)','rotate_x(180deg)'),
+                   ('rotate_frame(0,0,1, 0,1,0, 1,0,0, 0,1,0)','rotate_y(90deg)') ):
+        ra, rb = mcpl.ParticleEdit(a)(b), mcpl.ParticleEdit(b2)(b)
+        assert all( np.array_equal(raw_bits(ra[k]),raw_bits(rb.get(k,getattr(b,k)))) for k in ra ), a
+        print(f'{a} is exactly {b2}')
+    #(other axes and angles, as with the formula of Rodrigues):
+    k = np.array([1.0,2.0,3.0]) / np.sqrt(14.0)
+    t = np.radians(37.0)
+    K = np.array([[0,-k[2],k[1]],[k[2],0,-k[0]],[-k[1],k[0],0]])
+    R = np.eye(3) + np.sin(t) * K + ( 1 - np.cos(t) ) * K @ K
+    r = mcpl.ParticleEdit('rotate_around(1,2,3,37deg)')(b)
+    ref = np.stack([x,y,b.z],-1) @ R.T
+    assert np.allclose(r['x'],ref[:,0]) and np.allclose(r['y'],ref[:,1]) and np.allclose(r['z'],ref[:,2])
+    print('rotate_around(1,2,3,37deg) as with the formula of Rodrigues')
+    #(rotate_frame turns v into vout and u into uout):
+    frame = 'rotate_frame(0,0,1, 0,1,0, 1,1,0, 0,0,1)'
+    for before, after in ( ('ux = 0; uy = 0; uz = 1',(1/np.sqrt(2),1/np.sqrt(2),0)),
+                           ('ux = 0; uy = 1; uz = 0',(0,0,1)) ):
+        r = mcpl.ParticleEdit(f'{before}; {frame}')(b)
+        assert all( np.allclose(r[c],v) for c, v in zip(('ux','uy','uz'),after) ), before
+    print(f'{frame} turns (0,0,1) into (1,1,0)/sqrt(2) and (0,1,0) into (0,0,1)')
+    #(axes per particle: rotating around the direction keeps it):
+    r = mcpl.ParticleEdit('rotate_around(ux,uy,uz,33deg)')(b)
+    assert np.allclose(r['ux'],ux) and np.allclose(r['uy'],uy)
+    print('rotate_around(ux,uy,uz,33deg) keeps the directions')
 
 def test_whitespace():
     #Whitespace, including newlines, is normalised to single spaces:

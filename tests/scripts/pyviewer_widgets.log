@@ -423,7 +423,7 @@
    line (error): Not opened: Unable to open file!
    a file which does not exist: False other.mcpl
 ==> removing plots, with Delete
-   line (normal): Removed the plot "Energy spectrum"
+   line (normal): Removed the plot "Energy"
    views: 23 views, shown: 'Angle to the beam' (angle_to(0,0,1)/deg;bins=40;range=0:90, group Mine, badges ['range'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file']
    problems: []

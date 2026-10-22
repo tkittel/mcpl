@@ -181,6 +181,11 @@ class WidgetViewer:
         for no mark)"""
         raise NotImplementedError
 
+    def show_colour_bar_menu( self, entries ):
+        """Show the menu of the colour bar (see colour_bar_menu), where choosing
+        an entry calls on_control('logz',shown) with its shown text (if the
+        toolkit has menus)"""
+
     def show_pending( self, field, pending ):
         """Show whether the field has a text which is not applied yet (e.g.
         with a button applying it, if the toolkit has such buttons)"""
@@ -253,11 +258,25 @@ class WidgetViewer:
 
     def on_click( self, event ):
         """A click in the figure (a matplotlib event): on a plot of the overview,
-        it is shown on its own"""
+        it is shown on its own, and on the colour bar of a 2D histogram, a menu
+        of its colour scales is shown (see colour_bar_menu)"""
         key = self.pane.view_at(event)
         if key is not None:
             self.v.select_key(key)
             self.refresh()
+        elif self.pane.on_colour_bar(event) and self.colour_bar_menu():
+            self.show_colour_bar_menu(self.colour_bar_menu())
+
+    def colour_bar_menu( self ):
+        """The entries of the menu of the colour bar of the shown 2D histogram,
+        as (label, whether it is used, the shown text of the setting, see
+        on_control), or an empty list for other views"""
+        controls = self.plot_controls()
+        if controls is None or controls[0] != '2d':
+            return []
+        _, _, choices, shown, _ = next( c for c in controls[1] if c[0] == 'logz' )
+        labels = { 'log' : 'Logarithmic colour scale', 'linear' : 'Linear colour scale' }
+        return [ ( labels.get(c,c), c == shown, c ) for c in choices ]
 
     def on_title( self, text ):
         """The title of the shown plot is set (an empty text removes it)"""
@@ -318,8 +337,11 @@ class WidgetViewer:
         for name, label, choices in ui.plot_controls[kind]:
             v = given.get(name,False)
             #(the option given without a value, or with 1, is True, and 0 is
-            #as if not given):
-            value = None if v is False or v == '0' else True if v in ( None, '1' ) else v
+            #as if not given, except for those which are on by default):
+            if name in ui.on_by_default:
+                value = '0' if v == '0' else None
+            else:
+                value = None if v is False or v == '0' else True if v in ( None, '1' ) else v
             if choices is None:
                 shown = '' if value in ( None, True ) else value
             else:

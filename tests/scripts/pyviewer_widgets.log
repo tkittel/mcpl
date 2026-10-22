@@ -152,7 +152,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
-   settings: ('2d', {'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
+   settings: ('2d', {'logz': 'log', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key P:
@@ -164,7 +164,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
-   settings: ('2d', {'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
+   settings: ('2d', {'logz': 'log', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key Enter:
@@ -176,7 +176,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
-   settings: ('2d', {'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
+   settings: ('2d', {'logz': 'log', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key w:
@@ -188,7 +188,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
-   settings: ('2d', {'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
+   settings: ('2d', {'logz': 'log', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key v:
@@ -200,7 +200,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
-   settings: ('2d', {'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
+   settings: ('2d', {'logz': 'log', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key ?:
@@ -212,7 +212,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
-   settings: ('2d', {'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
+   settings: ('2d', {'logz': 'log', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
 ==> the file names (the suggested one is written, the same again is refused)
@@ -280,6 +280,13 @@
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '40', 'range': ''})
    bins used: 40
    plot: 1 axes
+==> the colour bar of 2D histograms has a menu of the colour scales
+   menu of a 1D plot: []
+   menu: [('Logarithmic colour scale', True, 'log'), ('Linear colour scale', False, 'linear')]
+   line (normal): 
+   linear: custom:x : y;logz=0 [('Logarithmic colour scale', False, 'log'), ('Linear colour scale', True, 'linear')]
+   line (normal): 
+   log again: custom:x : y
 ==> plot strings of quantities and expressions
    'Energy' against '' with (): 'ekin;logx=auto', settings 1d
    'Energy' against '' with (('logx', 'linear'), ('logy', 'log')): 'ekin;logy', settings 1d
@@ -288,10 +295,10 @@
    'hypot(x,y)/cm' against '' with (): 'hypot(x,y)/cm', settings 1d
    line (normal): 
    added: True
-   views: 50 views, shown: 'Arrival time' (time;logx=auto, group Custom, badges ['log x'])
+   views: 51 views, shown: 'Arrival time' (time;logx=auto, group Custom, badges ['log x'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1']
    problems: []
-   thumbnails: 41
+   thumbnails: 42
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('time;logx=auto', 'Arrival time', ('time', ''))
@@ -300,10 +307,10 @@
    plot: 1 axes
    line (normal): 
    added again, with another title: True
-   views: 50 views, shown: 'Arrival time' (time;logx=auto, group Custom, badges ['log x'])
+   views: 51 views, shown: 'Arrival time' (time;logx=auto, group Custom, badges ['log x'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1']
    problems: []
-   thumbnails: 41
+   thumbnails: 42
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('time;logx=auto', 'Arrival time', ('time', ''))
@@ -329,13 +336,13 @@
   'nonsense', '': False custom:x
    check of axes: False
    line (error): Unknown name "nonsense" in expression "nonsense" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-   views: 50 views, shown: 'Arrival time (??)' (x, group Custom, badges [])
+   views: 50 views, shown: 'Position x-y (??)' (x, group Custom, badges [])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1']
    problems: []
    thumbnails: 41
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('x', 'Arrival time (??)', ('x', ''))
+   shown plot field: ('x', 'Position x-y (??)', ('x', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
    plot: 1 axes
@@ -449,7 +456,7 @@
    folded at the start: ['Correlations']
    code of the shown overview: 28 plots
    line (normal): Hidden: the group Correlations
-   after Delete: ['overview', 'fields'] overview:overview | state: {'groups': ['overview', 'fields'], 'custom': [{'title': 'Radius', 'plot': 'hypot(x,y)/cm'}, 'x;bins=40', {'title': 'Arrival time (??)', 'plot': 'x'}, 'uz;bins=20']}
+   after Delete: ['overview', 'fields'] overview:overview | state: {'groups': ['overview', 'fields'], 'custom': [{'title': 'Radius', 'plot': 'hypot(x,y)/cm'}, 'x;bins=40', {'title': 'Position x-y (??)', 'plot': 'x'}, 'uz;bins=20']}
    line (normal): Shown: the group Correlations
    shown again: ['overview', 'fields', 'correlations'] overview:correlations
    line (normal): Shown: the group 3D

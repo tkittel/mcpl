@@ -127,12 +127,17 @@ plot_controls = {
              ( 'split', 'Split by', ( ( 'none', None ), ( 'particle type', 'pdgcode' ) ) ),
              _count, ( 'bins', 'Bins', None ), ( 'range', 'Range', None ) ),
     'bar' : ( ( 'logy', 'Scale', _scale ), _count, ( 'bar', 'Bars', None ) ),
-    '2d' : ( _count, ( 'bins', 'Bins', None ), ( 'xrange', 'X range', None ),
+    '2d' : ( ( 'logz', 'Colour scale', ( ( 'log', None ), ( 'linear', '0' ) ) ), _count,
+             ( 'bins', 'Bins', None ), ( 'xrange', 'X range', None ),
              ( 'yrange', 'Y range', None ) ),
     '3d' : ( ( 'split', 'Split by', ( ( 'none', None ), ( 'particle type', 'pdgcode' ) ) ),
              ( 'unweighted', 'Sample by', ( ( 'weights', None ), ( 'particles', True ) ) ),
              ( 'points', 'Points', None ) ),
 }
+
+#(the options which are on unless given as 0, like the logarithmic colour
+#scale of 2D histograms):
+on_by_default = ( 'logz', )
 
 #The quantities offered when adding a plot in the viewers with windows (as the
 #start of a histogram string), besides any expression:

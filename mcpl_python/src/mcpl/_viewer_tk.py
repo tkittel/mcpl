@@ -463,6 +463,17 @@ class TkViewer(WidgetViewer):
             mark.configure(text='\u2713' if ok else '\u2717',
                            foreground=colors['ok' if ok else 'error'])
 
+    def show_colour_bar_menu( self, entries ):
+        tk, _ttk = tk_modules()
+        menu = tk.Menu(self.root,tearoff=0)
+        #(the scale used is marked):
+        menu._used = tk.StringVar(menu,value=next( ( s for _, u, s in entries if u ), '' ))
+        for label, _used, shown in entries:
+            menu.add_radiobutton(label=label,value=shown,variable=menu._used,
+                                 command=lambda s=shown : self.on_control('logz',s))
+        x, y = self.root.winfo_pointerxy()
+        menu.tk_popup(x,y)
+
     def show_pending( self, field, pending ):
         b = self._applies.get(field)
         if b is not None:

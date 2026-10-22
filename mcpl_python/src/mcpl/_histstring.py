@@ -31,12 +31,12 @@ from ._expressions import _dimstr, _range_value
 #Options of histogram strings ("EXPR;logx;bins=50"), as NAME=VALUE, with the
 #kinds of their values (bool: 1 or 0, auto: also auto):
 _hist_options = { 'bins' : 'bins', 'range' : 'range', 'xrange' : 'range',
-                  'yrange' : 'range', 'logx' : 'auto', 'logy' : 'auto',
+                  'yrange' : 'range', 'logx' : 'auto', 'logy' : 'auto', 'logz' : 'bool',
                   'lethargy' : 'bool', 'split' : 'expr', 'groups' : 'count',
                   'bar' : 'count', 'unweighted' : 'bool', 'print' : 'bool',
                   'points' : 'count' }
 #The values of the options given without a value (as "logy" or "bar"):
-_hist_implied = { 'logx' : '1', 'logy' : '1', 'lethargy' : '1', 'unweighted' : '1',
+_hist_implied = { 'logx' : '1', 'logy' : '1', 'logz' : '1', 'lethargy' : '1', 'unweighted' : '1',
                   'print' : '1', 'bar' : 'auto' }
 #(words for booleans, which are written 1 or 0):
 _bool_words = ( 'true', 'false', 'on', 'off', 'yes', 'no' )
@@ -71,7 +71,7 @@ def _hist_defaults( exprs ):
     """The options of a histogram of the expressions (one, two for 2D
     histograms, or three for 3D plots) when none are given"""
     return { 'exprs' : list(exprs), 'bins' : None, 'range' : None, 'xrange' : None,
-             'yrange' : None, 'logx' : False, 'logy' : None, 'lethargy' : False,
+             'yrange' : None, 'logx' : False, 'logy' : None, 'logz' : None, 'lethargy' : False,
              'split' : None, 'unweighted' : False, 'print' : False, 'groups' : None,
              'bar' : False, 'points' : None }
 
@@ -157,6 +157,9 @@ def _check_hist_options( o, text ):
                 hint = ' (logy=1 gives a logarithmic scale of the bars)' if name == 'logx' else ''
                 raise MCPLError(f'Histogram option "{name}" can not be used for bar'
                                 f' charts{hint}, in "{text}"')
+    if o['logz'] is not None and len(o['exprs']) != 2:
+        raise MCPLError(f'Histogram option "logz" (the colour scale) can only be used'
+                        f' for 2D histograms, in "{text}"')
     if o['groups'] is not None and o['split'] is None:
         raise MCPLError(f'Histogram option "groups" can only be used with split, in "{text}"')
 
@@ -211,6 +214,11 @@ def _hist_key( text ):
     parts = [ ':'.join( _expr_canonical(e) for e in o['exprs'] ) ]
     for name in _hist_options:
         v = o[name]
+        if name == 'logz':
+            #(on by default, so only logz=0 makes another histogram):
+            if v is False:
+                parts.append('logz=0')
+            continue
         if v is None or v is False:
             continue
         if v is True:

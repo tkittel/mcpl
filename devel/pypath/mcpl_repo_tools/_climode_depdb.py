@@ -55,15 +55,17 @@ def main( parser ):
                                               'testdeps2json',
                                               'minversions',
                                               'freebsdpkgs',
+                                              'freebsdpips',
                                               'json',
                                               'pprint'),
         default = 'pprint',
         help="""Mode (default: pprint). The "minversions" mode prints the
         minimum versions of the dependencies of all packages which can be
         installed in the current environment, in the requirements.txt format
-        (like "numpy==1.22.*"), and "freebsdpkgs" the FreeBSD packages of the
+        (like "numpy==1.22.*"), "freebsdpkgs" the FreeBSD packages of the
         all_and_devel requirements (for the Python flavour given with
-        --pyflavour)."""
+        --pyflavour), and "freebsdpips" the requirements which are instead
+        installed with pip on FreeBSD (those without FreeBSD packages)."""
     )
     parser.add_argument(
         '--pyflavour', type = str, default = 'py312',
@@ -87,13 +89,14 @@ def main( parser ):
             print(r)
         return
 
-    if args.mode=='freebsdpkgs':
+    if args.mode in ('freebsdpkgs','freebsdpips'):
         import re
         if not re.fullmatch('py3[0-9]+',args.pyflavour):
             parser.error(f'Invalid Python flavour: {args.pyflavour}')
         from .depdb import freebsd_pkgnames
         print(' '.join( freebsd_pkgnames( load(), 'all_and_devel',
-                                          args.pyflavour ) ))
+                                          args.pyflavour,
+                                          pip = args.mode == 'freebsdpips' ) ))
         return
 
     if args.mode=='pprint':

@@ -14,7 +14,8 @@
 # where they can not be installed (while missing dependencies are otherwise an
 # error with MCTOOLS_REQUIRE_ALL_TEST_DEPS=ON). The freebsd_pkgname field gives
 # the name of the FreeBSD package, with "{py}" for the Python flavour (like
-# py312), for the FreeBSD CI.
+# py312), for the FreeBSD CI, which installs the dependencies with
+# freebsd_pip: true with pip instead (those without FreeBSD packages).
 
 #Added to all the conda environment files, for building from source (pip at
 #least 26.2.2, which no longer trusts the root certificate "emSign ECC Root CA
@@ -108,7 +109,9 @@ dependencies:
     freebsd_pkgname: "{py}-ipywidgets"
   ipympl:
     min_version: "0.9"
-    freebsd_pkgname: "{py}-ipympl"
+    #(the FreeBSD port devel/py-ipympl is marked broken, so there are no
+    #packages; to be revisited, e.g. when it is fixed):
+    freebsd_pip: true
   scipp:
     min_version: "26.9"
     min_python: "3.12"

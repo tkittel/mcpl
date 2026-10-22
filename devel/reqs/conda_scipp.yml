@@ -6,7 +6,7 @@ dependencies:
   - c-compiler
   - cmake
   - make
-  - pip
+  - pip >=26.2.2
   - python
   - numpy >=1.22
   - scipp >=26.9

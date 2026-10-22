@@ -183,7 +183,7 @@ def install_needed( info, pyversion = None, system = None ):
 def _prepare_data_and_check_errors( rawdata ):
     from .dirs import reporoot
 
-    assert set(rawdata.keys())=={'packages','dependencies'}
+    assert set(rawdata.keys())=={'packages','dependencies','conda_env_tools'}
     #First pkg_deps:
 
     pkgdata = rawdata['packages']
@@ -312,11 +312,12 @@ dependencies:
 
 def produce_expected_conda_yml_files(db):
     #For conda we always add whatever is needed for a development environment,
-    #since people might wish to build from source, or whatnot:
-    deplist_extra = {'python','pip','c-compiler','cmake','make'}
+    #since people might wish to build from source, or whatnot (the
+    #conda_env_tools of the database, as conda specifications):
+    tools = sorted(db['conda_env_tools'])
     def content( name, deplist ):
-        lines = sorted(deplist_extra)[:]
-        for dep in sorted(set( deplist )-deplist_extra ):
+        lines = tools[:]
+        for dep in sorted(set( deplist )):
             if db['dependencies'][dep]['conda_spec']:
                 lines.append(db['dependencies'][dep]['conda_spec'])
         res = _conda_yml_init.replace('<<NAME>>',name)

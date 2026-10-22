@@ -6,7 +6,7 @@ dependencies:
   - c-compiler
   - cmake
   - make
-  - pip
+  - pip >=26.2.2
   - python
   - matplotlib >=3.6
   - numpy >=1.22

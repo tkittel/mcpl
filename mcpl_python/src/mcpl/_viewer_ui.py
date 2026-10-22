@@ -39,8 +39,8 @@ field_descriptions = {
     'skip' : 'the number of particles at the start of the file which are left out',
     'limit' : 'the largest number of particles to use, after those skipped',
     'collection' : 'the groups of plots shown, chosen by a preset',
-    'pick' : 'an expression which is true for the particles to use',
-    'edit' : 'statements which change the particles, after they are picked',
+    'pick' : 'an expression which is true for the particles to use (before they are edited)',
+    'edit' : 'statements separated by ";" which change the particles, after they are picked',
     'plot' : 'a histogram string of a new plot',
 }
 
@@ -161,37 +161,42 @@ def plot_of( key ):
 #The fields with Tab completion of names:
 completing_fields = ( 'pick', 'edit', 'plot' )
 
-def field_keys( field ):
+def field_keys( field, tab = True ):
     """The keys of a field while it is edited (as (key, what it does)): the
-    menu keys for the fields of menus, Tab for those with completion, and Up
-    and Down for earlier texts, except in the fields of the file names"""
+    menu keys for the fields of menus, Tab for those with completion (if tab
+    is set), and Up and Down for earlier texts, except in the fields of the
+    file names"""
     if field in menu_fields:
         return [ ( 'Up/Down', 'choose' ), ( 'Enter', 'applies' ), ( 'Esc', 'cancels' ) ]
     res = [ ( 'Enter', 'applies' ) ]
-    if field in completing_fields:
+    if tab and field in completing_fields:
         res.append( ( 'Tab', 'completes' ) )
     if field not in file_prompts:
         res.append( ( 'Up/Down', 'for earlier texts' ) )
     return res + [ ( 'Esc', 'cancels' ) ]
 
-def field_hint( field ):
+def field_hint( field, viewer = None ):
     """The line below the fields while the field is edited (and there is
-    nothing else to show), e.g. 'Enter: apply   Esc: cancel'"""
+    nothing else to show), e.g. 'Enter: apply   Esc: cancel', mentioning Tab
+    completion until it was used with the viewer (see Viewer.tab_used)"""
     short = { 'applies' : 'apply', 'completes' : 'complete', 'cancels' : 'cancel',
               'for earlier texts' : 'earlier texts' }
-    return '   '.join( f'{key}: {short.get(does,does)}' for key, does in field_keys(field) )
+    tab = viewer is None or not viewer.tab_used
+    keys = '   '.join( f'{key}: {short.get(does,does)}' for key, does in field_keys(field,tab) )
+    return f'Edits are separated by ";"   {keys}' if field == 'edit' else keys
 
 def hint_line( editor, popup = False ):
     """The line below the fields while one is edited (with the LineEditor
     editor, or None): the completions, the message of the check, or a hint,
-    as (text, style) with style 'dim' or 'error'. Tab completion is always
-    mentioned (after the message or hint) for the fields with expressions.
+    as (text, style) with style 'dim' or 'error'. Tab completion is
+    mentioned (after the message or hint) for the fields with expressions,
+    until it was used.
     With popup, the completions are shown in a popup, and the line tells how
     to use it (else it lists them, with the chosen one in brackets)."""
     if editor is None:
         return '', 'dim'
     if editor.menu and popup:
-        return field_hint(editor.field), 'dim'
+        return field_hint(editor.field,editor.viewer), 'dim'
     if editor.choices:
         if popup:
             return 'Up/Down: choose   Enter or Tab: insert   Esc: close', 'dim'
@@ -199,12 +204,13 @@ def hint_line( editor, popup = False ):
                           for i, (n, _) in enumerate(editor.choices) ), 'dim'
     if editor.replaces is not None and not editor.text.strip():
         return 'Enter: remove this plot   Esc: cancel', 'dim'
-    tab = '  (Tab: complete)' if editor.field in completing_fields else ''
+    tab = ( '  (Tab: complete)' if editor.field in completing_fields
+            and not editor.viewer.tab_used else '' )
     if not editor.ok and editor.message:
         return editor.message + tab, 'error'
     if editor.hint:
         return 'hint: ' + editor.hint + tab, 'dim'
-    return field_hint(editor.field), 'dim'
+    return field_hint(editor.field,editor.viewer), 'dim'
 
 help_text = '''\
 The viewer shows the particles of an MCPL file in groups of plots (in windows
@@ -247,9 +253,10 @@ Keys:
   q            Quit (the commands doing the same are then printed).
 
 In the fields: Enter applies the text, Tab completes names, Up and Down show
-earlier texts, and Esc cancels. Texts are checked while they are typed. When
-Tab shows several completions, Up and Down choose one, Enter or Tab inserts
-it, and Esc closes them.'''
+earlier texts, and Esc cancels. In the window, a changed text is also applied
+with its Apply button, or by clicking elsewhere in the window. Texts are
+checked while they are typed. When Tab shows several completions, Up and Down
+choose one, Enter or Tab inserts it, and Esc closes them.'''
 
 #Shown in Jupyter without the ipympl backend of matplotlib:
 no_widget_text = ( 'For interactive plots (zoom, pan, and clicking the plots of'
@@ -330,6 +337,7 @@ def complete_text( viewer, field, text, cursor ):
     import os
     if field in file_prompts:
         return text, cursor, [], cursor
+    viewer.tab_used = True
     start, cands = viewer.complete(field,text,cursor)
     if not cands:
         return text, cursor, [], start

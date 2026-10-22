@@ -181,6 +181,10 @@ class WidgetViewer:
         for no mark)"""
         raise NotImplementedError
 
+    def show_pending( self, field, pending ):
+        """Show whether the field has a text which is not applied yet (e.g.
+        with a button applying it, if the toolkit has such buttons)"""
+
     def draw_plot( self ):
         """Redraw the canvas of the figure (it changed)"""
         raise NotImplementedError
@@ -540,6 +544,7 @@ class WidgetViewer:
             ok, msg = ui.check_text(self.v,field,text)
             hint = None if field in ui.menu_fields else self.v.hint(field,text)
         self.show_check(field,ok)
+        self.show_pending(field,self._is_pending(field,text))
         if not ok and msg:
             self.show_line(msg,'error')
         elif hint:
@@ -547,7 +552,28 @@ class WidgetViewer:
         elif field == 'shown_plot' and not text.strip():
             self.show_line('Enter: remove this plot   Esc: cancel','dim')
         else:
-            self.show_line(ui.field_hint('plot' if field == 'shown_plot' else field),'dim')
+            self.show_line(ui.field_hint('plot' if field == 'shown_plot' else field,self.v),'dim')
+
+    def _is_pending( self, field, text ):
+        """Whether the text of the field differs from what was applied"""
+        if field == 'shown_plot':
+            return text.strip() != ( '' if self._new_plot is not None
+                                     else self._shown_plot() or '' )
+        if field in ui.menu_fields:
+            return False
+        return text.strip() != ( self.v.field_text(field) or '' ).strip()
+
+    def on_field_unfocused( self, field, text ):
+        """The keyboard focus left the field (to another part of the window):
+        a changed text is applied if it is valid, except an empty text of the
+        shown plot (which would remove it)"""
+        if not self._is_pending(field,text) or ( field == 'shown_plot' and not text.strip() ):
+            return
+        name = 'plot' if field == 'shown_plot' else field
+        if not ui.check_text(self.v,name,text,
+                             replaces = self._shown_key() if field == 'shown_plot' else None)[0]:
+            return#(it keeps its mark and its error, see on_field_edited)
+        self.on_field_apply(field,text)
 
     def on_field_apply( self, field, text ):
         """The text of the field is applied (Enter, or chosen in a menu).
@@ -559,6 +585,7 @@ class WidgetViewer:
                 self.refresh(plot = False)
                 return False
             self.show_check(field,None)
+            self.show_pending(field,False)
             return True
         if field == 'shown_plot':
             done, msg, replot = ui.apply_text(self.v,'plot',text,replaces = self._shown_key())
@@ -567,6 +594,7 @@ class WidgetViewer:
         if done:
             self._histories.pop(field,None)
             self.show_check(field,None)
+            self.show_pending(field,False)
             if field != 'shown_plot':
                 #(the added plot is shown, so the field is emptied):
                 self.show_field(field,'' if field == 'plot' else self.v.field_text(field))
@@ -578,6 +606,7 @@ class WidgetViewer:
         """The editing of the field is cancelled (Esc): its text is restored"""
         self._histories.pop(field,None)
         self.show_check(field,None)
+        self.show_pending(field,False)
         self.show_line('','normal')
         if field == 'shown_plot':
             self.refresh(plot = False)

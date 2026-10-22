@@ -93,6 +93,7 @@ class TkViewer(WidgetViewer):
                   foreground=[ ( 'selected', 'white' ) ],relief=[ ( 'selected', 'sunken' ) ])
         #(the small buttons next to fields, as high as the fields):
         style.configure('Small.TButton',padding=(2,0))
+        style.configure('Small.Accent.TButton',padding=(2,0))
         style.configure('Compact.TMenubutton',padding=(6,0))
         #(the compact buttons in the header of the part of the shown plot):
         for name in ( 'Head.TButton', 'Head.Accent.TButton' ):
@@ -177,6 +178,7 @@ class TkViewer(WidgetViewer):
         self.canvas.mpl_connect('key_press_event',self._on_mpl_key)
         self.canvas.mpl_connect('motion_notify_event',self._on_mpl_motion)
         self._inaxes = None#(the axes under the mouse)
+        self._applies = {}#field -> its Apply button (see show_pending)
         self._placeholders = {}#entry -> text shown in grey while it is empty
         self._showing = set()#(the entries showing their placeholder)
         self._plot_part(fields,head)
@@ -202,9 +204,11 @@ class TkViewer(WidgetViewer):
         grid = ttk.Frame(part)
         grid.pack(fill='x')
         grid.columnconfigure(1,weight=1)
+        cols = {}#field -> column of its label
         for r, row in enumerate(rows):
             col = 0
             for field in row:
+                cols[field] = col
                 _, label, _key, kpos, empty = info[field]
                 first = field == row[0]
                 lab = ttk.Label(grid,text=label + ':',underline=kpos,
@@ -216,10 +220,12 @@ class TkViewer(WidgetViewer):
                 self._placeholders[w] = empty
                 self._bind_entry(w,field)
                 col += 2
-                #(the examples right after the field, then the mark of its check):
+                #(the Apply button and the examples right after the field, then
+                #the mark of its check):
                 if field in ui.example_topics:
-                    self._examples_button(grid,field).grid(row=r,column=col,padx=(2,0))
-                    col += 1
+                    self._apply_button(grid,field).grid(row=r,column=col,padx=(2,0))
+                    self._examples_button(grid,field).grid(row=r,column=col+1,padx=(2,0))
+                    col += 2
                 mark = ttk.Label(grid,width=2)
                 mark.grid(row=r,column=col)
                 col += 1
@@ -232,7 +238,8 @@ class TkViewer(WidgetViewer):
                                  style='Head.Accent.TButton',takefocus=0,
                                  command=lambda : self.on_action('write'))
         #(below skip and limit, from the start of the one to the end of the other):
-        self._write.grid(row=len(rows)-1,column=4,columnspan=5,sticky='ew',padx=(12,0))
+        self._write.grid(row=len(rows)-1,column=cols['skip'],
+                         columnspan=cols['limit']+2-cols['skip'],sticky='ew',padx=(12,0))
         self._hover(self._write,'write')
         _tint(part,'Particles')
         #(the line of messages, and at its right what is under the mouse):
@@ -332,6 +339,7 @@ class TkViewer(WidgetViewer):
         ttk.Label(frame,text='Expression:').pack(side='left',padx=(10,4))
         w = ttk.Entry(frame,width=30)
         w.pack(side='left',fill='x',expand=True)
+        self._apply_button(frame,'shown_plot').pack(side='left',padx=(2,0))
         self._examples_button(frame,'shown_plot').pack(side='left',padx=(2,0))
         mark = ttk.Label(frame,width=2)
         mark.pack(side='left')
@@ -386,6 +394,7 @@ class TkViewer(WidgetViewer):
                 var.set(key in self.v.groups)
             return
         self._set_text(self._entries[field],text)
+        self.show_pending(field,False)
 
     def show_plot_field( self, text, title, axes ):
         x, y = axes or ( None, None )
@@ -401,6 +410,8 @@ class TkViewer(WidgetViewer):
                 w.configure(state='normal')
                 if self._text(w) != ( value or '' ) or ( not value and w not in self._showing ):
                     self._set_text(w,value or '')
+                if w is self._entries['shown_plot']:
+                    self.show_pending('shown_plot',False)
         self._remove.configure(state='disabled' if text is None else 'normal')
         #(the fields are only shown for plots, so the overview gets more room):
         if text is None:
@@ -451,6 +462,14 @@ class TkViewer(WidgetViewer):
         else:
             mark.configure(text='\u2713' if ok else '\u2717',
                            foreground=colors['ok' if ok else 'error'])
+
+    def show_pending( self, field, pending ):
+        b = self._applies.get(field)
+        if b is not None:
+            #(lit up, in the colour of the selected card, while there is
+            #something to apply):
+            b.configure(style='Small.Accent.TButton' if pending else 'Small.TButton')
+            b.state([ '!disabled' if pending else 'disabled' ])
 
     def draw_plot( self ):
         self.canvas.draw_idle()
@@ -598,13 +617,29 @@ class TkViewer(WidgetViewer):
                           command=lambda : Examples(self,ui.example_topics[field],
                                                      lambda e : self._use_example(field,e)))
 
+    def _apply_button( self, parent, field ):
+        """The Apply button of a field, enabled while it has a text which is
+        not applied (see show_pending)"""
+        _, ttk = tk_modules()
+        b = ttk.Button(parent,text='Apply',width=5,takefocus=0,style='Small.TButton',
+                       command=lambda : self._on_entry_enter(self._entries[field],field))
+        b.state([ 'disabled' ])
+        self._applies[field] = b
+        return b
+
     def _use_example( self, field, text ):
-        """Put the example in the field, to be applied (or changed) there"""
+        """Put the example in the field, to be applied (or changed) there,
+        with the keyboard focus in it (after the window of the examples is
+        closed)"""
         w = self._entries[field]
-        w.focus_set()
         self._set_text(w,text)
         w.icursor('end')
         self.on_field_edited(field,text)
+        def focus():
+            self.root.focus_force()
+            w.focus_set()
+            w.icursor('end')
+        self.root.after_idle(focus)
 
     def _bind_entry( self, w, field ):
         w.bind('<KeyRelease>',lambda e : self._on_entry_key(w,field,e))
@@ -615,7 +650,7 @@ class TkViewer(WidgetViewer):
         w.bind('<Down>',lambda _e : self._on_entry_updown(w,field,1))
         w.bind('<Tab>',lambda _e : self._on_entry_tab(w,field))
         w.bind('<FocusIn>',lambda _e : self._on_entry_focus(w,field),'+')
-        w.bind('<FocusOut>',lambda _e : self._on_entry_unfocus(w),'+')
+        w.bind('<FocusOut>',lambda _e : self._on_field_unfocus(w,field),'+')
 
     def _text( self, w ):
         """The text of the entry (empty while it shows its placeholder)"""
@@ -643,6 +678,18 @@ class TkViewer(WidgetViewer):
         self._close_popup()
         if not w.get():
             self._set_text(w,'')
+
+    def _on_field_unfocus( self, w, field ):
+        """The focus left the field: its text is applied if it moved to
+        another part of the main window (not if the window lost the focus, or
+        e.g. the window of the examples was opened)"""
+        text = self._text(w)
+        self._on_entry_unfocus(w)
+        def check():
+            new = self.root.focus_get()
+            if new is not None and new is not w and new.winfo_toplevel() is self.root:
+                self.on_field_unfocused(field,text)
+        self.root.after_idle(check)
 
     def _on_entry_key( self, w, field, event ):
         if event.keysym in ( 'Return', 'KP_Enter', 'Escape', 'Up', 'Down', 'Tab' ):

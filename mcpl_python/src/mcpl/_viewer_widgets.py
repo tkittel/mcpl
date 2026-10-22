@@ -261,9 +261,9 @@ class WidgetViewer:
             self._new_plot = text#(for when it is added)
             self.refresh(plot = False)
             return
-        plot = self._shown_plot()
-        if plot is not None:
-            ok, msg = self.v.set_title(plot,text)
+        key = self._shown_key()
+        if key is not None:
+            ok, msg = self.v.set_title(key,text)
             self.show_line(msg,'normal' if ok else 'error')
             self.refresh(plot = False)
 
@@ -285,10 +285,9 @@ class WidgetViewer:
         """A card was dragged onto the card of the view with the key target
         (None: before the first custom plot): the custom plot of the view with
         the key is moved there (only custom plots are reordered)"""
-        plots = [ k[5:] for k, _ in self.v.views if k.startswith('plot:')
-                  and self.v.is_custom(k[5:]) ]
-        if target is None or target[5:] in plots:
-            self.v.move_to(key[5:],0 if target is None else plots.index(target[5:]))
+        plots = [ k for k, _ in self.v.views if k.startswith('custom:') ]
+        if key in plots and ( target is None or target in plots ):
+            self.v.move_to(key[7:],0 if target is None else plots.index(target))
         else:
             self.show_line('Only the custom plots are reordered','error')
         self.refresh(plot = False)
@@ -330,7 +329,7 @@ class WidgetViewer:
         numbers of bins ("40", or "40,30" for 2D histograms) or of the points
         of 3D plots, as a text, or an empty text (also while it is not
         drawn)"""
-        fig = self.v.figure(key = f'plot:{plot}')
+        fig = self.v.figure(key = f'plot:{plot}')#(the same for custom plots)
         items = fig.panels[0].items if fig is not None and len(fig.panels) == 1 else ()
         if name == 'points':
             n = sum( len(item.x) for item in items if hasattr(item,'z') )
@@ -360,7 +359,7 @@ class WidgetViewer:
         if plot is None:
             return
         done, msg, replot = ui.apply_text(self.v,'plot',self._option(plot,name,shown),
-                                          replaces = plot)
+                                          replaces = self._shown_key())
         self.show_line(msg,'normal' if done else 'error')
         self.refresh(plot = replot)
 
@@ -389,7 +388,7 @@ class WidgetViewer:
         new = len(self.v.views)
         ok, msg = self.v.set('plot',plot)
         if ok and title.strip() and len(self.v.views) > new:
-            self.v.set_title(self.v.current_key[5:],title)
+            self.v.set_title(self.v.current_key,title)
         self.show_line(msg,'normal' if ok else 'error')
         self.refresh()
         return ok
@@ -444,7 +443,7 @@ class WidgetViewer:
         new = ';'.join( [ exprs ] + opts )
         if not self.v.check('plot',new)[0] and self.v.check('plot',exprs)[0]:
             new = exprs#(options which can not be used for the new axes, e.g. logx in 2D)
-        done, msg, replot = ui.apply_text(self.v,'plot',new,replaces = plot)
+        done, msg, replot = ui.apply_text(self.v,'plot',new,replaces = self._shown_key())
         self.show_line(msg,'normal' if done else 'error')
         self.refresh(plot = replot)
         return done
@@ -467,7 +466,7 @@ class WidgetViewer:
         """The command and Python code of the shown plot (or of the plots of
         the overview), see Viewer.code"""
         plot = self._shown_plot()
-        plots = [ plot ] if plot else [ k[5:] for k in self.v.overview_keys(self.v.current_key) if k ]
+        plots = [ plot ] if plot else [ ui.plot_of(k) for k in self.v.overview_keys(self.v.current_key) if k ]
         return self.v.code(plots)
 
     def cards( self ):
@@ -480,7 +479,7 @@ class WidgetViewer:
         res = []
         for key, _ in self.v.views:
             info = self.v.plot_info(key)
-            if not key.startswith('plot:'):
+            if ui.plot_of(key) is None:
                 #(the overview of a group, see Viewer.overviews, which is shown
                 #also when the group is folded, and hides the group):
                 custom = key == 'overview:custom'
@@ -535,7 +534,7 @@ class WidgetViewer:
         """The text of the field was changed by the user (field is
         'shown_plot' for the field of the shown plot): it is checked"""
         if field == 'shown_plot':
-            ok, msg = ui.check_text(self.v,'plot',text,replaces = self._shown_plot())
+            ok, msg = ui.check_text(self.v,'plot',text,replaces = self._shown_key())
             hint = self.v.hint('plot',text) if text.strip() else None
         else:
             ok, msg = ui.check_text(self.v,field,text)
@@ -562,7 +561,7 @@ class WidgetViewer:
             self.show_check(field,None)
             return True
         if field == 'shown_plot':
-            done, msg, replot = ui.apply_text(self.v,'plot',text,replaces = self._shown_plot())
+            done, msg, replot = ui.apply_text(self.v,'plot',text,replaces = self._shown_key())
         else:
             done, msg, replot = ui.apply_text(self.v,field,text)
         if done:
@@ -670,11 +669,11 @@ class WidgetViewer:
             self._removed.add(key)#(a card which is not a view, see cards)
             self.refresh(plot = False)
             return
-        if not key.startswith('plot:'):
+        if ui.plot_of(key) is None:
             self.show_line('Choose a plot to remove it','error')
             return
         name = self.v.plot_info(key)['name']
-        ok, msg = self.v.change_plot(key[5:],'')
+        ok, msg = self.v.change_plot(key,'')
         self.show_line(f'Removed the plot "{name}"' if ok else msg,'normal' if ok else 'error')
         self.refresh()
 
@@ -708,8 +707,13 @@ class WidgetViewer:
         while a new plot is made)"""
         if self._new_plot is not None:
             return None
-        key = self.v.current_key
-        return key[5:] if key.startswith('plot:') else None
+        return ui.plot_of(self._shown_key())
+
+    def _shown_key( self ):
+        """The key of the shown view, if it is a plot (else None, also while a
+        new plot is made)"""
+        key = None if self._new_plot is not None else self.v.current_key
+        return key if ui.plot_of(key) is not None else None
 
     def refresh( self, plot = True ):
         """Show the views, the status and (if plot is set) the plot"""
@@ -720,7 +724,7 @@ class WidgetViewer:
         if self._new_plot is not None:
             self.show_plot_field('',self._new_plot,( '', '' ))
         else:
-            self.show_plot_field(shown,v.plot_info(f'plot:{shown}')['title'] if shown else None,
+            self.show_plot_field(shown,v.plot_info(self._shown_key())['title'] if shown else None,
                                  self.axis_texts())
         self.show_controls(self.plot_controls())
         self.show_enabled('write',self.v.changes_particles)

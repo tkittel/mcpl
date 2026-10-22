@@ -23,8 +23,9 @@
 which are shown (see _stdviews), with their fixed plots, and the custom
 group, with the plots which were added (and the copies of standard plots
 which were changed). Each group has its overview (see _viewer_overviews).
-The plots are shown once, in the first group which has them, and only the
-custom plots can be reordered, given titles and removed."""
+The plots of the standard groups are shown once, in the first group which has
+them, and the custom plots (which are always shown) are the only ones which
+can be reordered, given titles and removed."""
 
 __all__ = []
 
@@ -60,12 +61,13 @@ class PlotGroups:
         return [ k for k in _groups if k in self.shown ] + ( [ custom_key ] if self.custom else [] )
 
     def cards( self ):
-        """The plots shown, in order, as (plot, title, group key), each in the
-        first group which has it"""
+        """The plots shown, in order, as (plot, title, group key): those of the
+        standard groups each in the first group which has it, and the custom
+        plots (also those which are in standard groups)"""
         res, seen = [], set()
         for k in self.keys():
             for p, t in self._items(k):
-                if p not in seen:
+                if p not in seen or k == custom_key:
                     seen.add(p)
                     res.append( ( p, t, k ) )
         return res

@@ -307,40 +307,40 @@
    plot: 1 axes
 ==> changing the axes of the shown plot (keeping the options which can be kept)
    line (normal): 
-  'wavelength', '': True plot:wavelength;logx=auto
+  'wavelength', '': True custom:wavelength;logx=auto
    line (normal): 
-  'Energy', '': True plot:ekin;logx=auto
+  'Energy', '': True custom:ekin;logx=auto
    line (normal): 
-  'ekin : time', '': True plot:ekin : time
+  'ekin : time', '': True custom:ekin : time
    line (normal): 
-  '', 'time : ekin': True plot:time : ekin
+  '', 'time : ekin': True custom:time : ekin
    line (normal): 
-  'x', 'y': True plot:x : y
+  'x', 'y': True custom:x : y
    line (normal): 
-  'x', '': True plot:x
+  'x', '': True custom:x
    line (error): Choose or type what to plot on the X axis
-  '', '': False plot:x
+  '', '': False custom:x
    line (error): Unknown name "nonsense" in expression "nonsense" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-  'nonsense', '': False plot:x
+  'nonsense', '': False custom:x
    check of axes: False
    line (error): Unknown name "nonsense" in expression "nonsense" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-   views: 49 views, shown: 'Position x' (x, group Fields, badges [])
+   views: 50 views, shown: 'Arrival time (??)' (x, group Custom, badges [])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1']
    problems: []
-   thumbnails: 40
+   thumbnails: 41
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('x', None, ('x', ''))
+   shown plot field: ('x', 'Arrival time (??)', ('x', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
    plot: 1 axes
 ==> a new plot: shown as a card until its axes are chosen, or given up
    focus: x_axis
    line (dim): Choose or type what to plot on the X axis (and on the Y axis for 2D histograms)
-   views: 50 views, shown: 'New plot' (None, group Custom, badges ['choose what to plot'])
+   views: 51 views, shown: 'New plot' (None, group Custom, badges ['choose what to plot'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1']
    problems: []
-   thumbnails: 40
+   thumbnails: 41
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('', '', ('', ''))
@@ -351,10 +351,10 @@
    line (dim): Choose or type what to plot on the X axis (and on the Y axis for 2D histograms), and press Enter
    line (normal): 
    added: True
-   views: 49 views, shown: 'Radius' (hypot(x,y)/cm, group Custom, badges [])
+   views: 50 views, shown: 'Radius' (hypot(x,y)/cm, group Custom, badges [])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1']
    problems: []
-   thumbnails: 40
+   thumbnails: 41
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/cm', 'Radius', ('hypot(x,y)/cm', ''))
@@ -363,15 +363,15 @@
    plot: 1 axes
    focus: x_axis
    line (dim): Choose or type what to plot on the X axis (and on the Y axis for 2D histograms)
-   given up when another view is shown: plot:ekin;logx=auto;logy;split=pdgcode 49
+   given up when another view is shown: plot:ekin;logx=auto;logy;split=pdgcode 50
    focus: x_axis
    line (dim): Choose or type what to plot on the X axis (and on the Y axis for 2D histograms)
-   given up when removed: plot:ekin;logx=auto;logy;split=pdgcode 49
+   given up when removed: plot:ekin;logx=auto;logy;split=pdgcode 50
    focus: x_axis
    line (dim): Choose or type what to plot on the X axis (and on the Y axis for 2D histograms)
    line (normal): 
    check of shown_plot: None
-   added with a plot expression: True plot:uz;bins=20
+   added with a plot expression: True custom:uz;bins=20
 ==> the command of the shown plot, and of the plots of the overview
    mcpltool -p "pdgcode == neutron" -H "uz;bins=20" example.mcpl
    mcpltool -p "pdgcode == neutron" -H "ekin;logx=auto;logy;split=pdgcode" -H "wavelength;logx;split=pdgcode" -H "angle_to(0,0,1)/deg;logy;split=pdgcode" -H "x : y" -H "time;logx=auto;logy" -H "pdgcode;bar;logy=auto" example.mcpl
@@ -379,10 +379,10 @@
    check of pick: None
    field pick: ''
    line (normal): 
-   views: 50 views, shown: 'Overview' (None, group Overview, badges ['6 plots'])
+   views: 51 views, shown: 'Overview' (None, group Overview, badges ['6 plots'])
    compact cards: ['Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1']
    problems: []
-   thumbnails: 42
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 1006 particles, Σw = 1006
    shown plot field: (None, None, ('', ''))
@@ -395,10 +395,10 @@
    check of pick: None
    field pick: 'pdgcode == neutron'
    line (normal): 
-   views: 50 views, shown: 'Overview' (None, group Overview, badges ['6 plots'])
+   views: 51 views, shown: 'Overview' (None, group Overview, badges ['6 plots'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1']
    problems: []
-   thumbnails: 41
+   thumbnails: 42
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', ''))
@@ -413,10 +413,10 @@
    field plot: ''
    line (normal): 
    opened: True
-   views: 50 views, shown: 'Overview' (None, group Overview, badges ['6 plots'])
+   views: 51 views, shown: 'Overview' (None, group Overview, badges ['6 plots'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1']
    problems: []
-   thumbnails: 41
+   thumbnails: 42
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: other.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', ''))
@@ -429,10 +429,10 @@
 ==> removing plots, with Delete (only custom ones)
    line (error): The plots of the standard groups are not removed (the groups are shown or hidden as a whole, see the groups of plots)
    line (normal): Removed the plot "Direction z"
-   views: 49 views, shown: 'Weight' (weight, group Correlations, badges [])
+   views: 50 views, shown: 'Weight' (weight, group Correlations, badges [])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1']
    problems: []
-   thumbnails: 40
+   thumbnails: 41
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: other.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('weight', None, ('weight', ''))
@@ -440,11 +440,11 @@
    bins used: 27
    plot: 1 axes
 ==> the groups: an overview of each, which hides it with Delete, and shown again
-   [('overview:overview', 'Overview', 6, '2x3'), ('overview:fields', 'Fields', 13, '3x5'), ('overview:correlations', 'Correlations', 28, '7x7'), ('overview:custom', 'Custom', 3, '1x3')]
+   [('overview:overview', 'Overview', 6, '2x3'), ('overview:fields', 'Fields', 13, '3x5'), ('overview:correlations', 'Correlations', 28, '7x7'), ('overview:custom', 'Custom', 4, '2x3')]
    folded at the start: ['Correlations']
    code of the shown overview: 28 plots
    line (normal): Hidden: the group Correlations
-   after Delete: ['overview', 'fields'] overview:overview | state: {'groups': ['overview', 'fields'], 'custom': [{'title': 'Radius', 'plot': 'hypot(x,y)/cm'}, 'x;bins=40', 'uz;bins=20']}
+   after Delete: ['overview', 'fields'] overview:overview | state: {'groups': ['overview', 'fields'], 'custom': [{'title': 'Radius', 'plot': 'hypot(x,y)/cm'}, 'x;bins=40', {'title': 'Arrival time (??)', 'plot': 'x'}, 'uz;bins=20']}
    line (normal): Shown: the group Correlations
    shown again: ['overview', 'fields', 'correlations'] overview:correlations
    line (normal): Shown: the group 3D

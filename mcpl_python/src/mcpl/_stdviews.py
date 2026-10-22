@@ -19,33 +19,38 @@
 ##                                                                            ##
 ################################################################################
 
-"""The collections of plots of the viewer: each has a name, a short
-description, the plots the viewer starts with, and optionally its overviews
-(several plots shown together, see _viewer_overviews; by default the first
-six plots). The collection is chosen with -wNAME (or in
-the viewer), and the state of the viewer is saved as the changes of the plots
-of its collection.
+"""The standard groups of plots of the viewer, and the presets of them.
+
+Each group has a key, a title, a description, its plots (fixed: changing
+one copies it into the custom group of the viewer, see _viewer_groups), and
+its overview: a grid of all its plots, or for groups of pairs, a corner plot
+(the histograms of the expressions on the diagonal, and the 2D histograms of
+each pair below it, see _viewer_overviews.pair_cells). Groups with many plots
+are folded at the start (only their overview is shown). The presets are sets
+of groups, chosen with -wNAME (or in the viewer); the state of the viewer is
+saved as the groups which are shown and the custom plots.
 
 The plots are plot items, as in the state of the viewer: a histogram string
-(as for -H), or a dict with it as "plot", and optionally a "title" (shown
-instead of the histogram string, in the viewers with windows) and a "group"
-(where the plot is listed there).
+(as for -H), or a dict with it as "plot" and a "title" (shown instead of the
+histogram string, in the viewers with windows). Plots whose title follows
+from their expression (e.g. Energy for ekin, see _viewer._auto_title) have
+no title of their own.
 
 The names are not valid expressions (which is tested), so -wNAME can be
-either a collection or a view."""
+either a preset or a view."""
 
 __all__ = []
 
-_item_keys = ( 'plot', 'title', 'group' )
+_item_keys = ( 'plot', 'title' )
 
 def _plot_item( item ):
-    """The (plot, title, group) of a plot item (title and group are None if
-    not given), or TypeError or ValueError if it is not a valid plot item"""
+    """The (plot, title) of a plot item (title is None if not given), or
+    TypeError or ValueError if it is not a valid plot item"""
     if isinstance(item,str):
-        return item, None, None
+        return item, None
     if not isinstance(item,dict):
         raise TypeError('a plot must be a histogram string, or a JSON object with it'
-                         ' as "plot", and optionally a "title" and a "group"')
+                         ' as "plot", and optionally a "title"')
     for k, v in item.items():
         if k not in _item_keys:
             raise ValueError(f'unknown entry "{k}" of a plot (the entries are:'
@@ -54,48 +59,30 @@ def _plot_item( item ):
             raise ValueError(f'the {k} of a plot must be a text on one line')
     if 'plot' not in item:
         raise ValueError('a plot without its histogram string ("plot")')
-    return item['plot'].strip(), *( item[k].strip() if k in item else None
-                                    for k in ( 'title', 'group' ) )
+    return item['plot'].strip(), item['title'].strip() if 'title' in item else None
 
-def _item( plot, title = None, group = None ):
+def _item( plot, title = None ):
     """The plot item of the plot (see _plot_item): its histogram string if it
-    has no title and group"""
-    if title is None and group is None:
-        return plot
-    return { k : v for k, v in ( ( 'title', title ), ( 'plot', plot ), ( 'group', group ) )
-             if v is not None }
+    has no title"""
+    return plot if title is None else { 'title' : title, 'plot' : plot }
 
-#The overview of the correlations of the fields, as a corner plot (see
-#_viewer_overviews), with the energy on a log scale (as log10 of the energy
-#in eV):
-def _correlations( *exprs ):
-    return { 'title' : 'Correlations',
-             'pairs' : ( *exprs, 'log10(ekin/eV)', 'weight' ) }
-
-#The overviews of the beam collections: the first plots, and the correlations
-#of the positions and directions across the beam:
-def _beam_overviews( axis, a, b ):
-    return ( { 'title' : 'Overview', 'first' : 6 },
-             _correlations(a,b,f'u{a}',f'u{b}',f'u{axis}') )
-
-#The angles of the directions to the axis of a beam along z, x or y (with
-#the two components across the beam):
+#The plots of a beam along z, x or y (with the angles of the directions to
+#the axis, of the two components across the beam):
 def _beam( axis, a, b ):
     div_a, div_b = f'atan2(u{a},u{axis})/deg', f'atan2(u{b},u{axis})/deg'
     vector = ','.join( '1' if c == axis else '0' for c in 'xyz' )
-    beam = 'Profiles and divergences'
-    return ( _item(f'{a} : {b}','Beam profile',beam),
-             _item(f'{div_a} : {div_b}','Divergences',beam),
-             _item(f'{a} : {div_a}',f'Phase space {a}',beam),
-             _item(f'{b} : {div_b}',f'Phase space {b}',beam),
-             _item('ekin;logx=auto;logy;split=pdgcode',None,'Spectra'),
-             _item('wavelength;logx=auto;logy=auto;split=pdgcode',None,'Spectra'),
-             _item(f'hypot({a},{b})','Distance from the axis','Other'),
-             _item(f'angle_to({vector})/deg;logy',f'Angle to the {axis} axis','Other'),
-             _item('time;logx=auto;logy',None,'Other'),
-             _item('pdgcode;bar;logy=auto',None,'Other'),
-             _item(f'{axis}',None,'Other'),
-             _item('weight;unweighted;logy',None,'Other') )
+    return ( _item(f'{a} : {b}','Beam profile'),
+             _item(f'{div_a} : {div_b}','Divergences'),
+             _item(f'{a} : {div_a}',f'Phase space {a}'),
+             _item(f'{b} : {div_b}',f'Phase space {b}'),
+             'ekin;logx=auto;logy;split=pdgcode',
+             'wavelength;logx=auto;logy=auto;split=pdgcode',
+             _item(f'hypot({a},{b})','Distance from the axis'),
+             _item(f'angle_to({vector})/deg;logy',f'Angle to the {axis} axis'),
+             'time;logx=auto;logy',
+             'pdgcode;bar;logy=auto',
+             f'{axis}',
+             'weight;unweighted;logy' )
 
 #The titles of plots of single fields (also divided by units, as in ekin/MeV),
 #when they have no title of their own (see _viewer._auto_title):
@@ -106,38 +93,62 @@ _field_titles = { 'ekin' : 'Energy', 'x' : 'Position x', 'y' : 'Position y',
                   'pdgcode' : 'Particle type', 'userflags' : 'User flags',
                   'wavelength' : 'Wavelength', 'fileidx' : 'Position in the file' }
 
-_collections = {
-    'default' : ( 'an overview of all particle fields', (
-        _item('ekin;logx=auto;logy;split=pdgcode',None,'Main plots'),
-        _item('wavelength;logx;split=pdgcode',None,'Main plots'),
-        _item('angle_to(0,0,1)/deg;logy;split=pdgcode','Angle to the z axis','Main plots'),
-        _item('x : y','Position x-y','Main plots'),
-        _item('time;logx=auto;logy',None,'Main plots'),
-        _item('pdgcode;bar;logy=auto',None,'Main plots'),
-        #(the fields in the order of mcpltool, with the titles from their
-        #expressions, see _viewer._auto_title):
-        *( _item(f,t,'Fields') for f, t in (
-            ( 'ekin', None ), ( 'x', None ), ( 'y', None ), ( 'z', None ), ( 'ux', None ),
-            ( 'uy', None ), ( 'uz', None ), ( 'time', None ), ( 'weight;unweighted', None ),
-            ( 'polx', None ), ( 'poly', None ), ( 'polz', None ),
-            ( 'userflags;bar;logy=auto', None ) ) ) ),
-        ( { 'title' : 'Overview', 'first' : 6 }, { 'title' : 'All fields', 'group' : 'Fields' },
-          _correlations('x','y','ux','uy','uz') ) ),
-    'beamz' : ( 'a beam along the z axis: profiles and divergences', _beam('z','x','y'),
-                _beam_overviews('z','x','y') ),
-    'beamx' : ( 'a beam along the x axis: profiles and divergences', _beam('x','y','z'),
-                _beam_overviews('x','y','z') ),
-    'beamy' : ( 'a beam along the y axis: profiles and divergences', _beam('y','z','x'),
-                _beam_overviews('y','z','x') ),
-    'shielding' : ( 'spectra, directions and weights of all particle types', (
-        _item('pdgcode;bar;logy=auto',None,'Main plots'),
-        _item('ekin;logx=auto;logy;split=pdgcode',None,'Main plots'),
-        _item('angle_to(0,0,1)/deg;logy;split=pdgcode','Angle to the z axis','Main plots'),
-        _item('time;logx=auto;logy;split=pdgcode',None,'Main plots'),
-        _item('weight;logx=auto;logy;unweighted;split=pdgcode',None,'Main plots'),
-        _item('x : y','Position x-y','More plots'),
-        _item('hypot(x,y);logy;split=pdgcode','Distance from the z axis','More plots'),
-        _item('wavelength;logx;split=pdgcode',None,'More plots') ) ),
+#The standard groups, as key -> (title, description, plot items, options),
+#with the options pairs (the expressions of a corner plot, whose plots are
+#then those of its cells) and folded (only the overview is shown at the
+#start; the plots are shown in the first group which has them, so the
+#correlations, which have many plots of other groups, come last):
+_groups = {
+    'overview' : ( 'Overview', 'the main plots of the particles', (
+        'ekin;logx=auto;logy;split=pdgcode',
+        'wavelength;logx;split=pdgcode',
+        _item('angle_to(0,0,1)/deg;logy;split=pdgcode','Angle to the z axis'),
+        _item('x : y','Position x-y'),
+        'time;logx=auto;logy',
+        'pdgcode;bar;logy=auto' ), {} ),
+    #(the fields in the order of mcpltool, and those of the userdata, see
+    #_viewer_groups):
+    'fields' : ( 'Fields', 'a plot of each particle field', (
+        'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted',
+        'polx', 'poly', 'polz', 'userflags;bar;logy=auto' ), {} ),
+    'beamz' : ( 'Beam along z', 'profiles and divergences of a beam along z',
+                _beam('z','x','y'), {} ),
+    'beamx' : ( 'Beam along x', 'profiles and divergences of a beam along x',
+                _beam('x','y','z'), {} ),
+    'beamy' : ( 'Beam along y', 'profiles and divergences of a beam along y',
+                _beam('y','z','x'), {} ),
+    'shielding' : ( 'Shielding', 'spectra, directions and weights of all particle types', (
+        'pdgcode;bar;logy=auto',
+        #(the energy spectra per unit lethargy, as usual in shielding):
+        'ekin;lethargy;logy;split=pdgcode',
+        _item('angle_to(0,0,1)/deg;logy;split=pdgcode','Angle to the z axis'),
+        'time;logx=auto;logy;split=pdgcode',
+        'weight;logx=auto;logy;unweighted;split=pdgcode',
+        _item('x : y','Position x-y'),
+        _item('hypot(x,y);logy;split=pdgcode','Distance from the z axis'),
+        'wavelength;logx;split=pdgcode' ), {} ),
+    '3d' : ( '3D', 'the positions and directions in 3D, of a sample of the particles', (
+        _item('x : y : z;split=pdgcode','Positions in 3D'),
+        _item('ux : uy : uz;split=pdgcode','Directions in 3D') ), {} ),
+    'correlations' : ( 'Correlations', ( 'the correlations of the positions, directions,'
+                                         ' energy and weight, as a corner plot' ), (),
+                       { 'pairs' : ( 'x', 'y', 'ux', 'uy', 'uz', 'log10(ekin/eV)', 'weight' ),
+                         'folded' : True } ),
 }
 
-_default_collection = 'default'
+#The presets of groups, as name -> (description, groups):
+_presets = {
+    'default' : ( 'the overview, the fields and their correlations',
+                  ( 'overview', 'fields', 'correlations' ) ),
+    'beamz' : ( 'a beam along the z axis: profiles, divergences and correlations',
+                ( 'beamz', 'correlations' ) ),
+    'beamx' : ( 'a beam along the x axis: profiles, divergences and correlations',
+                ( 'beamx', 'correlations' ) ),
+    'beamy' : ( 'a beam along the y axis: profiles, divergences and correlations',
+                ( 'beamy', 'correlations' ) ),
+    'shielding' : ( 'spectra, directions and weights of all particle types',
+                    ( 'shielding', ) ),
+    'all' : ( 'all groups', tuple(_groups) ),
+}
+
+_default_preset = 'default'

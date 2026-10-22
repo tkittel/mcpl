@@ -52,8 +52,8 @@ def same( a, b ):
 _plots = [ 'ekin/MeV;logx=1;split=pdgcode', 'x/cm : y/cm;bins=10', 'wavelength;logy=1' ]
 
 def test_figures():
-    from mcpldev._stdviews import _collections, _plot_item
-    _default_plots = [ _plot_item(i)[0] for i in _collections['default'][1] ]
+    from mcpldev._viewer_groups import PlotGroups
+    _default_plots = [ p for p, _, _ in PlotGroups().cards() ]
     for skip, limit, pick, edit in ( (0,None,None,None),
                                      (0,None,'pdgcode == neutron',None),
                                      (100,500,'ekin > 1MeV','z += 1m'),
@@ -66,7 +66,7 @@ def test_figures():
         keys = [ k for k, _ in v.views ]
         figs = { k : v.figure(i) for i, k in enumerate(keys) }
         #Each plot is as with mcpltool -H (with the pick and edit expressions
-        #as titles), and the overview has the first ones:
+        #as titles), and the overviews have the plots of their groups:
         title = '\n'.join( f'{w}: {e}' for w, e in (('pick',pick),('edit',edit)) if e )
         src = _FileView(MCPLFile(ex),skip,limit,
                         mcpl.ParticleFilter(pick) if pick else None,
@@ -81,12 +81,12 @@ def test_figures():
                 continue
             h.title = title or None
             ok &= same(figs[f'plot:{p}'],h.figure())
-        ov = figs['overview:multi']
+        ov = figs['overview:overview']
         ok &= [ describe([mcpl.plotting.Figure(panels=[pn])]).split('\n',1)[1]
                 for pn in ov.panels ] == [
                     describe([mcpl.plotting.Figure(panels=[ figs[k].panels[0] ])]).split('\n',1)[1]
                     .replace(f"Panel {figs[k].panels[0].title!r}","Panel None",1)
-                    for k in v.overview_keys() ]
+                    for k in v.overview_keys('overview:overview') ]
         print(f'skip={skip} limit={limit} pick={pick!r} edit={edit!r}:')
         print(f'   {v.status_lines()[0]}')
         print(f'   {len(v.views)} views, same figures as mcpltool -H: {ok}')
@@ -95,88 +95,84 @@ def test_figures():
         assert ok
         v.stop()
 
-def test_collections():
+def test_groups():
     import shlex
 
-    from mcpldev._stdviews import _collections, _default_collection
-    assert _default_collection in _collections
-    #The names of the collections can never be views (plots), as they are not
-    #valid expressions or plots (so -wNAME can be either):
-    for name in _collections:
+    from mcpldev._stdviews import _default_preset, _groups, _plot_item, _presets
+    from mcpldev._viewer import _auto_title
+    from mcpldev._viewer_groups import PlotGroups
+    assert _default_preset in _presets
+    assert all( k in _groups for _, keys in _presets.values() for k in keys )
+    #The names of the presets and groups can never be views (plots), as they
+    #are not valid expressions or plots (so -wNAME can be either):
+    for name in ( *_presets, *_groups ):
         for check in ( mcpl.ParticleValue, mcpl.ParticleFilter ):
             try:
                 check(name)
             except mcpl.MCPLError:
                 continue
-            raise AssertionError(f'collection name {name!r} is a valid expression')
-        assert not Viewer(ex).check('plot',name)[0], f'collection name {name!r} is a valid plot'
-    #All plots of all collections work (they are plot items, with titles and
-    #groups):
-    from mcpldev._stdviews import _plot_item
-    from mcpldev._viewer_overviews import default_specs, resolve
-    for name, ( descr, items, *overviews ) in _collections.items():
+            raise AssertionError(f'group or preset name {name!r} is a valid expression')
+        assert not Viewer(ex).check('plot',name)[0], f'group or preset name {name!r} is a valid plot'
+    #All plots of all groups work, and plots whose title follows from their
+    #expressions have no title of their own (so it follows changes of the
+    #expressions, see _viewer._auto_title):
+    g = PlotGroups()
+    g.use_preset('all')
+    for key, ( title, descr, items, opts ) in _groups.items():
         plots = [ _plot_item(i) for i in items ]
-        assert len({ p for p, _, _ in plots }) == len(plots)
-        #(plots whose title follows from their expressions have no title of
-        #their own, so it follows changes of the expressions, see
-        #_viewer._auto_title):
-        from mcpldev._viewer import _auto_title
-        for p, t, _ in plots:
-            assert t is None or _auto_title(p) is None, ( f'{name}: the plot {p!r} has the title'
+        assert len({ p for p, _ in plots }) == len(plots)
+        for p, t in plots:
+            assert t is None or _auto_title(p) is None, ( f'{key}: the plot {p!r} has the title'
                                                          f' {t!r}, but gets one from its expression' )
-        for p, _, _ in plots:
+        ov = dict(g.overviews())[key]
+        for p in ov.plots:
+            assert Viewer(ex).check('plot',p)[0], p
             mcpl.histogram(ex,p)
-        groups = list(dict.fromkeys( g for _, _, g in plots ))
-        print(f'collection {name}: {descr}, {len(plots)} plots, first: {plots[0]!r}, groups: {groups}')
-        #(and all plots of its overviews work):
-        for spec in ( overviews[0] if overviews else default_specs ):
-            ov = resolve(spec,[ p for p, _, _ in plots ],{ p : g for p, _, g in plots })
-            for p in ov.plots:
-                Viewer(ex).check('plot',p)[0] or print(f'   bad plot of {spec["title"]}: {p}')
-                if ':' in p:
-                    mcpl.histogram2d(ex,*p.split(':'))
-                else:
-                    mcpl.histogram(ex,p)
-            print(f'   overview {ov.title!r}: {len(ov.plots)} plots in {ov.nrows}x{ov.ncols}')
+        print(f'group {key}: {title}: {descr}, {len(ov.plots)} plots in {ov.nrows}x{ov.ncols}'
+              f'{" (corner)" if ov.corner else ""}{" (folded)" if opts.get("folded") else ""}')
+    for name, ( descr, keys ) in _presets.items():
+        print(f'preset {name}: {descr}: {", ".join(keys)}')
     v = Viewer(ex,view='beamz',plots=['x;bins=5'])
-    print('-wbeamz:', v.field_text('collection'), [ k for k, _ in v.views ][:2],
+    v.multi_overview = True
+    print('-wbeamz:', v.field_text('collection'), v.groups, [ k for k, _ in v.views ][:2],
           '| state:', v.state(), '| command:', v.commands()['view'])
-    v.change_plot('x : y','x/mm : y/mm')
-    print('changed:', v.state(full = False))
-    print('check:', v.check('collection','beam'), v.check('collection',''))
+    #(a plot of a standard group is copied into the custom group when it is
+    #changed, with its title, and is not removed; custom plots are):
+    print('changed:', v.change_plot('x : y','x/mm : y/mm'), v.current_key,
+          v.plot_info(v.current_key)['name'], v.plot_info(v.current_key)['group'],
+          '| still there:', 'plot:x : y' in dict(v.views), '| state:', v.state(full = False))
+    print('removing a standard plot:', v.change_plot('x : y',''))
+    print('removing a custom plot:', v.change_plot('x/mm : y/mm',''), v._groups.custom)
+    print('check:', v.check('collection','beam'), v.check('collection',''), v.check('collection','3d'))
     print('completions:', v.complete('collection','beam'), '| hint:', v.hint('collection','beamx'))
-    g = v._generation
-    print('same collection:', v.set('collection','beamz'), 'restarted:', v._generation != g)
-    print('switched:', v.set('collection','shielding'), [ k for k, _ in v.views ][:2],
-          'added plot kept:', v._s.plots[-1], '| state:', v.state(full = False))
+    print('switched:', v.set('collection','shielding'), v.groups, [ k for k, _ in v.views ][:2],
+          'custom plot kept:', v._s.plots[-1], '| state:', v.state(full = False))
+    print('group shown:', v.show_group('3d'), v.groups, 'again:', v.show_group('3d'),
+          '| hidden:', v.show_group('shielding',False), v.groups, '| state:', v.state(full = False))
     arg = shlex.split(v.commands()['view'])[1]
     w = Viewer(ex,view=arg.split('=',1)[1] if arg.startswith('--') else arg[2:])
     print('opened with the command: same state:', w.state() == v.state())
     #(a state given as a dict, as in the Python API):
     w = Viewer(ex,view=v.state())
     print('opened with the state as a dict: same state:', w.state() == v.state())
-    #Titles and groups of the plots, kept when they are changed, and in the
-    #state (as plot items):
+    #Titles of the custom plots, kept when they are changed, and in the
+    #state (as plot items); the standard plots keep theirs:
     t = Viewer(ex)
     t.set('plot','hypot(x,y)/cm;logy')
-    print('titles:', t.set_title('hypot(x,y)/cm;logy','Radius'), t.set_group('hypot(x,y)/cm;logy','Mine'),
-          t.set_title('x : y','Beam spot'), t.set_title('x : y','a\nb'), t.set_title('nope','x'))
-    t.change_plot('x : y','x/mm : y/mm')
-    print('info of a changed plot:', t.plot_info('plot:x/mm : y/mm'))
-    print('info of a plot of the collection:', t.plot_info('plot:polx'))
-    t.set_title('polx','')
-    print('info of a plot with its title removed:', t.plot_info('plot:polx'))
-    print('moved:', t.move_to('hypot(x,y)/cm;logy',0), t._s.plots[:2])
+    t.set('plot','uz;bins=20')
+    print('titles:', t.set_title('hypot(x,y)/cm;logy','Radius'), t.set_title('x : y','Beam spot'),
+          t.set_title('hypot(x,y)/cm;logy','a\nb'), t.set_title('nope','x'))
+    t.change_plot('hypot(x,y)/cm;logy','hypot(x,y)/mm')
+    print('info of a changed custom plot:', t.plot_info('plot:hypot(x,y)/mm'))
+    print('info of a standard plot:', t.plot_info('plot:polx'))
+    print('moved:', t.move_to('uz;bins=20',0), t._groups.custom, '| a standard plot:',
+          t.move_to('polx',0))
     st = t.state()
     print('state:', st)
     print('opened with it: same state:', Viewer(ex,view=st).state() == st)
-    for bad in ( "{'plots':{'add':[{'title':'A'}]}}", "{'plots':{'add':[{'plot':'x','color':'red'}]}}",
-                 "{'plots':{'add':[3]}}", "{'plots':{'change':{'x : y':{'plot':'x','title':''}}}}" ):
-        try:
-            Viewer(ex,view=bad)
-        except mcpl.MCPLError as e:
-            print(f'view {bad!r}: {e}')
-    for bad in ( "{'collection':'nope'}", "{'collection':3}" ):
+    for bad in ( "{'custom':[{'title':'A'}]}", "{'custom':[{'plot':'x','color':'red'}]}",
+                 "{'custom':[3]}", "{'custom':[{'plot':'x','title':''}]}", "{'custom':{}}",
+                 "{'groups':'nope'}", "{'groups':3}", "{'groups':['fields','nope']}" ):
         try:
             Viewer(ex,view=bad)
         except mcpl.MCPLError as e:
@@ -188,15 +184,16 @@ def test_state():
     v = Viewer(ex)
     v.multi_overview = True
     print('state at the start:', v.state(), '| command:', v.commands()['view'])
-    v.select(len(v.overviews()) + 1)#(the second plot)
-    print('move up:', v.move(-1), 'down twice:', v.move(1), v.move(1), '| current:', v.views[v.current][0])
+    v.set('plot','hypot(x,y)/cm')
+    v.set('plot','uz;bins=20')
+    print('move up:', v.move(-1), 'again:', v.move(-1), 'down:', v.move(1), '| current:', v.current_key,
+          v._groups.custom)
     v.select(0)
     print('move the overview:', v.move(1))
-    v.select(len(v.views)-1)
-    print('move the last down:', v.move(1))
+    v.select_key('plot:x')
+    print('move a standard plot:', v.move(1))
     v.change_plot('ekin','ekin/keV;logy=1')
-    v.change_plot('polx','')
-    v.set('plot','hypot(x,y)/cm')
+    v.change_plot('hypot(x,y)/cm','')
     v.set('pick','pdgcode != gamma')
     v.set('limit','500')
     print('state:', v.state())
@@ -221,32 +218,16 @@ def test_state():
     print('arguments after the state:', w.field_text('limit'), w._s.plots[-1])
     d = Viewer(ex,dry_run=True)
     print('dry run:', d.try_save_state('dry.json'), pathlib.Path('dry.json').exists())
-    for view in ( 'x', ' x ', 'overview', 'pdgcode;bar = auto ; logy=auto' ):
+    for view in ( 'x', ' x ', 'overview', 'overview:fields', 'pdgcode;bar = auto ; logy=auto' ):
         w = Viewer(ex,view=view)
+        w.multi_overview = True
         print(f'view {view!r}:', w.views[w.current][0])
-    for bad in ( "{'foo':1}", '{"limit":"a"}', "{'plots':{'change':{'nope':'x'}}}",
-                 "{'plots':{'remove':['x;bins=7']}}", "{'plots':{'foo':[]}}",
-                 "{'plots':{'add':['x;bins=0']}}", "{bad", "[1]", "nope.json", 'nope',
-                 "{'add_overviews':[{'title':'x'}]}", "{'add_overviews':[{'title':'x','first':2,'group':'g'}]}",
-                 "{'add_overviews':[{'title':'x','plots':['nonsense']}]}", "{'add_overviews':{}}",
-                 "{'remove_overviews':['Nope']}" ):
+    for bad in ( "{'foo':1}", '{"limit":"a"}', "{bad", "[1]", "nope.json", 'nope', 'overview:nope' ):
         try:
             Viewer(ex,view=bad)
             print(f'view {bad!r}: no error')
         except mcpl.MCPLError as e:
             print(f'view {bad!r}: {e}')
-    #Overviews added and removed, which the state keeps:
-    v = Viewer(ex)
-    v.multi_overview = True
-    print('added overview:', v.add_overview({ 'title' : 'Spectra', 'plots' : [ 'ekin', None, 'time' ],
-                                               'ncols' : 3 }))
-    v.remove_overview('overview:2')
-    v.select_key('overview:3')
-    state = v.state(full = False)
-    print('state:', state)
-    w = Viewer(ex,view=state)
-    w.multi_overview = True
-    print('opened again:', [ ( k, ov.title, ov.cells ) for k, ov in w.overviews() ], w.current_key)
 
 def test_fields():
     v = Viewer(ex)
@@ -657,7 +638,7 @@ test_plot_changes()
 test_range_and_userdata()
 test_fields()
 test_reading()
-test_collections()
+test_groups()
 test_state()
 test_write()
 test_terminal()

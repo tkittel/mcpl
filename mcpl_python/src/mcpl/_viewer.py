@@ -35,14 +35,9 @@ import re
 import threading
 
 from ._common import MCPLError
-from ._stdviews import (
-    _collections,
-    _default_collection,
-    _field_titles,
-    _item,
-    _plot_item,
-)
-from ._viewer_overviews import check_spec, default_specs, overview_figure, resolve
+from ._stdviews import _field_titles, _groups, _plot_item, _presets
+from ._viewer_groups import PlotGroups, custom_key, group_names, title_of
+from ._viewer_overviews import overview_figure
 from ._viewer_reading import _make_filler, _Reading
 
 _fields = ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot' )
@@ -91,9 +86,10 @@ class Viewer(_Reading):
                         'plot' : '' }
         self._history = { f : [] for f in _fields }
         self._s = _Settings()
-        self._origins = {}
-        self._meta = {}#histogram string -> (title, group) of the plots with them
-        self._use_collection(_default_collection)
+        #(the plots, in groups, with those of the fields of the userdata in the
+        #group of the fields, see _viewer_groups):
+        self._groups = PlotGroups({ 'fields' : self._userdata_items() })
+        self._sync()
         self._lock = threading.Lock()
         self._figures = {}#view key -> Figure
         self._constants = {}#field -> text of the value all particles have
@@ -119,11 +115,11 @@ class Viewer(_Reading):
         self.multi_overview = False
         self._current = None#(key of the view shown, None for the first)
         self._overviews = {}#view key -> (what its figure was made from, figure)
-        #The view argument is the name of a collection of plots, a view, or a
-        #state (see state()), which is applied before the other arguments (so
-        #these can change it):
-        if isinstance(view,str) and view in _collections:
-            view = { 'collection' : view }
+        #The view argument is the name of a preset of groups of plots (or of a
+        #group), a view, or a state (see state()), which is applied before the
+        #other arguments (so these can change it):
+        if isinstance(view,str) and ( view in _presets or view in _groups ):
+            view = { 'groups' : view }
         state = _as_state(view)
         if state is not None:
             self._loading = True
@@ -140,40 +136,18 @@ class Viewer(_Reading):
             self._set_or_raise('plot',p)
         self._current = self._view_key(view) if view else None
 
-    def _use_collection( self, name ):
-        """Start from the plots of the collection (keeping the plots which were
-        added, but not the changes of the plots of the previous collection)"""
-        added = [ p for p in self._s.plots if p not in self._origins ]
-        items = [ _plot_item(i) for i in _collections[name][1] ]
-        if name == _default_collection:
-            #(the overview of all particle fields also has those of the
-            #userdata, at the end):
-            items += self._userdata_items()
-        self._collection = name
-        #(the overviews of the collection, see _viewer_overviews, and the
-        #indices of those which were removed):
-        #(and those added, which are kept, see add_overview):
-        self._added_overviews = getattr(self,'_added_overviews',[])
-        self._overview_specs = list( _collections[name][2] if len(_collections[name]) > 2
-                                     else default_specs ) + self._added_overviews
-        self._removed_overviews = set()
-        self._base = [ p for p, _, _ in items ]
-        self._base_meta = { p : ( t, g ) for p, t, g in items if ( t, g ) != ( None, None ) }
-        #(the plot of the collection each plot comes from, if any, for state()):
-        self._origins = { p : p for p in self._base }
-        added = [ p for p in added if p not in self._origins ]
-        self._meta = { **{ p : self._meta[p] for p in added if p in self._meta },
-                       **self._base_meta }
-        self._s.plots = list(self._base) + added
+    def _sync( self ):
+        """The plots of the settings (shown as views) from the groups"""
+        self._s.plots = [ p for p, _, _ in self._groups.cards() ]
 
     def _userdata_items( self ):
-        """Plot items of the fields of the userdata (of each value, for arrays)"""
+        """Plots of the fields of the userdata (of each value, for arrays)"""
         items = []
         for name, _, n in self._ud_fields:
             if n is None:
-                items.append( ( f'userdata.{name}', None, 'Fields' ) )
+                items.append(f'userdata.{name}')
             else:
-                items += [ ( f'userdata.{name}.at({i})', None, 'Fields' ) for i in range(n) ]
+                items += [ f'userdata.{name}.at({i})' for i in range(n) ]
         return items
 
     def _set_or_raise( self, field, text ):
@@ -182,22 +156,20 @@ class Viewer(_Reading):
             raise MCPLError(msg)
 
     def _view_key( self, view ):
-        """The key of a view given as overview (or overview:TITLE, for the
-        overviews after the first) or as a plot (histogram string)"""
-        if view in ( 'overview', 'overview:multi' ):
+        """The key of a view given as overview (the first), overview:GROUP (the
+        overview of a group, by its key) or as a plot (histogram string)"""
+        if view == 'overview':
             return 'overview'
-        if view.startswith('overview:'):
-            key = self._overview_key_of(view[9:])
-            if key is not None:
-                return key
+        if view.startswith('overview:') and ( view[9:] in _groups or view[9:] == custom_key ):
+            return view
         try:
             same = self._same_plot(view)
         except MCPLError:
             same = None
         if same is None:
-            raise MCPLError(f'Unknown view "{view}" (the views are the overview and'
-                            ' the plots, given as overview or as the histogram'
-                            ' string of a plot, e.g. ekin)')
+            raise MCPLError(f'Unknown view "{view}" (the views are the overviews and'
+                            ' the plots, given as overview, overview:GROUP or as the'
+                            ' histogram string of a plot, e.g. ekin)')
         return f'plot:{same}'
 
     #Fields:
@@ -205,7 +177,7 @@ class Viewer(_Reading):
     def field_text( self, field ):
         """Current text of a field (as last set)"""
         if field == 'collection':
-            return self._collection
+            return self._groups.preset() or ','.join(self._groups.shown)
         return self._texts[field] if field != 'plot' else ''
 
     def check( self, field, text ):
@@ -245,10 +217,11 @@ class Viewer(_Reading):
             _make_filler(text,None)#(checks the expressions and options)
             return text
         if field == 'collection':
-            text = text or _default_collection
-            if text not in _collections:
-                raise MCPLError(f'Unknown collection of plots "{text}" (the collections'
-                                f' are: {", ".join(_collections)})')
+            text = text or 'default'
+            names = [ n for n, _ in group_names() ]
+            if text not in names:
+                raise MCPLError(f'Unknown groups of plots "{text}" (the groups are chosen by'
+                                f' these names: {", ".join(names)})')
             return text
         raise MCPLError(f'Unknown field "{field}"')
 
@@ -283,20 +256,16 @@ class Viewer(_Reading):
         if text and ( not h or h[-1] != text ):
             h.append(text)
         if field == 'plot':
-            #(the same plot written differently is not added again):
+            #(the same plot written differently is not added again, and new
+            #plots are custom plots, see _viewer_groups):
             same = self._same_plot(text)
             if same is None:
-                self._s.plots.append(text)
+                self._groups.add(text)
+                self._sync()
             self._current = f'plot:{same or text}'
         elif field == 'collection':
-            if value == self._collection:
-                #(the same collection only gives back its removed overviews):
-                if self._removed_overviews:
-                    self._removed_overviews = set()
-                    with self._lock:
-                        self._updates += 1
-                return True, ''
-            self._use_collection(value)
+            self._groups.use_preset(value)
+            self._sync()
             self._current = None
         else:
             #(the reading is not restarted for the same value, e.g. an
@@ -370,23 +339,26 @@ class Viewer(_Reading):
         return True, f'{"linear" if shown else "log"} {axis}' + ( ' (was auto)' if o[option] == 'auto' else '' )
 
     def change_plot( self, old, text ):
-        """Replace the plot old (its histogram string) by the text, in its place
-        among the views, or remove it if the text is empty (restarting the
-        reading): (ok, message)"""
+        """Replace the plot old (its histogram string) by the text, or remove it
+        if the text is empty (restarting the reading): (ok, message). Custom
+        plots are changed in their place, and the plots of the standard groups
+        are copied into the custom group, changed (see _viewer_groups)."""
         self._scale_undo = None#(see toggle_scale, which sets it again)
         text = text.strip()
-        plots = self._s.plots
+        plots, groups = self._s.plots, self._groups
         if old not in plots:
             return False, f'No plot "{old}"'
-        i = plots.index(old)
+        custom = groups.is_custom(old)
         if not text:
-            #(showing the view before it, or the next for the first):
-            keys = [ k for k, _ in self.views ]
+            if not custom:
+                return False, ( 'The plots of the standard groups are not removed (the groups'
+                                ' are shown or hidden as a whole, see the groups of plots)' )
+            #(showing the plot before it, or the next for the first):
+            keys = [ k for k, _ in self.views if k.startswith('plot:') ]
             k = keys.index(f'plot:{old}')
-            self._current = keys[ k - 1 if k > 0 else min( 1, len(keys) - 1 ) ]
-            plots.pop(i)
-            self._origins.pop(old,None)
-            self._meta.pop(old,None)
+            self._current = keys[k-1] if k > 0 else keys[1] if len(keys) > 1 else None
+            groups.remove(old)
+            self._sync()
             self._restart()
             return True, ''
         try:
@@ -400,80 +372,81 @@ class Viewer(_Reading):
         h = self._history['plot']
         if not h or h[-1] != text:
             h.append(text)
-        origin = self._origins.pop(old,None)
-        meta = self._meta.pop(old,None)#(the title and group stay with the plot)
-        meta = _doubtful_title(meta,old,text)
-        if same is not None:
-            plots.pop(i)#(the plot is already there)
-            if meta is not None and same not in self._meta:
-                self._meta[same] = meta
-        else:
-            plots[i] = text
-            if origin is not None:
-                self._origins[text] = origin
-            if meta is not None:
-                self._meta[text] = meta
+        title = _doubtful_title(self._title_of(old),old,text)
+        if same is None:
+            #(changed in its place, or copied after the last custom plot):
+            groups.add(text,title,after = old if custom else None)
+        if custom:
+            groups.remove(old)
+        self._sync()
         self._current = f'plot:{same or text}'
         self._restart()
         return True, ''
 
     def move( self, delta ):
-        """Move the shown plot up (delta -1) or down (delta 1) in the list of
-        plots, whose first ones are shown in the overview: whether it moved"""
+        """Move the shown plot up (delta -1) or down (delta 1) among the custom
+        plots (the plots of the standard groups have their places): whether it
+        moved"""
         key = self.views[self.current][0]
-        plots = self._s.plots
-        if not key.startswith('plot:'):
+        if not key.startswith('plot:') or not self._groups.is_custom(key[5:]):
             return False
-        i = plots.index(key[5:])
-        j = i + delta
-        if not 0 <= j < len(plots):
-            return False
-        plots[i], plots[j] = plots[j], plots[i]
-        with self._lock:
-            self._updates += 1#(the figures are the same, in another order)
-        return True
+        return self.move_to(key[5:],self._groups.custom.index(key[5:]) + delta)
 
     def move_to( self, plot, index ):
-        """Move the plot (its histogram string) to the index in the list of
-        plots: whether it moved"""
-        plots = self._s.plots
-        if plot not in plots:
+        """Move the custom plot (its histogram string) to the index among the
+        custom plots: whether it moved"""
+        if not self._groups.is_custom(plot) or not self._groups.move_to(plot,index):
             return False
-        i = plots.index(plot)
-        index = max( 0, min( len(plots) - 1, index ) )
-        if index == i:
-            return False
-        plots.insert(index,plots.pop(i))
+        self._sync()
         with self._lock:
             self._updates += 1#(the figures are the same, in another order)
         return True
 
     def set_title( self, plot, title ):
-        """Set the title of the plot (its histogram string), shown instead of it
-        in the viewers with windows, or remove it (an empty title): (ok,
-        message)"""
-        return self._set_meta(plot,0,title,'title')
-
-    def set_group( self, plot, group ):
-        """Set the group of the plot (where it is listed in the viewers with
-        windows), or remove it (an empty group): (ok, message)"""
-        return self._set_meta(plot,1,group,'group')
-
-    def _set_meta( self, plot, i, text, what ):
-        if plot not in self._s.plots:
-            return False, f'No plot "{plot}"'
-        text = text.strip()
-        if text and not text.isprintable():
-            return False, f'The {what} must be a text on one line'
-        meta = list(self._meta.get(plot,( None, None )))
-        meta[i] = text or None
-        if meta == [ None, None ]:
-            self._meta.pop(plot,None)
-        else:
-            self._meta[plot] = tuple(meta)
+        """Set the title of the custom plot (its histogram string), shown
+        instead of it in the viewers with windows, or remove it (an empty
+        title): (ok, message)"""
+        if not self._groups.is_custom(plot):
+            return False, ( 'The plots of the standard groups keep their titles (a changed'
+                            ' plot is copied into the custom group, with its own title)' )
+        title = title.strip()
+        if title and not title.isprintable():
+            return False, 'The title must be a text on one line'
+        self._groups.set_title(plot,title)
         with self._lock:
             self._updates += 1#(the figures are the same)
         return True, ''
+
+    def _title_of( self, plot ):
+        """The title of the plot (given, not from its expression), or None"""
+        return next( ( t for p, t, _ in self._groups.cards() if p == plot ), None )
+
+    def show_group( self, key, shown = True ):
+        """Show (or hide) the standard group with the key: whether it changed"""
+        if not self._groups.show(key,shown):
+            return False
+        self._sync()
+        if not shown and self._current is not None and self._current not in [ k for k, _ in self.views ]:
+            self._current = None
+        self._restart()
+        return True
+
+    @property
+    def groups( self ):
+        """The keys of the standard groups shown"""
+        return list(self._groups.shown)
+
+    def group_list( self ):
+        """The standard groups, as (key, title, description, whether shown)"""
+        return [ ( k, g[0], g[1], k in self._groups.shown ) for k, g in _groups.items() ]
+
+    def is_custom( self, plot ):
+        """Whether the plot (histogram string) is one of the custom plots"""
+        return self._groups.is_custom(plot)
+
+    def folded_groups( self ):
+        """The titles of the groups which are folded at the start"""
+        return self._groups.folded()
 
     def plot_info( self, key ):
         """What the viewers with windows show of the view with the key (see
@@ -484,11 +457,14 @@ class Viewer(_Reading):
         None)"""
         if not key.startswith('plot:'):
             ov = dict(self.overviews()).get(key)
-            return { 'title' : None, 'name' : ov.title if ov else 'Overview', 'plot' : None,
-                     'group' : None, 'badges' : [ f'{len(ov.plots) if ov else 0} plots' ],
+            return { 'title' : None, 'name' : 'Overview', 'plot' : None,
+                     'group' : ov.title if ov else None,
+                     'badges' : [ f'{n} plot{"s" if n != 1 else ""}' for n in
+                                  ( len(ov.plots) if ov else 0, ) ],
                      'constant' : None, 'absent' : False }
         p = key[5:]
-        title, group = self._meta.get(p,( None, None ))
+        title, group = next( ( ( t, title_of(g) ) for q, t, g in self._groups.cards() if q == p ),
+                             ( None, None ) )
         o = _parsed_plot(p)#(cached, for the cards, which are shown often)
         with self._lock:
             figure = self._figures.get(key)
@@ -544,7 +520,7 @@ class Viewer(_Reading):
         start = m.start() if m else cursor
         prefix = m.group(0) if m else ''
         if field == 'collection':
-            return 0, [ ( name, c[0] ) for name, c in _collections.items()
+            return 0, [ ( name, d ) for name, d in group_names()
                         if name.startswith(text[:cursor].strip()) ]
         if field not in ( 'pick', 'edit', 'plot' ):
             return start, []
@@ -585,7 +561,8 @@ class Viewer(_Reading):
         from ._exprhelp import _short_hint
         if field == 'collection':
             name = text.strip()
-            return f'{name}  {_collections[name][0]}' if name in _collections else None
+            descr = dict(group_names()).get(name)
+            return f'{name}  {descr}' if descr else None
         cursor = len(text) if cursor is None else cursor
         if not self._ud_fields and re.search(r'\buserdata\.[A-Za-z0-9_]*$', text[:cursor]):
             return 'userdata.  there are no userdata fields in this file'
@@ -601,92 +578,43 @@ class Viewer(_Reading):
 
     @property
     def views( self ):
-        """The views, as a list of (key, label): the overview with its plots
-        (only with multi_overview, see overviews), and each plot (with its
-        histogram string as label)"""
-        res = [ ( k, 'overview' if k == 'overview:multi' else f'overview: {ov.title}' )
-                for k, ov in self.overviews() ]
+        """The views, as a list of (key, label): the plots (with their
+        histogram strings as labels), in their groups, each after the overview
+        of its group (only with multi_overview, see overviews)"""
         with self._lock:
             constants = self._constants
-        #(plots of a field where all particles have the same value are marked):
-        for p in self._s.plots:
+        overviews = dict(self.overviews())
+        res = []
+        group = None
+        for p, _, g in self._groups.cards():
+            if g != group:
+                group = g
+                if f'overview:{g}' in overviews:
+                    res.append( ( f'overview:{g}', f'overview: {title_of(g)}' ) )
+            #(plots of a field where all particles have the same value are marked):
             field = _plot_field(p)
             res.append( ( f'plot:{p}', f'{p} (all {constants[field]})'
                           if field in constants else p ) )
         return res
 
     def overviews( self ):
-        """The overviews shown (only with multi_overview, see views), as (view
-        key, Overview): those of the collection which were not removed and
-        have plots (see _viewer_overviews). The key of the first of the
-        collection is overview:multi, and of the others overview:N (N its
-        position in the collection)."""
-        return [ ( k, ov ) for i, k, ov in self._all_overviews()
-                 if i not in self._removed_overviews ]
-
-    def _all_overviews( self ):
-        """The overviews of the collection which have plots, also those which
-        were removed, as (position in the collection, view key, Overview)"""
+        """The overviews of the groups shown (only with multi_overview, see
+        views), as (view key, Overview), with the keys overview:GROUP"""
         if not self.multi_overview:
             return []
-        groups = { p : g for p, ( _, g ) in self._meta.items() }
-        res = []
-        for i, spec in enumerate(self._overview_specs):
-            ov = resolve(spec,self._s.plots,groups)
-            if ov is not None:
-                res.append( ( i, 'overview:multi' if i == 0 else f'overview:{i}', ov ) )
-        return res
+        return [ ( f'overview:{k}', ov ) for k, ov in self._groups.overviews() ]
 
-    def _overview_key_of( self, title ):
-        """The key of the overview with the title (also before multi_overview is
-        set, see overviews), or None"""
-        return next( ( 'overview:multi' if i == 0 else f'overview:{i}'
-                       for i, spec in enumerate(self._overview_specs)
-                       if spec['title'] == title and i not in self._removed_overviews ), None )
-
-    def overview_keys( self, key = 'overview:multi' ):
+    def overview_keys( self, key ):
         """The keys of the views of the plots of the cells of the overview with
         the key (in the order of its panels, None for empty cells)"""
         ov = dict(self.overviews()).get(key)
         return [] if ov is None else [ None if p is None else f'plot:{p}' for p in ov.cells ]
 
-    def add_overview( self, spec ):
-        """Add an overview (a specification, see _viewer_overviews, e.g.
-        {"title":"Spectra","plots":["ekin","wavelength"]}): (ok, message)"""
-        try:
-            check_spec(spec)
-        except ( TypeError, ValueError ) as e:
-            return False, str(e)[:1].upper() + str(e)[1:]
-        groups = { p : g for p, ( _, g ) in self._meta.items() }
-        ov = resolve(spec,self._s.plots,groups)
-        for p in ( ov.plots if ov is not None else () ):
-            ok, msg = self.check('plot',p)
-            if not ok:
-                return False, f'The overview "{spec["title"]}" has the plot "{p}": {msg}'
-        self._added_overviews.append(dict(spec))
-        self._overview_specs.append(dict(spec))
-        self._restart()#(its plots are read too)
-        return True, ''
-
-    def remove_overview( self, key ):
-        """Remove the overview with the key (see overviews): whether it was
-        removed (choosing the collection again gives it back)"""
-        if key not in dict(self.overviews()):
-            return False
-        self._removed_overviews.add( 0 if key == 'overview:multi' else int(key[9:]) )
-        if self._current == key or ( key == 'overview:multi' and self._current == 'overview' ):
-            self._current = None
-        with self._lock:
-            self._updates += 1
-        return True
-
     def _reading_settings( self ):
-        """What is read: the settings, with the plots of the overviews too (also
-        of those which were removed, which choosing the collection again gives
-        back)"""
+        """What is read: the settings, with the plots of the overviews too"""
         s = self._s.copy()
-        s.plots += [ p for _, _, ov in self._all_overviews() for p in ov.plots ]
-        s.plots = list(dict.fromkeys(s.plots))
+        s.plots = list(dict.fromkeys( s.plots + [ p for _, ov in self._groups.overviews()
+                                                  for p in ov.plots ] ))
         return s
 
     @property
@@ -703,10 +631,8 @@ class Viewer(_Reading):
     def _current_of( self, keys ):
         """Index of the view shown among the views with the keys"""
         key = self._current
-        if key in ( 'overview', 'overview:multi' ) and not self.multi_overview:
+        if key == 'overview':#(the first)
             key = keys[0]
-        if key == 'overview':
-            key = 'overview:multi'
         return keys.index(key) if key in keys else 0
 
     def select( self, index ):
@@ -784,17 +710,12 @@ class Viewer(_Reading):
 
     def state( self, full = True ):
         """The state of the viewer, as a dict with what differs from the start:
-        skip, limit, pick and edit (unless full is False), the collection of
-        plots (see _stdviews, if not the default one), the plots (with the
-        changes of the plots of the collection: change, remove, add and order,
-        which are lists of histogram strings, except change, which maps plots
-        of the collection to their new ones), the overviews added (see
-        add_overview) and removed (by their titles), and the view shown (if
-        not the first). It is given as the view argument to open the viewer in the
-        same state."""
+        skip, limit, pick and edit (unless full is False), the groups of plots
+        shown (a preset or a list of the keys of groups, if not the default
+        ones), the custom plots (plot items, see _stdviews), and the view shown
+        (if not the first). It is given as the view argument to open the viewer
+        in the same state."""
         res = {}
-        if self._collection != _default_collection:
-            res['collection'] = self._collection
         if full:
             for k in ( 'skip', 'limit' ):
                 if getattr(self._s,k):
@@ -802,91 +723,31 @@ class Viewer(_Reading):
             for k in ( 'pick', 'edit' ):
                 if self._texts[k]:
                     res[k] = self._texts[k]
-        plots, origins = self._s.plots, self._origins
-        meta = lambda p : self._meta.get(p,( None, None ))
-        diff = {}
-        #(changes of plots, or of their titles or groups, as plot items with
-        #all their titles and groups, see _stdviews):
-        change = { o : _item(p,*meta(p)) for p, o in origins.items()
-                   if p != o or meta(p) != self._base_meta.get(o,( None, None )) }
-        remove = [ d for d in self._base if d not in origins.values() ]
-        add = [ p for p in plots if p not in origins ]
-        #(the order is only given if it is not that of the defaults, followed
-        #by the added plots):
-        kept = { o : p for p, o in origins.items() }
-        expected = [ kept[d] for d in self._base if d in kept ] + add
-        for k, v in ( ('change',change), ('remove',remove),
-                      ('add',[ _item(p,*meta(p)) for p in add ]),
-                      ('order',list(plots) if plots != expected else []) ):
-            if v:
-                diff[k] = v
-        if diff:
-            res['plots'] = diff
-        nbase = len(self._overview_specs) - len(self._added_overviews)
-        added = [ s for i, s in enumerate(self._overview_specs)
-                  if i >= nbase and i not in self._removed_overviews ]
-        removed = [ self._overview_specs[i]['title'] for i in sorted(self._removed_overviews)
-                    if i < nbase ]
-        if added:
-            res['add_overviews'] = added
-        if removed:
-            res['remove_overviews'] = removed
-        key = self.views[self.current][0]
-        if key != self.views[0][0]:
-            ov = dict(self.overviews()).get(key)
-            res['view'] = ( 'overview' if key == 'overview:multi' else
-                            f'overview:{ov.title}' if ov is not None else key[5:] )
+        res.update(self._groups.state())
+        key = self.views[self.current][0] if self.views else None
+        if key is not None and key != self.views[0][0]:
+            res['view'] = key if key.startswith('overview:') else key[5:]
         return res
 
     def _apply_state( self, state ):
         """Apply the state (from _as_state) to the start (see state())"""
-        if state.get('collection'):
-            self._set_or_raise('collection',state['collection'])
+        groups = state.get('groups')
+        if groups is not None:
+            self._groups.shown = []
+            if isinstance(groups,str):
+                self._groups.use_preset(groups)
+            for k in ( groups if isinstance(groups,list) else () ):
+                self._groups.show(k)
         for k in ( 'skip', 'limit', 'pick', 'edit' ):
             if state.get(k):
                 self._set_or_raise(k,str(state[k]))
-        plots = state.get('plots',{})
-        def find( text, what ):
-            try:
-                same = self._same_plot(text)
-            except MCPLError:
-                same = None
-            if same is None:
-                raise MCPLError(f'The viewer state {what} the plot "{text}", which is'
-                                ' not one of the plots')
-            return same
-        def set_meta( plot, title, group ):
-            #(the title and group of the plot are those of its item):
-            p = self._same_plot(plot)
-            if ( title, group ) == ( None, None ):
-                self._meta.pop(p,None)
-            else:
-                self._meta[p] = ( title, group )
-        for old, item in plots.get('change',{}).items():
-            new, title, group = _plot_item(item)
-            if not self.change_plot(find(old,'changes'),new)[0]:
-                self._set_or_raise('plot',new)#(for the message of the problem)
-            set_meta(new,title,group)
-        for old in plots.get('remove',[]):
-            self.change_plot(find(old,'removes'),'')
-        for item in plots.get('add',[]):
-            p, title, group = _plot_item(item)
+        for item in state.get('custom',[]):
+            p, title = _plot_item(item)
             self._set_or_raise('plot',p)
-            set_meta(p,title,group)
-        order = [ find(p,'orders') for p in plots.get('order',[]) ]
-        if order:
-            #(the plots in the given order, followed by any others):
-            self._s.plots[:] = order + [ p for p in self._s.plots if p not in order ]
-        for spec in state.get('add_overviews',[]):
-            ok, msg = self.add_overview(spec)
-            if not ok:
-                raise MCPLError(f'The viewer state adds an overview which is not valid: {msg}')
-        titles = [ s['title'] for s in self._overview_specs ]
-        for title in state.get('remove_overviews',[]):
-            if title not in titles:
-                raise MCPLError(f'The viewer state removes the overview "{title}", which is'
-                                ' not one of the overviews')
-            self._removed_overviews.add(titles.index(title))
+            p = self._same_plot(p)
+            if self._groups.is_custom(p):
+                self._groups.set_title(p,title)
+        self._sync()
         self._current = None
 
     def suggested_state_filename( self ):
@@ -978,11 +839,6 @@ class Viewer(_Reading):
         """Whether the particles of the file have userdata"""
         return bool(self._ud_fields)
 
-    @property
-    def collection( self ):
-        """The name of the collection of plots the plots started from"""
-        return self._collection
-
     def for_file( self, filename, particles = True ):
         """A viewer of another file, in the same state, but without skip and
         limit (which are of this file), and without the pick and edit unless
@@ -997,7 +853,7 @@ class Viewer(_Reading):
         except MCPLError as e:
             problem = e
         for drop, what in ( ( ( 'pick', 'edit' ), 'the pick and edit' ),
-                            ( ( 'pick', 'edit', 'plots', 'view' ), 'the pick, edit and plots' ) ):
+                            ( ( 'pick', 'edit', 'custom', 'view' ), 'the pick, edit and plots' ) ):
             try:
                 return ( Viewer(filename,view={ k : v for k, v in state.items() if k not in drop },**kw),
                          f'Not kept for this file: {what} ({problem})' )
@@ -1050,21 +906,21 @@ class Viewer(_Reading):
                               s.edit,False,False,self._dry_run,bad)
         return out.getvalue().strip()
 
-def _doubtful_title( meta, old, new ):
-    """The title and group (meta) of a plot changed from old to new (histogram
-    strings), with " (??)" after the title if the expressions changed (not
-    just the options, or the unit of a field), since the title might no longer
-    fit. Plots without a title of their own get the new title from their
-    expression (see _auto_title)."""
+def _doubtful_title( title, old, new ):
+    """The title of a plot changed from old to new (histogram strings), with
+    " (??)" after it if the expressions changed (not just the options, or the
+    unit of a field), since the title might no longer fit. Plots without a
+    title of their own get the new title from their expression (see
+    _auto_title)."""
     from ._expressions import _expr_canonical
     from ._histstring import _hist_parts
-    if meta is None or meta[0] is None or meta[0].endswith('(??)'):
-        return meta
+    if title is None or title.endswith('(??)'):
+        return title
     def exprs( text ):
         return [ _expr_canonical(e) for e in _hist_parts(text)[0].split(':') ]
     #(the same field in other units, e.g. ekin/MeV for ekin, is the same):
     same_field = _auto_title(old) is not None and _auto_title(old) == _auto_title(new)
-    return meta if exprs(old) == exprs(new) or same_field else ( meta[0] + ' (??)', meta[1] )
+    return title if exprs(old) == exprs(new) or same_field else title + ' (??)'
 
 def _free_filename( filename, suffix, ext, *other_exts ):
     """The name <input><suffix><ext> next to the file (without its extensions
@@ -1083,9 +939,7 @@ def _free_filename( filename, suffix, ext, *other_exts ):
         i += 1
 
 #The entries of the state (see Viewer.state), and of its changes of the plots:
-_state_keys = ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plots', 'add_overviews',
-                'remove_overviews', 'view' )
-_state_plot_keys = ( 'change', 'remove', 'add', 'order' )
+_state_keys = ( 'skip', 'limit', 'pick', 'edit', 'groups', 'custom', 'view' )
 
 def _as_state( view ):
     """The state given as the view argument of the viewer (a dict, its JSON
@@ -1123,38 +977,21 @@ def _as_state( view ):
         check(k in _state_keys,f'unknown entry "{k}" (the entries are: {", ".join(_state_keys)})')
     for k in ( 'skip', 'limit' ):
         check(isinstance(state.get(k,0),int),f'{k} must be a number')
-    for k in ( 'pick', 'edit', 'collection', 'view' ):
+    for k in ( 'pick', 'edit', 'view' ):
         check(isinstance(state.get(k,''),str),f'{k} must be a text')
-    plots = state.get('plots',{})
-    check(isinstance(plots,dict),'plots must be a JSON object')
-    for k, v in plots.items():
-        check(k in _state_plot_keys,f'unknown entry "{k}" of plots (the entries are:'
-              f' {", ".join(_state_plot_keys)})')
-        if k == 'change':
-            check(isinstance(v,dict),'the change of plots must be a JSON object')
-            items = list(v.values())
-        else:
-            check(isinstance(v,list),f'the {k} of plots must be a list')
-            items = v
-        if k in ( 'change', 'add' ):
-            #(plot items, see _stdviews):
-            for item in items:
-                try:
-                    _plot_item(item)
-                except ( TypeError, ValueError ) as e:
-                    check(False,f'in the {k} of plots, {e}')
-        else:
-            check(all( isinstance(x,str) for x in items ),f'the {k} of plots must be a list of texts')
-    removed = state.get('remove_overviews',[])
-    check(isinstance(removed,list) and all( isinstance(x,str) for x in removed ),
-          'remove_overviews must be a list of the titles of overviews')
-    added = state.get('add_overviews',[])
-    check(isinstance(added,list),'add_overviews must be a list of overviews')
-    for spec in added:
+    names = [ n for n, _ in group_names() ]
+    groups = state.get('groups',[])
+    check(( isinstance(groups,str) and groups in names )
+          or ( isinstance(groups,list) and all( g in _groups for g in groups ) ),
+          f'groups must be the name of a preset ({", ".join(_presets)}) or a list of the'
+          f' groups of plots ({", ".join(_groups)})')
+    custom = state.get('custom',[])
+    check(isinstance(custom,list),'custom must be a list of plots')
+    for item in custom:
         try:
-            check_spec(spec)
+            _plot_item(item)
         except ( TypeError, ValueError ) as e:
-            check(False,f'in add_overviews, {e}')
+            check(False,f'in the custom plots, {e}')
     return state
 
 @functools.lru_cache(maxsize = 4096)

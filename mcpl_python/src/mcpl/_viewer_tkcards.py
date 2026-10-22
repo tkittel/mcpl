@@ -35,8 +35,10 @@ class CardList:
     which can be scrolled: a small image of the plot, its name and badges, or
     a compact card with its name and status, under the headers of their
     groups (which can be folded), with the shown one selected. Cards are
-    clicked to show them, dragged to move them (also into another group), and
-    removed with their menu (right click), as far as they allow it."""
+    clicked to show them, dragged to move them (the custom plots), and
+    removed with their menu (right click), as far as they allow it. The
+    groups can be folded (showing only their overview), and the standard
+    ones hidden with the menu of their header."""
     width, thumb = 300, ( 84, 50 )
 
     def __init__( self, parent, viewer ):
@@ -50,7 +52,7 @@ class CardList:
         self.canvas.configure(yscrollcommand=bar.set)
         bar.pack(side='right',fill='y')
         self.canvas.pack(side='left',fill='both',expand=True)
-        self.folded = set()#(the groups which are folded)
+        self.folded = None#(the titles of the groups which are folded, see show)
         self._images = {}#PNG data -> PhotoImage (kept, as Tk needs them)
         self._shown = None#(what is drawn, to only draw it again when changed)
         self._slots = []#(top, bottom, kind, what): 'card' (the Card), 'header' (group) or 'add'
@@ -85,6 +87,8 @@ class CardList:
         view selected (if anything changed; current, the index of the shown
         view, is not needed, since the cards have the keys of the views)"""
         self._used = set()
+        if self.folded is None:#(at the start, those of the viewer)
+            self.folded = set(self.tv.v.folded_groups())
         images = [ self._image(c.key) if c.image else None for c in cards ]
         current = self.tv.shown_key
         shown = ( tuple(cards), current, tuple(sorted(self.folded)),
@@ -104,7 +108,7 @@ class CardList:
                 self._header(y,group)
                 y += _card_heights['header']
             shown = card.key == current
-            if card.grouped and group in self.folded and not shown:
+            if card.grouped and group in self.folded and not ( shown or card.pinned ):
                 continue
             h = _card_heights['small' if card.compact else 'card']
             self._card(y,h,card,img,shown)
@@ -178,11 +182,12 @@ class CardList:
         for the header of a group: show it as an overview"""
         tk, _ = tk_modules()
         s = self._slot(event)
-        if s is not None and s[2] == 'header':
-            #(the plots of the group can be shown together):
+        key = self.tv.group_key(s[3]) if s is not None and s[2] == 'header' else None
+        if key is not None:
+            #(the standard groups can be hidden):
             menu = tk.Menu(self.canvas,tearoff=0)
-            menu.add_command(label='Show this group as an overview',
-                             command=lambda : self.tv.on_group_overview(s[3]))
+            menu.add_command(label='Hide this group',
+                             command=lambda : self.tv.on_show_group(key,False))
             menu.tk_popup(event.x_root,event.y_root)
             return
         if s is None or s[2] != 'card' or not ( s[3].selectable or s[3].removable ):
@@ -192,7 +197,8 @@ class CardList:
         if card.selectable:
             menu.add_command(label='Show',command=lambda : self.tv.on_select_key(card.key))
         if card.removable:
-            menu.add_command(label='Remove this card',command=lambda : self.tv.on_remove(card.key))
+            menu.add_command(label=card.remove_text or 'Remove this card',
+                             command=lambda : self.tv.on_remove(card.key))
         menu.tk_popup(event.x_root,event.y_root)
 
     def _on_press( self, event ):
@@ -219,17 +225,11 @@ class CardList:
         if drag is not None and drag[2]:
             if s is None:
                 return
+            #(onto a card, or onto the header of the custom plots, before them):
             if s[2] == 'card':
-                index, group = self.tv.plot_index(s[3].key), s[3].group
+                self.tv.on_drop(drag[0],s[3].key)
             elif s[2] == 'header':
-                #(at the start of the group: before its first plot):
-                group = s[3]
-                index = next( ( self.tv.plot_index(x[3].key) for x in self._slots
-                                if x[2] == 'card' and x[0] > s[0] and x[3].draggable ),
-                              self.tv.plot_index(None) )
-            else:
-                index, group = self.tv.plot_index(None), None
-            self.tv.on_drop(drag[0],index,group)
+                self.tv.on_drop(drag[0],None)
             return
         if s is None:
             return

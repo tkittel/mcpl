@@ -117,7 +117,7 @@ class TkViewer(WidgetViewer):
         #(the actions in a menu: another file, with the same plots, pick and
         #edit, see on_open_file, and those of ui.actions but writing, which
         #has its button with the pick and edit; in a row with the collection
-        #of plots, see _menu_field):
+        #of plots, see _groups_menu):
         self._top_row = ttk.Frame(left)
         self._top_row.pack(fill='x',pady=(0,6))
         button = ttk.Menubutton(self._top_row,text='\u2630 Menu',takefocus=0,
@@ -168,7 +168,7 @@ class TkViewer(WidgetViewer):
         self.canvas.get_tk_widget().pack(side='top',fill='both',expand=True)
         super().__init__(viewer,fig)
         #(the collection of plots, above their cards):
-        self._menu_field(self._top_row,'collection')
+        self._groups_menu(self._top_row)
         self.canvas.mpl_connect('button_press_event',self._on_mpl_click)
         self.canvas.mpl_connect('key_press_event',self._on_mpl_key)
         self.canvas.mpl_connect('motion_notify_event',self._on_mpl_motion)
@@ -244,35 +244,31 @@ class TkViewer(WidgetViewer):
         root.bind('<Key>',self._on_root_key)
         root.protocol('WM_DELETE_WINDOW',self.close_window)
 
-    def _menu_field( self, parent, field ):
-        """A field of _viewer_ui.menu_fields: its label and menu (at the left
-        of the row parent). The menu shows the chosen value, and its list the
-        values with their descriptions."""
-        _, ttk = tk_modules()
-        _, label, _key, kpos, _ = next( f for f in ui.fields if f[0] == field )
-        choices = self.menu_choices(field)
-        frame = ttk.Frame(parent)
-        frame.pack(side='left',fill='x',expand=True,padx=(8,0))
-        lab = ttk.Label(frame,text=label + ':',underline=kpos)
-        lab.pack(side='left',padx=(0,4))
-        values = [ f'{n}  \u2013  {d}' for n, d in choices ]
-        w = ttk.Combobox(frame,state='readonly',values=values,style='Menu.TCombobox',width=8)
-        w.configure(postcommand=lambda : self._widen_list(w,values))
-        w.pack(side='left',fill='x',expand=True)
-        w.bind('<<ComboboxSelected>>',lambda _e : self._on_menu(field,choices))
-        self._entries[field] = w
-        self._marks[field] = ttk.Label(frame)#(menus are not checked)
-        self._hover(lab,field)
-        self._hover(w,field)
-
-    def _widen_list( self, w, values ):
-        """The list of the menu w is made as wide as its values (when it
-        opens), also beyond the menu"""
-        import tkinter.font
-        _, ttk = tk_modules()
-        font = tkinter.font.nametofont('TkTextFont')
-        extra = max( 0, max( font.measure(v) for v in values ) + 30 - w.winfo_width() )
-        ttk.Style(self.root).configure('Menu.TCombobox',postoffset=( 0, 0, extra, 0 ))
+    def _groups_menu( self, parent ):
+        """The menu of the groups of plots (at the left of the row parent): a
+        check box for each standard group, and the presets of groups (see
+        _stdviews), for the field 'collection'"""
+        tk, ttk = tk_modules()
+        button = ttk.Menubutton(parent,text='Plot groups',underline=5,takefocus=0,
+                                style='Compact.TMenubutton')
+        button.pack(side='left',padx=(8,0))
+        menu = tk.Menu(button,tearoff=0)
+        button['menu'] = menu
+        self._group_vars = {}
+        for key, title, descr, shown in self.v.group_list():
+            var = tk.BooleanVar(value=shown)
+            menu.add_checkbutton(label=f'{title}  \u2013  {descr}',variable=var,
+                                 command=lambda k=key, v=var : self.on_show_group(k,v.get()))
+            self._group_vars[key] = var
+        menu.add_separator()
+        presets = tk.Menu(menu,tearoff=0)
+        for name, descr in self.menu_choices('collection'):
+            if name not in self._group_vars:
+                presets.add_command(label=f'{name}  \u2013  {descr}',
+                                    command=lambda n=name : self.on_field_apply('collection',n))
+        menu.add_cascade(label='Presets',menu=presets)
+        self._groups_button, self._groups_menu = button, menu
+        self._hover(button,'collection')
 
     def _plot_part( self, part, head ):
         """The fields of the shown plot (or of a new plot): its title, its axes
@@ -380,11 +376,12 @@ class TkViewer(WidgetViewer):
     def show_field( self, field, text ):
         if field == 'plot':
             return#(no field, see focus_field)
-        w = self._entries[field]
-        if field in ui.menu_fields:
-            w.set(text)
+        if field == 'collection':
+            #(the check boxes of the groups shown):
+            for key, var in self._group_vars.items():
+                var.set(key in self.v.groups)
             return
-        self._set_text(w,text)
+        self._set_text(self._entries[field],text)
 
     def show_plot_field( self, text, title, axes ):
         x, y = axes or ( None, None )
@@ -442,7 +439,7 @@ class TkViewer(WidgetViewer):
         self._controls.show(controls)
 
     def show_check( self, field, ok ):
-        if field == 'plot':
+        if field in ( 'plot', 'collection' ):#(no marks)
             return
         mark = self._marks[field]
         if ok is None:
@@ -458,13 +455,14 @@ class TkViewer(WidgetViewer):
         if field == 'x_axis':
             self._axes[0].focus_set()
             return
+        if field == 'collection':
+            b = self._groups_button
+            self._groups_menu.post(b.winfo_rootx(),b.winfo_rooty() + b.winfo_height())
+            return
         w = self._entries[field]
         w.focus_set()
-        if field in ui.menu_fields:
-            w.event_generate('<Down>')#(opens the list of the menu)
-        else:
-            w.icursor('end')
-            self.on_field_edited(field,self._text(w))
+        w.icursor('end')
+        self.on_field_edited(field,self._text(w))
 
     def ask_file( self, action ):
         if action == 'write':
@@ -539,12 +537,6 @@ class TkViewer(WidgetViewer):
             self._set_text(w,'')
         self.show_line('Enter: set the title (an empty title shows the expressions)'
                        '   Esc: cancel','dim')
-
-    def _on_menu( self, field, choices ):
-        i = self._entries[field].current()
-        if i >= 0:
-            self.on_field_apply(field,choices[i][0])
-        self.canvas.get_tk_widget().focus_set()
 
     def _hover_text( self, name ):
         if name == 'write' and not self.v.changes_particles:

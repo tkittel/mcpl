@@ -199,9 +199,9 @@ class JupyterViewer:
 
     def _on_change( self, change ):
         key = self.v.current_key
-        if self._syncing or not key.startswith('plot:'):
+        if self._syncing or ui.plot_of(key) is None:
             return
-        self._show_result(*self.v.change_plot(key[5:],change['new']))
+        self._show_result(*self.v.change_plot(key,change['new']))
 
     def _show_result( self, ok, msg ):
         self._message.value = '' if ok else f'<span style="color:#c00">{html.escape(msg)}</span>'
@@ -280,16 +280,17 @@ class JupyterViewer:
         #can change them while this runs in the polling thread):
         labels = dict(self.v.views)
         key = self.v.current_key
-        self._change.layout.display = None if key.startswith('plot:') else 'none'
-        if key.startswith('plot:') and self._change.value != key[5:]:
-            self._set_quietly(self._change,key[5:])
+        plot = ui.plot_of(key)
+        self._change.layout.display = None if plot is not None else 'none'
+        if plot is not None and self._change.value != plot:
+            self._set_quietly(self._change,plot)
         if self._mplfig is not None:
             if self._pane.show(self.v,key):
                 self._mplfig.canvas.draw_idle()
             shown = self._mplfig.canvas
         elif key == self._panels_key:
             for ( img, b ), k in zip(self._panels,self.v.overview_keys(key)):
-                b.description = labels.get(k,k[5:])
+                b.description = labels.get(k,ui.plot_of(k))
                 self._show(img,k)
             shown = self._grid
         else:

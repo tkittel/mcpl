@@ -77,10 +77,10 @@ def test_figures():
                 h = mcpl.histogram(src,p)
             except mcpl.MCPLError as e:
                 failed.append( ( p, str(e) ) )
-                ok &= str(e) in str(describe([figs[f'plot:{p}']]))
+                ok &= str(e) in str(describe([figs[v._view_key(p)]]))
                 continue
             h.title = title or None
-            ok &= same(figs[f'plot:{p}'],h.figure())
+            ok &= same(figs[v._view_key(p)],h.figure())
         ov = figs['overview:overview']
         ok &= [ describe([mcpl.plotting.Figure(panels=[pn])]).split('\n',1)[1]
                 for pn in ov.panels ] == [
@@ -143,6 +143,14 @@ def test_groups():
           '| still there:', 'plot:x : y' in dict(v.views), '| state:', v.state(full = False))
     print('removing a standard plot:', v.change_plot('x : y',''))
     print('removing a custom plot:', v.change_plot('x/mm : y/mm',''), v._groups.custom)
+    #(also when the changed plot is in another group, or among the custom
+    #plots, which shows a copy of it, keeping the other settings):
+    v.set('collection','default')
+    print('changed to a plot of another group:', v.change_plot('ekin;logx=auto;logy;split=pdgcode','ekin'),
+          v.current_key, v.plot_info(v.current_key)['group'], v._groups.custom)
+    print('again, a setting:', v.change_plot('plot:ekin','ekin;bins=20'), v.current_key, v._groups.custom)
+    print('the custom one:', v.change_plot('custom:ekin','ekin;logy'), v.current_key, v._groups.custom,
+          '| state:', v.state(full = False))
     print('check:', v.check('collection','beam'), v.check('collection',''), v.check('collection','3d'))
     print('completions:', v.complete('collection','beam'), '| hint:', v.hint('collection','beamx'))
     print('switched:', v.set('collection','shielding'), v.groups, [ k for k, _ in v.views ][:2],
@@ -163,7 +171,7 @@ def test_groups():
     print('titles:', t.set_title('hypot(x,y)/cm;logy','Radius'), t.set_title('x : y','Beam spot'),
           t.set_title('hypot(x,y)/cm;logy','a\nb'), t.set_title('nope','x'))
     t.change_plot('hypot(x,y)/cm;logy','hypot(x,y)/mm')
-    print('info of a changed custom plot:', t.plot_info('plot:hypot(x,y)/mm'))
+    print('info of a changed custom plot:', t.plot_info('custom:hypot(x,y)/mm'))
     print('info of a standard plot:', t.plot_info('plot:polx'))
     print('moved:', t.move_to('uz;bins=20',0), t._groups.custom, '| a standard plot:',
           t.move_to('polx',0))
@@ -577,7 +585,7 @@ def test_plot_changes():
     for option in ( 'logx', 'logx', 'logx', 'logy', 'logx' ):
         print(f'toggle {option}:', v.toggle_scale(option), v.current_key)
         v.wait()
-    v.change_plot(v.current_key[5:],'ekin;logx=auto')
+    v.change_plot(v.current_key,'ekin;logx=auto')
     v.wait()
     print('after another change:', v.toggle_scale('logx'), v.toggle_scale('logx'), v.current_key)
     #Titles get (??) when the expressions of the plot change (not its options):

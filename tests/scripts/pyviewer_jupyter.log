@@ -8,7 +8,7 @@ status after the pick: <b>example.mcpl: 726/1006 particles (72.2%), Σw = 726 (7
 message for an invalid edit: <span style="color:#c00">Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression &quot;x = 2&quot;</span>
 view: ekin/MeV;logx=1 field emptied: True
 This plot box shown: True 'ekin/MeV;logx=1'
-changed in the box: plot:ekin/keV;logx=1 current: plot:ekin/keV;logx=1 message: ''
+changed in the box: custom:ekin/keV;logx=1 current: custom:ekin/keV;logx=1 message: ''
 emptied, plot removed: plot:weight box shown: True
 view selected: plot:angle_to(0,0,1)/deg;logy;split=pdgcode
 suggested name: example_selected.mcpl.gz

@@ -197,12 +197,12 @@ highlighted command: option[-e] option[-s5] option[-p] string["pdgcode == neutro
 highlighted python: keyword[import] string['example.mcpl'] number[5] string['pdgcode == neutron'] keyword[with] string['out.mcpl'] keyword[as] comment[# copy the header] keyword[for] keyword[in]
 highlighted cpp: preprocessor[#include] string["mcplcpp.h"] keyword[int] string["example.mcpl"] string["out.mcpl"] comment[// copy the header] number[5] keyword[for] keyword[auto] comment[// the pick: "pdgcode == neutron"] keyword[if] number[2112] keyword[continue]
 highlighted c: preprocessor[#include] string["mcpl.h"] keyword[int] keyword[void] string["example.mcpl"] string["out.mcpl"] comment[/* copy the header */] number[5] keyword[const] keyword[while] comment[/* the pick: "pdgcode == neutron" */] keyword[if] number[2112] keyword[continue] keyword[return] number[0]
-toggle logx: (True, 'linear x (was auto)') plot:ekin;logy;split=pdgcode
+toggle logx: (True, 'linear x (was auto)') custom:ekin;logy;split=pdgcode
 toggle logx: (True, 'x axis as before') plot:ekin;logx=auto;logy;split=pdgcode
-toggle logx: (True, 'linear x (was auto)') plot:ekin;logy;split=pdgcode
-toggle logy: (True, 'linear y') plot:ekin;split=pdgcode
-toggle logx: (True, 'log x') plot:ekin;split=pdgcode;logx
-after another change: (True, 'linear x (was auto)') (True, 'x axis as before') plot:ekin;logx=auto
+toggle logx: (True, 'linear x (was auto)') custom:ekin;logy;split=pdgcode
+toggle logy: (True, 'linear y') custom:ekin;split=pdgcode
+toggle logx: (True, 'log x') custom:ekin;split=pdgcode;logx
+after another change: (True, 'linear x (was auto)') (True, 'x axis as before') custom:ekin;logx=auto
 title after 'wavelength;split=pdgcode': None
 title after 'wavelength/nm;split=pdgcode': None
 title after 'ekin/MeV;split=pdgcode': None
@@ -277,7 +277,7 @@ set('pick','x > 1km'): True, ('example.mcpl: 0/3 particles (0.0%), Σw = 0 (0.0%
 set('pick',''): True, ('example.mcpl: 3 particles, Σw = 3', '')
 set('skip','0'): True, ('example.mcpl: 3 particles, Σw = 3', '')
 set('limit',''): True, ('example.mcpl: 1006 particles, Σw = 1006', '')
-views after adding plots: ['plot:time/ms;logx=1', 'plot:ekin/MeV'] current: plot:time/ms;logx=1
+views after adding plots: ['custom:time/ms;logx=1', 'custom:ekin/MeV'] current: custom:time/ms;logx=1
 limit 1e3: 1e3 mcpltool --view="{'custom':['time/ms;logx=1','ekin/MeV'],'view':'time/ms;logx=1'}" -l1000 example.mcpl
 history of pick: ['pdgcode == gamma', 'x > 1km']
 command view: mcpltool --view="{'custom':['time/ms;logx=1','ekin/MeV'],'view':'time/ms;logx=1'}" example.mcpl
@@ -285,11 +285,11 @@ command extract: mcpltool -e example.mcpl example_selected.mcpl.gz
 commands of the overview: {'view': 'mcpltool --view="{\'custom\':[\'time/ms;logx=1\',\'ekin/MeV\']}" example.mcpl', 'extract': 'mcpltool -e example.mcpl example_selected.mcpl.gz'}
 same pick, written differently: (True, '') restarted: False 'pdgcode==neutron'
 limit 1e3 then 1000: (True, '') (True, '') restarts: 1
-same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x : ux', 'y : ux', 'x : uy', 'y : uy', 'ux : uy', 'x : uz', 'y : uz', 'ux : uz', 'uy : uz', 'x : log10(ekin/eV)', 'y : log10(ekin/eV)', 'ux : log10(ekin/eV)', 'uy : log10(ekin/eV)', 'uz : log10(ekin/eV)', 'log10(ekin/eV)', 'x : weight', 'y : weight', 'ux : weight', 'uy : weight', 'uz : weight', 'log10(ekin/eV) : weight', 'weight', 'ekin/MeV;logx=1;bins=50'] current: plot:ekin/MeV;logx=1;bins=50
+same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x : ux', 'y : ux', 'x : uy', 'y : uy', 'ux : uy', 'x : uz', 'y : uz', 'ux : uz', 'uy : uz', 'x : log10(ekin/eV)', 'y : log10(ekin/eV)', 'ux : log10(ekin/eV)', 'uy : log10(ekin/eV)', 'uz : log10(ekin/eV)', 'log10(ekin/eV)', 'x : weight', 'y : weight', 'ux : weight', 'uy : weight', 'uz : weight', 'log10(ekin/eV) : weight', 'weight', 'ekin/MeV;logx=1;bins=50'] current: custom:ekin/MeV;logx=1;bins=50
 changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x : ux', 'y : ux', 'x : uy', 'y : uy', 'ux : uy', 'x : uz', 'y : uz', 'ux : uz', 'uy : uz', 'x : log10(ekin/eV)', 'y : log10(ekin/eV)', 'ux : log10(ekin/eV)', 'uy : log10(ekin/eV)', 'uz : log10(ekin/eV)', 'log10(ekin/eV)', 'x : weight', 'y : weight', 'ux : weight', 'uy : weight', 'uz : weight', 'log10(ekin/eV) : weight', 'weight', 'ekin/MeV;logx=1;bins=50']
-unchanged: (True, '') ['plot:time/ms;logx=1', 'plot:ekin/MeV'] current: plot:ekin/MeV
-change to keV: (True, '') ['plot:time/ms;logx=1', 'plot:ekin/keV'] current: plot:ekin/keV
-change to an existing plot: (True, '') ['plot:weight', 'plot:time/ms;logx=1']
+unchanged: (True, '') ['custom:time/ms;logx=1', 'custom:ekin/MeV'] current: custom:ekin/MeV
+change to keV: (True, '') ['custom:time/ms;logx=1', 'custom:ekin/keV'] current: custom:ekin/keV
+change to an existing plot: (True, '') ['plot:weight', 'custom:time/ms;logx=1']
 invalid change: (False, 'Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)')
 unknown plot: (False, 'No plot "nope"')
 remove: (True, '') ['plot:weight'] current: plot:weight
@@ -308,13 +308,16 @@ preset beamy: a beam along the y axis: profiles, divergences and correlations: b
 preset shielding: spectra, directions and weights of all particle types: shielding
 preset all: all groups: overview, fields, beamz, beamx, beamy, shielding, 3d, correlations
 -wbeamz: beamz ['beamz', 'correlations'] ['overview:beamz', 'plot:x : y'] | state: {'groups': 'beamz', 'custom': ['x;bins=5']} | command: mcpltool --view="{'groups':'beamz','custom':['x;bins=5']}" example.mcpl
-changed: (True, '') plot:x/mm : y/mm Beam profile (??) Custom | still there: True | state: {'groups': 'beamz', 'custom': ['x;bins=5', {'title': 'Beam profile (??)', 'plot': 'x/mm : y/mm'}], 'view': 'x/mm : y/mm'}
+changed: (True, '') custom:x/mm : y/mm Beam profile (??) Custom | still there: True | state: {'groups': 'beamz', 'custom': ['x;bins=5', {'title': 'Beam profile (??)', 'plot': 'x/mm : y/mm'}], 'view': 'x/mm : y/mm'}
 removing a standard plot: (False, 'The plots of the standard groups are not removed (the groups are shown or hidden as a whole, see the groups of plots)')
 removing a custom plot: (True, '') ['x;bins=5']
+changed to a plot of another group: (True, '') custom:ekin Custom ['x;bins=5', 'ekin']
+again, a setting: (True, '') custom:ekin;bins=20 ['x;bins=5', 'ekin', 'ekin;bins=20']
+the custom one: (True, '') custom:ekin;logy ['x;bins=5', 'ekin;logy', 'ekin;bins=20'] | state: {'custom': ['x;bins=5', 'ekin;logy', 'ekin;bins=20'], 'view': 'ekin;logy'}
 check: (False, 'Unknown groups of plots "beam" (the groups are chosen by these names: default, beamz, beamx, beamy, shielding, all, overview, fields, 3d, correlations)') (True, '') (True, '')
 completions: (0, [('beamz', 'a beam along the z axis: profiles, divergences and correlations'), ('beamx', 'a beam along the x axis: profiles, divergences and correlations'), ('beamy', 'a beam along the y axis: profiles, divergences and correlations')]) | hint: beamx  a beam along the x axis: profiles, divergences and correlations
-switched: (True, '') ['shielding'] ['overview:shielding', 'plot:pdgcode;bar;logy=auto'] custom plot kept: x;bins=5 | state: {'groups': 'shielding', 'custom': ['x;bins=5']}
-group shown: True ['shielding', '3d'] again: False | hidden: True ['3d'] | state: {'groups': ['3d'], 'custom': ['x;bins=5']}
+switched: (True, '') ['shielding'] ['overview:shielding', 'plot:pdgcode;bar;logy=auto'] custom plot kept: ekin;bins=20 | state: {'groups': 'shielding', 'custom': ['x;bins=5', 'ekin;logy', 'ekin;bins=20']}
+group shown: True ['shielding', '3d'] again: False | hidden: True ['3d'] | state: {'groups': ['3d'], 'custom': ['x;bins=5', 'ekin;logy', 'ekin;bins=20']}
 opened with the command: same state: True
 opened with the state as a dict: same state: True
 titles: (True, '') (False, 'The plots of the standard groups keep their titles (a changed plot is copied into the custom group, with its own title)') (False, 'The title must be a text on one line') (False, 'The plots of the standard groups keep their titles (a changed plot is copied into the custom group, with its own title)')
@@ -332,7 +335,7 @@ view "{'groups':'nope'}": The viewer state "{'groups':'nope'}" is not valid: gro
 view "{'groups':3}": The viewer state "{'groups':3}" is not valid: groups must be the name of a preset (default, beamz, beamx, beamy, shielding, all) or a list of the groups of plots (overview, fields, beamz, beamx, beamy, shielding, 3d, correlations)
 view "{'groups':['fields','nope']}": The viewer state "{'groups':['fields','nope']}" is not valid: groups must be the name of a preset (default, beamz, beamx, beamy, shielding, all) or a list of the groups of plots (overview, fields, beamz, beamx, beamy, shielding, 3d, correlations)
 state at the start: {} | command: mcpltool -w example.mcpl
-move up: True again: False down: True | current: plot:uz;bins=20 ['hypot(x,y)/cm', 'uz;bins=20']
+move up: True again: False down: True | current: custom:uz;bins=20 ['hypot(x,y)/cm', 'uz;bins=20']
 move the overview: False
 move a standard plot: False
 state: {'limit': 500, 'pick': 'pdgcode != gamma', 'custom': ['uz;bins=20', 'ekin/keV;logy=1'], 'view': 'weight'}
@@ -459,11 +462,11 @@ To open the viewer like this again:
    | 
    |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]  [GUI viewer]
 ==> keys ['WAIT', 'a', 'h', 'y', 'p', 'o', 't', '(', 'x', ',', 'y', ')', '/', 'c', 'm', ';', 'l', 'o', 'Tab', 'y', '=', '1', 'Enter', 'WAIT']:
-   views: plot:hypot(x,y)/cm;logy=1 current: plot:hypot(x,y)/cm;logy=1
+   views: custom:hypot(x,y)/cm;logy=1 current: custom:hypot(x,y)/cm;logy=1
 ==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'k', 'e', 'V', 'Enter', 'WAIT']:
-   changed with Enter: plot:ekin/keV current: plot:ekin/keV
+   changed with Enter: custom:ekin/keV current: custom:ekin/keV
 ==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Enter', 'WAIT']:
-   Enter twice keeps the plot: plot:ekin/MeV current: plot:ekin/MeV
+   Enter twice keeps the plot: custom:ekin/MeV current: custom:ekin/MeV
    Enter on an added plot, editing: 'ekin/MeV' | hint line when emptied: ('Enter: remove this plot   Esc: cancel', 'dim') True
 ==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Enter', 'WAIT']:
    removed with an empty text: plot:weight current: plot:weight

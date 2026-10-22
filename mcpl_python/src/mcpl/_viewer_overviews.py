@@ -62,7 +62,7 @@ def overview_figure( figures, overview ):
     import copy
 
     from .plotting import Figure, Panel, Text
-    figs = { p : figures.get(f'plot:{p}') for p in overview.plots }
+    figs = { p : figures.get(f'plot:{p}') for p in overview.plots }#(see _viewer_reading)
     if all( f is None for f in figs.values() ):
         return None
     panels = []

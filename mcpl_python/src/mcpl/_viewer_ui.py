@@ -149,6 +149,15 @@ example_titles = { 'pick' : 'Examples of picks', 'edit' : 'Examples of edits',
                     'hist' : 'Examples of plot expressions' }
 example_topics = { 'pick' : 'pick', 'edit' : 'edit', 'shown_plot' : 'hist' }
 
+def plot_of( key ):
+    """The plot (histogram string) of the view with the key: plot:PLOT for the
+    plots of the standard groups, and custom:PLOT for the custom plots (see
+    _viewer_groups), or None for other views (e.g. overviews)"""
+    for prefix in ( 'plot:', 'custom:' ):
+        if key is not None and key.startswith(prefix):
+            return key[len(prefix):]
+    return None
+
 #The fields with Tab completion of names:
 completing_fields = ( 'pick', 'edit', 'plot' )
 
@@ -279,8 +288,8 @@ def editor_for( viewer, action ):
         return LineEditor(viewer,'state',viewer.suggested_state_filename())
     if action == 'change':
         key = viewer.views[viewer.current][0]
-        if key.startswith('plot:'):
-            return LineEditor(viewer,'plot',replaces=key[5:])
+        if plot_of(key) is not None:
+            return LineEditor(viewer,'plot',replaces=key)
     return None
 
 #The functions below are the behaviour of the fields, for all front ends
@@ -289,7 +298,8 @@ def editor_for( viewer, action ):
 def check_text( viewer, field, text, replaces = None ):
     """Check of the text of a field while it is typed, as (ok, message): the
     field is a field of the viewer, a file prompt, or 'plot' with replaces
-    (the plot changed by the text, which an empty text removes)"""
+    (the key of the view of the plot changed by the text, which an empty text
+    removes)"""
     if field in file_prompts:
         return bool(text.strip()), ''
     if replaces is not None and not text.strip():
@@ -355,10 +365,10 @@ class LineEditor:
     Delete, Tab (completion), Up and Down (earlier texts), Enter (apply) and
     Esc (cancel). The text is checked after each change (ok and message)."""
     def __init__( self, viewer, field, text = None, replaces = None ):
-        #(replaces: the added plot changed by the text of a plot field, which
-        #removes it when empty):
+        #(replaces: the key of the view of the plot changed by the text of a
+        #plot field, which removes it when empty):
         self.viewer, self.field, self.replaces = viewer, field, replaces
-        self.text = ( replaces if replaces is not None else
+        self.text = ( plot_of(replaces) if replaces is not None else
                       viewer.field_text(field) if text is None else text )
         self.cursor = len(self.text)
         self._hist = History(viewer,field)

@@ -39,6 +39,7 @@ from ._stdviews import _field_titles, _groups, _plot_item, _presets
 from ._viewer_groups import PlotGroups, custom_key, group_names, title_of
 from ._viewer_overviews import overview_figure
 from ._viewer_reading import _make_filler, _Reading
+from ._viewer_ui import plot_of
 
 _fields = ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot' )
 
@@ -157,11 +158,17 @@ class Viewer(_Reading):
 
     def _view_key( self, view ):
         """The key of a view given as overview (the first), overview:GROUP (the
-        overview of a group, by its key) or as a plot (histogram string)"""
+        overview of a group, by its key), as a plot (histogram string, of a
+        standard group if one has it, else a custom one) or as custom:PLOT (a
+        custom plot)"""
         if view == 'overview':
             return 'overview'
         if view.startswith('overview:') and ( view[9:] in _groups or view[9:] == custom_key ):
             return view
+        if view.startswith('custom:'):
+            same = self._same_plot(view[7:],self._groups.custom)
+            if same is not None:
+                return f'custom:{same}'
         try:
             same = self._same_plot(view)
         except MCPLError:
@@ -170,7 +177,13 @@ class Viewer(_Reading):
             raise MCPLError(f'Unknown view "{view}" (the views are the overviews and'
                             ' the plots, given as overview, overview:GROUP or as the'
                             ' histogram string of a plot, e.g. ekin)')
-        return f'plot:{same}'
+        return self._key_of(same)
+
+    def _key_of( self, plot, custom = False ):
+        """The key of the view of the plot: of the custom plot if custom is set
+        (or if no standard group has it), else of the plot of a standard group"""
+        standard = any( p == plot and g != custom_key for p, _, g in self._groups.cards() )
+        return f'custom:{plot}' if custom or not standard else f'plot:{plot}'
 
     #Fields:
 
@@ -256,13 +269,13 @@ class Viewer(_Reading):
         if text and ( not h or h[-1] != text ):
             h.append(text)
         if field == 'plot':
-            #(the same plot written differently is not added again, and new
-            #plots are custom plots, see _viewer_groups):
-            same = self._same_plot(text)
+            #(new plots are custom plots, see _viewer_groups, and the same
+            #custom plot written differently is not added again):
+            same = self._same_plot(text,self._groups.custom)
             if same is None:
                 self._groups.add(text)
                 self._sync()
-            self._current = f'plot:{same or text}'
+            self._current = f'custom:{same or text}'
         elif field == 'collection':
             self._groups.use_preset(value)
             self._sync()
@@ -306,12 +319,19 @@ class Viewer(_Reading):
         from ._histstring import _hist_set_option, _parse_hist
         key = key or self.current_key
         axis = option[-1]
-        if not key.startswith('plot:'):
+        plot = plot_of(key)
+        if plot is None:
             return False, f'Choose a plot to change its {axis} axis'
-        plot = key[5:]
         undo = self._scale_undo
-        if undo is not None and undo[:2] == ( option, plot ):
-            ok, msg = self.change_plot(plot,undo[2])
+        if undo is not None and undo[:2] == ( option, key ):
+            #(back to the plot before, which for a plot of a standard group is
+            #the plot itself, instead of the copy made of it):
+            before, before_key, copied = undo[2:]
+            if before_key.startswith('plot:'):
+                ok, msg = self.change_plot(key,'') if copied else ( True, '' )
+                self._current = before_key
+            else:
+                ok, msg = self.change_plot(key,before)
             self._scale_undo = None
             return ( True, f'{axis} axis as before' ) if ok else ( ok, msg )
         o = _parse_hist(plot)
@@ -332,30 +352,35 @@ class Viewer(_Reading):
             panel = fig.panels[0]
             shown = bool( panel.logx or panel.logy ) if o['bar'] else bool(getattr(panel,option))
         new = _hist_set_option(plot,option,None if shown else True)
-        ok, msg = self.change_plot(plot,new)
+        n = len(self._groups.custom)
+        ok, msg = self.change_plot(key,new)
         if not ok:
             return ok, msg
-        self._scale_undo = ( option, new, plot )
+        self._scale_undo = ( option, self.current_key, plot, key, len(self._groups.custom) > n )
         return True, f'{"linear" if shown else "log"} {axis}' + ( ' (was auto)' if o[option] == 'auto' else '' )
 
     def change_plot( self, old, text ):
-        """Replace the plot old (its histogram string) by the text, or remove it
-        if the text is empty (restarting the reading): (ok, message). Custom
-        plots are changed in their place, and the plots of the standard groups
-        are copied into the custom group, changed (see _viewer_groups)."""
+        """Replace the plot old (the key of its view, or its histogram string:
+        of the custom plot if there is one, else of the plot of a standard
+        group) by the text, or remove it if the text is empty (restarting the
+        reading): (ok, message). Custom plots are changed in their place, and
+        the plots of the standard groups are copied into the custom group,
+        changed (see _viewer_groups)."""
         self._scale_undo = None#(see toggle_scale, which sets it again)
         text = text.strip()
-        plots, groups = self._s.plots, self._groups
-        if old not in plots:
+        groups = self._groups
+        key = old if plot_of(old) is not None else self._key_of(old,groups.is_custom(old))
+        old = plot_of(key)
+        custom = key.startswith('custom:')
+        if key not in dict(self.views) and not ( custom and groups.is_custom(old) ):
             return False, f'No plot "{old}"'
-        custom = groups.is_custom(old)
         if not text:
             if not custom:
                 return False, ( 'The plots of the standard groups are not removed (the groups'
                                 ' are shown or hidden as a whole, see the groups of plots)' )
             #(showing the plot before it, or the next for the first):
-            keys = [ k for k, _ in self.views if k.startswith('plot:') ]
-            k = keys.index(f'plot:{old}')
+            keys = [ k for k, _ in self.views if plot_of(k) is not None ]
+            k = keys.index(key) if key in keys else 0
             self._current = keys[k-1] if k > 0 else keys[1] if len(keys) > 1 else None
             groups.remove(old)
             self._sync()
@@ -366,20 +391,21 @@ class Viewer(_Reading):
         except MCPLError as e:
             return False, str(e)
         if self._same_plot(text,[old]) == old:
-            self._current = f'plot:{old}'#(unchanged)
+            self._current = key#(unchanged)
             return True, ''
-        same = self._same_plot(text,[ p for p in plots if p != old ])
+        #(the same plot is not there twice among the custom plots):
+        same = self._same_plot(text,[ p for p in groups.custom if p != old ])
         h = self._history['plot']
         if not h or h[-1] != text:
             h.append(text)
-        title = _doubtful_title(self._title_of(old),old,text)
+        title = _doubtful_title(self._title_of(key),old,text)
         if same is None:
             #(changed in its place, or copied after the last custom plot):
             groups.add(text,title,after = old if custom else None)
         if custom:
             groups.remove(old)
         self._sync()
-        self._current = f'plot:{same or text}'
+        self._current = f'custom:{same or text}'
         self._restart()
         return True, ''
 
@@ -388,9 +414,9 @@ class Viewer(_Reading):
         plots (the plots of the standard groups have their places): whether it
         moved"""
         key = self.views[self.current][0]
-        if not key.startswith('plot:') or not self._groups.is_custom(key[5:]):
+        if not key.startswith('custom:'):
             return False
-        return self.move_to(key[5:],self._groups.custom.index(key[5:]) + delta)
+        return self.move_to(key[7:],self._groups.custom.index(key[7:]) + delta)
 
     def move_to( self, plot, index ):
         """Move the custom plot (its histogram string) to the index among the
@@ -403,10 +429,11 @@ class Viewer(_Reading):
         return True
 
     def set_title( self, plot, title ):
-        """Set the title of the custom plot (its histogram string), shown
-        instead of it in the viewers with windows, or remove it (an empty
-        title): (ok, message)"""
-        if not self._groups.is_custom(plot):
+        """Set the title of the custom plot (its histogram string, or the key
+        of its view), shown instead of it in the viewers with windows, or
+        remove it (an empty title): (ok, message)"""
+        plot = plot.removeprefix('custom:')
+        if plot.startswith('plot:') or not self._groups.is_custom(plot):
             return False, ( 'The plots of the standard groups keep their titles (a changed'
                             ' plot is copied into the custom group, with its own title)' )
         title = title.strip()
@@ -417,9 +444,12 @@ class Viewer(_Reading):
             self._updates += 1#(the figures are the same)
         return True, ''
 
-    def _title_of( self, plot ):
-        """The title of the plot (given, not from its expression), or None"""
-        return next( ( t for p, t, _ in self._groups.cards() if p == plot ), None )
+    def _title_of( self, key ):
+        """The title of the plot of the view with the key (given, not from its
+        expression), or None"""
+        custom, plot = key.startswith('custom:'), plot_of(key)
+        return next( ( t for p, t, g in self._groups.cards()
+                       if p == plot and ( g == custom_key ) == custom ), None )
 
     def show_group( self, key, shown = True ):
         """Show (or hide) the standard group with the key: whether it changed"""
@@ -455,19 +485,20 @@ class Viewer(_Reading):
         badges (short texts for its options) and the value all particles have
         (for a plot of a field where they all have the same value, else
         None)"""
-        if not key.startswith('plot:'):
+        if plot_of(key) is None:
             ov = dict(self.overviews()).get(key)
             return { 'title' : None, 'name' : 'Overview', 'plot' : None,
                      'group' : ov.title if ov else None,
                      'badges' : [ f'{n} plot{"s" if n != 1 else ""}' for n in
                                   ( len(ov.plots) if ov else 0, ) ],
                      'constant' : None, 'absent' : False }
-        p = key[5:]
-        title, group = next( ( ( t, title_of(g) ) for q, t, g in self._groups.cards() if q == p ),
-                             ( None, None ) )
+        p = plot_of(key)
+        custom = key.startswith('custom:')
+        title, group = next( ( ( t, title_of(g) ) for q, t, g in self._groups.cards()
+                               if q == p and ( g == custom_key ) == custom ), ( None, None ) )
         o = _parsed_plot(p)#(cached, for the cards, which are shown often)
         with self._lock:
-            figure = self._figures.get(key)
+            figure = self._figures.get(f'plot:{p}')
             constants = self._constants
         #(the log scales chosen with auto are known when the plot is made):
         panel = figure.panels[0] if figure is not None and figure.panels else None
@@ -593,8 +624,8 @@ class Viewer(_Reading):
                     res.append( ( f'overview:{g}', f'overview: {title_of(g)}' ) )
             #(plots of a field where all particles have the same value are marked):
             field = _plot_field(p)
-            res.append( ( f'plot:{p}', f'{p} (all {constants[field]})'
-                          if field in constants else p ) )
+            res.append( ( f'{"custom" if g == custom_key else "plot"}:{p}',
+                          f'{p} (all {constants[field]})' if field in constants else p ) )
         return res
 
     def overviews( self ):
@@ -608,7 +639,8 @@ class Viewer(_Reading):
         """The keys of the views of the plots of the cells of the overview with
         the key (in the order of its panels, None for empty cells)"""
         ov = dict(self.overviews()).get(key)
-        return [] if ov is None else [ None if p is None else f'plot:{p}' for p in ov.cells ]
+        kind = 'custom' if key == f'overview:{custom_key}' else 'plot'
+        return [] if ov is None else [ None if p is None else f'{kind}:{p}' for p in ov.cells ]
 
     def _reading_settings( self ):
         """What is read: the settings, with the plots of the overviews too"""
@@ -654,7 +686,8 @@ class Viewer(_Reading):
             with self._lock:
                 return None if ov is None else self._overview_figure(key,ov)
         with self._lock:
-            return self._figures.get(key)
+            #(the figures are of the plots, see _viewer_reading):
+            return self._figures.get(f'plot:{plot_of(key)}')
 
     def _overview_figure( self, key, ov ):
         """The figure of the overview (made again only when the figures or its
@@ -726,7 +759,10 @@ class Viewer(_Reading):
         res.update(self._groups.state())
         key = self.views[self.current][0] if self.views else None
         if key is not None and key != self.views[0][0]:
-            res['view'] = key if key.startswith('overview:') else key[5:]
+            #(plots as their histogram strings, with custom: only for custom
+            #plots which are also in a standard group, see _view_key):
+            plot = plot_of(key)
+            res['view'] = key if plot is None or self._view_key(plot) != key else plot
         return res
 
     def _apply_state( self, state ):
@@ -744,7 +780,7 @@ class Viewer(_Reading):
         for item in state.get('custom',[]):
             p, title = _plot_item(item)
             self._set_or_raise('plot',p)
-            p = self._same_plot(p)
+            p = self._same_plot(p,self._groups.custom)
             if self._groups.is_custom(p):
                 self._groups.set_title(p,title)
         self._sync()

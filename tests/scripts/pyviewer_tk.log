@@ -16,6 +16,9 @@ help menu: ['The viewer', 'Picks (filtering particles)', 'Edits (modifying parti
 X axis after typing 'ek' and <Tab>: 'ekin', focus kept: True
    completions of 'po' : ['polx', 'poly', 'polz', 'pos', 'pol', 'positron']
 X axis after typing 'po' and <Tab> <Down> <Return>: 'poly', focus kept: True
+apply of the axes: True
+after typing an axis: False | shown: plot:ekin;logx=auto;logy;split=pdgcode
+after clicking Apply: True | shown: custom:x;logx=auto;logy;split=pdgcode
 shown parts of the plot: {'axes': True, 'settings': True, 'expression': False}
 after clicking Advanced (on: True): {'axes': False, 'settings': False, 'expression': True}, expression 'ekin;logx=auto;logy;split=pdgcode'
 after clicking Advanced (on: False): {'axes': True, 'settings': True, 'expression': False}, expression 'ekin;logx=auto;logy;split=pdgcode'

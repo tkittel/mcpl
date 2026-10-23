@@ -125,6 +125,22 @@ tv._on_axis_escape()
 tv._on_title_escape()
 pump()
 
+#The Apply button of the axes is enabled while they are edited, and applies
+#them as Enter does:
+apply = tv._applies['axes']
+print('apply of the axes:', 'disabled' in apply.state())
+xaxis.focus_force()
+pump()
+tv._set_text(xaxis,'x')
+xaxis.event_generate('<KeyRelease>',keysym='x')
+pump()
+print('after typing an axis:', 'disabled' in apply.state(), '| shown:', v.current_key)
+apply.invoke()
+pump()
+print('after clicking Apply:', 'disabled' in apply.state(), '| shown:', v.current_key)
+tv.on_select_key('plot:ekin;logx=auto;logy;split=pdgcode')
+pump()
+
 #"Advanced" shows the plot expression instead of the axes and settings (the
 #parts of it), and back:
 def parts():

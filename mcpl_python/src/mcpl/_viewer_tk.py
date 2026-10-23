@@ -342,6 +342,12 @@ class TkViewer(WidgetViewer):
             self._placeholders[w] = empty
             w.bind('<FocusIn>',lambda _e, w=w : self._set_text(w,self._text(w)),'+')
             w.bind('<FocusOut>',lambda _e, w=w : self._on_entry_unfocus(w),'+')
+        #(the Apply button of the axes, as Enter in their fields):
+        b = ttk.Button(simple,text='Apply',width=5,takefocus=0,style='Small.TButton',
+                       command=self._on_axes_enter)
+        b.state([ 'disabled' ])
+        b.pack(side='left',padx=(4,0))
+        self._applies['axes'] = b
         self._marks['axes'] = ttk.Label(simple,width=2)
         self._marks['axes'].pack(side='left')
         #(the plot expression, which has the axes and the settings, shown
@@ -446,6 +452,8 @@ class TkViewer(WidgetViewer):
                     self._set_text(w,value or '')
                 if w is self._entries['shown_plot']:
                     self.show_pending('shown_plot',False)
+        if self.root.focus_get() not in self._axes:
+            self.show_pending('axes',False)#(the axes are those of the plot)
         self._remove.configure(state='disabled' if text is None else 'normal')
         #(the fields are only shown for plots, so the overview gets more room):
         if text is None:

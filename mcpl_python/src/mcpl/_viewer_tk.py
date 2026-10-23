@@ -326,12 +326,17 @@ class TkViewer(WidgetViewer):
         #emptied):
         frame = ttk.Frame(part)
         frame.pack(fill='x',pady=1)
+        #(the axes, and the settings below them, are shown unless "Advanced"
+        #shows the plot expression instead, which has them all):
+        simple = ttk.Frame(frame)
+        simple.pack(side='left')
+        self._simple = simple
         self._menu = [ f'{name}:  {plot.split(";")[0]}' for name, plot in ui.quantities ]
         self._axes = []
         for label in ( 'X axis:', 'Y axis:' ):
-            ttk.Label(frame,text=label,**( _row_label if not self._axes else {} )).pack(
+            ttk.Label(simple,text=label,**( _row_label if not self._axes else {} )).pack(
                 side='left',padx=(0 if not self._axes else 10,4))
-            w = ttk.Combobox(frame,width=22,values=self._menu if not self._axes else [ '' ] + self._menu)
+            w = ttk.Combobox(simple,width=22,values=self._menu if not self._axes else [ '' ] + self._menu)
             w.pack(side='left')
             w.bind('<<ComboboxSelected>>',lambda _e, w=w : self._on_axis_chosen(w))
             w.bind('<KeyRelease>',lambda e, w=w : self._on_axis_key(w,e))
@@ -351,18 +356,19 @@ class TkViewer(WidgetViewer):
         self._placeholders[y] = 'none (1D histogram)'
         y.bind('<FocusIn>',lambda _e : self._set_text(y,self._text(y)),'+')
         y.bind('<FocusOut>',lambda _e : self._on_entry_unfocus(y),'+')
-        self._marks['axes'] = ttk.Label(frame,width=2)
+        self._marks['axes'] = ttk.Label(simple,width=2)
         self._marks['axes'].pack(side='left')
         #(the plot expression, which has the axes and the settings, shown
-        #with the toggle "Advanced", see _show_advanced):
+        #instead of them with the toggle "Advanced", see _show_advanced):
         self._advanced = tk.BooleanVar(frame,value=False)
         toggle = ttk.Checkbutton(frame,text='Advanced',variable=self._advanced,takefocus=0,
                                  style='Choice.Toolbutton',command=self._show_advanced)
         toggle.pack(side='right',padx=(6,0))
+        self._toggle = toggle
         self._hover(toggle,'advanced')
         expr = ttk.Frame(frame)
         self._expression = expr
-        ttk.Label(expr,text='Expression:').pack(side='left',padx=(10,4))
+        ttk.Label(expr,text='Expression:',**_row_label).pack(side='left',padx=(0,4))
         w = ttk.Entry(expr,width=16)
         w.pack(side='left',fill='x',expand=True)
         self._apply_button(expr,'shown_plot').pack(side='left',padx=(2,0))
@@ -372,8 +378,10 @@ class TkViewer(WidgetViewer):
         self._bind_entry(w,'shown_plot')
         self._entries['shown_plot'], self._marks['shown_plot'] = w, mark
         #(the settings):
+        self._plot_row = frame
         frame = ttk.Frame(part)
         frame.pack(fill='x',pady=1)
+        self._settings_row = frame
         ttk.Label(frame,text='Settings:',**_row_label).pack(side='left',padx=(0,4))
         self._controls = _Controls(frame,self.on_control,
                                    on_hint = lambda text : self.show_line(text,'dim'),
@@ -545,14 +553,23 @@ class TkViewer(WidgetViewer):
         self.canvas.draw_idle()
 
     def _show_advanced( self ):
-        """Show or hide the plot expression (see the toggle "Advanced")"""
+        """Show the plot expression instead of the axes and the settings, which
+        are the parts of it, or the other way around (see the toggle
+        "Advanced")"""
         if self._advanced.get():
+            self._simple.pack_forget()
+            self._settings_row.pack_forget()
             self._expression.pack(side='left',fill='x',expand=True)
         else:
             self._expression.pack_forget()
+            self._simple.pack(side='left',before=self._toggle)
+            self._settings_row.pack(fill='x',pady=1,after=self._plot_row)
 
     def focus_field( self, field ):
         if field == 'x_axis':
+            if self._advanced.get():#(the axes are not shown then)
+                self._advanced.set(False)
+                self._show_advanced()
             self._axes[0].focus_set()
             return
         if field == 'shown_plot' and not self._advanced.get():

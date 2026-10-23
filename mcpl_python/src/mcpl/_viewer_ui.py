@@ -117,8 +117,8 @@ def shortcut_text( name ):
         return ( 'Cache: the memory for the particles which are read, which decides how'
                  ' many of them the plots use (click to change it)' )
     if name == 'advanced':
-        return ( 'Advanced: show the plot expression (the histogram string of the plot,'
-                 ' with its axes and settings)' )
+        return ( 'Advanced: show the plot expression instead of the axes and settings'
+                 ' (the histogram string of the plot, which has them all)' )
     return ''
 
 #The settings of the shown plot in the viewers with windows (see

@@ -716,39 +716,54 @@ class Viewer(_Reading):
         """The name of the file, with its number of particles"""
         return f'{self._name}: {count_text(self._ntotal)} particles'
 
-    @property
-    def nused( self ):
-        """The number of particles used (picked), which are written to new
-        files, or None while not known (or when the plots use only the
-        particles of the range in the cache, see cache_info)"""
-        with self._lock:
-            counts = self._counts
-        return None if counts is None or not self.cache_info()['fits'] else counts[0]
-
-    def counts_text( self, weights = '\u03a3w' ):
-        """The numbers of particles used (of those in the range, when picked)
-        and the sum of their weights (named weights), as a text, or None while
-        they are not known. When the plots use only the first particles of the
-        range (see cache_info), the numbers for the whole range are estimated
-        from them (marked with \u2248)."""
+    def _counts_estimated( self ):
+        """The counts of the particles used and of those in the range, and the
+        sums of their weights, as (n, ntot, w, wtot, exact), or None while they
+        are not known. When the plots use only the first particles of the
+        range (see cache_info), they are estimated for all particles of the
+        range (not exact), with the same fractions."""
         with self._lock:
             counts = self._counts
         if counts is None:
             return None
         n, ntot, w, wtot = counts
-        pct = f'{100.0*n/ntot:.1f}%' if ntot else '-'
-        wpct = f'{100.0*w/wtot:.1f}%' if wtot else '-'
         nrange = self.cache_info()['nrange']
-        if ntot and nrange > ntot:
-            #(estimates for the whole range, with the same fractions):
-            n, w, ntot, eq = round( n * nrange / ntot ), _estimate( w * nrange / ntot ), nrange, '\u2248'
-        else:
-            eq = '='
+        if not ntot or nrange <= ntot:
+            return n, ntot, w, wtot, True
+        scale = nrange / ntot
+        return ( round( n * scale ), nrange, _estimate( w * scale ), _estimate( wtot * scale ),
+                 False )
+
+    @property
+    def nused( self ):
+        """The number of particles used (picked), which are written to new
+        files (estimated if the plots use only the first particles of the
+        range, see cache_info), or None while not known"""
+        c = self._counts_estimated()
+        return None if c is None else c[0]
+
+    def nused_text( self, compact = False ):
+        """The number of particles used (see nused) as a text (see count_text),
+        with \u2248 if it is an estimate, or None while not known"""
+        c = self._counts_estimated()
+        return None if c is None else ( '' if c[4] else '\u2248' ) + count_text(c[0],compact)
+
+    def counts_text( self, weights = '\u03a3w' ):
+        """The numbers of particles used (of those in the range, when picked)
+        and the sum of their weights (named weights), as a text, or None while
+        they are not known, with the estimates for all particles of the range
+        marked with \u2248 (see _counts_estimated)."""
+        c = self._counts_estimated()
+        if c is None:
+            return None
+        n, ntot, w, wtot, exact = c
+        eq = '=' if exact else '\u2248'
         if self._s.pick is None:
             #(all particles of the range are used, so only the numbers):
             return f'{count_text(ntot)} particles, {weights} {eq} {number_text(w)}'
-        approx = '' if eq == '=' else '\u2248'
-        return ( f'{approx}{count_text(n)}/{count_text(ntot)} particles ({pct}),'
+        pct = f'{100.0*n/ntot:.1f}%' if ntot else '-'
+        wpct = f'{100.0*w/wtot:.1f}%' if wtot else '-'
+        return ( f'{self.nused_text()}/{count_text(ntot)} particles ({pct}),'
                  f' {weights} {eq} {number_text(w)} ({wpct})' )
 
     #The state:

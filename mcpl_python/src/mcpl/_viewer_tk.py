@@ -245,7 +245,7 @@ class TkViewer(WidgetViewer):
                 self._hover(w,field)
         #(writing the picked and edited particles, in the corner, which opens
         #a window with the name of the file and the code):
-        self._write = ttk.Button(grid,text='Create new MCPL file...',
+        self._write = ttk.Button(grid,text='New MCPL file...',
                                  style='Head.Accent.TButton',takefocus=0,
                                  command=lambda : self.on_action('write'))
         #(below skip and limit, from the start of the one to the end of the other):
@@ -476,10 +476,10 @@ class TkViewer(WidgetViewer):
         if action == 'write':
             #(in blue only when there is something to write):
             self._write.state([ '!disabled' if enabled else 'disabled' ])
-            n = self.v.nused
+            n = self.v.nused_text(compact = True)
             self._write.configure(style='Head.Accent.TButton' if enabled else 'Head.TButton',
-                                  text=( f'Create new MCPL file with {ui.count_text(n,True)} particles...'
-                                         if enabled and n is not None else 'Create new MCPL file...' ))
+                                  text=( f'New MCPL file ({n} particles)...'
+                                         if enabled and n is not None else 'New MCPL file...' ))
             return
         self._actions_menu.entryconfigure(self._actions[action],
                                           state='normal' if enabled else 'disabled')

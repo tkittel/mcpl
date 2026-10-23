@@ -119,8 +119,11 @@ class CardList:
             shown = card.key == current
             if card.grouped and group in folded and not ( shown or card.pinned ):
                 continue
-            h = _card_heights['small' if card.compact else 'card']
-            self._card(y,h,card,img,shown)
+            lines = None if card.compact or card.inactive else self._name_lines(card)
+            h = _card_heights['small' if lines is None else 'card']
+            if lines is not None:
+                h = max( h, 12 + self._text_height(card,lines) )#(e.g. for larger fonts)
+            self._card(y,h,card,img,shown,lines)
             self._slots.append( ( y, y + h, 'card', card ) )
             if shown and new_current:
                 selected = ( y, y + h )
@@ -128,6 +131,13 @@ class CardList:
         if not added:
             y = self._add_card(y)
         c.configure(scrollregion=( 0, 0, self.width + 8, y ))
+        #(the view stays within the cards when there are fewer of them, e.g.
+        #when groups are folded, so there is no empty space above them):
+        height = c.winfo_height()
+        if y <= height:
+            c.yview_moveto(0)
+        elif c.canvasy(0) > y - height:
+            c.yview_moveto(( y - height ) / y)
         if selected is not None:
             #(the selected card is scrolled into view):
             top, bottom = c.canvasy(0), c.canvasy(c.winfo_height())
@@ -156,7 +166,17 @@ class CardList:
                                 font=( self.tv.bold.cget('family'), 8, 'bold' ))
         self._slots.append( ( y, y + _card_heights['header'], 'header', group ) )
 
-    def _card( self, y, h, card, img, selected ):
+    def _name_lines( self, card ):
+        """The lines of the name of a card (one or two, see wrapped)"""
+        return wrapped(card.name,self.tv.bold,self.width-( 14 + self.thumb[0] + 12 )-22)
+
+    def _text_height( self, card, lines ):
+        """The height of the lines of the name and of the badges (or the
+        problem) below them, as drawn by _card"""
+        below = card.problem or card.badges
+        return len(lines) * self.tv.bold.metrics('linespace') + ( 22 if below else 0 )
+
+    def _card( self, y, h, card, img, selected, lines ):
         c, col = self.canvas, card_colors
         if card.inactive:
             #(the card of an inactive group, in grey with a dashed outline):
@@ -184,12 +204,13 @@ class CardList:
             c.create_text(x+self.thumb[0]/2,y+h/2,text='\u2717',fill=colors['error'],
                           font=( self.tv.bold.cget('family'), 22, 'bold' ))
         x += self.thumb[0] + 12
-        #(the name in one or two lines, with the badges or the problem below):
-        lines = wrapped(card.name,self.tv.bold,self.width-x-22)
+        #(the name in one or two lines, with the badges or the problem below
+        #them, in the middle of the card):
+        ls = self.tv.bold.metrics('linespace')
+        y0 = y + ( h - self._text_height(card,lines) ) / 2
         for i, line in enumerate(lines):
-            c.create_text(x,y+( 20 if len(lines) == 1 else 13 + 15 * i ),anchor='w',
-                          fill=col['text'],font=self.tv.bold,text=line)
-        top = y + ( 34 if len(lines) == 1 else 38 )
+            c.create_text(x,y0+ls*i,anchor='nw',fill=col['text'],font=self.tv.bold,text=line)
+        top = y0 + len(lines) * ls + 4
         if card.problem:
             c.create_text(x,top+9,anchor='w',fill=colors['error'],
                           font=( self.tv.bold.cget('family'), 8 ),

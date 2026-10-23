@@ -356,6 +356,7 @@ class WidgetViewer:
             title = { k : t for k, t, _, _ in self.v.group_list() }[key]
             self.show_line(f'{"Activated" if shown else "Deactivated"}: the group {title}','normal')
             if shown:
+                self._expanded = True#(the group shown is expanded, see folded_groups)
                 self.v.select_key(f'overview:{key}')
         self.refresh()
 

@@ -652,8 +652,10 @@ class WidgetViewer:
         return h.step(delta)
 
     def on_complete( self, field, text, cursor ):
-        """Tab completion in the field (see ui.complete_text)"""
-        return ui.complete_text(self.v,'plot' if field == 'shown_plot' else field,text,cursor)
+        """Tab completion in the field (see ui.complete_text), or in the
+        expression of an axis (field 'axis')"""
+        return ui.complete_text(self.v,'plot' if field in ( 'shown_plot', 'axis' ) else field,
+                                text,cursor)
 
     def menu_choices( self, field ):
         """The values of a field of ui.menu_fields, as (value, description)"""

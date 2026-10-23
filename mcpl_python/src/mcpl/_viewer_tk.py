@@ -154,7 +154,9 @@ class TkViewer(WidgetViewer):
         #from the pick and edit, see cache_menu):
         self._cache = ttk.Menubutton(main,takefocus=0,style='CacheAll.Compact.TMenubutton')
         self._cache.grid(row=0,column=0,sticky='e')
-        self._cache['menu'] = tk.Menu(self._cache,tearoff=0,postcommand=self._cache_menu)
+        #(the menu is kept, as the option of the button only has its name):
+        self._cache_choices = tk.Menu(self._cache,tearoff=0,postcommand=self._cache_menu)
+        self._cache['menu'] = self._cache_choices
         self._hover(self._cache,'cache')
         #(the part of the shown plot, in the colours of its selected card: the
         #plot with its toolbar, and its fields below them, see _plot_part):
@@ -332,11 +334,17 @@ class TkViewer(WidgetViewer):
             w = ttk.Combobox(frame,width=22,values=self._menu if not self._axes else [ '' ] + self._menu)
             w.pack(side='left')
             w.bind('<<ComboboxSelected>>',lambda _e, w=w : self._on_axis_chosen(w))
-            w.bind('<KeyRelease>',lambda e : None if e.keysym in ( 'Return', 'KP_Enter', 'Escape' )
-                   else self.on_axes_edited(*self._axis_texts()))
-            w.bind('<Return>',lambda _e : self._on_axes_enter())
-            w.bind('<KP_Enter>',lambda _e : self._on_axes_enter())
-            w.bind('<Escape>',lambda _e : self._on_title_escape())
+            w.bind('<KeyRelease>',lambda e, w=w : self._on_axis_key(w,e))
+            w.bind('<Return>',lambda _e, w=w : self._on_axes_enter(w))
+            w.bind('<KP_Enter>',lambda _e, w=w : self._on_axes_enter(w))
+            w.bind('<Escape>',lambda _e : self._on_axis_escape())
+            #(Tab completes the expressions, as in the other fields, and Up and
+            #Down choose in the list of completions, if shown, else in the list
+            #of quantities):
+            w.bind('<Tab>',lambda _e, w=w : self._on_entry_tab(w,'axis'))
+            for key, delta in ( ( '<Up>', -1 ), ( '<Down>', 1 ) ):
+                w.bind(key,lambda _e, w=w, d=delta : ( self._on_entry_updown(w,'axis',d)
+                                                       if self._popup is not None else None ))
             self._axes.append(w)
         #(an empty y axis says what it means):
         y = self._axes[1]
@@ -384,7 +392,22 @@ class TkViewer(WidgetViewer):
                        if text in self._menu else text)
         self._on_axes_enter()
 
-    def _on_axes_enter( self ):
+    def _on_axis_key( self, w, event ):
+        if event.keysym in ( 'Return', 'KP_Enter', 'Escape', 'Up', 'Down', 'Tab' ):
+            return
+        self._close_popup()
+        self.on_axes_edited(*self._axis_texts())
+
+    def _on_axis_escape( self ):
+        if self._popup is not None:
+            self._close_popup()
+            return 'break'
+        return self._on_title_escape()
+
+    def _on_axes_enter( self, w = None ):
+        if self._popup is not None and w is not None:
+            self._insert_choice(w)
+            return 'break'
         if self.on_axes(*self._axis_texts()):
             self.show_check('axes',None)
             self.canvas.get_tk_widget().focus_set()
@@ -486,7 +509,7 @@ class TkViewer(WidgetViewer):
     def _cache_menu( self ):
         """Fill the menu of the cache button (see cache_menu)"""
         from tkinter import messagebox
-        menu = self._cache['menu']
+        menu = self._cache_choices
         menu.delete(0,'end')
         menu._used = tk_modules()[0].StringVar(menu,value='')
         for i, ( label, limit, used, fits ) in enumerate(ui.cache_menu(self.v.cache_info())):
@@ -790,15 +813,22 @@ class TkViewer(WidgetViewer):
         if self._popup is not None:
             self._insert_choice(w)
             return 'break'
-        if field in ui.completing_fields or field == 'shown_plot':
+        if field in ui.completing_fields or field in ( 'shown_plot', 'axis' ):
             text, cursor, choices, start = self.on_complete(field,self._text(w),w.index('insert'))
             w.delete(0,'end')
             w.insert(0,text)
             w.icursor(cursor)
             if choices:
                 self._open_popup(w,field,start,choices)
-            self.on_field_edited(field,text)
+            self._edited(w,field)
         return 'break'
+
+    def _edited( self, w, field ):
+        """The text of the field (or of an axis) was changed"""
+        if field == 'axis':
+            self.on_axes_edited(*self._axis_texts())
+        else:
+            self.on_field_edited(field,self._text(w))
 
     def _open_popup( self, w, field, start, choices ):
         """The completions in a list below the field (Up and Down choose one,
@@ -828,7 +858,7 @@ class TkViewer(WidgetViewer):
         w.icursor(start + len(name))
         self._close_popup()
         w.focus_set()
-        self.on_field_edited(field,self._text(w))
+        self._edited(w,field)
 
     def _close_popup( self ):
         if self._popup is not None:

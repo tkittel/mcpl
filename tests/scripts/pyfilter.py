@@ -341,7 +341,7 @@ def test_angle_to():
     assert np.allclose(v, ref, rtol=0, atol=1e-12)
     print(f'angle_to(x,y,z)/deg of the first particles: {np.round(np.degrees(v[:3]),6)}')
     #Small angles, where acos(dot product) gives 0:
-    from mcpldev._expressions import _angle_highres
+    from mcpldev._exprcore import _angle_highres
     for eps in (1e-6, 1e-9, 1e-12):
         a = _angle_highres((np.array([1.0]),np.array([eps]),np.array([0.0])),(1.0,0.0,0.0))
         print(f'angle between (1,{eps:g},0) and (1,0,0): {a[0]:.6g}'
@@ -405,7 +405,7 @@ def test_canonical():
     for e in ( 'z += 1cm;weight *= 0.5', 'rotate_z(90deg) ; z+=10 cm' ):
         print(f'edit {e!r}: {_expr_canonical(e,edit=True)!r}')
     #The parsed expressions, with what they use:
-    from mcpldev._expressions import _Expr
+    from mcpldev._exprcore import _Expr
     for e in ( 'pdgcode == neutron and wavelength > 1.8Aa', 'hypot(x,y)/cm', 'mod(fileidx,10) == 0' ):
         x = _Expr(e)
         print(f'parsed {e!r}: fields {sorted(x.fields)}, names {sorted(x.names)},'

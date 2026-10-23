@@ -29,7 +29,8 @@ import math
 import os
 
 from ._common import MCPLError
-from ._expressions import ParticleFilter, ParticleValue, _dimstr
+from ._exprcore import _dimstr
+from ._expressions import ParticleFilter, ParticleValue
 from ._exprplot import _plot_unit, _PlotValue
 from ._histstring import (
     _as_range,

@@ -1042,7 +1042,7 @@ def _auto_title( plot ):
     import ast
 
     from ._common import MCPLError
-    from ._expressions import _Expr
+    from ._exprcore import _Expr
     from ._exprsyntax import _Unit
     from ._histstring import _hist_parts
     exprs = _hist_parts(plot)[0].split(':')
@@ -1070,7 +1070,7 @@ def _parsed_plot( text ):
 def _plot_field( text ):
     """The field if the plot (a histogram string) is of exactly one field
     (e.g. "z" or "weight;unweighted"), else None"""
-    from ._expressions import _Expr
+    from ._exprcore import _Expr
     from ._histstring import _parse_hist
     exprs = _parse_hist(text)['exprs']
     return _Expr(exprs[0]).field if len(exprs) == 1 else None

@@ -24,7 +24,8 @@
 __all__ = []
 
 from ._common import MCPLError
-from ._expressions import ParticleValue, _EmptyBlock, _Expr, _expr_value_names, _values
+from ._exprcore import _EmptyBlock, _Expr, _expr_value_names
+from ._expressions import ParticleValue, _values
 from ._exprsyntax import _dim_E, _dim_L, _dim_T, _expr_units
 from ._numpy import np
 

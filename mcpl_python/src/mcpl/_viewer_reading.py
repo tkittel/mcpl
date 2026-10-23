@@ -377,7 +377,7 @@ class _Computation:
     def constants( self ):
         """The fields where all particles have the same value, with the value
         (as text, with its unit)"""
-        from ._expressions import _expr_field_dims, _expr_unit_hints
+        from ._exprcore import _expr_field_dims, _expr_unit_hints
         res = {}
         for field, ( lo, hi ) in self._lims.items():
             if lo is not None and lo == hi:

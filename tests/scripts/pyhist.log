@@ -699,8 +699,8 @@ mcpltool -H x/cm -o hist.png -d example.mcpl: exit code 1
    | ERROR: -d can not be used with -o (which saves plots in files).
    | 
    | Run with -h or --help for usage information
-mcpltool -p x > 0; example.mcpl: exit code 1
-   | ERROR: Syntax error in expression "x > 0;", after "x > 0": unexpected ";"
+mcpltool -p x = 1cm; x > 0 example.mcpl: exit code 1
+   | ERROR: Picks can not change the particles (here x), only variables, like "r = hypot(x,y)" (edits can change the particles), in "x = 1cm; x > 0"
    | 
    | Run with "-p help" for how to pick particles with expressions
 mcpltool -p x > "1" example.mcpl: exit code 1
@@ -708,10 +708,10 @@ mcpltool -p x > "1" example.mcpl: exit code 1
    | 
    | Run with "-p help" for how to pick particles with expressions
 mcpltool -E z = 1cm, x = 0 example.mcpl: exit code 1
-   | ERROR: Separate the statements of edits with ";" (not ",") in "z = 1cm, x = 0"
+   | ERROR: Separate statements with ";" (not ",") in "z = 1cm, x = 0"
    | 
    | Run with "-E help" for how to edit particles with expressions
-mcpltool -p help: exit code 0, 148 lines, starting with:
+mcpltool -p help: exit code 0, 152 lines, starting with:
    | PICK: an expression which is true for the particles to use, for example:
    |   -p "pdgcode == neutron"     Neutrons.
    |   -p "pdgcode in (neutron,gamma)"

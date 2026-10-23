@@ -264,7 +264,9 @@ class _CTranslator:
 
 def _c_condition( pick, tr ):
     """The C or C++ condition of the pick (an expression), or None"""
-    from ._expressions import _Expr
+    from ._expressions import _Expr, _split_statements
+    if len(_split_statements(pick)) > 1:
+        return None#(statements before the condition)
     res = tr(_Expr(pick).tree)
     return None if res is None else res[0]
 

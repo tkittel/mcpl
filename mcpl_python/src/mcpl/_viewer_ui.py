@@ -476,6 +476,27 @@ class LineEditor:
         self._recheck()
         return None
 
+#Numbers in the texts of the viewers:
+
+def count_text( n, compact = False ):
+    """A number (of particles) as a text with thousands separators, like
+    1,006,000, or if compact in the short form of round numbers, like 1e6 or
+    2.5e6, where it is exact and shorter"""
+    text = f'{n:,}'
+    if compact and n >= 1e5:
+        mantissa, exponent = f'{n:e}'.split('e')
+        short = f'{float(mantissa):g}e{int(exponent)}'
+        if float(short) == n and len(short) < len(text):
+            return short
+    return text
+
+def number_text( x ):
+    """A number (like a sum of weights) as a text: whole numbers as for
+    count_text, others with 6 significant digits"""
+    if float(x).is_integer() and abs(x) < 1e15:
+        return count_text(int(x))
+    return f'{x:.6g}'
+
 #The particles kept in memory by the viewer (see Viewer.cache_info), with the
 #button and the menu of the viewers with windows:
 
@@ -516,8 +537,9 @@ def cache_menu( info ):
 def cache_line( info ):
     """The message after the cache limit was changed"""
     if info['fits']:
-        return f'The plots use all {info["nrange"]} particles'
-    return ( f'The plots use the first {info["nused"]} of the {info["nrange"]} particles'
+        return f'The plots use all {count_text(info["nrange"])} particles'
+    return ( f'The plots use the first {count_text(info["nused"])} of the'
+             f' {count_text(info["nrange"])} particles'
              ' (those in the cache), but new files get all' )
 
 cache_about = ( 'The viewer keeps the particles it reads in memory (the cache), so it'

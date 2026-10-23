@@ -700,6 +700,23 @@ def test_cache():
     list(f.blocks(0,1006))
     print(f'  with a lower limit, kept: {f._start} to {f._end}')
 
+def test_numbers():
+    #Numbers with thousands separators, or in the short form of round numbers
+    #where space is short (when exact and shorter), and skip and limit given
+    #in such forms:
+    from mcpldev._viewer import _parse_count
+    from mcpldev._viewer_ui import count_text, number_text
+    for n in ( 0, 999, 1006, 123456, 1000000, 1006000, 1234567, 2500000, 10**9 ):
+        print(f'  {n}: {count_text(n)} | compact: {count_text(n,True)}')
+    for x in ( 1e6, 726.0, 0.5, 1.5e-6, 123456.789 ):
+        print(f'  {x!r}: {number_text(x)}')
+    for text in ( '1e6', '1,000', '1,000,000', '10,00', '1.5e3', '1.5', '-3', 'x' ):
+        print(f'  count {text!r}: {_parse_count(text)}')
+    v = Viewer(ex)
+    for field, text in ( ( 'skip', '1e2' ), ( 'limit', '1,000' ), ( 'skip', '1.5' ) ):
+        print(f'  {field} {text!r}:', v.set(field,text))
+
+test_numbers()
 test_cache()
 test_figures()
 test_code()

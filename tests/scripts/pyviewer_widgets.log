@@ -289,13 +289,13 @@
    log again: custom:x : y
 ==> the cache: green when the plots use all particles, else red, with a menu of limits
    button: ('cached: 44 kB', True)
-   menu: ('5 MB: all 1,006 particles', 5000000.0, False, True)
-   menu: ('20 MB: all 1,006 particles', 20000000.0, False, True)
-   menu: ('100 MB: all 1,006 particles', 100000000.0, False, True)
-   menu: ('500 MB: all 1,006 particles', 500000000.0, True, True)
-   menu: ('2 GB: all 1,006 particles', 2000000000.0, False, True)
-   menu: ('5 GB: all 1,006 particles', 5000000000.0, False, True)
-   menu: ('10 GB: all 1,006 particles', 10000000000.0, False, True)
+   menu: ('Max 5 MB: all 1,006 particles', 5000000.0, False, True)
+   menu: ('Max 20 MB: all 1,006 particles', 20000000.0, False, True)
+   menu: ('Max 100 MB: all 1,006 particles', 100000000.0, False, True)
+   menu: ('Max 500 MB: all 1,006 particles', 500000000.0, True, True)
+   menu: ('Max 2 GB: all 1,006 particles', 2000000000.0, False, True)
+   menu: ('Max 5 GB: all 1,006 particles', 5000000000.0, False, True)
+   menu: ('Max 10 GB: all 1,006 particles', 10000000000.0, False, True)
    menu: ('No memory cache (refreshing plots from file on each change)', None, False, True)
    line (normal): The plots use the first 300 of the 1,006 particles (those in the cache), but new files get all
    button: ('cached: 13 kB', False)

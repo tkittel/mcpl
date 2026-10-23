@@ -538,7 +538,7 @@ def cache_menu( info ):
         else:
             used = n if info['size'] * n <= limit else max( 1, int( limit // info['size'] ) )
             fits = used >= n
-            label = f'{_bytes(limit)}: {_used_text(used,n)}'
+            label = f'Max {_bytes(limit)}: {_used_text(used,n)}'
             if not fits:
                 label += f' ({100.0*used/max(1,n):.2g}%)'
         entries.append( ( label, limit, limit == info['limit'], fits ) )
@@ -565,14 +565,7 @@ cache_about = ( 'The viewer keeps the particles it reads in memory (the cache), 
 #windows, see WidgetViewer.on_new_plot):
 new_plot_hints = """New plot: choose or type what to plot below, and press Enter
 
-\u2022  The lists of the axes have common quantities, but any expression can be
-    typed, like hypot(x,y)/cm, angle(dir,(0,0,1))/deg or log10(ekin/eV).
-\u2022  Tab completes the names of fields, units and functions while typing.
-\u2022  Values with units are divided by a unit, which is the unit of the axis
-    (e.g. ekin/keV), or the unit is chosen for the values (e.g. ekin).
-\u2022  Add a Y axis for a 2D histogram, and also a Z axis for a 3D plot.
-\u2022  The settings of the plot (scales, bins, ...) are shown once it is made,
-    and "Advanced" shows its plot expression, with axes and settings.
-\u2022  A title for the list of plots can be given above the plot.
-\u2022  All fields, units and functions of expressions are listed by the
-    command mcpltool -p help, and the ? buttons show examples."""
+\u2022  Choose a quantity in the list of an axis, or type any expression
+\u2022  Tab completes the names of fields, units and functions
+\u2022  Add a Y axis for a 2D histogram, and also a Z axis for a 3D plot
+\u2022  mcpltool -p help lists all names, and the ? buttons show examples"""

@@ -29,13 +29,8 @@ import math
 import os
 
 from ._common import MCPLError
-from ._expressions import (
-    ParticleFilter,
-    ParticleValue,
-    _dimstr,
-    _plot_unit,
-    _PlotValue,
-)
+from ._expressions import ParticleFilter, ParticleValue, _dimstr
+from ._exprplot import _plot_unit, _PlotValue
 from ._histstring import (
     _as_range,
     _check_range,

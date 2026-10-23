@@ -335,7 +335,8 @@ def _c_rotation_matrix( fname, args, tr, indent ):
     arguments: the rotation matrix (as for the edits) applied to the position,
     direction and polarisation, without its zero elements (so the rotations
     around the axes by multiples of 90 degrees are exact)"""
-    from ._expressions import _rotated_vectors, _rotation_matrix
+    from ._expressions import _rotated_vectors
+    from ._exprrotation import _rotation_matrix
     values = []
     for a in args:
         value = tr(a.tree)

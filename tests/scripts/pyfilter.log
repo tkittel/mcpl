@@ -1,3 +1,24 @@
+pick 'r = hypot(x,y); r > 2cm and r < 5cm': same as 'hypot(x,y) > 2cm and hypot(x,y) < 5cm': True (158 picked), fileidx: False, canonical: 'r=hypot(x,y);r>2cm and r<5cm'
+pick 'e = ekin/MeV; e2 = e*e; e2 > 0.25': same as '(ekin/MeV)^2 > 0.25': True (648 picked), fileidx: False, canonical: 'e=ekin/MeV;e2=e*e;e2>0.25'
+pick 'd = x - 1cm; d *= 2; abs(d) < 3cm': same as 'abs(2*(x - 1cm)) < 3cm': True (254 picked), fileidx: False, canonical: 'd=x-1cm;d*=2;abs(d)<3cm'
+pick 'n = pdgcode == neutron; n and ekin < 1MeV': same as 'pdgcode == neutron and ekin < 1MeV': True (466 picked), fileidx: False, canonical: 'n=pdgcode==neutron;n and ekin<1MeV'
+pick 't = time; mod(fileidx,2) == 0 and t > 0ms': same as 'mod(fileidx,2) == 0 and time > 0ms': True (503 picked), fileidx: True, canonical: 't=time;mod(fileidx,2)==0 and t>0ms'
+pick 'pdgcode == neutron;': same as 'pdgcode == neutron': True (726 picked), fileidx: False, canonical: 'pdgcode==neutron'
+pick 'r = hypot(x, y) ; r < 1cm': same as 'hypot(x,y) < 1cm': True (128 picked), fileidx: False, canonical: 'r=hypot(x,y);r<1cm'
+file and histogram with 'r = hypot(x,y); r > 2cm': 820 820, C condition: None
+ParticleFilter('x = 1cm; x > 0cm'): Picks can not change the particles (here x), only variables, like "r = hypot(x,y)" (edits can change the particles), in "x = 1cm; x > 0cm"
+ParticleFilter('r = hypot(x,y); x > 0cm'): Variable "r" is assigned but never used in "r = hypot(x,y); x > 0cm"
+ParticleFilter('swap(x,y); x > 0cm'): swap(..) changes the particles, which picks can not do (edits can), in "swap(x,y); x > 0cm"
+ParticleFilter('rotate_z(90deg); x > 0cm'): rotate_z(..) changes the particles, which picks can not do (edits can), in "rotate_z(90deg); x > 0cm"
+ParticleFilter('x > 0cm; y > 0cm'): Only assignments of variables, like "r = hypot(x,y)", can come before the condition of a pick (separated by ";"), in "x > 0cm; y > 0cm"
+ParticleFilter('r = hypot(x,y);'): A pick ends with its condition, as in "r = hypot(x,y); r > 2cm", in "r = hypot(x,y);"
+ParticleFilter('r = hypot(x,y); r'): Expression "r = hypot(x,y); r" is not a condition (e.g. a comparison)
+ParticleFilter('r += 1cm; r > 0cm'): Variable "r" used before it is assigned in "r += 1cm; r > 0cm"
+ParticleFilter('r = 1meV; r > 1cm'): Incompatible units in comparison: energy and length in expression "r = 1meV; r > 1cm"
+ParticleFilter('pi = 3; x > 0cm'): Can not assign to "pi" in "pi = 3; x > 0cm" (lowercase names which are not names of fields, units, constants or functions can be used for variables)
+ParticleFilter('r = hypot(x,y), r > 1cm'): Separate statements with ";" (not ",") in "r = hypot(x,y), r > 1cm"
+ParticleFilter(';'): Empty expression
+ParticleFilter('ekin = 1MeV'): Syntax error in expression "ekin = 1MeV", after "ekin": unexpected "=" (use == for comparisons)
 pick example 'pdgcode == neutron': 726 particles
 pick example 'pdgcode in (neutron,gamma)': 965 particles
 pick example 'abs(pdgcode) in (electron,muon)': 23 particles
@@ -5,6 +26,7 @@ pick example 'ekin < 25meV': 0 particles
 pick example '0cm < z < 10cm': 0 particles
 pick example 'pdgcode == neutron and wavelength > 1.8Aa': 0 particles
 pick example 'hypot(x,y) < 5cm and angle_to(0,0,1) < 1deg': 3 particles
+pick example 'r = hypot(x,y); r > 2cm and r < 5cm': 158 particles
 pick example 'not ( time > 10us or weight < 0.1 )': 1006 particles
 pick example '(userflags & 0xff) == 7': 0 particles
 pick example 'mod(fileidx,10) == 0': 101 particles
@@ -260,7 +282,7 @@ ParticleFilter('sin(x, y=1) > 0'): Syntax error in expression "sin(x, y=1) > 0",
 ParticleFilter('x.real > 0'): Syntax error in expression "x.real > 0", after "x": "." can only be used for fields of the userdata (as userdata.NAME)
 ParticleFilter('[x][0] > 0'): The character [ can not be used in expressions (in "[x][0] > 0")
 ParticleFilter("x > 'a'"): The character ' can not be used in expressions (in "x > 'a'")
-ParticleFilter(''): Syntax error in expression "", at the start: a value is missing
+ParticleFilter(''): Empty expression
 ParticleFilter('sqrt(x/cm) > 1'): sqrt(..) gives NaN or infinite values in expression "sqrt(x/cm) > 1"
 ParticleFilter('1/(x/cm - x/cm) > 1'): Division gives NaN or infinite values in expression "1/(x/cm - x/cm) > 1"
 ParticleFilter('log(ekin/MeV - ekin/MeV) > 0'): log(..) gives NaN or infinite values in expression "log(ekin/MeV - ekin/MeV) > 0"
@@ -294,10 +316,10 @@ ParticleEdit('x'): Expected assignments like "x = 2*y" (or swap(..) or rotations
 ParticleEdit('foo = 1'): Variable "foo" is assigned but never used in "foo = 1" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength)
 ParticleEdit('wl = 1.8Aa'): Variable "wl" is assigned but never used in "wl = 1.8Aa" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength)
 ParticleEdit('tmp = x; x = y'): Variable "tmp" is assigned but never used in "tmp = x; x = y" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength)
-ParticleEdit('Tmp = 1'): Can not assign to "Tmp" in "Tmp = 1" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, and other lowercase names can be used for variables)
+ParticleEdit('Tmp = 1'): Can not assign to "Tmp" in "Tmp = 1" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, and other lowercase names which are not names of fields, units, constants or functions can be used for variables)
 ParticleEdit('tmp += 1cm'): Variable "tmp" used before it is assigned in "tmp += 1cm"
 ParticleEdit('x = tmp'): Unknown name "tmp" in expression "x = tmp" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-ParticleEdit('clamp = 1'): Can not assign to "clamp" in "clamp = 1" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, and other lowercase names can be used for variables)
+ParticleEdit('clamp = 1'): Can not assign to "clamp" in "clamp = 1" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, and other lowercase names which are not names of fields, units, constants or functions can be used for variables)
 ParticleEdit('swap(x,ekin)'): Incompatible units in swap(..): length and energy in expression "swap(x,ekin)"
 ParticleEdit('swap(x)'): swap(..) takes two fields (or variables) as arguments, as in swap(x,y), in "swap(x)"
 ParticleEdit('swap(x,2)'): swap(..) takes two fields (or variables) as arguments, as in swap(x,y), in "swap(x,2)"
@@ -314,15 +336,15 @@ ParticleEdit('rotate_frame(0,0,1,0,1,0)'): rotate_frame(..) takes 12 arguments (
 ParticleEdit('rotate_frame(0,0,1, 1,0,0, 0,0,2, 0,1,0)'): In rotate_frame(..), v and u must not be parallel in expression "rotate_frame(0,0,1, 1,0,0, 0,0,2, 0,1,0)"
 ParticleEdit('rotate_frame(0,0,1, 1,0,0, 0,1,0, 1,1,0)'): In rotate_frame(..), the angle between v and u must be that between vout and uout in expression "rotate_frame(0,0,1, 1,0,0, 0,1,0, 1,1,0)"
 ParticleEdit('x == 1cm'): Expected assignments like "x = 2*y" (or swap(..) or rotations like rotate_z(..)) in "x == 1cm"
-ParticleEdit('pi = 3'): Can not assign to "pi" in "pi = 3" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, and other lowercase names can be used for variables)
+ParticleEdit('pi = 3'): Can not assign to "pi" in "pi = 3" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, and other lowercase names which are not names of fields, units, constants or functions can be used for variables)
 ParticleEdit('wl = 1Aa'): Variable "wl" is assigned but never used in "wl = 1Aa" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength)
-ParticleEdit('x = 1cm, y = 1cm'): Separate the statements of edits with ";" (not ",") in "x = 1cm, y = 1cm"
+ParticleEdit('x = 1cm, y = 1cm'): Separate statements with ";" (not ",") in "x = 1cm, y = 1cm"
 ParticleEdit('fileidx = 2'): fileidx (the position of the particles in the file) can not be changed, in "fileidx = 2"
 ParticleEdit('fileidx += 1'): fileidx (the position of the particles in the file) can not be changed, in "fileidx += 1"
 ParticleEdit('swap(fileidx,pdgcode)'): fileidx (the position of the particles in the file) can not be changed, in "swap(fileidx,pdgcode)"
 ParticleEdit('x = y = 1cm'): Syntax error in expression "x = y = 1cm", after "x = y": unexpected "="
-ParticleEdit('x, y = y, x'): Separate the statements of edits with ";" (not ",") in "x, y = y, x"
-ParticleEdit(''): Empty edit expression
+ParticleEdit('x, y = y, x'): Separate statements with ";" (not ",") in "x, y = y, x"
+ParticleEdit(''): Empty expression
 ParticleEdit('pdgcode = 1.5'): Non-integer values assigned to pdgcode
 ParticleEdit('x = sqrt(x/cm)*1cm'): sqrt(..) gives NaN or infinite values in expression "x = sqrt(x/cm)*1cm"
 ParticleEdit('weight = 1/(x/cm - x/cm)'): Division gives NaN or infinite values in expression "weight = 1/(x/cm - x/cm)"

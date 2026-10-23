@@ -297,6 +297,8 @@ examples = {
             ' wavelengths, so they are picked first).' ) ),
         ( 'hypot(x,y) < 5cm and angle_to(0,0,1) < 1deg',
           'Within 5 cm of the z axis, and moving within 1 degree of its direction.' ),
+        ( 'r = hypot(x,y); r > 2cm and r < 5cm',
+          'A variable (r) assigned before the condition, which comes last.' ),
         ( 'not ( time > 10us or weight < 0.1 )', 'Early particles with large weights.' ),
         ( '(userflags & 0xff) == 7', 'The lowest 8 bits of the user flags are 7.' ),
         ( 'mod(fileidx,10) == 0', 'Every tenth particle in the file.' ),
@@ -358,7 +360,8 @@ not in (one of the values in parentheses), and, or, not (and & | ~ for
 bits). Values with units must be written with units
 (e.g. 25meV or 10cm), except for a plain 0 (e.g. x > 0), and the wavelength
 can only be used for neutrons and gammas, which must be picked first (e.g.
-"pdgcode == neutron and wavelength > 1.8Aa").''' ),
+"pdgcode == neutron and wavelength > 1.8Aa"). Variables can be assigned
+before the condition, separated by ";" (e.g. "r = hypot(x,y); r < 5cm").''' ),
     'edit' : ( 'EDIT: statements separated by ";", executed in order, for example:',
                '''The statements are assignments to fields (=, +=, -=, *= and /=, with values
 in the units of the field, and wavelength = ... changing ekin), assignments

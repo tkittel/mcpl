@@ -534,6 +534,43 @@ def test_in_and_userdata():
     print('bar chart of userdata.nscat:', type(h).__name__)
     pathlib.Path(fn).unlink()
 
+def test_pick_statements():
+    from mcpldev._expressions import _expr_canonical
+    #Picks can have statements assigning variables before their condition (the
+    #same statements as in edits), giving the same as without them:
+    with mcpl.MCPLFile(example_file) as f:
+        b = f.read_block()
+    for pick, inline in (
+            ( 'r = hypot(x,y); r > 2cm and r < 5cm', 'hypot(x,y) > 2cm and hypot(x,y) < 5cm' ),
+            ( 'e = ekin/MeV; e2 = e*e; e2 > 0.25', '(ekin/MeV)^2 > 0.25' ),
+            ( 'd = x - 1cm; d *= 2; abs(d) < 3cm', 'abs(2*(x - 1cm)) < 3cm' ),
+            ( 'n = pdgcode == neutron; n and ekin < 1MeV', 'pdgcode == neutron and ekin < 1MeV' ),
+            ( 't = time; mod(fileidx,2) == 0 and t > 0ms', 'mod(fileidx,2) == 0 and time > 0ms' ),
+            ( 'pdgcode == neutron;', 'pdgcode == neutron' ),
+            ( ' r = hypot(x, y) ;\n  r < 1cm ', 'hypot(x,y) < 1cm' ) ):
+        flt, ref = mcpl.ParticleFilter(pick), mcpl.ParticleFilter(inline)
+        same = np.array_equal(flt(b),ref(b))
+        print(f'pick {flt.expression!r}: same as {inline!r}: {same} ({int(flt(b).sum())} picked),'
+              f' fileidx: {flt._uses_fileidx}, canonical: {_expr_canonical(pick)!r}')
+        assert same
+    #(the same in files, histograms and the C/C++ code, which leaves it to the users):
+    pick = 'r = hypot(x,y); r > 2cm'
+    with mcpl.MCPLFile(example_file,pick = pick) as f:
+        n = sum( len(blk) for blk in f.particle_blocks )
+    h = mcpl.histogram(str(example_file),'x;bins=5',pick = pick)
+    from mcpldev._viewer_code import _c_condition, _CTranslator
+    print(f'file and histogram with {pick!r}: {n} {int(sum(h.contents[None]))},'
+          f' C condition: {_c_condition(pick,_CTranslator("c","p","c"))}')
+    for bad in ( 'x = 1cm; x > 0cm', 'r = hypot(x,y); x > 0cm', 'swap(x,y); x > 0cm',
+                 'rotate_z(90deg); x > 0cm', 'x > 0cm; y > 0cm', 'r = hypot(x,y);',
+                 'r = hypot(x,y); r', 'r += 1cm; r > 0cm', 'r = 1meV; r > 1cm', 'pi = 3; x > 0cm',
+                 'r = hypot(x,y), r > 1cm', ';', 'ekin = 1MeV' ):
+        try:
+            mcpl.ParticleFilter(bad)(b)
+            print(f'ParticleFilter({bad!r}): no error')
+        except mcpl.MCPLError as e:
+            print(f'ParticleFilter({bad!r}): {e}')
+
 def test_help_examples():
     #The examples of the help texts (and the viewers) are valid, and work on
     #files (with the userdata fields of the examples):
@@ -559,6 +596,7 @@ def test_help_examples():
     pathlib.Path(fn).unlink()
 
 if __name__ == '__main__':
+    test_pick_statements()
     test_help_examples()
     test_in_and_userdata()
     test_canonical()

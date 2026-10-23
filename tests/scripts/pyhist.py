@@ -222,7 +222,7 @@ def test_cmdline_more():
                  ['-H','x/cm','-o','hist.txt','-B','test',ex],
                  ['-H','x/cm','-o','hist',ex], ['-H','x/cm','-o','hist.jpg',ex],
                  ['-H','x/cm','-o','hist.png','-d',ex],
-                 ['-p','x > 0;',ex], ['-p','x > "1"',ex], ['-E','z = 1cm, x = 0',ex] ):
+                 ['-p','x = 1cm; x > 0',ex], ['-p','x > "1"',ex], ['-E','z = 1cm, x = 0',ex] ):
         tool(*bad)
 
 def test_help_topics():

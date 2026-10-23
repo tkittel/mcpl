@@ -73,6 +73,24 @@ _hints = (
     ( 'fields', 'userflags',
       'user flags (an integer)',
       'user flags (a 32 bit integer: e.g. userflags & 0x10, or (userflags & 0xff) == 7)' ),
+    ( 'vectors', 'pos',
+      'position (x,y,z) (a vector of lengths)',
+      'position, the vector (x,y,z) (lengths: e.g. abs(pos) < 1m)' ),
+    ( 'vectors', 'dir',
+      'direction (ux,uy,uz) (a unit vector)',
+      'direction, the unit vector (ux,uy,uz) (no unit: e.g. dir.z > 0.9, the same as uz > 0.9)' ),
+    ( 'vectors', 'pol',
+      'polarisation (polx,poly,polz) (a vector)',
+      'polarisation, the vector (polx,poly,polz) (no unit: e.g. abs(pol) > 0.5)' ),
+    ( 'vectors', 'dot(v,w)',
+      'dot product of vectors',
+      'dot product of two vectors of the same size (e.g. dot(pos,dir) > 0cm)' ),
+    ( 'vectors', 'cross(v,w)',
+      'cross product of 3D vectors (a vector)',
+      'cross product of two 3D vectors, a vector (e.g. abs(cross(pos,dir)) < 1cm, the distance of the line of flight from the origin)' ),
+    ( 'vectors', 'angle(v,w)',
+      'angle between vectors (an angle)',
+      'angle between two vectors of the same size, precise also for small angles (e.g. angle(dir,(0,0,1)) < 1deg, or angle(pos,dir) for the angle between position and direction)' ),
     ( 'fields', 'fileidx',
       'position in the file (an integer)',
       'position of the particle in the file, counting from 0 (an integer, which can not be changed: e.g. mod(fileidx,10) == 0 for every tenth particle)' ),
@@ -144,10 +162,10 @@ _hints = (
       'unit of length: 1km = 1e5 cm (e.g. hypot(x,y,z) > 1km)' ),
     ( 'units', 'deg',
       'angle unit, pi/180',
-      'unit of angle: 1deg = pi/180 (e.g. angle_to(0,0,1) < 1deg, or rotate_z(90deg))' ),
+      'unit of angle: 1deg = pi/180 (e.g. angle(dir,(0,0,1)) < 1deg, or rotate_z(90deg))' ),
     ( 'units', 'rad',
       'angle unit, 1',
-      'unit of angle: 1rad = 1 (e.g. angle_to(0,0,1) < 0.01rad)' ),
+      'unit of angle: 1rad = 1 (e.g. angle(dir,(0,0,1)) < 0.01rad)' ),
     ( 'functions', 'sqrt(a)',
       'square root',
       'square root, of a value without unit or with a squared unit (e.g. sqrt(x^2 + y^2) < 1cm; sqrt(ekin) is an error)' ),
@@ -201,16 +219,13 @@ _hints = (
       'arcsine, as an angle (a must have no unit: e.g. asin(uz) > 80deg)' ),
     ( 'functions', 'acos(a)',
       'arccosine (an angle)',
-      'arccosine, as an angle (a must have no unit: e.g. acos(uz) < 10deg; for small angles angle_to is more precise)' ),
+      'arccosine, as an angle (a must have no unit: e.g. acos(uz) < 10deg; for small angles angle(dir,(0,0,1)) is more precise)' ),
     ( 'functions', 'atan(a)',
       'arctangent (an angle)',
       'arctangent, as an angle (a must have no unit: e.g. atan(ux/uz) < 5deg)' ),
     ( 'functions', 'atan2(y,x)',
       'angle of the point (x,y) (an angle)',
       'angle of the point (x,y) from the x axis, from -180deg to 180deg (x and y with the same unit: e.g. atan2(y,x) > 0deg)' ),
-    ( 'functions', 'angle_to(x,y,z)',
-      'angle between direction and (x,y,z) (an angle)',
-      'angle between the direction of the particle and the vector (x,y,z), precise also for small angles (e.g. angle_to(0,0,1) < 1deg, or angle_to(x,y,z) for the angle between direction and position)' ),
     ( 'statements', 'swap(a,b)',
       'exchange two fields (same unit)',
       'exchange the values of two fields or variables with the same unit (e.g. swap(x,y))' ),
@@ -223,12 +238,12 @@ _hints = (
     ( 'statements', 'rotate_z(angle)',
       'rotate around the z axis',
       'rotate position, direction and polarisation around the z axis, counter-clockwise (e.g. rotate_z(90deg))' ),
-    ( 'statements', 'rotate_around(ax,ay,az,angle)',
-      'rotate around the axis (ax,ay,az)',
-      'rotate position, direction and polarisation around the axis (ax,ay,az) through the origin, counter-clockwise (e.g. rotate_around(1,1,0,30deg))' ),
+    ( 'statements', 'rotate_around(axis,angle)',
+      'rotate around the axis (a vector)',
+      'rotate position, direction and polarisation around the axis (a vector) through the origin, counter-clockwise (e.g. rotate_around((1,1,0),30deg))' ),
     ( 'statements', 'rotate_frame(v,vout,u,uout)',
       'rotate v to vout and u to uout',
-      'rotate position, direction and polarisation so that the direction of the vector v becomes that of vout, and u that of uout, with each vector given as three numbers (e.g. rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0) turns z into x and keeps y; the angles between v and u and between vout and uout must be the same)' ),
+      'rotate position, direction and polarisation so that the direction of the vector v becomes that of vout, and u that of uout (e.g. rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0)) turns z into x and keeps y; the angles between v and u and between vout and uout must be the same)' ),
     ( 'histoptions', 'bins=N',
       'number of bins',
       'number of bins (default: chosen from the number of particles, e.g. bins=50)' ),
@@ -277,6 +292,7 @@ _hints = (
 
 _group_titles = { 'histoptions' : 'Options',
                   'fields' : 'Fields of the particles',
+                  'vectors' : 'Vectors',
                   'constants' : 'Constants',
                   'particles' : 'Particle names (PDG codes)',
                   'units' : 'Units',
@@ -295,8 +311,10 @@ examples = {
         ( 'pdgcode == neutron and wavelength > 1.8Aa',
           ( 'Neutrons with wavelengths above 1.8 Aa (only neutrons and gammas have'
             ' wavelengths, so they are picked first).' ) ),
-        ( 'hypot(x,y) < 5cm and angle_to(0,0,1) < 1deg',
+        ( 'hypot(x,y) < 5cm and angle(dir,(0,0,1)) < 1deg',
           'Within 5 cm of the z axis, and moving within 1 degree of its direction.' ),
+        ( 'd = pos - (0,0,1m); abs(d) < 10cm',
+          'Within 10 cm of the point (0,0,1m), with a vector variable (d).' ),
         ( 'r = hypot(x,y); r > 2cm and r < 5cm',
           'A variable (r) assigned before the condition, which comes last.' ),
         ( 'not ( time > 10us or weight < 0.1 )', 'Early particles with large weights.' ),
@@ -312,8 +330,9 @@ examples = {
         ( 'wavelength = 1.8Aa',
           'Give the particles the energy of a wavelength of 1.8 Aa (only for neutrons and gammas).' ),
         ( 'rotate_y(90deg);x += 10cm', 'Rotate around the y axis, then move along x.' ),
-        ( 'rotate_around(1,1,0,30deg)', 'Rotate by 30 degrees around the axis (1,1,0).' ),
-        ( 'rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)',
+        ( 'pos += 50cm*dir', 'Move the particles 50 cm along their directions.' ),
+        ( 'rotate_around((1,1,0),30deg)', 'Rotate by 30 degrees around the axis (1,1,0).' ),
+        ( 'rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))',
           'Turn the z axis into the x axis, keeping the y axis (v=z to vout=x, u=y to uout=y).' ),
         ( 'swap(x,y)', 'Swap the x and y coordinates.' ),
         ( 'tmp = hypot(x,y);x = tmp;y = 0cm', 'Use a variable (tmp) in later statements.' ),
@@ -332,7 +351,7 @@ examples = {
         ( 'pdgcode;bar', 'A bar chart of the particle types.' ),
         ( 'x : y : z;split=pdgcode',
           'The positions in 3D, as points for a sample of the particles, by particle type (in windows).' ),
-        ( 'angle_to(0,0,1)/deg;logy;split=pdgcode in (neutron,gamma)',
+        ( 'angle(dir,(0,0,1))/deg;logy;split=pdgcode in (neutron,gamma)',
           'The angles to the z axis, for neutrons and gammas, and for the others.' ),
         ( 'userdata.nscat;bar;unweighted', 'The numbers of particles for each value of nscat.' ),
     ),
@@ -386,9 +405,20 @@ The expressions, with the fields of the particles, units and functions, are
 described by -p help.''',
 }
 
+#(texts at the start of groups in the help texts):
+_group_notes = {
+    'vectors' : ( 'Vectors are written as (a,b,c), or (a,b) in 2D, with the same unit'
+                  ' for all values (except a plain 0, as in (0,0,1m)). Their values are'
+                  ' v.x, v.y and v.z, or v.at(0), v.at(1) and v.at(2) (counting from 0):'
+                  ' x is just an alias of pos.x (or pos.at(0)), and uz of dir.z. Vectors'
+                  ' can be added and subtracted, and multiplied and divided by numbers,'
+                  ' abs(v) is their length, and v^2 their length squared. Edits can'
+                  ' assign pos, dir and pol (e.g. pos += (0,0,1m)).' ),
+}
+
 _topic_groups = {
-    'pick' : ( 'fields', 'constants', 'particles', 'units', 'functions' ),
-    'edit' : ( 'statements', 'fields', 'constants', 'particles', 'units',
+    'pick' : ( 'fields', 'vectors', 'constants', 'particles', 'units', 'functions' ),
+    'edit' : ( 'statements', 'fields', 'vectors', 'constants', 'particles', 'units',
                'functions' ),
     'hist' : ( 'histoptions', ),
 }
@@ -399,6 +429,9 @@ def _help_text( topic ):
     lines = [ head, _examples_text(topic), tail ]
     for g in _topic_groups[topic]:
         lines += [ '', _group_titles[g] + ':' ]
+        if g in _group_notes:
+            lines += textwrap.wrap( _group_notes[g], width = 79,
+                                    initial_indent = '  ', subsequent_indent = '  ' )
         for grp, name, _short, long in _hints:
             if grp != g:
                 continue

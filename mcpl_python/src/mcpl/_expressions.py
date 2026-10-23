@@ -30,6 +30,7 @@ import functools
 from ._common import MCPLError
 from ._exprcore import (
     _Q,
+    _V,
     _dimstr,
     _edit_statements,
     _EmptyBlock,
@@ -40,6 +41,7 @@ from ._exprcore import (
     _expr_functions,
     _expr_normalise,
     _expr_unit_hints,
+    _expr_vectors,
     _expr_wl_unit,
     _ExprEvaluator,
     _rotated_vectors,
@@ -119,10 +121,12 @@ class ParticleFilter:
     (and, or, not), bitwise &, | and ~ on integers (e.g. on userflags, as in
     "userflags & 0x10", where integers which are not 0 are true), functions
     (sqrt, abs, floor, ceil, exp, log, log10, sin, cos, tan, asin, acos,
-    atan, atan2, hypot, min, max, clamp, mod(a,b) for the remainder of the
-    division of integers, and angle_to(x,y,z) for the angle between the
-    direction of the particles and the vector (x,y,z), which is precise also
-    for small angles), the constant
+    atan, atan2, hypot, min, max, clamp, and mod(a,b) for the remainder of the
+    division of integers), vectors (pos, dir and pol for the position,
+    direction and polarisation, of which x is an alias of pos.x or pos.at(0),
+    or written as (0,0,1m), with +, -, * and / by numbers, abs(v) for their
+    lengths, v^2, dot(v,w), cross(v,w), and angle(v,w) for the angle between
+    them, which is precise also for small angles), the constant
     pi, and the names neutron, antineutron, proton, antiproton, electron,
     positron (or antielectron), muon, antimuon, and gamma (or photon), which
     can be used for pdgcode values. The wavelength is only defined for
@@ -165,7 +169,7 @@ class ParticleFilter:
         """Return boolean array picking particles in the block"""
         ev = _ExprEvaluator(block,self._expr)
         self._statements_of.run(ev,set())
-        res = np.asarray(ev(self._e.tree).v)
+        res = np.asarray(ev.scalar(ev(self._e.tree),'a condition').v)
         if res.dtype.kind in 'iu':
             res = res != 0#like in C, e.g. for "userflags & 0x10"
         if res.dtype != bool:
@@ -219,7 +223,8 @@ class ParticleValue:
         return f'ParticleValue({self._expr!r})'
 
 def _assignable_fields():
-    return tuple( f for f in _expr_fields if f != 'fileidx' )
+    """The fields (and vectors, like pos) which edits can assign"""
+    return tuple( f for f in _expr_fields if f != 'fileidx' ) + tuple(_expr_vectors)
 
 class _Statements:
     """Statements separated by ";", which edits are made of (see ParticleEdit),
@@ -347,9 +352,9 @@ class _Statements:
         if fname in _rotation_matrix_args:
             nargs = _rotation_matrix_args[fname]
             if len(call.args) != nargs:
-                what = ( 'an axis and an angle, as in rotate_around(0,0,1,90deg)'
-                         if fname == 'rotate_around' else 'the components of the vectors'
-                         ' v, vout, u and uout, as in rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)' )
+                what = ( 'an axis and an angle, as in rotate_around((0,0,1),90deg)'
+                         if fname == 'rotate_around' else 'the vectors v, vout, u and'
+                         ' uout, as in rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))' )
                 raise MCPLError(f'{fname}(..) takes {nargs} arguments ({what}) in'
                                 f' "{self.text}"')
             args = tuple( _Expr(self.text, tree = a, variables = variables)
@@ -385,7 +390,8 @@ class _Statements:
         mod = set()
         for st in self.statements:
             if st[0] == 'assign' and st[1] in self._assignable:
-                mod.add( 'ekin' if st[1] == 'wavelength' else st[1] )
+                mod.update( _expr_vectors.get(st[1],
+                                              ( 'ekin' if st[1] == 'wavelength' else st[1], )) )
             elif st[0] == 'swap':
                 mod.update( n for n in st[1:] if n in self._assignable )
             elif st[0] in _rotation_planes:
@@ -401,32 +407,28 @@ class _Statements:
         the values of the variables and of the changed fields in its state,
         adding the names of the changed fields to the set modified"""
         state = ev.state
-        n = len(ev._block)
         for st in self.statements:
             if st[0] == 'assign':
                 _, name, value = st
                 q = ev(value.tree)
-                if name in self._assignable:
-                    d = _expr_field_dims.get(name)
-                    if q.d != d and not q.zero:
-                        what = _dimstr(q.d) if q.d is None else f'value with {_dimstr(q.d)}'
-                        dname = 'unitless' if d is None else f'a {_dimstr(d)}'
-                        dname = dname.replace('a energy','an energy')
-                        hint = _unit_hint(d) if q.d is None else ''
-                        raise MCPLError(f'Can not assign {what} to {name}, which is'
-                                        f' {dname}{hint}, in expression "{self.text}"')
-                    v = np.broadcast_to(np.asarray(q.v,dtype=( float if name not in
-                                                               ('pdgcode','userflags')
-                                                               else None )),(n,))
-                    if name == 'wavelength':
-                        self._set_wavelength(ev,v,modified)
-                        continue
-                    q = _Q(v,d)
-                    modified.add(name)
-                state[name] = q
+                if name in _expr_vectors:
+                    comps = _expr_vectors[name]
+                    d = _expr_field_dims.get(comps[0])
+                    if not ( isinstance(q,_V) and len(q.c) == 3
+                             and ( q.d == d or all( c.zero for c in q.c ) ) ):
+                        what = q.describe() if isinstance(q,_V) else 'a number'
+                        dname = f' of {_dimstr(d)}s' if d else ' without units'
+                        raise MCPLError(f'Can not assign {what} to {name}, which is a'
+                                        f' 3D vector{dname}, in expression "{self.text}"')
+                    for c, qc in zip(comps,q.c):
+                        self._assign_field(ev,c,qc,modified)
+                elif name in self._assignable:
+                    self._assign_field(ev,name,ev.scalar(q,f'assigned to {name}'),modified)
+                else:
+                    state[name] = q
             elif st[0] == 'swap':
                 _, a, b = st
-                qa, qb = ev.name(a), ev.name(b)
+                qa, qb = ( ev.scalar(ev.name(c),'swapped') for c in (a,b) )
                 ev.same(qa,qb,'swap(..)')
                 state[a], state[b] = qb, qa
                 modified.update( e for e in (a,b) if e in self._assignable )
@@ -434,7 +436,7 @@ class _Statements:
                 self._rotate_by_matrix(ev,st[0],st[1],modified)
             else:
                 fname, angle = st
-                qa = ev(angle.tree)
+                qa = ev.scalar(ev(angle.tree),f'an angle in {fname}(..)')
                 if qa.d is not None:
                     ev.error(f'{fname}(..) requires an angle (e.g. 90deg), not'
                              f' {_dimstr(qa.d)}')
@@ -459,18 +461,46 @@ class _Statements:
                     state[a] = _Q(ra + 0.0, va.d)
                     state[b] = _Q(rb + 0.0, vb.d)
                     modified.update((a,b))
+    def _assign_field( self, ev, name, q, modified ):
+        """Assign the value q to the field"""
+        d = _expr_field_dims.get(name)
+        if q.d != d and not q.zero:
+            what = _dimstr(q.d) if q.d is None else f'value with {_dimstr(q.d)}'
+            dname = 'unitless' if d is None else f'a {_dimstr(d)}'
+            dname = dname.replace('a energy','an energy')
+            hint = _unit_hint(d) if q.d is None else ''
+            raise MCPLError(f'Can not assign {what} to {name}, which is'
+                            f' {dname}{hint}, in expression "{self.text}"')
+        v = np.broadcast_to(np.asarray(q.v,dtype=( float if name not in
+                                                   ('pdgcode','userflags')
+                                                   else None )),(len(ev._block),))
+        if name == 'wavelength':
+            self._set_wavelength(ev,v,modified)
+            return
+        ev.state[name] = _Q(v,d)
+        modified.add(name)
+
     def _rotate_by_matrix( self, ev, fname, args, modified ):
         """Rotate the positions, directions and polarisations with the matrix
         of rotate_around or rotate_frame (see _rotation_matrix)"""
         qs = [ ev(a.tree) for a in args ]
-        #(vectors whose components have the same units, and an angle):
-        for i in range(0,len(qs) - len(qs) % 3,3):
-            ev.same(qs[i],qs[i+1],f'{fname}(..)')
-            ev.same(qs[i],qs[i+2],f'{fname}(..)')
-        if fname == 'rotate_around' and qs[3].d is not None:
-            ev.error(f'{fname}(..) requires an angle (e.g. 90deg) as its last'
-                     f' argument, not {_dimstr(qs[3].d)}')
-        R = _rotation_matrix(fname,[ q.v for q in qs ])
+        #(3D vectors, and the angle of rotate_around):
+        values = []
+        for i, q in enumerate(qs):
+            if fname == 'rotate_around' and i == 1:
+                q = ev.scalar(q,f'the angle in {fname}(..)')
+                if q.d is not None:
+                    ev.error(f'{fname}(..) requires an angle (e.g. 90deg) as its last'
+                             f' argument, not {_dimstr(q.d)}')
+                values.append(q.v)
+            elif not ( isinstance(q,_V) and len(q.c) == 3 ):
+                what = ( 'a 3D vector (the axis) and an angle, as in rotate_around((0,0,1),90deg)'
+                         if fname == 'rotate_around' else 'four 3D vectors, as in'
+                         ' rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))' )
+                ev.error(f'{fname}(..) takes {what}')
+            else:
+                values += [ c.v for c in q.c ]
+        R = _rotation_matrix(fname,values)
         if isinstance(R,str):
             ev.error(f'In {fname}(..), {R}')
         state, n = ev.state, len(ev._block)
@@ -536,6 +566,8 @@ class ParticleEdit:
         and /=), where the right hand sides use the syntax of ParticleFilter.
         The values must have the units of the field (e.g. a length for x).
         Assigning wavelength changes the kinetic energy of neutrons and gammas.
+        The vectors pos, dir and pol can be assigned too, as in
+        "pos += (0,0,1m)".
       * Assignments to variables (lowercase names which are not names of
         fields, units, constants or functions), which can be used in later
         statements, for instance to keep original values: "tmp = x; x = y;
@@ -549,14 +581,14 @@ class ParticleEdit:
         origin. Rotations by multiples of 90 degrees are exact (e.g.
         "rotate_z(90deg)" changes (x,y) to exactly (-y,x)), and rotations never
         give negative zeros (-0.0).
-      * rotate_around(ax,ay,az,angle), which rotates them around the axis
-        (ax,ay,az) through the origin (which need not be a unit vector),
+      * rotate_around(axis,angle), which rotates them around the axis (a
+        vector, which need not be a unit vector) through the origin,
         counter-clockwise when looking from the axis towards the origin, e.g.
-        "rotate_around(1,1,0,30deg)".
-      * rotate_frame(vx,vy,vz,vox,voy,voz,ux,uy,uz,uox,uoy,uoz), the rotation
-        which turns the direction of the vector v into that of vout, and u
-        into uout (as RotMatrix of NCrystal) (e.g. a beam direction and an "up" direction of one frame
-        into those of another). The angle between v and u must be that
+        "rotate_around((1,1,0),30deg)".
+      * rotate_frame(v,vout,u,uout), the rotation which turns the direction
+        of the vector v into that of vout, and u into uout (as RotMatrix of
+        NCrystal), e.g. a beam direction and an "up" direction of one frame
+        into those of another. The angle between v and u must be that
         between vout and uout, and v and u must not be parallel.
     """
     _assignable = _assignable_fields()

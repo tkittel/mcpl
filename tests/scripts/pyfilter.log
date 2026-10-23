@@ -25,7 +25,8 @@ pick example 'abs(pdgcode) in (electron,muon)': 23 particles
 pick example 'ekin < 25meV': 0 particles
 pick example '0cm < z < 10cm': 0 particles
 pick example 'pdgcode == neutron and wavelength > 1.8Aa': 0 particles
-pick example 'hypot(x,y) < 5cm and angle_to(0,0,1) < 1deg': 3 particles
+pick example 'hypot(x,y) < 5cm and angle(dir,(0,0,1)) < 1deg': 3 particles
+pick example 'd = pos - (0,0,1m); abs(d) < 10cm': 0 particles
 pick example 'r = hypot(x,y); r > 2cm and r < 5cm': 158 particles
 pick example 'not ( time > 10us or weight < 0.1 )': 1006 particles
 pick example '(userflags & 0xff) == 7': 0 particles
@@ -36,8 +37,9 @@ edit example 'z += 1cm': ok
 edit example 'weight *= 0.5': ok
 edit example 'wavelength = 1.8Aa': ok
 edit example 'rotate_y(90deg);x += 10cm': ok
-edit example 'rotate_around(1,1,0,30deg)': ok
-edit example 'rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)': ok
+edit example 'pos += 50cm*dir': ok
+edit example 'rotate_around((1,1,0),30deg)': ok
+edit example 'rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))': ok
 edit example 'swap(x,y)': ok
 edit example 'tmp = hypot(x,y);x = tmp;y = 0cm': ok
 edit example 'time += hypot(x,y,z)/(2200m/s)': ok
@@ -49,7 +51,7 @@ histogram example 'x : y;xrange=-10cm:10cm;yrange=-10cm:10cm': Histogram2D
 histogram example 'atan2(uy,ux)/deg : uz': Histogram2D
 histogram example 'pdgcode;bar': BarHistogram
 histogram example 'x : y : z;split=pdgcode': Points3D
-histogram example 'angle_to(0,0,1)/deg;logy;split=pdgcode in (neutron,gamma)': Histogram
+histogram example 'angle(dir,(0,0,1))/deg;logy;split=pdgcode in (neutron,gamma)': Histogram
 histogram example 'userdata.nscat;bar;unweighted': BarHistogram
 'pdgcode in (neutron,gamma)': 965 particles, normalised 'pdgcode in (neutron,gamma)', as expected: True
 'pdgcode not in ( neutron, gamma )': 41 particles, normalised 'pdgcode not in (neutron,gamma)', as expected: True
@@ -83,7 +85,7 @@ userdata.nscat.at(0) > 0: The userdata field "nscat" has one value per particle 
 userdata.dir.at(x) > 0: Syntax error in expression "userdata.dir.at(x) > 0", after "userdata.dir.at(": the index of a value in an array must be a whole number (counting from 0)
 userdata.dir.at(1.5) > 0: Syntax error in expression "userdata.dir.at(1.5) > 0", after "userdata.dir.at(": the index of a value in an array must be a whole number (counting from 0)
 userdata.dir.get(1) > 0: Syntax error in expression "userdata.dir.get(1) > 0", after "userdata.dir.": values of arrays in the userdata are written as userdata.NAME.at(INDEX)
-x.y > 1: Syntax error in expression "x.y > 1", after "x": "." can only be used for fields of the userdata (as userdata.NAME)
+x.y > 1: Only vectors have values like .x or .at(INDEX) in expression "x.y > 1"
 userdata > 1: Fields of the userdata are written as userdata.NAME, in expression "userdata > 1"
 userdata. > 1: Syntax error in expression "userdata. > 1", after "userdata.": the name of a userdata field is missing
 edited with userdata values: [10.0, 20.0, 30.0, 40.0] [0.0, 100.0, 0.0, 80.0]
@@ -100,7 +102,8 @@ value '2^-1*x/cm': '2^-1*x/cm'
 value '(-2)^2*ux': '(-2)^2*ux'
 value 'ekin/(2*MeV)': 'ekin/2MeV'
 value '1e30*ekin/MeV': '1e+30*ekin/MeV'
-value 'angle_to( 0, 0, 1 )/deg': 'angle_to(0,0,1)/deg'
+value 'angle( dir, ( 0, 0, 1 ) )/deg': 'angle(dir,(0,0,1))/deg'
+value '( pos - ( 0, 0, 1m ) ).at( 2 )/cm': '(pos-(0,0,1m)).z/cm'
 '2^(ekin/TeV)MeV/MeV' is '(2^(ekin/TeV))*(1*MeV)/MeV': True, normalised '2^(ekin/TeV)MeV/MeV'
 'ekin/2MeV' is 'ekin/(2*MeV)': True, normalised 'ekin/2MeV'
 '-2MeV/MeV' is '-(2*MeV)/MeV': True, normalised '-2MeV/MeV'
@@ -157,14 +160,58 @@ histogram 'x;lethargy;unweighted': 'x;lethargy;unweighted'
 histogram 'x;bins': Histogram option "bins" needs a value, like bins=..., in "x;bins"
 histogram 'x;split': Histogram option "split" needs a value, like split=..., in "x;split"
 histogram 'x;groups': Histogram option "groups" needs a value, like groups=..., in "x;groups"
-angle_to(x,y,z)/deg of the first particles: [14.360296 22.479602  5.704463]
+pos.x/cm as with numpy
+pos.at(1)/cm as with numpy
+dir.z as with numpy
+dir.at(2) as with numpy
+pol.y as with numpy
+abs(pos)/cm as with numpy
+pos^2/cm^2 as with numpy
+abs(pos-(0,0,1m))/cm as with numpy
+dot(pos,dir)/cm as with numpy
+cross(pos,dir).at(2)/cm as with numpy
+abs((x,y))/cm as with numpy
+(-pos/2+pos*2).z/cm as with numpy
+dot((1,2),(3,4)) as with numpy
+(2*dir).y as with numpy
+(dir*2).y as with numpy
+angle(dir,(0,0,1))/deg as with numpy
+angle(dir,(0,0,-2cm))/deg as with numpy
+angle((1,0),(0,1))/deg as with numpy
+angle(pos,dir)/deg of the first particles: [14.360296 22.479602  5.704463]
 angle between (1,1e-06,0) and (1,0,0): 1e-06 (acos of dot product: 1.00004e-06)
 angle between (1,1e-09,0) and (1,0,0): 1e-09 (acos of dot product: 0)
 angle between (1,1e-12,0) and (1,0,0): 1e-12 (acos of dot product: 0)
-angle_to(0,0) > 0: angle_to(x,y,z) takes three arguments in expression "angle_to(0,0) > 0"
-angle_to(x,y,1) > 0: Incompatible units in angle_to(..): length and value without units (add units, e.g. 2cm) in expression "angle_to(x,y,1) > 0"
-angle_to(0,0,0) > 1deg: angle_to(..) gives NaN or infinite values in expression "angle_to(0,0,0) > 1deg"
-angle_to(0,0,1cm) > 1cm: Incompatible units in comparison: value without units and length (add units, e.g. 2cm) in expression "angle_to(0,0,1cm) > 1cm"
+pick 'd = pos - (0,0,1m); abs(d) < 100.5cm' as with numpy
+pick 'angle(dir,(0,0,1)) < 30deg' as with numpy
+edit 'pos += (0,0,1m)' changes ['x', 'y', 'z'] as with numpy
+edit 'pos += 50cm*dir' changes ['x', 'y', 'z'] as with numpy
+edit 'x += 1cm; pos = pos/2' changes ['x', 'y', 'z'] as with numpy
+edit 'dir = -dir' changes ['ux', 'uy', 'uz'] as with numpy
+edit 'v = cross(dir,(0,0,1)); x = v.x*1cm' changes ['x'] as with numpy
+edit 'pol = (0,0,1)' changes ['polx', 'poly', 'polz'] as with numpy
+pos < 1cm: A vector can not be compared (here a 3D vector of lengths; abs(v) is its length, and v.x or v.at(0) its first value) in expression "pos < 1cm"
+pos + 1cm: Vectors can only be added to or subtracted from vectors of the same size (not a 3D vector of lengths and a number) in expression "pos + 1cm"
+(x,ux) == 0: Incompatible units in a vector: length and value without units (add units, e.g. 2cm) in expression "(x,ux) == 0"
+pos.at(3) > 0: The index 3 is too large for a 3D vector of lengths (the values are counted from 0) in expression "pos.at(3) > 0"
+pos.w > 0: Syntax error in expression "pos.w > 0", after "pos.": the values of vectors are written as .x, .y, .z or .at(INDEX) (as in pos.x or pos.at(0))
+cross((1,0),(0,1)).x > 0: cross(v,w) takes two vectors of the same size (3D) in expression "cross((1,0),(0,1)).x > 0"
+dir.x.y > 0: Only vectors have values like .x or .at(INDEX) in expression "dir.x.y > 0"
+sin(dir) > 0: A vector can not be used in sin(..) (here a 3D vector; abs(v) is its length, and v.x or v.at(0) its first value) in expression "sin(dir) > 0"
+pos and 1: A vector can not be a condition (here a 3D vector of lengths; abs(v) is its length, and v.x or v.at(0) its first value) in expression "pos and 1"
+not dir: not can not be used for vectors (here a 3D vector) in expression "not dir"
+angle(pos) > 0: angle(v,w) takes two vectors in expression "angle(pos) > 0"
+angle(pos,(1,0)) > 0: angle(v,w) takes two vectors of the same size in expression "angle(pos,(1,0)) > 0"
+dot(pos,1cm) > 0: dot(v,w) takes two vectors in expression "dot(pos,1cm) > 0"
+(pos,pos) == 0: A vector can not be a value of a vector (here a 3D vector of lengths; abs(v) is its length, and v.x or v.at(0) its first value) in expression "(pos,pos) == 0"
+dir*dir > 0: Vectors can be added and subtracted, multiplied and divided by numbers, and v^2 gives their lengths squared (dot(v,w) and cross(v,w) give their dot and cross products) in expression "dir*dir > 0"
+dir^3 > 0: Vectors can be added and subtracted, multiplied and divided by numbers, and v^2 gives their lengths squared (dot(v,w) and cross(v,w) give their dot and cross products) in expression "dir^3 > 0"
+(1,2,3,4) == 0: Syntax error in expression "(1,2,3,4) == 0", after "(1,2,3,4)": vectors have two or three values
+x.at(0) > 0: Only vectors have values like .x or .at(INDEX) in expression "x.at(0) > 0"
+pos.at(x) > 0: Syntax error in expression "pos.at(x) > 0", after "pos.at(": the index of a value of a vector must be a whole number (counting from 0)
+angle_to(0,0,1) < 1deg: Unsupported function call in expression "angle_to(0,0,1) < 1deg" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan)
+pos: A vector can not be a condition (here a 3D vector of lengths; abs(v) is its length, and v.x or v.at(0) its first value) in expression "pos"
+ParticleValue of a vector: A vector can not be the value of an expression (here a 3D vector; abs(v) is its length, and v.x or v.at(0) its first value) in expression "dir"
 rotate_z(90deg) is exact
 rotate_z(180deg) is exact
 rotate_z(270deg) is exact
@@ -175,13 +222,13 @@ rotate_z(pi/2) is exact
 rotate_z(-pi) is exact
 rotations of zeros give 0.0 (not -0.0)
 rotations with other angles use cos and sin
-rotate_around(0,0,1,90deg) is exactly rotate_z(90deg)
-rotate_around(0,0,7,-90deg) is exactly rotate_z(-90deg)
-rotate_around(1,0,0,180deg) is exactly rotate_x(180deg)
-rotate_frame(0,0,1, 1,0,0, 0,1,0, 0,1,0) is exactly rotate_y(90deg)
-rotate_around(1,2,3,37deg) as with the formula of Rodrigues
-rotate_frame(0,0,1, 1,1,0, 0,1,0, 0,0,1) turns (0,0,1) into (1,1,0)/sqrt(2) and (0,1,0) into (0,0,1)
-rotate_around(ux,uy,uz,33deg) keeps the directions
+rotate_around((0,0,1),90deg) is exactly rotate_z(90deg)
+rotate_around((0,0,7),-90deg) is exactly rotate_z(-90deg)
+rotate_around((1,0,0),180deg) is exactly rotate_x(180deg)
+rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0)) is exactly rotate_y(90deg)
+rotate_around((1,2,3),37deg) as with the formula of Rodrigues
+rotate_frame((0,0,1),(1,1,0),(0,1,0),(0,0,1)) turns (0,0,1) into (1,1,0)/sqrt(2) and (0,1,0) into (0,0,1)
+rotate_around(dir,33deg) keeps the directions
 normalised selection: 'pdgcode == neutron and ekin < 1MeV and hypot(x,y) < 10 cm'
 normalised edit: 'z = 0cm; wavelength = 1.8Aa'
 normalised value: 'ekin / eV'
@@ -223,8 +270,7 @@ ParticleFilter('userflags & 0x10'): selects 0
 ParticleFilter('(~userflags & 0xff) == 0xff'): selects 1006
 ParticleFilter('pdgcode == ~2111'): selects 0
 ParticleFilter('atan2(uy,ux) > 90deg'): selects 212
-ParticleFilter('angle_to(0,0,1) < 30deg'): selects 313
-ParticleFilter('angle_to(0,0,-2cm) > 150deg'): selects 313
+ParticleFilter('angle(dir,(0,0,1)) < 30deg'): selects 313
 ParticleFilter('not (userflags & 1) and pdgcode != 0b0'): selects 1006
 ParticleFilter('pdgcode == electron or pdgcode == positron'): selects 23
 ParticleFilter('pdgcode == antielectron or pdgcode == photon'): selects 247
@@ -271,7 +317,7 @@ ParticleFilter('dirx > 0'): Unknown name "dirx" in expression "dirx > 0" (partic
 ParticleFilter('t < 1ms'): Unknown name "t" in expression "t < 1ms" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 ParticleFilter('is_neutron'): Unknown name "is_neutron" in expression "is_neutron" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 ParticleFilter('neutron_wl > 1Aa'): Unknown name "neutron_wl" in expression "neutron_wl > 1Aa" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-ParticleFilter('degrees(acos(uz)) < 10'): Unsupported function call in expression "degrees(acos(uz)) < 10" (available functions are: abs, acos, angle_to, asin, atan, atan2, ceil, clamp, cos, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan)
+ParticleFilter('degrees(acos(uz)) < 10'): Unsupported function call in expression "degrees(acos(uz)) < 10" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan)
 ParticleFilter('ekin = 1MeV'): Syntax error in expression "ekin = 1MeV", after "ekin": unexpected "=" (use == for comparisons)
 ParticleFilter('ekin > 1MeV & x < 2cm'): The bitwise operator & requires integer operands (use "and" and "or" for logical and/or)
 ParticleFilter('foo > 1'): Unknown name "foo" in expression "foo > 1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
@@ -279,7 +325,7 @@ ParticleFilter("__import__('os').system('ls')"): The character ' can not be used
 ParticleFilter('ekin'): Expression "ekin" is not a condition (e.g. a comparison)
 ParticleFilter('lambda: 1'): Syntax error in expression "lambda: 1", after "lambda": unexpected ":"
 ParticleFilter('sin(x, y=1) > 0'): Syntax error in expression "sin(x, y=1) > 0", after "sin(x, y": ")" is expected, not "=" (use == for comparisons)
-ParticleFilter('x.real > 0'): Syntax error in expression "x.real > 0", after "x": "." can only be used for fields of the userdata (as userdata.NAME)
+ParticleFilter('x.real > 0'): Syntax error in expression "x.real > 0", after "x.": the values of vectors are written as .x, .y, .z or .at(INDEX) (as in pos.x or pos.at(0))
 ParticleFilter('[x][0] > 0'): The character [ can not be used in expressions (in "[x][0] > 0")
 ParticleFilter("x > 'a'"): The character ' can not be used in expressions (in "x > 'a'")
 ParticleFilter(''): Empty expression
@@ -313,13 +359,13 @@ ParticleEdit('wavelength = 1keV'): Can not assign value with energy to wavelengt
 ParticleEdit('time = 2*x'): Can not assign value with length to time, which is a time, in expression "time = 2*x"
 ParticleEdit('weight = 1cm'): Can not assign value with length to weight, which is unitless, in expression "weight = 1cm"
 ParticleEdit('x'): Expected assignments like "x = 2*y" (or swap(..) or rotations like rotate_z(..)) in "x"
-ParticleEdit('foo = 1'): Variable "foo" is assigned but never used in "foo = 1" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength)
-ParticleEdit('wl = 1.8Aa'): Variable "wl" is assigned but never used in "wl = 1.8Aa" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength)
-ParticleEdit('tmp = x; x = y'): Variable "tmp" is assigned but never used in "tmp = x; x = y" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength)
-ParticleEdit('Tmp = 1'): Can not assign to "Tmp" in "Tmp = 1" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, and other lowercase names which are not names of fields, units, constants or functions can be used for variables)
+ParticleEdit('foo = 1'): Variable "foo" is assigned but never used in "foo = 1" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol)
+ParticleEdit('wl = 1.8Aa'): Variable "wl" is assigned but never used in "wl = 1.8Aa" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol)
+ParticleEdit('tmp = x; x = y'): Variable "tmp" is assigned but never used in "tmp = x; x = y" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol)
+ParticleEdit('Tmp = 1'): Can not assign to "Tmp" in "Tmp = 1" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol, and other lowercase names which are not names of fields, units, constants or functions can be used for variables)
 ParticleEdit('tmp += 1cm'): Variable "tmp" used before it is assigned in "tmp += 1cm"
 ParticleEdit('x = tmp'): Unknown name "tmp" in expression "x = tmp" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-ParticleEdit('clamp = 1'): Can not assign to "clamp" in "clamp = 1" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, and other lowercase names which are not names of fields, units, constants or functions can be used for variables)
+ParticleEdit('clamp = 1'): Can not assign to "clamp" in "clamp = 1" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol, and other lowercase names which are not names of fields, units, constants or functions can be used for variables)
 ParticleEdit('swap(x,ekin)'): Incompatible units in swap(..): length and energy in expression "swap(x,ekin)"
 ParticleEdit('swap(x)'): swap(..) takes two fields (or variables) as arguments, as in swap(x,y), in "swap(x)"
 ParticleEdit('swap(x,2)'): swap(..) takes two fields (or variables) as arguments, as in swap(x,y), in "swap(x,2)"
@@ -328,16 +374,29 @@ ParticleEdit('rotate_q(1)'): Expected assignments like "x = 2*y" (or swap(..) or
 ParticleEdit('rotate_z(1,2)'): rotate_z(..) takes one argument (an angle) in "rotate_z(1,2)"
 ParticleEdit('x = clamp(x,1cm)'): clamp(value,low,high) takes three arguments in expression "x = clamp(x,1cm)"
 ParticleEdit('x = min(x)'): Wrong number of arguments for min(..) in expression "x = min(x)"
-ParticleEdit('rotate_around(0,0,1)'): rotate_around(..) takes 4 arguments (an axis and an angle, as in rotate_around(0,0,1,90deg)) in "rotate_around(0,0,1)"
-ParticleEdit('rotate_around(0,0,0,10deg)'): In rotate_around(..), the axis must not be zero in expression "rotate_around(0,0,0,10deg)"
-ParticleEdit('rotate_around(0,0,1,1cm)'): rotate_around(..) requires an angle (e.g. 90deg) as its last argument, not length in expression "rotate_around(0,0,1,1cm)"
-ParticleEdit('rotate_around(1cm,0,1,10deg)'): Incompatible units in rotate_around(..): length and value without units (add units, e.g. 2cm) in expression "rotate_around(1cm,0,1,10deg)"
-ParticleEdit('rotate_frame(0,0,1,0,1,0)'): rotate_frame(..) takes 12 arguments (the components of the vectors v, vout, u and uout, as in rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)) in "rotate_frame(0,0,1,0,1,0)"
-ParticleEdit('rotate_frame(0,0,1, 1,0,0, 0,0,2, 0,1,0)'): In rotate_frame(..), v and u must not be parallel in expression "rotate_frame(0,0,1, 1,0,0, 0,0,2, 0,1,0)"
-ParticleEdit('rotate_frame(0,0,1, 1,0,0, 0,1,0, 1,1,0)'): In rotate_frame(..), the angle between v and u must be that between vout and uout in expression "rotate_frame(0,0,1, 1,0,0, 0,1,0, 1,1,0)"
+ParticleEdit('rotate_around((0,0,1))'): rotate_around(..) takes 2 arguments (an axis and an angle, as in rotate_around((0,0,1),90deg)) in "rotate_around((0,0,1))"
+ParticleEdit('rotate_around((0,0,0),10deg)'): In rotate_around(..), the axis must not be zero in expression "rotate_around((0,0,0),10deg)"
+ParticleEdit('rotate_around((0,0,1),1cm)'): rotate_around(..) requires an angle (e.g. 90deg) as its last argument, not length in expression "rotate_around((0,0,1),1cm)"
+ParticleEdit('rotate_around((1cm,0,1),10deg)'): Incompatible units in a vector: length and value without units (add units, e.g. 2cm) in expression "rotate_around((1cm,0,1),10deg)"
+ParticleEdit('rotate_around(0,0,1,10deg)'): rotate_around(..) takes 2 arguments (an axis and an angle, as in rotate_around((0,0,1),90deg)) in "rotate_around(0,0,1,10deg)"
+ParticleEdit('rotate_around((0,1),10deg)'): rotate_around(..) takes a 3D vector (the axis) and an angle, as in rotate_around((0,0,1),90deg) in expression "rotate_around((0,1),10deg)"
+ParticleEdit('rotate_around(1,10deg)'): rotate_around(..) takes a 3D vector (the axis) and an angle, as in rotate_around((0,0,1),90deg) in expression "rotate_around(1,10deg)"
+ParticleEdit('rotate_frame((0,0,1),(0,1,0))'): rotate_frame(..) takes 4 arguments (the vectors v, vout, u and uout, as in rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))) in "rotate_frame((0,0,1),(0,1,0))"
+ParticleEdit('rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)'): rotate_frame(..) takes 4 arguments (the vectors v, vout, u and uout, as in rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))) in "rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)"
+ParticleEdit('rotate_frame((0,0,1),(1,0,0),(0,0,2),(0,1,0))'): In rotate_frame(..), v and u must not be parallel in expression "rotate_frame((0,0,1),(1,0,0),(0,0,2),(0,1,0))"
+ParticleEdit('rotate_frame((0,0,1),(1,0,0),(0,1,0),(1,1,0))'): In rotate_frame(..), the angle between v and u must be that between vout and uout in expression "rotate_frame((0,0,1),(1,0,0),(0,1,0),(1,1,0))"
+ParticleEdit('pos = (1cm,2cm)'): Can not assign a 2D vector of lengths to pos, which is a 3D vector of lengths, in expression "pos = (1cm,2cm)"
+ParticleEdit('pos = 1cm'): Can not assign a number to pos, which is a 3D vector of lengths, in expression "pos = 1cm"
+ParticleEdit('dir = (0,0,1cm)'): Can not assign a 3D vector of lengths to dir, which is a 3D vector without units, in expression "dir = (0,0,1cm)"
+ParticleEdit('x = pos'): A vector can not be assigned to x (here a 3D vector of lengths; abs(v) is its length, and v.x or v.at(0) its first value) in expression "x = pos"
+ParticleEdit('pos += 1cm'): Vectors can only be added to or subtracted from vectors of the same size (not a 3D vector of lengths and a number) in expression "pos += 1cm"
+ParticleEdit('pos = (0,0,1)'): Can not assign a 3D vector to pos, which is a 3D vector of lengths, in expression "pos = (0,0,1)"
+ParticleEdit('swap(pos,dir)'): A vector can not be swapped (here a 3D vector of lengths; abs(v) is its length, and v.x or v.at(0) its first value) in expression "swap(pos,dir)"
+ParticleEdit('rotate_z(dir)'): A vector can not be an angle in rotate_z(..) (here a 3D vector; abs(v) is its length, and v.x or v.at(0) its first value) in expression "rotate_z(dir)"
+ParticleEdit('v = dir; swap(v,dir)'): A vector can not be swapped (here a 3D vector; abs(v) is its length, and v.x or v.at(0) its first value) in expression "v = dir; swap(v,dir)"
 ParticleEdit('x == 1cm'): Expected assignments like "x = 2*y" (or swap(..) or rotations like rotate_z(..)) in "x == 1cm"
-ParticleEdit('pi = 3'): Can not assign to "pi" in "pi = 3" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, and other lowercase names which are not names of fields, units, constants or functions can be used for variables)
-ParticleEdit('wl = 1Aa'): Variable "wl" is assigned but never used in "wl = 1Aa" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength)
+ParticleEdit('pi = 3'): Can not assign to "pi" in "pi = 3" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol, and other lowercase names which are not names of fields, units, constants or functions can be used for variables)
+ParticleEdit('wl = 1Aa'): Variable "wl" is assigned but never used in "wl = 1Aa" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol)
 ParticleEdit('x = 1cm, y = 1cm'): Separate statements with ";" (not ",") in "x = 1cm, y = 1cm"
 ParticleEdit('fileidx = 2'): fileidx (the position of the particles in the file) can not be changed, in "fileidx = 2"
 ParticleEdit('fileidx += 1'): fileidx (the position of the particles in the file) can not be changed, in "fileidx += 1"

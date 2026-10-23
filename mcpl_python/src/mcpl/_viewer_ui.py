@@ -148,7 +148,7 @@ on_by_default = ( 'logz', )
 quantities = ( ( 'Energy', 'ekin;logx=auto' ), ( 'Wavelength', 'wavelength;logx=auto' ),
                ( 'Time', 'time;logx=auto' ), ( 'Position x', 'x' ), ( 'Position y', 'y' ),
                ( 'Position z', 'z' ), ( 'Direction x', 'ux' ), ( 'Direction y', 'uy' ),
-               ( 'Direction z', 'uz' ), ( 'Angle to the z axis', 'angle_to(0,0,1)/deg' ),
+               ( 'Direction z', 'uz' ), ( 'Angle to the z axis', 'angle(dir,(0,0,1))/deg' ),
                ( 'Distance from the z axis', 'hypot(x,y)' ), ( 'Weight', 'weight' ),
                ( 'Particle type', 'pdgcode;bar' ), ( 'User flags', 'userflags;bar' ) )
 

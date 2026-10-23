@@ -560,15 +560,17 @@ def test_c_translation():
     for pick in ( 'pdgcode == neutron', 'abs(pdgcode) in (electron,muon) or ekin < 25meV and hypot(x,y) < 5cm',
                   'pdgcode not in (22,2112)', '(userflags & 0xff) == 0 and not ekin > 1MeV', '0cm < x < 2cm',
                   'ekin/MeV > 0.5 and uz > 0.9', 'sqrt(x^2+y^2) < 3cm', '-x > 1mm', 'pdgcode/2 > 1000',
-                  'angle_to(0,0,1) < 1deg', 'wavelength > 1.8Aa', 'mod(fileidx,10) == 0' ):
+                  'angle(dir,(0,0,1)) < 1deg', 'wavelength > 1.8Aa', 'mod(fileidx,10) == 0',
+                  'pos.z > 1cm and dir.at(2) > 0' ):
         for lang, kind in ( ('c','c'), ('cpp','cpp') ):
             tr = _CTranslator(lang,'p',kind)
             print(f'pick {pick!r} in {lang}: {_c_condition(pick,tr)}  {sorted(tr.headers)}')
     for edit in ( 'z += 1m;weight *= 0.5', 'x = 2*y;ekin = ekin/2', 'time = time + 1ms*abs(x)/1cm',
                   'rotate_z(90deg)', 'rotate_y(-90deg)', 'rotate_x(30deg)', 'swap(x,y)',
                   'swap(pdgcode,userflags)', 'rotate_z(x/cm*1deg)', 'ux = 1', 'a = 2*x;y = a',
-                  'rotate_around(0,0,1,90deg)', 'rotate_frame(0,0,1,1,1,0,0,1,0,0,0,1)',
-                  'rotate_around(ux,uy,uz,10deg)' ):
+                  'rotate_around((0,0,1),90deg)', 'rotate_frame((0,0,1),(1,1,0),(0,1,0),(0,0,1))',
+                  'rotate_around(dir,10deg)', 'rotate_around((0,0,-(1)),90deg)', 'x = pos.y',
+                  'pos += (0,0,1m)' ):
         print(f'edit {edit!r}: {_c_edit(edit,_CTranslator("c","q","struct"),"")}')
     #In files with userdata, the edited particles keep it:
     import numpy as np

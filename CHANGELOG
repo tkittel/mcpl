@@ -251,9 +251,11 @@ v2.2.9  (work in progress)
       * Histogram strings (of mcpltool -H and mcpl.histogram) with three
         expressions, like "x : y : z;split=pdgcode", give 3D plots of a sample
         of the particles (in windows).
-      * New function angle_to(x,y,z) in expressions, giving the angle between
-        the direction of the particles and the vector (x,y,z), precise also for
-        small angles (e.g. "angle_to(0,0,1) < 1deg").
+      * Vectors in expressions: pos, dir and pol (x is pos.x, or pos.at(0)),
+        and vectors like (0,0,1m), with dot, cross, abs and a precise angle
+        (e.g. "angle(dir,(0,0,1)) < 1deg"). Edits can rotate with
+        rotate_around(axis,angle) and rotate_frame(v,vout,u,uout), and picks
+        can assign variables before their condition (e.g. "r = abs(pos); r < 1m").
       * New plotting backends "unicode" and "ascii" in the Python API and
         mcpltool, which draw plots as text: in the terminal (e.g. with
         mcpltool -H ... -t), or in .txt files. They need

@@ -183,12 +183,14 @@ pick '-x > 1mm' in c: -p->position[0] > 0.1  []
 pick '-x > 1mm' in cpp: -p.x() > 0.1  []
 pick 'pdgcode/2 > 1000' in c: (double)p->pdgcode / 2 > 1000  []
 pick 'pdgcode/2 > 1000' in cpp: static_cast<double>(p.pdgcode()) / 2 > 1000  []
-pick 'angle_to(0,0,1) < 1deg' in c: None  []
-pick 'angle_to(0,0,1) < 1deg' in cpp: None  []
+pick 'angle(dir,(0,0,1)) < 1deg' in c: None  []
+pick 'angle(dir,(0,0,1)) < 1deg' in cpp: None  []
 pick 'wavelength > 1.8Aa' in c: None  []
 pick 'wavelength > 1.8Aa' in cpp: None  []
 pick 'mod(fileidx,10) == 0' in c: None  []
 pick 'mod(fileidx,10) == 0' in cpp: None  []
+pick 'pos.z > 1cm and dir.at(2) > 0' in c: p->position[2] > 1.0 && p->direction[2] > 0  []
+pick 'pos.z > 1cm and dir.at(2) > 0' in cpp: p.z() > 1.0 && p.uz() > 0  []
 edit 'z += 1m;weight *= 0.5': ['q.position[2] += 100.0;', 'q.weight *= 0.5;']
 edit 'x = 2*y;ekin = ekin/2': ['q.position[0] = 2 * q.position[1];', 'q.ekin /= 2;']
 edit 'time = time + 1ms*abs(x)/1cm': ['q.time += fabs( q.position[0] );']
@@ -200,9 +202,12 @@ edit 'swap(pdgcode,userflags)': None
 edit 'rotate_z(x/cm*1deg)': None
 edit 'ux = 1': None
 edit 'a = 2*x;y = a': None
-edit 'rotate_around(0,0,1,90deg)': ['{', '  double t0 = q.position[0], t1 = q.position[1], t2 = q.position[2];', '  q.position[0] = 0.0 - t1;', '  q.position[1] = t0 + 0.0;', '  q.position[2] = t2 + 0.0;', '}', '{', '  double t0 = q.direction[0], t1 = q.direction[1], t2 = q.direction[2];', '  q.direction[0] = 0.0 - t1;', '  q.direction[1] = t0 + 0.0;', '  q.direction[2] = t2 + 0.0;', '}', '{', '  double t0 = q.polarisation[0], t1 = q.polarisation[1], t2 = q.polarisation[2];', '  q.polarisation[0] = 0.0 - t1;', '  q.polarisation[1] = t0 + 0.0;', '  q.polarisation[2] = t2 + 0.0;', '}']
-edit 'rotate_frame(0,0,1,1,1,0,0,1,0,0,0,1)': ['{', '  double t0 = q.position[0], t1 = q.position[1], t2 = q.position[2];', '  q.position[0] = 0.0 - 0.7071067811865475 * t0 + 0.7071067811865475 * t2;', '  q.position[1] = 0.7071067811865475 * t0 + 0.7071067811865475 * t2 + 0.0;', '  q.position[2] = t1 + 0.0;', '}', '{', '  double t0 = q.direction[0], t1 = q.direction[1], t2 = q.direction[2];', '  q.direction[0] = 0.0 - 0.7071067811865475 * t0 + 0.7071067811865475 * t2;', '  q.direction[1] = 0.7071067811865475 * t0 + 0.7071067811865475 * t2 + 0.0;', '  q.direction[2] = t1 + 0.0;', '}', '{', '  double t0 = q.polarisation[0], t1 = q.polarisation[1], t2 = q.polarisation[2];', '  q.polarisation[0] = 0.0 - 0.7071067811865475 * t0 + 0.7071067811865475 * t2;', '  q.polarisation[1] = 0.7071067811865475 * t0 + 0.7071067811865475 * t2 + 0.0;', '  q.polarisation[2] = t1 + 0.0;', '}']
-edit 'rotate_around(ux,uy,uz,10deg)': None
+edit 'rotate_around((0,0,1),90deg)': ['{', '  double t0 = q.position[0], t1 = q.position[1], t2 = q.position[2];', '  q.position[0] = 0.0 - t1;', '  q.position[1] = t0 + 0.0;', '  q.position[2] = t2 + 0.0;', '}', '{', '  double t0 = q.direction[0], t1 = q.direction[1], t2 = q.direction[2];', '  q.direction[0] = 0.0 - t1;', '  q.direction[1] = t0 + 0.0;', '  q.direction[2] = t2 + 0.0;', '}', '{', '  double t0 = q.polarisation[0], t1 = q.polarisation[1], t2 = q.polarisation[2];', '  q.polarisation[0] = 0.0 - t1;', '  q.polarisation[1] = t0 + 0.0;', '  q.polarisation[2] = t2 + 0.0;', '}']
+edit 'rotate_frame((0,0,1),(1,1,0),(0,1,0),(0,0,1))': ['{', '  double t0 = q.position[0], t1 = q.position[1], t2 = q.position[2];', '  q.position[0] = 0.0 - 0.7071067811865475 * t0 + 0.7071067811865475 * t2;', '  q.position[1] = 0.7071067811865475 * t0 + 0.7071067811865475 * t2 + 0.0;', '  q.position[2] = t1 + 0.0;', '}', '{', '  double t0 = q.direction[0], t1 = q.direction[1], t2 = q.direction[2];', '  q.direction[0] = 0.0 - 0.7071067811865475 * t0 + 0.7071067811865475 * t2;', '  q.direction[1] = 0.7071067811865475 * t0 + 0.7071067811865475 * t2 + 0.0;', '  q.direction[2] = t1 + 0.0;', '}', '{', '  double t0 = q.polarisation[0], t1 = q.polarisation[1], t2 = q.polarisation[2];', '  q.polarisation[0] = 0.0 - 0.7071067811865475 * t0 + 0.7071067811865475 * t2;', '  q.polarisation[1] = 0.7071067811865475 * t0 + 0.7071067811865475 * t2 + 0.0;', '  q.polarisation[2] = t1 + 0.0;', '}']
+edit 'rotate_around(dir,10deg)': None
+edit 'rotate_around((0,0,-(1)),90deg)': ['{', '  double t0 = q.position[0], t1 = q.position[1], t2 = q.position[2];', '  q.position[0] = t1 + 0.0;', '  q.position[1] = 0.0 - t0;', '  q.position[2] = t2 + 0.0;', '}', '{', '  double t0 = q.direction[0], t1 = q.direction[1], t2 = q.direction[2];', '  q.direction[0] = t1 + 0.0;', '  q.direction[1] = 0.0 - t0;', '  q.direction[2] = t2 + 0.0;', '}', '{', '  double t0 = q.polarisation[0], t1 = q.polarisation[1], t2 = q.polarisation[2];', '  q.polarisation[0] = t1 + 0.0;', '  q.polarisation[1] = 0.0 - t0;', '  q.polarisation[2] = t2 + 0.0;', '}']
+edit 'x = pos.y': ['q.position[0] = q.position[1];']
+edit 'pos += (0,0,1m)': None
 cpp with userdata: ['mcpl::MCPLOutFile fout( "out.mcpl" );', 'fout.transfer_metadata( fin );  // copy the header', 'auto out = fout.new_particle();', 'out.c_struct() = p.c_struct();', 'std::copy( p.raw_userdata(), p.raw_userdata() + p.userdata_size(),', 'out.raw_userdata() );  // (the userdata)', 'mcpl_particle_t & q = out.c_struct();', 'fout.add( out );', 'fout.close();']
 c with userdata: ['mcpl_outfile_t fout = mcpl_create_outfile( "out.mcpl" );', 'mcpl_add_particle_with_userdata( fout, &q, mcpl_last_read_userdata( fin ) );']
 highlighted command: option[-e] option[-s5] option[-p] string["pdgcode == neutron"]
@@ -239,7 +244,7 @@ without userdata: (False, 'There are no userdata fields in this file, in "userda
 for example.mcpl (particles True): pick '', edit '', skip '', 42 views, message 'Not kept for this file: the pick and edit (There are no userdata fields in this file, in "userdata.nscat > 0")'
 for ud_viewer.mcpl (particles True): pick 'userdata.nscat > 0', edit 'z += 1m', skip '', 47 views, message ''
 for ud_viewer.mcpl (particles False): pick '', edit '', skip '', 47 views, message ''
-views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:angle_to(0,0,1)/deg;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz, plot:userflags;bar;logy=auto, plot:x : ux, plot:y : ux, plot:x : uy, plot:y : uy, plot:ux : uy, plot:x : uz, plot:y : uz, plot:ux : uz, plot:uy : uz, plot:x : log10(ekin/eV), plot:y : log10(ekin/eV), plot:ux : log10(ekin/eV), plot:uy : log10(ekin/eV), plot:uz : log10(ekin/eV), plot:log10(ekin/eV), plot:x : weight, plot:y : weight, plot:ux : weight, plot:uy : weight, plot:uz : weight, plot:log10(ekin/eV) : weight, plot:weight
+views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:angle(dir,(0,0,1))/deg;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz, plot:userflags;bar;logy=auto, plot:x : ux, plot:y : ux, plot:x : uy, plot:y : uy, plot:ux : uy, plot:x : uz, plot:y : uz, plot:ux : uz, plot:uy : uz, plot:x : log10(ekin/eV), plot:y : log10(ekin/eV), plot:ux : log10(ekin/eV), plot:uy : log10(ekin/eV), plot:uz : log10(ekin/eV), plot:log10(ekin/eV), plot:x : weight, plot:y : weight, plot:ux : weight, plot:uy : weight, plot:uz : weight, plot:log10(ekin/eV) : weight, plot:weight
 check('skip','10'): (True, '')
 check('skip','x'): (False, 'Skip must be a number of particles')
 check('limit','all'): (True, '')
@@ -263,7 +268,7 @@ check('plot','x/cm : y/cm;range=1:2'): (False, 'Histogram option "range" can onl
 complete('pick','pdgcode == neu'): (11, [('neutron', 'PDG code 2112')])
 complete('pick','ek'): (0, [('ekin', 'kinetic energy (an energy)')])
 complete('pick','sq'): (0, [('sqrt(', 'square root')])
-complete('edit','rot'): (0, [('rotate_x(', 'rotate around the x axis'), ('rotate_y(', 'rotate around the y axis'), ('rotate_z(', 'rotate around the z axis'), ('rotate_around(', 'rotate around the axis (ax,ay,az)'), ('rotate_frame(', 'rotate v to vout and u to uout')])
+complete('edit','rot'): (0, [('rotate_x(', 'rotate around the x axis'), ('rotate_y(', 'rotate around the y axis'), ('rotate_z(', 'rotate around the z axis'), ('rotate_around(', 'rotate around the axis (a vector)'), ('rotate_frame(', 'rotate v to vout and u to uout')])
 complete('plot','ekin/MeV;lo'): (9, [('logx=', 'logarithmic x axis'), ('logy=', 'logarithmic y axis'), ('logz=', 'logarithmic colour scale')])
 complete('plot','hyp'): (0, [('hypot(', 'sqrt(a^2+b^2+...) (same unit)')])
 complete('skip','1'): (1, [])
@@ -277,7 +282,7 @@ hint line while editing plot with 'ekin/MeV': ('hint: MeV  energy unit  (Tab: co
 hint line while editing skip with 'x': ('Skip must be a number of particles', 'error')
 completions of "e": ['ekin', 'electron', 'eV', 'exp('] chosen: eV | list line: ekin  electron  [eV]  exp( | popup line: Up/Down: choose   Enter or Tab: insert   Esc: close
 Enter inserts it: None 'eV' completions left: []
-Up from the first wraps to: angle_to( | Esc closes without inserting: None '' []
+Up from the first wraps to: atan2( | Esc closes without inserting: None '' []
 unknown view: Unknown view "foo" (the views are the overviews and the plots, given as overview, overview:GROUP or as the histogram string of a plot, e.g. ekin)
 invalid pick: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 1"
 view shown first: ('plot:ekin', 'ekin')
@@ -297,8 +302,8 @@ command extract: mcpltool -e example.mcpl example_selected.mcpl.gz
 commands of the overview: {'view': 'mcpltool --view="{\'custom\':[\'time/ms;logx=1\',\'ekin/MeV\']}" example.mcpl', 'extract': 'mcpltool -e example.mcpl example_selected.mcpl.gz'}
 same pick, written differently: (True, '') restarted: False 'pdgcode==neutron'
 limit 1e3 then 1000: (True, '') (True, '') restarts: 1
-same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x : ux', 'y : ux', 'x : uy', 'y : uy', 'ux : uy', 'x : uz', 'y : uz', 'ux : uz', 'uy : uz', 'x : log10(ekin/eV)', 'y : log10(ekin/eV)', 'ux : log10(ekin/eV)', 'uy : log10(ekin/eV)', 'uz : log10(ekin/eV)', 'log10(ekin/eV)', 'x : weight', 'y : weight', 'ux : weight', 'uy : weight', 'uz : weight', 'log10(ekin/eV) : weight', 'weight', 'ekin/MeV;logx=1;bins=50'] current: custom:ekin/MeV;logx=1;bins=50
-changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x : ux', 'y : ux', 'x : uy', 'y : uy', 'ux : uy', 'x : uz', 'y : uz', 'ux : uz', 'uy : uz', 'x : log10(ekin/eV)', 'y : log10(ekin/eV)', 'ux : log10(ekin/eV)', 'uy : log10(ekin/eV)', 'uz : log10(ekin/eV)', 'log10(ekin/eV)', 'x : weight', 'y : weight', 'ux : weight', 'uy : weight', 'uz : weight', 'log10(ekin/eV) : weight', 'weight', 'ekin/MeV;logx=1;bins=50']
+same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x : ux', 'y : ux', 'x : uy', 'y : uy', 'ux : uy', 'x : uz', 'y : uz', 'ux : uz', 'uy : uz', 'x : log10(ekin/eV)', 'y : log10(ekin/eV)', 'ux : log10(ekin/eV)', 'uy : log10(ekin/eV)', 'uz : log10(ekin/eV)', 'log10(ekin/eV)', 'x : weight', 'y : weight', 'ux : weight', 'uy : weight', 'uz : weight', 'log10(ekin/eV) : weight', 'weight', 'ekin/MeV;logx=1;bins=50'] current: custom:ekin/MeV;logx=1;bins=50
+changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x : ux', 'y : ux', 'x : uy', 'y : uy', 'ux : uy', 'x : uz', 'y : uz', 'ux : uz', 'uy : uz', 'x : log10(ekin/eV)', 'y : log10(ekin/eV)', 'ux : log10(ekin/eV)', 'uy : log10(ekin/eV)', 'uz : log10(ekin/eV)', 'log10(ekin/eV)', 'x : weight', 'y : weight', 'ux : weight', 'uy : weight', 'uz : weight', 'log10(ekin/eV) : weight', 'weight', 'ekin/MeV;logx=1;bins=50']
 unchanged: (True, '') ['custom:time/ms;logx=1', 'custom:ekin/MeV'] current: custom:ekin/MeV
 change to keV: (True, '') ['custom:time/ms;logx=1', 'custom:ekin/keV'] current: custom:ekin/keV
 change to an existing plot: (True, '') ['plot:weight', 'custom:time/ms;logx=1']
@@ -393,7 +398,7 @@ To open the viewer like this again:
    |                             example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
    |   ekin;logx=auto;logy;spli
    |   wavelength;logx;split=pd                               pick: pdgcode == neutron
-   |   angle_to(0,0,1)/deg;logy  (y: y [cm])
+   |   angle(dir,(0,0,1))/deg;l  (y: y [cm])
    | ▸ x : y                           60 ┤       ▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   time;logx=auto;logy                │       ▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   pdgcode;bar;logy=auto (a           │       ▀▀▀▀▀▀▀▄▄▄▄▄▄▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
@@ -435,7 +440,7 @@ To open the viewer like this again:
    |                             example.mcpl: 1006 particles, Σw = 1006
    | ▸ ekin;logx=auto;logy;spli
    |   wavelength;logx;split=pd  (weights per bin)
-   |   angle_to(0,0,1)/deg;logy       106 ┤                       ⢠⠤⠴⠒⠒⠋⠉⢧
+   |   angle(dir,(0,0,1))/deg;l       106 ┤                       ⢠⠤⠴⠒⠒⠋⠉⢧
    |   x : y                              │                   ⣀⣀⡖⠒⠋      ⢸
    |   time;logx=auto;logy                │                  ⢀⡇          ⠘⠒⢲
    |   pdgcode;bar;logy=auto              │                  ⢸           ⣀⣀⣸⡄
@@ -485,14 +490,14 @@ To open the viewer like this again:
    Enter on another view, editing: True
 ==> keys ['WAIT', 'h']:
 ==> keys ['WAIT', 'Down', 'Down', 'MoveUp', 'WAIT']:
-   moved up: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle_to(0,0,1)/deg;logy;split=pdgcode'] current: plot:angle_to(0,0,1)/deg;logy;split=pdgcode
+   moved up: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle(dir,(0,0,1))/deg;logy;split=pdgcode'] current: plot:angle(dir,(0,0,1))/deg;logy;split=pdgcode
 ==> keys ['WAIT', 'Down', 'o', 'g', 'WAIT']:
    o shows the plot in a window: gui_plot wavelength [m] (n/γ only) | the plot shown: plot:wavelength;logx;split=pdgcode
    g opens the viewer in a window: gui_viewer True | messages: ['The viewer is opened in a GUI window']
 ==> keys ['WAIT', 'O']:
    without a display: Not shown: The matplotlib plotting backend can not show plots here
 ==> keys ['WAIT', 'l', 'WAIT', 'k', 'Down', 'WAIT', 'K', 'WAIT']:
-   l and k: ['plot:ekin;logx=auto;logy;split=pdgcode', 'plot:wavelength;logx;split=pdgcode', 'plot:angle_to(0,0,1)/deg;logy;split=pdgcode']
+   l and k: ['plot:ekin;logx=auto;logy;split=pdgcode', 'plot:wavelength;logx;split=pdgcode', 'plot:angle(dir,(0,0,1))/deg;logy;split=pdgcode']
    the figure: logx
 ==> keys ['WAIT', 'l', 'k']:
    k before the changed plot is drawn: The plot is not drawn yet (try again when it is)
@@ -508,7 +513,7 @@ To open the viewer like this again:
 ==> keys ['WAIT', 's', '1', '2', 'Esc', 'i', '5', '0', 'Enter', 'WAIT', 'p', 'Up', 'Esc']:
    skip, limit: '' '50' example.mcpl: 50 particles, Σw = 50
 ==> keys ['WAIT', ('Mouse', 2, 3, True), 'WAIT']:
-   view after clicking on line 3: plot:angle_to(0,0,1)/deg;logy;split=pdgcode
+   view after clicking on line 3: plot:angle(dir,(0,0,1))/deg;logy;split=pdgcode
 ==> keys ['WAIT', 'p', 'x', 'Ctrl-C', 'p', 'y']:
    Ctrl-C quits like q, while editing a field: '' running: False
 ==> keys ['WAIT', 'a', 'e', 'Tab', 'Down']:

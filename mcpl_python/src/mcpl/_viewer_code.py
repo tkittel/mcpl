@@ -142,7 +142,7 @@ class _CTranslator:
         precedence, value if constant)"""
         import ast
 
-        from ._exprcore import _expr_constants
+        from ._exprcore import _expr_constants, _expr_vectors
         from ._exprsyntax import _expr_units, _Unit
         def const( v ):
             if isinstance(v,int):
@@ -164,6 +164,10 @@ class _CTranslator:
             if node.id in _expr_constants:
                 return const(_expr_constants[node.id])
             return None
+        if ( isinstance(node,ast.Subscript) and isinstance(node.value,ast.Name)
+             and node.value.id in _expr_vectors and node.slice.value < 3 ):
+            #(as pos.x):
+            return self(ast.Name( id = _expr_vectors[node.value.id][node.slice.value] ))
         #(the translated parts of the node):
         if isinstance(node,ast.BoolOp):
             parts = node.values
@@ -339,14 +343,19 @@ def _c_rotation_matrix( fname, args, tr, indent ):
     arguments: the rotation matrix (as for the edits) applied to the position,
     direction and polarisation, without its zero elements (so the rotations
     around the axes by multiples of 90 degrees are exact)"""
+    import ast
+
     from ._exprcore import _rotated_vectors
     from ._exprrotation import _rotation_matrix
     values = []
     for a in args:
-        value = tr(a.tree)
-        if value is None or value[3] is None:
-            return None#(arguments which are not constants)
-        values.append(float(value[3]))
+        #(the values of vectors, written as in (0,0,1), and angles):
+        arg = a.tree.body
+        for node in ( arg.elts if isinstance(arg,ast.Tuple) else [ arg ] ):
+            value = tr(node)
+            if value is None or value[3] is None:
+                return None#(arguments which are not constants)
+            values.append(float(value[3]))
     R = _rotation_matrix(fname,values)
     if isinstance(R,str):
         return None

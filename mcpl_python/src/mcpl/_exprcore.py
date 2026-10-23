@@ -50,6 +50,9 @@ from ._physics import (
 _expr_fields = ( 'x', 'y', 'z', 'ux', 'uy', 'uz', 'polx', 'poly', 'polz',
                  'ekin', 'time', 'weight', 'pdgcode', 'userflags',
                  'wavelength', 'fileidx' )
+#The vectors of the particles, and their values (e.g. x is pos.x):
+_expr_vectors = { 'pos' : ( 'x', 'y', 'z' ), 'dir' : ( 'ux', 'uy', 'uz' ),
+                  'pol' : ( 'polx', 'poly', 'polz' ) }
 _expr_constants = { 'pi' : math.pi, **_particle_names }
 _expr_field_dims = { 'x' : _dim_L, 'y' : _dim_L, 'z' : _dim_L,
                      'ekin' : _dim_E, 'time' : _dim_T,
@@ -84,10 +87,12 @@ _rotation_planes = { 'rotate_x' : ( ('y','z'), ('uy','uz'), ('poly','polz') ),
 #The rotations given by a matrix, with the numbers of their arguments (an
 #axis and an angle, or the vectors v, vout, u, uout), and the vectors they
 #rotate:
-_rotation_matrix_args = { 'rotate_around' : 4, 'rotate_frame' : 12 }
+_rotation_matrix_args = { 'rotate_around' : 2, 'rotate_frame' : 4 }
 _rotated_vectors = ( ('x','y','z'), ('ux','uy','uz'), ('polx','poly','polz') )
-_expr_functions = dict( sqrt = np.sqrt, atan2 = np.arctan2, angle_to = None,
-                        mod = np.mod,
+#Functions of vectors (abs also gives the lengths of vectors):
+_expr_functions_vector = ( 'dot', 'cross', 'angle' )
+_expr_functions = dict( sqrt = np.sqrt, atan2 = np.arctan2, mod = np.mod,
+                        **dict.fromkeys(_expr_functions_vector),
                         **_expr_functions_nodim, **_expr_functions_toint,
                         **_expr_functions_samedim )
 
@@ -143,7 +148,7 @@ def _expr_check( node, expr, variables = () ):
                  ast.Sub, ast.Mult, ast.Div, ast.Pow, ast.FloorDiv,
                  ast.BitAnd, ast.BitOr, ast.Compare, ast.Eq, ast.NotEq,
                  ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn, ast.Tuple,
-                 ast.Name, ast.Load, ast.Constant, ast.Call, _Unit )
+                 ast.Subscript, ast.Name, ast.Load, ast.Constant, ast.Call, _Unit )
     #TODO: Consider supporting conditional expressions ("a if cond else b",
     #e.g. evaluated with _ExprEvaluator._with_active for each branch, like the
     #right side of and/or), which were removed since nothing used them.
@@ -158,6 +163,7 @@ def _expr_check( node, expr, variables = () ):
                             ' (available functions are: '
                             + ', '.join(sorted(_expr_functions)) + ')')
         if isinstance(n,ast.Name) and not ( n.id in _expr_fields
+                                            or n.id in _expr_vectors
                                             or n.id in variables
                                             or n.id in _expr_constants
                                             or n.id in _expr_functions
@@ -192,8 +198,10 @@ class _Expr:
 
     @property
     def fields( self ):
-        """The particle fields used (including fileidx)"""
-        return self.names & frozenset(_expr_fields)
+        """The particle fields used (including fileidx, and those of the
+        vectors used, as x for pos)"""
+        vectors = [ _expr_vectors[n] for n in self.names if n in _expr_vectors ]
+        return ( self.names & frozenset(_expr_fields) ).union(*vectors)
 
     @property
     def field( self ):
@@ -227,7 +235,7 @@ class _Expr:
         active, if given)"""
         ev = _ExprEvaluator(block,self.text)
         ev.active = active
-        return ev(self.tree)
+        return ev.scalar(ev(self.tree),'the value of an expression')
 
 class _Q:
     """Value with dimension (length,energy,time) in an expression. Values
@@ -238,6 +246,19 @@ class _Q:
     def __init__( self, v, d = None, zero = False ):
         self.v, self.d = v, ( None if d == _dim_none else d )
         self.zero = zero
+
+class _V:
+    """A vector in an expression: its values (_Q, two or three, with the same
+    units, except that plain zeros fit any units)"""
+    __slots__ = ('c',)
+    def __init__( self, c ):
+        self.c = list(c)
+    @property
+    def d( self ):
+        """The units (of the values which are not plain zeros)"""
+        return next( ( q.d for q in self.c if not q.zero ), None )
+    def describe( self ):
+        return f'a {len(self.c)}D vector' + ( f' of {_dimstr(self.d)}s' if self.d else '' )
 
 def _dimstr( d ):
     if d is None:
@@ -282,6 +303,8 @@ class _ExprEvaluator:
             return q
         if n in self.state:
             return self.state[n]
+        if n in _expr_vectors:
+            return _V( self.name(c) for c in _expr_vectors[n] )
         if n in _expr_constants:
             return _Q(_expr_constants[n])
         if n not in self._cache:
@@ -331,6 +354,10 @@ class _ExprEvaluator:
     def finite( self, q, what ):
         """Raise MCPLError if q has NaN or infinite values (for the active
         particles)"""
+        if isinstance(q,_V):
+            for c in q.c:
+                self.finite(c,what)
+            return q
         v = np.asarray(q.v)
         if v.dtype.kind in 'fc':
             bad = ~np.isfinite(v)
@@ -380,6 +407,16 @@ class _ExprEvaluator:
             return self.finite(_Q(node.value,zero=(node.value==0)),'A constant has')
         if isinstance(node,ast.Name):
             return self.name(node.id)
+        if isinstance(node,ast.Tuple):
+            return self.vector([ ev(e) for e in node.elts ])
+        if isinstance(node,ast.Subscript):
+            v, i = ev(node.value), node.slice.value
+            if not isinstance(v,_V):
+                self.error('Only vectors have values like .x or .at(INDEX)')
+            if i >= len(v.c):
+                self.error(f'The index {i} is too large for {v.describe()}'
+                           ' (the values are counted from 0)')
+            return v.c[i]
         if isinstance(node,_Unit):
             v, d = _expr_units[node.unit]
             return _Q(v ** node.power,self.dimpow(d,node.power,f'The unit {node.unit}'))
@@ -395,6 +432,11 @@ class _ExprEvaluator:
             return _Q(res)
         if isinstance(node,ast.UnaryOp):
             q = ev(node.operand)
+            if isinstance(q,_V):
+                if not isinstance(node.op,(ast.USub,ast.UAdd)):
+                    self.error(f'{"not" if isinstance(node.op,ast.Not) else "~"} can not'
+                               f' be used for vectors (here {q.describe()})')
+                return _V( _Q(-c.v,c.d,zero=c.zero) for c in q.c ) if isinstance(node.op,ast.USub) else q
             if isinstance(node.op,ast.Not):
                 return _Q(np.logical_not(self.boolval(q)))
             if isinstance(node.op,ast.USub):
@@ -407,22 +449,24 @@ class _ExprEvaluator:
                      ast.Mult : 'Multiplication', ast.Div : 'Division',
                      ast.FloorDiv : 'Floor division',
                      ast.Pow : 'Raising to a power' }.get(type(node.op),'An operation')
-            return self.finite(self.binop(node.op,ev(node.left),ev(node.right)),
-                               f'{what} gives')
+            a, b = ev(node.left), ev(node.right)
+            res = ( self.vbinop(node.op,a,b) if isinstance(a,_V) or isinstance(b,_V)
+                    else self.binop(node.op,a,b) )
+            return self.finite(res,f'{what} gives')
         if isinstance(node,ast.Compare):
             fcts = { ast.Eq : np.equal, ast.NotEq : np.not_equal,
                      ast.Lt : np.less, ast.LtE : np.less_equal,
                      ast.Gt : np.greater, ast.GtE : np.greater_equal }
             if isinstance(node.ops[0],(ast.In,ast.NotIn)):
                 #(equal to any of the values, see _ExprParser._comparison):
-                left, res = ev(node.left), False
+                left, res = self.scalar(ev(node.left),'compared'), False
                 for c in node.comparators[0].elts:
                     a, b, _ = self.same(left,ev(c),'comparison with "in"')
                     res = np.logical_or(res,np.equal(a,b))
                 return _Q(np.logical_not(res) if isinstance(node.ops[0],ast.NotIn) else res)
-            left, res = ev(node.left), True
+            left, res = self.scalar(ev(node.left),'compared'), True
             for op, c in zip(node.ops,node.comparators):
-                right = ev(c)
+                right = self.scalar(ev(c),'compared')
                 a, b, _ = self.same(left,right,'comparison')
                 res = np.logical_and(res,fcts[type(op)](a,b))
                 left = right
@@ -476,6 +520,12 @@ class _ExprEvaluator:
         return tuple(res)
     def call( self, fname, args ):
         fct = _expr_functions[fname]
+        if fname in _expr_functions_vector or ( fname == 'abs' and len(args) == 1
+                                                and isinstance(args[0],_V) ):
+            with np.errstate(divide='ignore',invalid='ignore'):
+                return self.vcall(fname,args)
+        for q in args:
+            self.scalar(q,f'used in {fname}(..)')
         with np.errstate(divide='ignore',invalid='ignore'):
             if fname in _expr_functions_nodim:
                 if len(args) != 1:
@@ -505,14 +555,6 @@ class _ExprEvaluator:
                     self.error('atan2(..) takes two arguments')
                 y, x, _ = self.same(args[0],args[1],'atan2(..)')
                 return _Q(np.arctan2(y,x))
-            if fname == 'angle_to':
-                #Angle between the direction of the particles and a vector:
-                if len(args) != 3:
-                    self.error('angle_to(x,y,z) takes three arguments')
-                vx, vy, _ = self.same(args[0],args[1],'angle_to(..)')
-                _, vz, _ = self.same(args[0],args[2],'angle_to(..)')
-                u = tuple( self.name(c).v for c in ('ux','uy','uz') )
-                return _Q(_angle_highres(u,(vx,vy,vz)))
             if fname == 'mod':
                 if len(args) != 2:
                     self.error('mod(a,b) takes two arguments')
@@ -548,8 +590,66 @@ class _ExprEvaluator:
                 d = d or d2
                 res = fct(res,y)
             return _Q(res,d)
-    @staticmethod
-    def boolval( q ):
+    def scalar( self, q, what ):
+        """q, if it is not a vector"""
+        if isinstance(q,_V):
+            self.error(f'A vector can not be {what} (here {q.describe()}; abs(v) is its'
+                       ' length, and v.x or v.at(0) its first value)')
+        return q
+    def vector( self, values ):
+        """The vector of the values (two or three, with the same units)"""
+        for q in values:
+            self.scalar(q,'a value of a vector')
+        for q in values[1:]:
+            self.same(values[0],q,'a vector')
+        return _V(values)
+    def vbinop( self, op, a, b ):
+        """Arithmetic with vectors: sums and differences of vectors (of the
+        same size and units), vectors multiplied or divided by numbers, and v^2
+        (the length squared)"""
+        va, vb = isinstance(a,_V), isinstance(b,_V)
+        if isinstance(op,(ast.Add,ast.Sub)):
+            if not ( va and vb ) or len(a.c) != len(b.c):
+                self.error('Vectors can only be added to or subtracted from vectors of'
+                           ' the same size (not '
+                           f'{a.describe() if va else "a number"} and'
+                           f' {b.describe() if vb else "a number"})')
+            return _V( self.binop(op,x,y) for x, y in zip(a.c,b.c) )
+        if isinstance(op,ast.Mult) and not ( va and vb ):
+            return ( _V( self.binop(op,x,b) for x in a.c ) if va
+                     else _V( self.binop(op,a,y) for y in b.c ) )
+        if isinstance(op,ast.Div) and va and not vb:
+            return _V( self.binop(op,x,b) for x in a.c )
+        if isinstance(op,ast.Pow) and va and not vb and np.ndim(b.v) == 0 and b.v == 2:
+            return self.call('dot',[a,a])
+        self.error('Vectors can be added and subtracted, multiplied and divided by numbers,'
+                   ' and v^2 gives their lengths squared (dot(v,w) and cross(v,w) give'
+                   ' their dot and cross products)')
+    def vcall( self, fname, args ):
+        """The functions of vectors: dot, cross, angle and abs (the length)"""
+        if fname == 'abs':
+            v = args[0]
+            return _Q(np.sqrt(sum( np.square(c.v) for c in v.c )),v.d)
+        if len(args) != 2 or not all( isinstance(q,_V) for q in args ):
+            self.error(f'{fname}(v,w) takes two vectors')
+        v, w = args
+        if len(v.c) != len(w.c) or ( fname == 'cross' and len(v.c) != 3 ):
+            self.error(f'{fname}(v,w) takes two vectors of the same size'
+                       + ( ' (3D)' if fname == 'cross' else '' ))
+        if fname == 'angle':
+            #(precise also for small angles, and of 2D vectors as in 3D):
+            pad = [ 0.0 ] * ( 3 - len(v.c) )
+            return _Q(_angle_highres([ c.v for c in v.c ] + pad,[ c.v for c in w.c ] + pad))
+        mult = lambda x, y : self.binop(ast.Mult(),x,y)
+        if fname == 'dot':
+            res = mult(v.c[0],w.c[0])
+            for x, y in zip(v.c[1:],w.c[1:]):
+                res = self.binop(ast.Add(),res,mult(x,y))
+            return res
+        sub = lambda i, j : self.binop(ast.Sub(),mult(v.c[i],w.c[j]),mult(v.c[j],w.c[i]))
+        return _V([ sub(1,2), sub(2,0), sub(0,1) ])
+    def boolval( self, q ):
+        q = self.scalar(q,'a condition')
         return np.asarray(q.v).astype(bool) if np.asarray(q.v).dtype != bool else q.v
     @staticmethod
     def _int( q, op ):

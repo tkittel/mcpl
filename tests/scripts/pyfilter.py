@@ -78,9 +78,7 @@ def test_expressions():
               ('(~userflags & 0xff) == 0xff', ((~b.userflags) & 0xff) == 0xff),
               ('pdgcode == ~2111', b.pdgcode == -2112),
               ('atan2(uy,ux) > 90deg', np.arctan2(b.uy,b.ux) > np.pi/2),
-              ('angle_to(0,0,1) < 30deg', np.degrees(np.arccos(np.clip(b.uz,-1,1))) < 30),
-              #(the angle to -z is above 150 degrees when the angle to +z is below 30):
-              ('angle_to(0,0,-2cm) > 150deg', np.degrees(np.arccos(np.clip(b.uz,-1,1))) < 30),
+              ('angle(dir,(0,0,1)) < 30deg', np.degrees(np.arccos(np.clip(b.uz,-1,1))) < 30),
               ('not (userflags & 1) and pdgcode != 0b0', ((b.userflags & 1) == 0)&(b.pdgcode!=0)),
               ('pdgcode == electron or pdgcode == positron', np.isin(b.pdgcode,(11,-11))),
               ('pdgcode == antielectron or pdgcode == photon', np.isin(b.pdgcode,(-11,22))),
@@ -165,9 +163,13 @@ def test_expressions():
                 'x', 'foo = 1', 'wl = 1.8Aa', 'tmp = x; x = y', 'Tmp = 1', 'tmp += 1cm', 'x = tmp', 'clamp = 1',
                 'swap(x,ekin)', 'swap(x)', 'swap(x,2)', 'rotate_z(1cm)', 'rotate_q(1)',
                 'rotate_z(1,2)', 'x = clamp(x,1cm)', 'x = min(x)',
-                'rotate_around(0,0,1)', 'rotate_around(0,0,0,10deg)', 'rotate_around(0,0,1,1cm)',
-                'rotate_around(1cm,0,1,10deg)', 'rotate_frame(0,0,1,0,1,0)',
-                'rotate_frame(0,0,1, 1,0,0, 0,0,2, 0,1,0)', 'rotate_frame(0,0,1, 1,0,0, 0,1,0, 1,1,0)',
+                'rotate_around((0,0,1))', 'rotate_around((0,0,0),10deg)', 'rotate_around((0,0,1),1cm)',
+                'rotate_around((1cm,0,1),10deg)', 'rotate_around(0,0,1,10deg)', 'rotate_around((0,1),10deg)',
+                'rotate_around(1,10deg)', 'rotate_frame((0,0,1),(0,1,0))',
+                'rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)',
+                'rotate_frame((0,0,1),(1,0,0),(0,0,2),(0,1,0))', 'rotate_frame((0,0,1),(1,0,0),(0,1,0),(1,1,0))',
+                'pos = (1cm,2cm)', 'pos = 1cm', 'dir = (0,0,1cm)', 'x = pos', 'pos += 1cm',
+                'pos = (0,0,1)', 'swap(pos,dir)', 'rotate_z(dir)', 'v = dir; swap(v,dir)',
                 'x == 1cm', 'pi = 3', 'wl = 1Aa', 'x = 1cm, y = 1cm',
                 'fileidx = 2', 'fileidx += 1', 'swap(fileidx,pdgcode)',
                 'x = y = 1cm', 'x, y = y, x', '', 'pdgcode = 1.5',
@@ -277,10 +279,10 @@ def test_exact_rotations():
     print('rotations with other angles use cos and sin')
     #rotate_around and rotate_frame (exact like rotate_x/y/z for the axes and
     #multiples of 90 degrees):
-    for a, b2 in ( ('rotate_around(0,0,1,90deg)','rotate_z(90deg)'),
-                   ('rotate_around(0,0,7,-90deg)','rotate_z(-90deg)'),
-                   ('rotate_around(1,0,0,180deg)','rotate_x(180deg)'),
-                   ('rotate_frame(0,0,1, 1,0,0, 0,1,0, 0,1,0)','rotate_y(90deg)') ):
+    for a, b2 in ( ('rotate_around((0,0,1),90deg)','rotate_z(90deg)'),
+                   ('rotate_around((0,0,7),-90deg)','rotate_z(-90deg)'),
+                   ('rotate_around((1,0,0),180deg)','rotate_x(180deg)'),
+                   ('rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))','rotate_y(90deg)') ):
         ra, rb = mcpl.ParticleEdit(a)(b), mcpl.ParticleEdit(b2)(b)
         assert all( np.array_equal(raw_bits(ra[k]),raw_bits(rb.get(k,getattr(b,k)))) for k in ra ), a
         print(f'{a} is exactly {b2}')
@@ -289,21 +291,21 @@ def test_exact_rotations():
     t = np.radians(37.0)
     K = np.array([[0,-k[2],k[1]],[k[2],0,-k[0]],[-k[1],k[0],0]])
     R = np.eye(3) + np.sin(t) * K + ( 1 - np.cos(t) ) * K @ K
-    r = mcpl.ParticleEdit('rotate_around(1,2,3,37deg)')(b)
+    r = mcpl.ParticleEdit('rotate_around((1,2,3),37deg)')(b)
     ref = np.stack([x,y,b.z],-1) @ R.T
     assert np.allclose(r['x'],ref[:,0]) and np.allclose(r['y'],ref[:,1]) and np.allclose(r['z'],ref[:,2])
-    print('rotate_around(1,2,3,37deg) as with the formula of Rodrigues')
+    print('rotate_around((1,2,3),37deg) as with the formula of Rodrigues')
     #(rotate_frame turns v into vout and u into uout):
-    frame = 'rotate_frame(0,0,1, 1,1,0, 0,1,0, 0,0,1)'
-    for before, after in ( ('ux = 0; uy = 0; uz = 1',(1/np.sqrt(2),1/np.sqrt(2),0)),
-                           ('ux = 0; uy = 1; uz = 0',(0,0,1)) ):
+    frame = 'rotate_frame((0,0,1),(1,1,0),(0,1,0),(0,0,1))'
+    for before, after in ( ('dir = (0,0,1)',(1/np.sqrt(2),1/np.sqrt(2),0)),
+                           ('dir = (0,1,0)',(0,0,1)) ):
         r = mcpl.ParticleEdit(f'{before}; {frame}')(b)
         assert all( np.allclose(r[c],v) for c, v in zip(('ux','uy','uz'),after) ), before
     print(f'{frame} turns (0,0,1) into (1,1,0)/sqrt(2) and (0,1,0) into (0,0,1)')
     #(axes per particle: rotating around the direction keeps it):
-    r = mcpl.ParticleEdit('rotate_around(ux,uy,uz,33deg)')(b)
+    r = mcpl.ParticleEdit('rotate_around(dir,33deg)')(b)
     assert np.allclose(r['ux'],ux) and np.allclose(r['uy'],uy)
-    print('rotate_around(ux,uy,uz,33deg) keeps the directions')
+    print('rotate_around(dir,33deg) keeps the directions')
 
 def test_whitespace():
     #Whitespace, including newlines, is normalised to single spaces:
@@ -326,20 +328,33 @@ def test_whitespace():
         except mcpl.MCPLError as e:
             print(f'ParticleFilter({bad!r}): {e}')
 
-def test_angle_to():
-    #angle_to(x,y,z) is the angle between the direction and the vector (x,y,z),
-    #precise also for small angles (unlike acos of a dot product):
+def test_vectors():
+    #Vectors: pos, dir and pol, (a,b,c), their values (x is pos.x and
+    #pos.at(0)), arithmetic, abs, v^2, dot, cross and angle:
     with mcpl.MCPLFile(example_file) as f:
         b = f.read_block()
-    v = mcpl.ParticleValue('angle_to(0,0,1)/deg')(b)
-    assert np.allclose(v, np.degrees(np.arccos(np.clip(b.uz,-1,1))), rtol=0, atol=1e-9)
-    #Angle to the position vector (with units, which must be the same):
-    v = mcpl.ParticleValue('angle_to(x,y,z)')(b)
-    #(compared with another formula which is precise for all angles):
     pos, d = np.stack((b.x,b.y,b.z),axis=1), b.direction
+    cases = [ ('pos.x/cm', b.x), ('pos.at(1)/cm', b.y), ('dir.z', b.uz), ('dir.at(2)', b.uz),
+              ('pol.y', b.poly), ('abs(pos)/cm', np.linalg.norm(pos,axis=1)),
+              ('pos^2/cm^2', np.sum(pos*pos,axis=1)),
+              ('abs(pos-(0,0,1m))/cm', np.linalg.norm(pos-[0,0,100],axis=1)),
+              ('dot(pos,dir)/cm', np.sum(pos*d,axis=1)),
+              ('cross(pos,dir).at(2)/cm', np.cross(pos,d)[:,2]),
+              ('abs((x,y))/cm', np.hypot(b.x,b.y)), ('(-pos/2+pos*2).z/cm', 1.5*b.z),
+              ('dot((1,2),(3,4))', 11.0), ('(2*dir).y', 2*b.uy), ('(dir*2).y', 2*b.uy),
+              ('angle(dir,(0,0,1))/deg', np.degrees(np.arccos(np.clip(b.uz,-1,1)))),
+              ('angle(dir,(0,0,-2cm))/deg', 180-np.degrees(np.arccos(np.clip(b.uz,-1,1)))),
+              ('angle((1,0),(0,1))/deg', 90.0) ]
+    for expr, ref in cases:
+        v = mcpl.ParticleValue(expr)(b)
+        assert np.allclose(v, ref, rtol=1e-12, atol=1e-9), expr
+        print(f'{expr} as with numpy')
+    #Angle to the position vector (with units, which must be the same):
+    v = mcpl.ParticleValue('angle(pos,dir)')(b)
+    #(compared with another formula which is precise for all angles):
     ref = np.arctan2(np.linalg.norm(np.cross(pos,d),axis=1), np.sum(pos*d,axis=1))
     assert np.allclose(v, ref, rtol=0, atol=1e-12)
-    print(f'angle_to(x,y,z)/deg of the first particles: {np.round(np.degrees(v[:3]),6)}')
+    print(f'angle(pos,dir)/deg of the first particles: {np.round(np.degrees(v[:3]),6)}')
     #Small angles, where acos(dot product) gives 0:
     from mcpldev._exprcore import _angle_highres
     for eps in (1e-6, 1e-9, 1e-12):
@@ -347,12 +362,38 @@ def test_angle_to():
         print(f'angle between (1,{eps:g},0) and (1,0,0): {a[0]:.6g}'
               f' (acos of dot product: {np.arccos(1/np.sqrt(1+eps**2)):.6g})')
         assert abs(a[0]-np.arctan(eps)) <= 1e-15*eps
-    for bad in ( 'angle_to(0,0) > 0', 'angle_to(x,y,1) > 0', 'angle_to(0,0,0) > 1deg',
-                 'angle_to(0,0,1cm) > 1cm' ):
+    a = mcpl.ParticleValue('angle((1,1e-9,0),(1,0,0))')(b)
+    assert np.all( np.abs(a-1e-9) <= 1e-24 )
+    #Picks and edits with vectors (and vector variables):
+    for pick, ref in ( ('d = pos - (0,0,1m); abs(d) < 100.5cm', np.linalg.norm(pos-[0,0,100],axis=1) < 100.5),
+                       ('angle(dir,(0,0,1)) < 30deg', np.degrees(np.arccos(np.clip(b.uz,-1,1))) < 30) ):
+        assert np.array_equal(mcpl.ParticleFilter(pick)(b),ref), pick
+        print(f'pick {pick!r} as with numpy')
+    for edit, ref in ( ('pos += (0,0,1m)', {'x': b.x, 'y': b.y, 'z': b.z+100}),
+                       ('pos += 50cm*dir', {'x': b.x+50*b.ux, 'y': b.y+50*b.uy, 'z': b.z+50*b.uz}),
+                       ('x += 1cm; pos = pos/2', {'x': (b.x+1)/2, 'y': b.y/2, 'z': b.z/2}),
+                       ('dir = -dir', {'ux': -b.ux, 'uy': -b.uy, 'uz': -b.uz}),
+                       ('v = cross(dir,(0,0,1)); x = v.x*1cm', {'x': b.uy}),
+                       ('pol = (0,0,1)', {'polx': 0.0, 'poly': 0.0, 'polz': 1.0}) ):
+        r = mcpl.ParticleEdit(edit)(b)
+        assert sorted(r) == sorted(ref) and all( np.allclose(r[k],ref[k]) for k in ref ), edit
+        print(f'edit {edit!r} changes {sorted(r)} as with numpy')
+    #Errors (vectors are not values, their values have the same units, and
+    #angle_to was replaced by angle):
+    for bad in ( 'pos < 1cm', 'pos + 1cm', '(x,ux) == 0', 'pos.at(3) > 0', 'pos.w > 0',
+                 'cross((1,0),(0,1)).x > 0', 'dir.x.y > 0', 'sin(dir) > 0', 'pos and 1',
+                 'not dir', 'angle(pos) > 0', 'angle(pos,(1,0)) > 0', 'dot(pos,1cm) > 0',
+                 '(pos,pos) == 0', 'dir*dir > 0', 'dir^3 > 0', '(1,2,3,4) == 0', 'x.at(0) > 0',
+                 'pos.at(x) > 0', 'angle_to(0,0,1) < 1deg', 'pos' ):
         try:
             mcpl.ParticleFilter(bad)(b)
+            print(f'{bad}: no error')
         except mcpl.MCPLError as e:
             print(f'{bad}: {e}')
+    try:
+        mcpl.ParticleValue('dir')(b)
+    except mcpl.MCPLError as e:
+        print(f'ParticleValue of a vector: {e}')
 
 def test_canonical():
     #Normalised forms of expressions (from their parsed forms), which must be
@@ -363,7 +404,7 @@ def test_canonical():
         b = next(iter(f.particle_blocks))
     for e in ( 'ekin/MeV', '(ekin) / MeV', '(x**2+y^2)/cm^2', '2.5e-3MeV*ekin/MeV^2',
                '-(x/cm)^2', '2^-1*x/cm', '(-2)^2*ux', 'ekin/(2*MeV)', '1e30*ekin/MeV',
-               'angle_to( 0, 0, 1 )/deg' ):
+               'angle( dir, ( 0, 0, 1 ) )/deg', '( pos - ( 0, 0, 1m ) ).at( 2 )/cm' ):
         k = _expr_canonical(e)
         same = np.allclose(mcpl.ParticleValue(e)(b),mcpl.ParticleValue(k)(b),equal_nan=True)
         print(f'value {e!r}: {k!r}')
@@ -600,7 +641,7 @@ if __name__ == '__main__':
     test_help_examples()
     test_in_and_userdata()
     test_canonical()
-    test_angle_to()
+    test_vectors()
     test_exact_rotations()
     test_whitespace()
     test_expressions()

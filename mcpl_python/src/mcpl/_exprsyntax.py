@@ -109,6 +109,8 @@ _op_binary = { '|' : ( ast.BitOr, 5 ), '&' : ( ast.BitAnd, 6 ), '+' : ( ast.Add,
                '//' : ( ast.FloorDiv, 9 ) }
 #(right-associative, written as ^):
 _op_power = ( '^', '**' )
+#The names of the values of vectors (as in pos.x, see _ExprParser._parts):
+_vector_parts = ( 'x', 'y', 'z' )
 _op_cmp = { '==' : ast.Eq, '!=' : ast.NotEq, '<' : ast.Lt, '<=' : ast.LtE, '>' : ast.Gt,
             '>=' : ast.GtE }
 _op_unary = { '-' : ast.USub, '+' : ast.UAdd, '~' : ast.Invert }
@@ -296,7 +298,7 @@ class _ExprParser:
         return node
 
     def _power( self ):
-        base = self._primary()
+        base = self._parts(self._primary())
         if self._accept('op',*_op_power):
             return ast.BinOp( left = base, op = ast.Pow(), right = self._exponent() )
         return base
@@ -316,6 +318,15 @@ class _ExprParser:
             return ast.Constant( value = self._number(s) )
         if kind == 'op' and s == '(':
             node = self._expression()
+            if self._accept('op',','):
+                #(a vector, of two or three values):
+                elts = [ node, self._expression() ]
+                while self._accept('op',','):
+                    elts.append(self._expression())
+                self._expect('op',')')
+                if len(elts) > 3:
+                    raise self._error('vectors have two or three values')
+                return ast.Tuple( elts = elts, ctx = ast.Load() )
             self._expect('op',')')
             return node
         if kind != 'name' or s in ( 'and', 'or', 'not' ):
@@ -333,12 +344,34 @@ class _ExprParser:
                 self._expect('op',')')
             return ast.Call( func = ast.Name( id = s, ctx = ast.Load() ), args = args,
                              keywords = [] )
-        if self._peek() == ( 'op', '.' ):
-            if s != 'userdata':
-                raise self._error('"." can only be used for fields of the userdata'
-                                  ' (as userdata.NAME)')
+        if s == 'userdata' and self._peek() == ( 'op', '.' ):
             return self._userdata()
         return ast.Name( id = s, ctx = ast.Load() )
+
+    def _parts( self, node ):
+        """The value of a vector, as in pos.x or pos.at(0) (counting from 0),
+        as a Subscript node with the index"""
+        while self._accept('op','.'):
+            kind, name = self._peek()
+            if kind == 'name' and name in _vector_parts:
+                self._i += 1
+                index = _vector_parts.index(name)
+            elif kind == 'name' and name == 'at':
+                self._i += 1
+                self._expect('op','(')
+                kind, index = self._peek()
+                if kind != 'number' or not index.isdigit():
+                    raise self._error('the index of a value of a vector must be a whole'
+                                      ' number (counting from 0)')
+                self._i += 1
+                self._expect('op',')')
+                index = int(index)
+            else:
+                raise self._error('the values of vectors are written as .x, .y, .z or'
+                                  ' .at(INDEX) (as in pos.x or pos.at(0))')
+            node = ast.Subscript( value = node, slice = ast.Constant( value = index ),
+                                  ctx = ast.Load() )
+        return node
 
     def _userdata( self ):
         """A field of the userdata (after the name userdata), as one name
@@ -461,6 +494,12 @@ class _ExprWriter:
             return node.unit + ( '' if node.power == 1 else f'^{node.power!r}' ), _prec_atom
         if isinstance(node,ast.Call):
             return f'{node.func.id}(' + ','.join( self._sub(a,0) for a in node.args ) + ')', _prec_atom
+        if isinstance(node,ast.Tuple):
+            return '(' + ','.join( self._sub(e,0) for e in node.elts ) + ')', _prec_atom
+        if isinstance(node,ast.Subscript):
+            i = node.slice.value
+            part = _vector_parts[i] if i < len(_vector_parts) else f'at({i})'
+            return f'{self._sub(node.value,_prec_atom)}.{part}', _prec_atom
         if isinstance(node,ast.BoolOp):
             op, prec = _op_of_node[type(node.op)]
             return f' {op} '.join( self._sub(v,prec) for v in node.values ), prec

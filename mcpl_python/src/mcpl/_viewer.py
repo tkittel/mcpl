@@ -562,7 +562,7 @@ class Viewer(_Reading):
         #(names of histogram options only after the first ";" of plots, and
         #the statements only in edits):
         groups = ( {'histoptions'} if options else
-                   {'fields','constants','particles','units','functions'}
+                   {'fields','vectors','constants','particles','units','functions'}
                    | ( {'statements'} if field == 'edit' else set() ) )
         res = []
         for group, name, short, _ in _hints:

@@ -230,13 +230,13 @@
    settings: None
    bins used: None
    plot: 7 axes
-   views: 45 views, shown: 'Angle to the z axis' (angle_to(0,0,1)/deg;logy;split=pdgcode, group Overview, badges ['log y', 'by particle'])
+   views: 45 views, shown: 'Angle to the z axis' (angle(dir,(0,0,1))/deg;logy;split=pdgcode, group Overview, badges ['log y', 'by particle'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1']
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('angle_to(0,0,1)/deg;logy;split=pdgcode', 'Angle to the z axis', ('angle_to(0,0,1)/deg', ''))
+   shown plot field: ('angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'Angle to the z axis', ('angle(dir,(0,0,1))/deg', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
    plot: 1 axes
@@ -404,7 +404,7 @@
    added with a plot expression: True custom:uz;bins=20
 ==> the command of the shown plot, and of the plots of the overview
    mcpltool -p "pdgcode == neutron" -H "uz;bins=20" example.mcpl
-   mcpltool -p "pdgcode == neutron" -H "ekin;logx=auto;logy;split=pdgcode" -H "wavelength;logx;split=pdgcode" -H "angle_to(0,0,1)/deg;logy;split=pdgcode" -H "x : y" -H "time;logx=auto;logy" -H "pdgcode;bar;logy=auto" example.mcpl
+   mcpltool -p "pdgcode == neutron" -H "ekin;logx=auto;logy;split=pdgcode" -H "wavelength;logx;split=pdgcode" -H "angle(dir,(0,0,1))/deg;logy;split=pdgcode" -H "x : y" -H "time;logx=auto;logy" -H "pdgcode;bar;logy=auto" example.mcpl
 ==> writing needs a pick, an edit or a range of particles
    check of pick: None
    field pick: ''

@@ -23,7 +23,7 @@ Figure 1 (2x3): 'Overview of example.mcpl'
     StepHist label='π⁺ (211)' color=2 bins=30 edges=[1393.45,9.72496e+09] sum=5 max=1 nonzero_bins=5
     StepHist label='π⁻ (-211)' color=7 bins=30 edges=[1393.45,9.72496e+09] sum=2 max=1 nonzero_bins=2
     StepHist label='νμ (14)' color=9 bins=30 edges=[1393.45,9.72496e+09] sum=1 max=1 nonzero_bins=1
-  Panel None xlabel='angle_to(0,0,1)/deg' ylabel='weights per bin' logy xlim=[0,140]
+  Panel None xlabel='angle(dir,(0,0,1))/deg' ylabel='weights per bin' logy xlim=[0,140]
     StepHist label='n (2112)' color=0 bins=30 edges=[0,140] sum=726 max=66 nonzero_bins=19
     StepHist label='γ (22)' color=8 bins=30 edges=[0,140] sum=239 max=25 nonzero_bins=19
     StepHist label='e⁻ (11)' color=1 bins=30 edges=[0,140] sum=15 max=2 nonzero_bins=11
@@ -51,7 +51,7 @@ Figure 2 (1x1): None
     StepHist label='π⁻ (-211)' color=7 bins=30 edges=[1393.45,9.72496e+09] sum=2 max=1 nonzero_bins=2
     StepHist label='νμ (14)' color=9 bins=30 edges=[1393.45,9.72496e+09] sum=1 max=1 nonzero_bins=1
 Figure 3 (1x1): None
-  Panel None xlabel='angle_to(0,0,1)/deg' ylabel='weights per bin' logy xlim=[0,140]
+  Panel None xlabel='angle(dir,(0,0,1))/deg' ylabel='weights per bin' logy xlim=[0,140]
     StepHist label='n (2112)' color=0 bins=30 edges=[0,140] sum=726 max=66 nonzero_bins=19
     StepHist label='γ (22)' color=8 bins=30 edges=[0,140] sum=239 max=25 nonzero_bins=19
     StepHist label='e⁻ (11)' color=1 bins=30 edges=[0,140] sum=15 max=2 nonzero_bins=11

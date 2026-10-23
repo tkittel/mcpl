@@ -30,6 +30,22 @@ def tk_modules():
     from tkinter import ttk
     return tkinter, ttk
 
+def wrapped( text, font, width, nlines = 2 ):
+    """The text in at most nlines lines which fit the width (in pixels) with
+    the font, broken at spaces, with the last line elided if needed"""
+    lines, words = [], text.split(' ')
+    while words and len(lines) < nlines - 1:
+        n = 1
+        while n < len(words) and font.measure(' '.join(words[:n+1])) <= width:
+            n += 1
+        if font.measure(words[0]) > width:
+            break#(a word which does not fit is elided on the last line)
+        lines.append(' '.join(words[:n]))
+        words = words[n:]
+    if words:
+        lines.append(elided(' '.join(words),font,width))
+    return lines
+
 def elided( text, font, width ):
     """The text, shortened with ... at the end to fit the width (in pixels)
     with the font"""

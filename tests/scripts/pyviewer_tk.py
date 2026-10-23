@@ -98,8 +98,13 @@ def click_card( name ):
     pump()
     shown = [ s[3].name for s in tv._cards._slots if s[2] == 'card' ]
     print(f'after clicking the card {name!r}: {v.current_key} | {len(shown)} cards shown')
-click_card(cards[0].name)
+#(clicking the overview of the expanded group again folds it, and again
+#expands it):
+for _ in range(3):
+    click_card(cards[0].name)
 click_card('Energy')
+print('help menu:', [ tv._help_choices.entrycget(i,'label')
+                      for i in range(tv._help_choices.index('end') + 1) ])
 
 #Tab completes in the X axis field (and stays there), and with several
 #completions shows a list, where Down and Enter choose one:

@@ -24,7 +24,7 @@ WidgetViewer.cards)"""
 
 __all__ = []
 
-from ._viewer_tkbase import elided, tk_modules
+from ._viewer_tkbase import elided, tk_modules, wrapped
 from ._viewer_widgets import card_colors, colors
 
 #The heights of the cards:
@@ -184,17 +184,21 @@ class CardList:
             c.create_text(x+self.thumb[0]/2,y+h/2,text='\u2717',fill=colors['error'],
                           font=( self.tv.bold.cget('family'), 22, 'bold' ))
         x += self.thumb[0] + 12
-        c.create_text(x,y+20,anchor='w',fill=col['text'],font=self.tv.bold,
-                      text=elided(card.name,self.tv.bold,self.width-x-22))
+        #(the name in one or two lines, with the badges or the problem below):
+        lines = wrapped(card.name,self.tv.bold,self.width-x-22)
+        for i, line in enumerate(lines):
+            c.create_text(x,y+( 20 if len(lines) == 1 else 13 + 15 * i ),anchor='w',
+                          fill=col['text'],font=self.tv.bold,text=line)
+        top = y + ( 34 if len(lines) == 1 else 38 )
         if card.problem:
-            c.create_text(x,y+43,anchor='w',fill=colors['error'],
+            c.create_text(x,top+9,anchor='w',fill=colors['error'],
                           font=( self.tv.bold.cget('family'), 8 ),
                           text=elided(card.problem,self.tv.bold,self.width-x-22))
         for b in ( () if card.problem else card.badges ):
             w = 10 + 6.5 * len(b)
-            self._rect(x,y+34,x+w,y+52,8,fill=col['card'] if card.overview else col['badge'],
+            self._rect(x,top,x+w,top+18,8,fill=col['card'] if card.overview else col['badge'],
                        outline='')
-            c.create_text(x+w/2,y+43,text=b,fill=col['accent'],
+            c.create_text(x+w/2,top+9,text=b,fill=col['accent'],
                           font=( self.tv.bold.cget('family'), 8 ))
             x += w + 5
         if card.draggable:

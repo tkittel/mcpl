@@ -76,8 +76,8 @@ def _beam( axis, a, b ):
              _item(f'{b} : {div_b}',f'Phase space {b}'),
              'ekin;logx=auto;logy;split=pdgcode',
              'wavelength;logx=auto;logy=auto;split=pdgcode',
-             _item(f'hypot({a},{b})','Distance from the axis'),
-             _item(f'angle(dir,({vector}))/deg;logy',f'Angle to the {axis} axis'),
+             _item(f'hypot({a},{b})','Distance to the axis'),
+             _item(f'angle(dir,({vector}))/deg;logy',f'Angle to {axis} axis'),
              'time;logx=auto;logy',
              'pdgcode;bar;logy=auto',
              f'{axis}',
@@ -101,7 +101,7 @@ _groups = {
     'overview' : ( 'Overview', 'the main plots of the particles', (
         'ekin;logx=auto;logy;split=pdgcode',
         'wavelength;logx;split=pdgcode',
-        _item('angle(dir,(0,0,1))/deg;logy;split=pdgcode','Angle to the z axis'),
+        _item('angle(dir,(0,0,1))/deg;logy;split=pdgcode','Angle to z axis'),
         _item('x : y','Position x-y'),
         'time;logx=auto;logy',
         'pdgcode;bar;logy=auto' ), {} ),
@@ -120,11 +120,11 @@ _groups = {
         'pdgcode;bar;logy=auto',
         #(the energy spectra per unit lethargy, as usual in shielding):
         'ekin;lethargy;logy;split=pdgcode',
-        _item('angle(dir,(0,0,1))/deg;logy;split=pdgcode','Angle to the z axis'),
+        _item('angle(dir,(0,0,1))/deg;logy;split=pdgcode','Angle to z axis'),
         'time;logx=auto;logy;split=pdgcode',
         'weight;logx=auto;logy;unweighted;split=pdgcode',
         _item('x : y','Position x-y'),
-        _item('hypot(x,y);logy;split=pdgcode','Distance from the z axis'),
+        _item('hypot(x,y);logy;split=pdgcode','Distance to z axis'),
         'wavelength;logx;split=pdgcode' ), {} ),
     '3d' : ( '3D', 'the positions and directions in 3D, of a sample of the particles', (
         _item('x : y : z;split=pdgcode','Positions in 3D'),

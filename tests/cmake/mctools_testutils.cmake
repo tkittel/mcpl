@@ -58,6 +58,8 @@ endif()
 #
 #   MCTOOLS_TESTDEP_<DEP>_IMPORT : Python module to import to test for presence.
 #   MCTOOLS_TESTDEP_<DEP>_CMD : Command to run (with --version) instead.
+#   MCTOOLS_TESTDEP_<DEP>_PYCODE : Python code to run instead (for dependencies
+#                                  which can be imported without working).
 #   MCTOOLS_TESTDEP_<DEP>_MINPYTHON : Python version needed by the package.
 #   MCTOOLS_TESTDEP_<DEP>_UNAVAILABLE_ON : Systems (CMAKE_SYSTEM_NAME) where the
 #                                          package can not be installed.
@@ -169,8 +171,12 @@ function( mctools_testutils_internal_haspydep resvar pydep )
   set( cmdtocheck "" )
 
   set( skip_status_msg OFF )
+  set( pycode "" )
 
-  if ( DEFINED "MCTOOLS_TESTDEP_${pydep}_IMPORT" )
+  if ( DEFINED "MCTOOLS_TESTDEP_${pydep}_PYCODE" )
+    set( pymodtoimport "" )
+    set( pycode "${MCTOOLS_TESTDEP_${pydep}_PYCODE}" )
+  elseif ( DEFINED "MCTOOLS_TESTDEP_${pydep}_IMPORT" )
     set( pymodtoimport "${MCTOOLS_TESTDEP_${pydep}_IMPORT}" )
   elseif ( DEFINED "MCTOOLS_TESTDEP_${pydep}_CMD" )
     set( pymodtoimport "" )
@@ -209,7 +215,13 @@ function( mctools_testutils_internal_haspydep resvar pydep )
   else()
     set( pymodtoimport "${pydep}" )
   endif()
-  if ( pymodtoimport )
+  if ( pycode )
+    message(STATUS "Testing if python module works: ${pydep}")
+    execute_process(
+      COMMAND "${pyexec}" "-c" "${pycode}"
+      RESULT_VARIABLE "res" OUTPUT_QUIET ERROR_QUIET
+    )
+  elseif ( pymodtoimport )
     if ( "${pymodtoimport}" STREQUAL "${pydep}" )
       set( "tmp" "${pydep}" )
     else()

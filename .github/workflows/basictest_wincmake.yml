@@ -54,6 +54,9 @@ jobs:
       shell: cmd
       run: python -mpip install -r .\src\devel\reqs\requirements_devel.txt
 
+    - name: Font caches of matplotlib and Tk (so tests do not wait for them)
+      run: python ./src/devel/bin/mcpldevtool fontcache
+
     - name: CMake cfg
       shell: cmd
       run: >

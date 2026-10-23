@@ -506,31 +506,43 @@ def _bytes( n ):
         return f'{n/1e9:.2g} GB' if n < 1e10 else f'{n/1e9:.0f} GB'
     return f'{n/1e6:.0f} MB' if n >= 1e6 else f'{n/1e3:.0f} kB'
 
+def _used_text( n, nrange ):
+    """The particles used by the plots, as a text"""
+    if n >= nrange:
+        return f'all {count_text(nrange)} particles'
+    return f'the first {count_text(n)} of {count_text(nrange)} particles'
+
 def cache_text( info ):
-    """The text of the button of the cache (info from Viewer.cache_info), and
-    whether the plots use all particles of the range (else only the first
-    ones, which fit in the cache), as (text, all used)"""
+    """The text of the button of the cache (info from Viewer.cache_info): the
+    particles used by the plots and the memory they need, and whether the
+    plots use all particles of the range (else only the first ones, which fit
+    in the cache), as (text, all used)"""
+    used = _used_text(info['nused'],info['nrange'])
     if info['limit'] is None:
-        return 'no cache', True
-    return f'cached: {_bytes(info["cached"])}', info['fits']
+        return f'Plots use {used} (not kept in memory)', True
+    return f'Plots use {used} ({_bytes(info["cached"])} in memory)', info['fits']
 
 #The cache limits offered (in bytes, None for no cache):
 cache_presets = ( 5e6, 20e6, 100e6, 500e6, 2e9, 5e9, 10e9, None )
+
+#The title of the menu of the cache (see cache_menu):
+cache_menu_title = 'Memory for the particles used by the plots (counted before the pick):'
 
 def cache_menu( info ):
     """The entries of the menu of the cache (info from Viewer.cache_info), as
     (label, cache limit, whether it is used, whether the plots use all
     particles with it)"""
-    entries = []
+    entries, n = [], info['nrange']
     for limit in cache_presets:
-        fits = limit is None or info['needed'] <= limit
         if limit is None:
-            what = 'read all particles from the file for each change'
-        elif fits:
-            what = 'all particles'
+            label = f'No cache: all {count_text(n)} particles, read again for each change'
+            fits = True
         else:
-            what = f'the first {100.0*limit/info["needed"]:.2g}% of the particles'
-        label = f'{"no cache" if limit is None else _bytes(limit)} ({what})'
+            used = n if info['size'] * n <= limit else max( 1, int( limit // info['size'] ) )
+            fits = used >= n
+            label = f'{_bytes(limit)}: {_used_text(used,n)}'
+            if not fits:
+                label += f' ({100.0*used/max(1,n):.2g}%)'
         entries.append( ( label, limit, limit == info['limit'], fits ) )
     return entries
 

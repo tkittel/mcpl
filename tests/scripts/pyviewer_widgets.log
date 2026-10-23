@@ -288,20 +288,20 @@
    line (normal): 
    log again: custom:x : y
 ==> the cache: green when the plots use all particles, else red, with a menu of limits
-   button: ('cached: 44 kB', True)
-   menu: ('5 MB (all particles)', 5000000.0, False, True)
-   menu: ('20 MB (all particles)', 20000000.0, False, True)
-   menu: ('100 MB (all particles)', 100000000.0, False, True)
-   menu: ('500 MB (all particles)', 500000000.0, True, True)
-   menu: ('2 GB (all particles)', 2000000000.0, False, True)
-   menu: ('5 GB (all particles)', 5000000000.0, False, True)
-   menu: ('10 GB (all particles)', 10000000000.0, False, True)
-   menu: ('no cache (read all particles from the file for each change)', None, False, True)
+   button: ('Plots use all 1,006 particles (44 kB in memory)', True)
+   menu: ('5 MB: all 1,006 particles', 5000000.0, False, True)
+   menu: ('20 MB: all 1,006 particles', 20000000.0, False, True)
+   menu: ('100 MB: all 1,006 particles', 100000000.0, False, True)
+   menu: ('500 MB: all 1,006 particles', 500000000.0, True, True)
+   menu: ('2 GB: all 1,006 particles', 2000000000.0, False, True)
+   menu: ('5 GB: all 1,006 particles', 5000000000.0, False, True)
+   menu: ('10 GB: all 1,006 particles', 10000000000.0, False, True)
+   menu: ('No cache: all 1,006 particles, read again for each change', None, False, True)
    line (normal): The plots use the first 300 of the 1,006 particles (those in the cache), but new files get all
-   button: ('cached: 13 kB', False)
+   button: ('Plots use the first 300 of 1,006 particles (13 kB in memory)', False)
    counts: 273 of the first 300 particles (91.0%), Σw = 273 (91.0%) | write button count: None
    line (normal): The plots use all 1,006 particles
-   button: ('no cache', True)
+   button: ('Plots use all 1,006 particles (not kept in memory)', True)
    line (normal): The plots use all 1,006 particles
 ==> plot strings of quantities and expressions
    'Energy' against '' with (): 'ekin;logx=auto', settings 1d

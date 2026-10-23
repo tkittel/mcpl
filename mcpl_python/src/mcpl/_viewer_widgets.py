@@ -147,9 +147,9 @@ class WidgetViewer:
         #is not drawn yet, see on_timer):
         self._drawn_at, self._draw_time, self._plot_pending = 0.0, 0.0, False
         self.closed = False
-        #(the view shown at the start, while all groups are folded, see
-        #folded_groups):
-        self._first_key = viewer.current_key
+        #(whether the group of the shown view is expanded, see folded_groups;
+        #not at the start, when all groups are folded):
+        self._expanded = False
 
     #To implement for the toolkit:
 
@@ -222,6 +222,17 @@ class WidgetViewer:
         """Show ui.help_text"""
         raise NotImplementedError
 
+    def help_topics( self ):
+        """The topics of the help menu of the viewers with windows, as (label,
+        title, text): the viewer, the expressions of picks, edits and plots (as
+        mcpltool -p help, -E help and -H help), and the cache"""
+        from ._exprhelp import _help_text
+        return [ ( 'The viewer', 'The viewer', ui.help_text ),
+                 ( 'Picks (filtering particles)', 'Picks', _help_text('pick') ),
+                 ( 'Edits (modifying particles)', 'Edits', _help_text('edit') ),
+                 ( 'Plot expressions', 'Plot expressions', _help_text('hist') ),
+                 ( 'About the cache', 'The cache', ui.cache_about ) ]
+
     def close_window( self ):
         """Close the window (on_close is then called)"""
         raise NotImplementedError
@@ -258,7 +269,7 @@ class WidgetViewer:
 
     def on_select( self, index ):
         self._new_plot = None#(a new plot without axes is given up)
-        self._first_key = None#(a view was chosen, see folded_groups)
+        self._expanded = True
         self.v.select(index)
         self.refresh()
 
@@ -267,27 +278,27 @@ class WidgetViewer:
             #(the card of an inactive group activates it, see cards):
             self.on_show_group(key[11:])
             return
+        #(choosing a view expands its group, and choosing the overview of the
+        #expanded group again folds it):
+        self._expanded = not ( key.startswith('overview:') and key == self.shown_key
+                               and self._expanded )
         self._new_plot = None
-        self._first_key = None#(a view was chosen, see folded_groups)
         self.v.select_key(key)
         self.refresh()
 
     def on_group_header( self, title ):
         """The header of a group was clicked: its overview is shown (which
-        expands the group, see folded_groups)"""
+        expands the group, or folds it if it was expanded, see on_select_key)"""
         key = next( ( k for k, ov in self.v.overviews() if ov.title == title ), None )
         if key is not None:
             self.on_select_key(key)
 
     def folded_groups( self ):
         """The titles of the groups which are folded (showing only their
-        overview): the standard groups except that of the shown view, once a
-        view was chosen, or another view than the first one shown (the custom
-        plots are never folded)"""
-        if self.shown_key != self._first_key:
-            self._first_key = None#(from now on, the group of the shown view is expanded)
+        overview): the standard groups except that of the shown view, if it is
+        expanded (see on_select_key; the custom plots are never folded)"""
         shown = ( self.v.plot_info(self.shown_key)['group']
-                  if self.shown_key and self._first_key is None else None )
+                  if self.shown_key and self._expanded else None )
         return { t for k, t, _, active in self.v.group_list() if active and t != shown }
 
     def on_move( self, delta ):
@@ -300,6 +311,7 @@ class WidgetViewer:
         of its colour scales is shown (see colour_bar_menu)"""
         key = self.pane.view_at(event)
         if key is not None:
+            self._expanded = True
             self.v.select_key(key)
             self.refresh()
         elif self.pane.on_colour_bar(event) and self.colour_bar_menu():

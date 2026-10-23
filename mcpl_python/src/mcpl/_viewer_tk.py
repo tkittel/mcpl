@@ -124,8 +124,8 @@ class TkViewer(WidgetViewer):
         self._entries, self._marks = {}, {}
         #(the actions in a menu: another file, with the same plots, pick and
         #edit, see on_open_file, and those of ui.actions but writing, which
-        #has its button with the pick and edit; in a row with the collection
-        #of plots, see _groups_menu):
+        #has its button with the pick and edit; in a row with the help menu,
+        #see _help_menu):
         self._top_row = ttk.Frame(left)
         self._top_row.pack(fill='x',pady=(0,6))
         button = ttk.Menubutton(self._top_row,text='\u2630 Menu',takefocus=0,
@@ -183,8 +183,8 @@ class TkViewer(WidgetViewer):
         self.canvas.get_tk_widget().configure(width=400,height=300)
         self.canvas.get_tk_widget().pack(side='top',fill='both',expand=True)
         super().__init__(viewer,fig)
-        #(the collection of plots, above their cards):
-        self._groups_menu(self._top_row)
+        #(the help, above the cards):
+        self._help_menu(self._top_row)
         self.canvas.mpl_connect('button_press_event',self._on_mpl_click)
         self.canvas.mpl_connect('key_press_event',self._on_mpl_key)
         self.canvas.mpl_connect('motion_notify_event',self._on_mpl_motion)
@@ -266,31 +266,17 @@ class TkViewer(WidgetViewer):
         root.bind('<Key>',self._on_root_key)
         root.protocol('WM_DELETE_WINDOW',self.close_window)
 
-    def _groups_menu( self, parent ):
-        """The menu of the groups of plots (at the left of the row parent): a
-        check box for each standard group, and the presets of groups (see
-        _stdviews), for the field 'collection'"""
+    def _help_menu( self, parent ):
+        """The help menu (at the left of the row parent), with the topics of
+        help_topics"""
         tk, ttk = tk_modules()
-        button = ttk.Menubutton(parent,text='Plot groups',underline=5,takefocus=0,
-                                style='Compact.TMenubutton')
+        button = ttk.Menubutton(parent,text='Help',takefocus=0,style='Compact.TMenubutton')
         button.pack(side='left',padx=(8,0))
         menu = tk.Menu(button,tearoff=0)
         button['menu'] = menu
-        self._group_vars = {}
-        for key, title, descr, shown in self.v.group_list():
-            var = tk.BooleanVar(value=shown)
-            menu.add_checkbutton(label=f'{title}  \u2013  {descr}',variable=var,
-                                 command=lambda k=key, v=var : self.on_show_group(k,v.get()))
-            self._group_vars[key] = var
-        menu.add_separator()
-        presets = tk.Menu(menu,tearoff=0)
-        for name, descr in self.menu_choices('collection'):
-            if name not in self._group_vars:
-                presets.add_command(label=f'{name}  \u2013  {descr}',
-                                    command=lambda n=name : self.on_field_apply('collection',n))
-        menu.add_cascade(label='Presets',menu=presets)
-        self._groups_button, self._groups_menu = button, menu
-        self._hover(button,'collection')
+        for label, title, text in self.help_topics():
+            menu.add_command(label=label,command=lambda t=title, x=text : self.show_text(t,x))
+        self._help_choices = menu
 
     def _plot_part( self, part, head ):
         """The fields of the shown plot (or of a new plot): its title, its axes
@@ -440,10 +426,7 @@ class TkViewer(WidgetViewer):
         if field == 'plot':
             return#(no field, see focus_field)
         if field == 'collection':
-            #(the check boxes of the groups shown):
-            for key, var in self._group_vars.items():
-                var.set(key in self.v.groups)
-            return
+            return#(the groups are shown with the cards)
         self._set_text(self._entries[field],text)
         self.show_pending(field,False)
 
@@ -576,8 +559,8 @@ class TkViewer(WidgetViewer):
             self._advanced.set(True)
             self._show_advanced()
         if field == 'collection':
-            b = self._groups_button
-            self._groups_menu.post(b.winfo_rootx(),b.winfo_rooty() + b.winfo_height())
+            self.show_line('The groups of plots are in the list of plots: the inactive ones at'
+                           ' the end are activated with a click','normal')
             return
         w = self._entries[field]
         w.focus_set()
@@ -604,13 +587,23 @@ class TkViewer(WidgetViewer):
         then(chosen or None)
 
     def show_help( self ):
+        self.show_text('Help',ui.help_text)
+
+    def show_text( self, title, content ):
+        """A window with the text (of help, see help_topics), which can be
+        scrolled"""
         tk, ttk = tk_modules()
         top = tk.Toplevel(self.root)
-        top.title('MCPL viewer: help')
-        text = tk.Text(top,width=82,height=40,font='TkFixedFont',wrap='none')
-        text.insert('1.0',ui.help_text)
+        top.title(f'MCPL viewer: {title}')
+        frame = ttk.Frame(top)
+        frame.pack(fill='both',expand=True)
+        text = tk.Text(frame,width=82,height=40,font='TkFixedFont',wrap='word')
+        bar = ttk.Scrollbar(frame,orient='vertical',command=text.yview)
+        text.configure(yscrollcommand=bar.set)
+        bar.pack(side='right',fill='y')
+        text.pack(side='left',fill='both',expand=True)
+        text.insert('1.0',content)
         text.configure(state='disabled')
-        text.pack(fill='both',expand=True)
         ttk.Button(top,text='Close',command=top.destroy).pack(pady=4)
         top.bind('<Escape>',lambda _e : top.destroy())
         top.focus_set()

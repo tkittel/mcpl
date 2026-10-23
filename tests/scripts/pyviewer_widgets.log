@@ -230,13 +230,13 @@
    settings: None
    bins used: None
    plot: 7 axes
-   views: 50 views, shown: 'Angle to the z axis' (angle(dir,(0,0,1))/deg;logy;split=pdgcode, group Overview, badges ['log y', 'by particle'])
+   views: 50 views, shown: 'Angle to z axis' (angle(dir,(0,0,1))/deg;logy;split=pdgcode, group Overview, badges ['log y', 'by particle'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'Angle to the z axis', ('angle(dir,(0,0,1))/deg', '', ''))
+   shown plot field: ('angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'Angle to z axis', ('angle(dir,(0,0,1))/deg', '', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
    plot: 1 axes

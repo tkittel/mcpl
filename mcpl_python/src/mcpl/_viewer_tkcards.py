@@ -165,8 +165,12 @@ class CardList:
             c.create_text(self.width-10,y+h/2,anchor='e',fill=col['accent'],
                           font=( self.tv.bold.cget('family'), 8 ),text=card.status)
             return
-        self._rect(4,y,self.width,y+h,12,fill=col['selected'] if selected else col['card'],
+        fill = col['selected'] if selected else ( col['badge'] if card.overview else col['card'] )
+        self._rect(4,y,self.width,y+h,12,fill=fill,
                    outline=col['accent'] if selected else col['border'],width=2 if selected else 1)
+        if card.overview:
+            #(the overview of a group: tinted, with a stripe at its left):
+            c.create_rectangle(5,y+10,9,y+h-10,fill=col['accent'],outline='')
         if card.compact:
             c.create_text(16,y+h/2,anchor='w',fill=col['dim'],
                           text=f'{card.name}  \u00b7  {card.status}')
@@ -188,7 +192,8 @@ class CardList:
                           text=elided(card.problem,self.tv.bold,self.width-x-22))
         for b in ( () if card.problem else card.badges ):
             w = 10 + 6.5 * len(b)
-            self._rect(x,y+34,x+w,y+52,8,fill=col['badge'],outline='')
+            self._rect(x,y+34,x+w,y+52,8,fill=col['card'] if card.overview else col['badge'],
+                       outline='')
             c.create_text(x+w/2,y+43,text=b,fill=col['accent'],
                           font=( self.tv.bold.cget('family'), 8 ))
             x += w + 5

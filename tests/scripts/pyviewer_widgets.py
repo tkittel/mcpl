@@ -212,18 +212,20 @@ step('plot strings of quantities and expressions')
 for x, y, settings in ( ('Energy','',()), ('Energy','',(('logx','linear'),('logy','log'))),
                         ('Position x','Direction x',(('bins','30'),)),
                         ('Particle type','',(('bar','5'),)), ('hypot(x,y)/cm','',()) ):
-    plot = t.compose(x,y,settings)
+    plot = t.compose(x,y,settings = settings)
     print(f'   {x!r} against {y!r} with {settings}: {plot!r}, settings {t.plot_controls(plot)[0]}')
-print('   added:', t.on_add_plot(t.compose('Time','',(('logy','linear'),)),'Arrival time'))
+print('   added:', t.on_add_plot(t.compose('Time',settings = (('logy','linear'),)),'Arrival time'))
+print('   3D:', t.compose('Position x','Position y','Position z'))
 t.shown()
 print('   added again, with another title:', t.on_add_plot(t.compose('Time'),'Another'))
 t.shown()
 step('changing the axes of the shown plot (keeping the options which can be kept)')
-for x, y in ( ('wavelength',''), ('Energy',''), ('ekin : time',''), ('','time : ekin'), ('x','y'),
-              ('x',''), ('',''),
-              ('nonsense','') ):
-    print(f'  {x!r}, {y!r}:', t.on_axes(x,y), v.current_key)
+for x, y, z in ( ('wavelength','',''), ('Energy','',''), ('ekin : time','',''), ('','time : ekin',''),
+                 ('x','y',''), ('x','y','z'), ('x','','z'), ('x','',''), ('','',''),
+                 ('nonsense','','') ):
+    print(f'  {x!r}, {y!r}, {z!r}:', t.on_axes(x,y,z), v.current_key, t.axis_texts())
 t.on_axes_edited('ekin : nonsense')
+t.on_axes_edited('ekin','','x')
 t.shown()
 step('a new plot: shown as a card until its axes are chosen, or given up')
 t.on_key('a')

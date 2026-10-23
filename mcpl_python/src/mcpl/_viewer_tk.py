@@ -199,7 +199,7 @@ class TkViewer(WidgetViewer):
         bottom = ttk.Frame(root,padding=(0,4,6,6))
         bottom.grid(row=1,column=1,sticky='ew')
         bottom.columnconfigure(0,weight=1)
-        part, head = _part(bottom,'Particles','Pick & edit','particles from the input file',
+        part, head = _part(bottom,'Particles','Pick & edit','filter or modify particles',
                            card_colors['border'])
         #(the numbers of the particles used, at the right of the header):
         self._counts = ttk.Label(head,foreground=colors['dim'],style='Particles.TLabel')
@@ -333,10 +333,10 @@ class TkViewer(WidgetViewer):
         self._simple = simple
         self._menu = [ f'{name}:  {plot.split(";")[0]}' for name, plot in ui.quantities ]
         self._axes = []
-        for label in ( 'X axis:', 'Y axis:' ):
+        for label in ( 'X axis:', 'Y axis:', 'Z axis:' ):
             ttk.Label(simple,text=label,**( _row_label if not self._axes else {} )).pack(
                 side='left',padx=(0 if not self._axes else 10,4))
-            w = ttk.Combobox(simple,width=22,values=self._menu if not self._axes else [ '' ] + self._menu)
+            w = ttk.Combobox(simple,width=18,values=self._menu if not self._axes else [ '' ] + self._menu)
             w.pack(side='left')
             w.bind('<<ComboboxSelected>>',lambda _e, w=w : self._on_axis_chosen(w))
             w.bind('<KeyRelease>',lambda e, w=w : self._on_axis_key(w,e))
@@ -351,11 +351,11 @@ class TkViewer(WidgetViewer):
                 w.bind(key,lambda _e, w=w, d=delta : ( self._on_entry_updown(w,'axis',d)
                                                        if self._popup is not None else None ))
             self._axes.append(w)
-        #(an empty y axis says what it means):
-        y = self._axes[1]
-        self._placeholders[y] = 'none (1D histogram)'
-        y.bind('<FocusIn>',lambda _e : self._set_text(y,self._text(y)),'+')
-        y.bind('<FocusOut>',lambda _e : self._on_entry_unfocus(y),'+')
+        #(empty y and z axes say what they mean):
+        for w, empty in zip(self._axes[1:],( 'none (1D histogram)', 'none (no 3D plot)' )):
+            self._placeholders[w] = empty
+            w.bind('<FocusIn>',lambda _e, w=w : self._set_text(w,self._text(w)),'+')
+            w.bind('<FocusOut>',lambda _e, w=w : self._on_entry_unfocus(w),'+')
         self._marks['axes'] = ttk.Label(simple,width=2)
         self._marks['axes'].pack(side='left')
         #(the plot expression, which has the axes and the settings, shown
@@ -448,9 +448,9 @@ class TkViewer(WidgetViewer):
         self.show_pending(field,False)
 
     def show_plot_field( self, text, title, axes ):
-        x, y = axes or ( None, None )
+        axes = axes or ( None, None, None )
         for w, value in ( ( self._entries['shown_plot'], text ), ( self._title, title ),
-                          ( self._axes[0], x ), ( self._axes[1], y ) ):
+                          *zip(self._axes,axes) ):
             if text is None:
                 w.configure(state='normal')
                 self._showing.discard(w)

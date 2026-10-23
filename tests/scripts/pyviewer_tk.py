@@ -85,16 +85,21 @@ cards = [ s[3] for s in tv._cards._slots if s[2] == 'card' ]
 print('cards:', len(cards), '| first:', [ c.title or c.name for c in cards[:4] ])
 print('axes drawn:', len(tv.canvas.figure.axes) > 0)
 
-#A click on the second card shows its plot:
-y0, y1, _, card = next( s for s in tv._cards._slots if s[2] == 'card' and s[3] is cards[1] )
+#All groups start folded (showing their overviews). A click on the overview of
+#the first group expands it, and a click on its second card shows its plot:
 canvas = tv._cards.canvas
-canvas.yview_moveto(0)
-pump()
-y = ( y0 + y1 ) // 2
-canvas.event_generate('<ButtonPress-1>',x=60,y=y)
-canvas.event_generate('<ButtonRelease-1>',x=60,y=y)
-pump()
-print('after clicking the card', repr(card.title or card.name), ':', v.current_key)
+def click_card( name ):
+    canvas.yview_moveto(0)
+    pump()
+    y0, y1, _, _ = next( s for s in tv._cards._slots if s[2] == 'card' and s[3].name == name )
+    y = ( y0 + y1 ) // 2
+    canvas.event_generate('<ButtonPress-1>',x=60,y=y)
+    canvas.event_generate('<ButtonRelease-1>',x=60,y=y)
+    pump()
+    shown = [ s[3].name for s in tv._cards._slots if s[2] == 'card' ]
+    print(f'after clicking the card {name!r}: {v.current_key} | {len(shown)} cards shown')
+click_card(cards[0].name)
+click_card('Energy')
 
 #Tab completes in the X axis field (and stays there), and with several
 #completions shows a list, where Down and Enter choose one:

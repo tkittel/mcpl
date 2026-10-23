@@ -411,9 +411,15 @@ class FigurePane:
         self._key, self._figure = key, figure
         return True
 
-    def show_message( self, text ):
-        """Show the text instead of a plot (until the next show or clear)"""
-        self._title = self.fig.text(0.5,0.5,text,ha='center',va='center',color='0.5')
+    def show_message( self, text, left = False ):
+        """Show the text instead of a plot (until the next show or clear), in
+        the middle, or as a block of lines aligned at the left (if left is
+        set)"""
+        if left:
+            self._title = self.fig.text(0.06,0.5,text,ha='left',va='center',color='0.35',
+                                        linespacing=1.6)
+        else:
+            self._title = self.fig.text(0.5,0.5,text,ha='center',va='center',color='0.5')
 
     def clear( self ):
         """Remove the plot (so the next show() draws it again)"""

@@ -400,7 +400,10 @@ def test_terminal():
                 print(f'   | {line}')
         return v, t
     run(['WAIT','p'] + list('pdgcode == neu') + ['Tab','Enter','WAIT','Down','Down','Down','WAIT'])
-    run(['WAIT','e'] + list('x = 2') + ['WAIT'])
+    v, _ = run(['WAIT','e'] + list('x = 2') + ['WAIT'])
+    #(the numbers of the plot shown above, to see what differs if the
+    #drawing does):
+    print(describe([ v.figure(key = v.current_key) ]))
     v, _ = run(['WAIT','a'] + list('hypot(x,y)/cm;lo') + ['Tab'] + list('y=1') + ['Enter','WAIT'],
                show = False)
     print('   views:', [ k for k, _ in v.views ][-1], 'current:', v.views[v.current][0])

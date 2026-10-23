@@ -464,7 +464,7 @@ class TkViewer(WidgetViewer):
             self._write.state([ '!disabled' if enabled else 'disabled' ])
             n = self.v.nused
             self._write.configure(style='Head.Accent.TButton' if enabled else 'Head.TButton',
-                                  text=( f'Create new MCPL file with {n} particles...'
+                                  text=( f'Create new MCPL file with {ui.count_text(n,True)} particles...'
                                          if enabled and n is not None else 'Create new MCPL file...' ))
             return
         self._actions_menu.entryconfigure(self._actions[action],

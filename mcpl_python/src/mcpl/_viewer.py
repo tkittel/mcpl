@@ -39,7 +39,7 @@ from ._stdviews import _field_titles, _groups, _plot_item, _presets
 from ._viewer_groups import PlotGroups, custom_key, group_names, title_of
 from ._viewer_overviews import overview_figure
 from ._viewer_reading import _make_filler, _Reading
-from ._viewer_ui import plot_of
+from ._viewer_ui import count_text, number_text, plot_of
 
 _fields = ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot' )
 
@@ -212,7 +212,7 @@ class Viewer(_Reading):
         if field in ('skip','limit'):
             if not text or ( field == 'limit' and text == 'all' ):
                 return 0 if field == 'skip' else None
-            v = _parse_count(text) if field == 'limit' else ( int(text) if text.isdigit() else None )
+            v = _parse_count(text)
             if v is None or v < 0:
                 raise MCPLError(f'{field.capitalize()} must be a number of particles'
                                 + ( ' (or all)' if field == 'limit' else '' ))
@@ -718,7 +718,7 @@ class Viewer(_Reading):
 
     def file_text( self ):
         """The name of the file, with its number of particles"""
-        return f'{self._name}: {self._ntotal} particles'
+        return f'{self._name}: {count_text(self._ntotal)} particles'
 
     @property
     def nused( self ):
@@ -743,12 +743,13 @@ class Viewer(_Reading):
         if self._s.pick is None:
             #(all particles of the range are used, so only the numbers):
             n, _, w, _ = counts
-            return f'{first}{n} particles, {weights} = {w:g}'
+            return f'{first}{count_text(n)} particles, {weights} = {number_text(w)}'
         n, ntot, w, wtot = counts
         pct = f'{100.0*n/ntot:.1f}%' if ntot else '-'
         wpct = f'{100.0*w/wtot:.1f}%' if wtot else '-'
         of = f' of {first}' if first else '/'
-        return f'{n}{of}{ntot} particles ({pct}), {weights} = {w:g} ({wpct})'
+        return ( f'{count_text(n)}{of}{count_text(ntot)} particles ({pct}),'
+                 f' {weights} = {number_text(w)} ({wpct})' )
 
     #The state:
 
@@ -1084,7 +1085,9 @@ def _plot_field( text ):
     return _Expr(exprs[0]).field if len(exprs) == 1 else None
 
 def _parse_count( text ):
-    """The integer of a text like 1000 or 1e6 (or None if it is not one)"""
+    """The integer of a text like 1000, 1,000 or 1e6 (or None if it is not one)"""
+    if re.fullmatch(r'[0-9]{1,3}(,[0-9]{3})+',text):
+        text = text.replace(',','')
     try:
         return int(text)
     except ValueError:

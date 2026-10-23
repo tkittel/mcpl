@@ -1,3 +1,28 @@
+  0: 0 | compact: 0
+  999: 999 | compact: 999
+  1006: 1,006 | compact: 1,006
+  123456: 123,456 | compact: 123,456
+  1000000: 1,000,000 | compact: 1e6
+  1006000: 1,006,000 | compact: 1.006e6
+  1234567: 1,234,567 | compact: 1,234,567
+  2500000: 2,500,000 | compact: 2.5e6
+  1000000000: 1,000,000,000 | compact: 1e9
+  1000000.0: 1,000,000
+  726.0: 726
+  0.5: 0.5
+  1.5e-06: 1.5e-06
+  123456.789: 123457
+  count '1e6': 1000000
+  count '1,000': 1000
+  count '1,000,000': 1000000
+  count '10,00': None
+  count '1.5e3': 1500
+  count '1.5': None
+  count '-3': -3
+  count 'x': None
+  skip '1e2': (True, '')
+  limit '1,000': (True, '')
+  skip '1.5': (False, 'Skip must be a number of particles')
 cache: {'nrange': 1006, 'size': 44.0, 'needed': 44264.0, 'limit': 500000000.0, 'fits': True, 'nused': 1006, 'cached': 44264.0}
 with a lower limit: {'limit': 13200.0, 'fits': False, 'nused': 300, 'cached': 13200.0}
   pick '', skip '': the first 300 particles, Σw = 300 | as the first 300 particles of the range: True | nused: None
@@ -12,16 +37,16 @@ no cache: {'limit': None, 'fits': True, 'nused': 906, 'cached': 0}
   blocks of 0 to 1006: from 0 to 1000, kept: 0 to 300
   with a lower limit, kept: 0 to 100
 skip=0 limit=None pick=None edit=None:
-   example.mcpl: 1006 particles, Σw = 1006
+   example.mcpl: 1,006 particles, Σw = 1,006
    48 views, same figures as mcpltool -H: True
 skip=0 limit=None pick='pdgcode == neutron' edit=None:
-   example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    48 views, same figures as mcpltool -H: True
 skip=100 limit=500 pick='ekin > 1MeV' edit='z += 1m':
    example.mcpl: 196/500 particles (39.2%), Σw = 196 (39.2%)
    48 views, same figures as mcpltool -H: True
 skip=0 limit=None pick='mod(fileidx,3) == 0' edit='weight *= 2':
-   example.mcpl: 336/1006 particles (33.4%), Σw = 672 (66.8%)
+   example.mcpl: 336/1,006 particles (33.4%), Σw = 672 (66.8%)
    48 views, same figures as mcpltool -H: True
 The command and code of plots, and of writing files:
   mcpltool -H "ekin;logx" example.mcpl  (code: command, python)
@@ -292,14 +317,14 @@ Up from the first wraps to: atan2( | Esc closes without inserting: None '' []
 unknown view: Unknown view "foo" (the views are the overviews and the plots, given as overview, overview:GROUP or as the histogram string of a plot, e.g. ekin)
 invalid pick: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 1"
 view shown first: ('plot:ekin', 'ekin')
-('example.mcpl: 1006 particles, Σw = 1006', '')
-set('pick','pdgcode == gamma'): True, ('example.mcpl: 239/1006 particles (23.8%), Σw = 239 (23.8%)', '')
+('example.mcpl: 1,006 particles, Σw = 1,006', '')
+set('pick','pdgcode == gamma'): True, ('example.mcpl: 239/1,006 particles (23.8%), Σw = 239 (23.8%)', '')
 set('skip','1000'): True, ('example.mcpl: 0/6 particles (0.0%), Σw = 0 (0.0%)', 'error: no particles picked')
 set('limit','3'): True, ('example.mcpl: 0/3 particles (0.0%), Σw = 0 (0.0%)', 'error: no particles picked')
 set('pick','x > 1km'): True, ('example.mcpl: 0/3 particles (0.0%), Σw = 0 (0.0%)', 'error: no particles picked')
 set('pick',''): True, ('example.mcpl: 3 particles, Σw = 3', '')
 set('skip','0'): True, ('example.mcpl: 3 particles, Σw = 3', '')
-set('limit',''): True, ('example.mcpl: 1006 particles, Σw = 1006', '')
+set('limit',''): True, ('example.mcpl: 1,006 particles, Σw = 1,006', '')
 views after adding plots: ['custom:time/ms;logx=1', 'custom:ekin/MeV'] current: custom:time/ms;logx=1
 limit 1e3: 1e3 mcpltool --view="{'custom':['time/ms;logx=1','ekin/MeV'],'view':'time/ms;logx=1'}" -l1000 example.mcpl
 history of pick: ['pdgcode == gamma', 'x > 1km']
@@ -401,7 +426,7 @@ without pick and edit:
 To open the viewer like this again:
   mcpltool -w -l100 example.mcpl
 ==> keys ['WAIT', 'p', 'p', 'd', 'g', 'c', 'o', 'd', 'e', ' ', '=', '=', ' ', 'n', 'e', 'u', 'Tab', 'Enter', 'WAIT', 'Down', 'Down', 'Down', 'WAIT']:
-   |                             example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   |                             example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    |   ekin;logx=auto;logy;spli
    |   wavelength;logx;split=pd                               pick: pdgcode == neutron
    |   angle(dir,(0,0,1))/deg;l  (y: y [cm])
@@ -443,7 +468,7 @@ To open the viewer like this again:
    | 
    |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]  [GUI viewer]
 ==> keys ['WAIT', 'e', 'x', ' ', '=', ' ', '2', 'WAIT']:
-   |                             example.mcpl: 1006 particles, Σw = 1006
+   |                             example.mcpl: 1,006 particles, Σw = 1,006
    | ▸ ekin;logx=auto;logy;spli
    |   wavelength;logx;split=pd  (weights per bin)
    |   angle(dir,(0,0,1))/deg;l       106 ┤                       ⢠⠤⠴⠒⠒⠋⠉⢧

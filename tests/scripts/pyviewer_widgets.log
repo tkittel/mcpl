@@ -10,7 +10,7 @@
    problems: []
    thumbnails: 37
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 1006 particles, Σw = 1006
+   status: example.mcpl: 1,006 particles, Σw = 1,006
    shown plot field: (None, None, ('', ''))
    settings: None
    bins used: None
@@ -30,7 +30,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', ''))
    settings: None
    bins used: None
@@ -62,7 +62,7 @@
    problems: []
    thumbnails: 37
    kinds of cards: ['s--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', ''))
    settings: None
    bins used: None
@@ -75,7 +75,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', ''))
    settings: None
    bins used: None
@@ -89,7 +89,7 @@
    problems: []
    thumbnails: 38
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/cm;logy', None, ('hypot(x,y)/cm', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
@@ -104,7 +104,7 @@
    problems: []
    thumbnails: 38
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/mm;logy', None, ('hypot(x,y)/mm', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
@@ -116,7 +116,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('weight', None, ('weight', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
@@ -128,7 +128,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('weight', None, ('weight', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
@@ -139,7 +139,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('weight', None, ('weight', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
@@ -150,7 +150,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
    settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
@@ -162,7 +162,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
    settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
@@ -174,7 +174,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
    settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
@@ -186,7 +186,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
    settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
@@ -198,7 +198,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
    settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
@@ -210,7 +210,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight'))
    settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
@@ -225,7 +225,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', ''))
    settings: None
    bins used: None
@@ -235,7 +235,7 @@
    problems: []
    thumbnails: 36
    kinds of cards: ['--rg', 's--g', 's-rg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'Angle to the z axis', ('angle(dir,(0,0,1))/deg', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
@@ -251,7 +251,7 @@
    problems: []
    thumbnails: 39
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('x', None, ('x', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
@@ -275,7 +275,7 @@
    problems: []
    thumbnails: 40
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('x;bins=40', None, ('x', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '40', 'range': ''})
    bins used: 40
@@ -297,12 +297,12 @@
    menu: ('5 GB (all particles)', 5000000000.0, False, True)
    menu: ('10 GB (all particles)', 10000000000.0, False, True)
    menu: ('no cache (read all particles from the file for each change)', None, False, True)
-   line (normal): The plots use the first 300 of the 1006 particles (those in the cache), but new files get all
+   line (normal): The plots use the first 300 of the 1,006 particles (those in the cache), but new files get all
    button: ('cached: 13 kB', False)
    counts: 273 of the first 300 particles (91.0%), Σw = 273 (91.0%) | write button count: None
-   line (normal): The plots use all 1006 particles
+   line (normal): The plots use all 1,006 particles
    button: ('no cache', True)
-   line (normal): The plots use all 1006 particles
+   line (normal): The plots use all 1,006 particles
 ==> plot strings of quantities and expressions
    'Energy' against '' with (): 'ekin;logx=auto', settings 1d
    'Energy' against '' with (('logx', 'linear'), ('logy', 'log')): 'ekin;logy', settings 1d
@@ -316,7 +316,7 @@
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('time;logx=auto', 'Arrival time', ('time', ''))
    settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
@@ -328,7 +328,7 @@
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('time;logx=auto', 'Arrival time', ('time', ''))
    settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
@@ -357,7 +357,7 @@
    problems: []
    thumbnails: 41
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('x', 'Position x-y (??)', ('x', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
@@ -370,7 +370,7 @@
    problems: []
    thumbnails: 41
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('', '', ('', ''))
    settings: None
    bins used: None
@@ -384,7 +384,7 @@
    problems: []
    thumbnails: 41
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/cm', 'Radius', ('hypot(x,y)/cm', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
@@ -412,7 +412,7 @@
    problems: []
    thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: example.mcpl: 1006 particles, Σw = 1006
+   status: example.mcpl: 1,006 particles, Σw = 1,006
    shown plot field: (None, None, ('', ''))
    settings: None
    bins used: None
@@ -428,7 +428,7 @@
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: example.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', ''))
    settings: None
    bins used: None
@@ -446,7 +446,7 @@
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: other.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: other.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', ''))
    settings: None
    bins used: None
@@ -462,7 +462,7 @@
    problems: []
    thumbnails: 41
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
-   status: other.mcpl: 726/1006 particles (72.2%), Σw = 726 (72.2%)
+   status: other.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('weight', None, ('weight', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27

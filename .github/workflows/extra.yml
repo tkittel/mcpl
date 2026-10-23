@@ -127,6 +127,9 @@ jobs:
       if: runner.os != 'Windows'
       run: echo "CMAKE_GENERATOR=Ninja Multi-Config" >> $GITHUB_ENV
 
+    - name: Font caches of matplotlib and Tk (so tests do not wait for them)
+      run: python ./src/devel/bin/mcpldevtool fontcache
+
     - name: Configure CMake
       run: >
         cmake -S ./src -B ./build

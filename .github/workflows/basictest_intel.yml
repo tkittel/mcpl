@@ -67,6 +67,9 @@ jobs:
     - name: pip install extra deps
       run: python3 -mpip install -r ./src/devel/reqs/requirements_devel.txt
 
+    - name: Font caches of matplotlib and Tk (so tests do not wait for them)
+      run: python3 ./src/devel/bin/mcpldevtool fontcache
+
     - name: Configure CMake
       run: |
         source /opt/intel/oneapi/setvars.sh

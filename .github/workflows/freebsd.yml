@@ -60,6 +60,7 @@ jobs:
             #(dependencies without FreeBSD packages, see dependency_database.yml):
             python3 -m pip install --user --upgrade "pip>=26.2.2"
             python3 -m pip install --user ${FREEBSD_PIPS}
+            python3 ./src/devel/bin/mcpldevtool fontcache
             df -h
             sudo pkg autoremove -y
             df -h

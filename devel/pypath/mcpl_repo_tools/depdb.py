@@ -138,6 +138,8 @@ def markers( info ):
 
 def create_py_spec(info):
     pn = info['pypi_pkgname']
+    if not pn:
+        return None#(no pip package, see _prepare_data_and_check_errors)
     min_v = info.get('min_version')
     max_v = info.get('max_version')
     assert not (min_v and max_v)
@@ -238,7 +240,7 @@ def _prepare_data_and_check_errors( rawdata ):
     known_keys = { 'min_version', 'max_version', 'import_check', 'cmd_check',
                    'pypi_pkgname', 'conda_pkgname', 'in_pystdlib_from',
                    'min_python', 'unavailable_on', 'only_on', 'freebsd_pkgname',
-                   'freebsd_pip' }
+                   'freebsd_pip', 'check_code' }
     for depname,info in rawdata['dependencies'].items():
         check_name_ok(depname)
         if depname not in all_deps_used:
@@ -251,7 +253,9 @@ def _prepare_data_and_check_errors( rawdata ):
             if k not in info:
                 info[k] = depname
         #(conda_pkgname null: not available on conda-forge, so it is left out
-        #of the conda environment files)
+        #of the conda environment files; pypi_pkgname null: no pip package, like
+        #parts of Python which not all installations have, so it is left out
+        #of pyproject.toml and requirements files)
         if 'min_version' in info and 'max_version' in info:
             raise SystemExit('dependencies: both min and max versions '
                              f'specified for "{depname}" (this is currently'
@@ -298,7 +302,8 @@ def _produce_expected_deplists_for_env_files(db):
 
 def produce_expected_requirements_txt_files(db):
     def content( deplist ):
-        lines = [ db['dependencies'][dep]['py_spec'] for dep in set(deplist) ]
+        lines = [ db['dependencies'][dep]['py_spec'] for dep in set(deplist)
+                  if db['dependencies'][dep]['py_spec'] ]
         return '\n'.join(sorted(lines)+[''])
     name2deplist = _produce_expected_deplists_for_env_files(db)
     return { f'requirements_{n}.txt' : content(d)
@@ -344,6 +349,9 @@ def produce_expected_testdeps_cmake(db):
     for depname, info in sorted(db['dependencies'].items()):
         if info.get('in_pystdlib_from'):
             pass#(mctools_testutils.cmake knows how to check for these)
+        elif info.get('check_code'):
+            lines.append( f'set( MCTOOLS_TESTDEP_{depname}_PYCODE'
+                          f' "{info["check_code"]}" )' )
         elif info.get('import_check'):
             lines.append( f'set( MCTOOLS_TESTDEP_{depname}_IMPORT'
                           f' "{info["import_check"]}" )' )
@@ -375,7 +383,7 @@ def minversion_reqs( db ):
     res = []
     for dep in sorted(deps):
         info = db['dependencies'][dep]
-        if not install_needed(info):
+        if not install_needed(info) or not info['pypi_pkgname']:
             continue
         assert info.get('min_version'), f'no min_version for {dep}'
         res.append( f'{info["pypi_pkgname"]}=={info["min_version"]}.*' )

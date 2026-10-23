@@ -1,0 +1,34 @@
+Tk 8.6 or later: True
+window title: MCPL viewer: example.mcpl
+after reading the file:
+   status: example.mcpl: 1,006 particles
+   counts: 1,006 particles, Σw = 1,006
+   cache button: cached: 44 kB CacheAll.Compact.TMenubutton
+   write button: Create new MCPL file...
+   shown: overview:overview
+cards: 23 | first: ['Overview', 'Energy', 'Wavelength', 'Angle to the z axis']
+axes drawn: True
+after clicking the card 'Energy' : plot:ekin;logx=auto;logy;split=pdgcode
+X axis after typing 'ek' and <Tab>: 'ekin', focus kept: True
+   completions of 'po' : ['polx', 'poly', 'polz', 'pos', 'pol', 'positron']
+X axis after typing 'po' and <Tab> <Down> <Return>: 'poly', focus kept: True
+after the pick:
+   status: example.mcpl: 1,006 particles
+   counts: 544/1,006 particles (54.1%), Σw = 544 (54.1%)
+   cache button: cached: 44 kB CacheAll.Compact.TMenubutton
+   write button: Create new MCPL file with 544 particles...
+   shown: plot:ekin;logx=auto;logy;split=pdgcode
+cache menu: ['5 MB (all particles)', '20 MB (all particles)', '100 MB (all particles)', '500 MB (all particles)', '2 GB (all particles)', '5 GB (all particles)', '10 GB (all particles)', 'no cache (read all particles from the file for each change)', 'About the cache...']
+with a small cache:
+   status: example.mcpl: 1,006 particles
+   counts: 193 of the first 300 particles (64.3%), Σw = 193 (64.3%)
+   cache button: cached: 13 kB CacheCut.Compact.TMenubutton
+   write button: Create new MCPL file...
+   shown: plot:ekin;logx=auto;logy;split=pdgcode
+with 500 MB:
+   status: example.mcpl: 1,006 particles
+   counts: 544/1,006 particles (54.1%), Σw = 544 (54.1%)
+   cache button: cached: 44 kB CacheAll.Compact.TMenubutton
+   write button: Create new MCPL file with 544 particles...
+   shown: plot:ekin;logx=auto;logy;split=pdgcode
+closed: True

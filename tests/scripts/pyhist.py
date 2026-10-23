@@ -31,9 +31,14 @@ import io
 import pathlib
 import shutil
 
+import matplotlib
 import mcpldev as mcpl
 import numpy as np
 from MCPLTestUtils.dirs import test_data_dir
+
+#(no windows, also where there is a display, so plots which would be shown
+#are drawn in the terminal instead):
+matplotlib.use('agg')
 
 #Use local copies of the files, for printouts without full paths:
 shutil.copy(test_data_dir.joinpath('example.mcpl'),'example.mcpl')

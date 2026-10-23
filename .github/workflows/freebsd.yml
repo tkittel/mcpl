@@ -60,6 +60,12 @@ jobs:
             #(dependencies without FreeBSD packages, see dependency_database.yml):
             python3 -m pip install --user --upgrade "pip>=26.2.2"
             python3 -m pip install --user ${FREEBSD_PIPS}
+            #(a virtual display with fonts, for the tests of the viewer in a
+            #window):
+            sudo pkg install -y xorg-vfbserver dejavu
+            Xvfb :99 -screen 0 1600x1000x24 -nolisten tcp > /dev/null 2>&1 &
+            export DISPLAY=:99
+            sleep 2
             python3 ./src/devel/bin/mcpldevtool fontcache
             df -h
             sudo pkg autoremove -y

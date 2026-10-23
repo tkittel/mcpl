@@ -31,6 +31,7 @@ import matplotlib
 
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
+import mcpldev._viewer_tk
 from matplotlib.backend_bases import KeyEvent, MouseEvent
 from mcpldev._plotbackend_mpl_gui import MplViewer, run_viewer
 from mcpldev._viewer import Viewer
@@ -150,6 +151,9 @@ print('closed:', g.closed)
 def interrupted_show( *a, **kw ):
     raise KeyboardInterrupt
 plt.show = interrupted_show
+#(the matplotlib window, as where Tk can not show windows, also where there is
+#a display):
+mcpldev._viewer_tk._root = lambda : None
 v = Viewer('example.mcpl')
 run_viewer(v)
 print('Ctrl-C while the window is shown: viewer stopped:',

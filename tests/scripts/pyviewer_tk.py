@@ -115,6 +115,19 @@ tv._on_axis_escape()
 tv._on_title_escape()
 pump()
 
+#"Advanced" shows the plot expression instead of the axes and settings (the
+#parts of it), and back:
+def parts():
+    return { name : bool(w.winfo_ismapped()) for name, w in
+             ( ( 'axes', tv._axes[0] ), ( 'settings', tv._settings_row ),
+               ( 'expression', tv._entries['shown_plot'] ) ) }
+print('shown parts of the plot:', parts())
+for _ in range(2):
+    tv._toggle.invoke()
+    pump()
+    print(f'after clicking Advanced (on: {tv._advanced.get()}): {parts()},'
+          f' expression {tv._text(tv._entries["shown_plot"])!r}')
+
 #Typing a pick and pressing Enter:
 entry = tv._entries['pick']
 entry.focus_force()

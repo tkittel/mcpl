@@ -37,7 +37,7 @@ from mcpldev._viewer_jupyter import JupyterViewer
 from MCPLTestUtils.dirs import test_data_dir
 
 #(as %matplotlib widget does):
-matplotlib.use('widget')
+matplotlib.use('module://ipympl.backend_nbagg')
 
 shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
 
@@ -60,7 +60,7 @@ j._pane.axes[0].set_xlim(-50,50)#(a zoom)
 j._fields['pick'].value = 'pdgcode == neutron'
 v.wait()
 j.refresh()
-print('x range after the pick, zoom kept:', j._pane.axes[0].get_xlim())
+print('x range after the pick, zoom kept:', tuple( float(x) for x in j._pane.axes[0].get_xlim() ))
 j._views.index = [ k for k, _ in v.views ].index('plot:ekin')
 print('x range of another view, not zoomed:', j._pane.axes[0].get_xlim() != (-50,50))
 j.close()
@@ -79,5 +79,5 @@ v.set('limit','500')
 v.wait()
 m.refresh(plot=True)
 print('window, after changing the limit:', m._pane.axes[0].get_xscale(),
-      m._pane.axes[0].get_xlim())
+      tuple( float(x) for x in m._pane.axes[0].get_xlim() ))
 m._on_close(None)

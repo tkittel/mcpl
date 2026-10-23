@@ -509,6 +509,16 @@ To open the viewer like this again:
    |  Add plot: [e.g. hypot(x,y)/cm;logy]
    | 
    |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]  [GUI viewer]
+Figure 1 (1x1): None
+  Panel None xlabel='ekin [eV]' ylabel='weights per bin' logx logy xlim=[1393.45,9.72496e+09]
+    StepHist label='n (2112)' color=0 bins=30 edges=[1393.45,9.72496e+09] sum=726 max=106 nonzero_bins=26
+    StepHist label='γ (22)' color=8 bins=30 edges=[1393.45,9.72496e+09] sum=239 max=46 nonzero_bins=13
+    StepHist label='e⁻ (11)' color=1 bins=30 edges=[1393.45,9.72496e+09] sum=15 max=3 nonzero_bins=10
+    StepHist label='p (2212)' color=4 bins=30 edges=[1393.45,9.72496e+09] sum=10 max=3 nonzero_bins=4
+    StepHist label='e⁺ (-11)' color=3 bins=30 edges=[1393.45,9.72496e+09] sum=8 max=2 nonzero_bins=5
+    StepHist label='π⁺ (211)' color=2 bins=30 edges=[1393.45,9.72496e+09] sum=5 max=1 nonzero_bins=5
+    StepHist label='π⁻ (-211)' color=7 bins=30 edges=[1393.45,9.72496e+09] sum=2 max=1 nonzero_bins=2
+    StepHist label='νμ (14)' color=9 bins=30 edges=[1393.45,9.72496e+09] sum=1 max=1 nonzero_bins=1
 ==> keys ['WAIT', 'a', 'h', 'y', 'p', 'o', 't', '(', 'x', ',', 'y', ')', '/', 'c', 'm', ';', 'l', 'o', 'Tab', 'y', '=', '1', 'Enter', 'WAIT']:
    views: custom:hypot(x,y)/cm;logy=1 current: custom:hypot(x,y)/cm;logy=1
 ==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'k', 'e', 'V', 'Enter', 'WAIT']:

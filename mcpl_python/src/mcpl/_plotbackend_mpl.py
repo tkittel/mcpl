@@ -62,7 +62,16 @@ class Backend(PlotBackend):
             noninteractive = backend_registry.list_builtin(BackendFilter.NON_INTERACTIVE)
         except ImportError:
             from matplotlib.rcsetup import non_interactive_bk as noninteractive
-        return name not in [ e.lower() for e in noninteractive ]
+        if name in [ e.lower() for e in noninteractive ]:
+            return False
+        #(matplotlib only checks for a display on Linux, so not e.g. on
+        #FreeBSD, where it picks a window backend also without one):
+        import os
+        import sys
+        if ( name not in ( 'nbagg', 'webagg' ) and sys.platform not in ( 'win32', 'darwin' )
+             and not ( os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY') ) ):
+            return False
+        return True
 
     def __init__( self, matplotlib_backend = None ):
         import matplotlib

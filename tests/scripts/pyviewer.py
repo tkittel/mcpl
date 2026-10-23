@@ -567,7 +567,7 @@ def test_c_translation():
     for edit in ( 'z += 1m;weight *= 0.5', 'x = 2*y;ekin = ekin/2', 'time = time + 1ms*abs(x)/1cm',
                   'rotate_z(90deg)', 'rotate_y(-90deg)', 'rotate_x(30deg)', 'swap(x,y)',
                   'swap(pdgcode,userflags)', 'rotate_z(x/cm*1deg)', 'ux = 1', 'a = 2*x;y = a',
-                  'rotate_around(0,0,1,90deg)', 'rotate_frame(0,0,1,0,1,0,1,1,0,0,0,1)',
+                  'rotate_around(0,0,1,90deg)', 'rotate_frame(0,0,1,1,1,0,0,1,0,0,0,1)',
                   'rotate_around(ux,uy,uz,10deg)' ):
         print(f'edit {edit!r}: {_c_edit(edit,_CTranslator("c","q","struct"),"")}')
     #In files with userdata, the edited particles keep it:

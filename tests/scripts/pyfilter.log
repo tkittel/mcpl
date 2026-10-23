@@ -15,7 +15,7 @@ edit example 'weight *= 0.5': ok
 edit example 'wavelength = 1.8Aa': ok
 edit example 'rotate_y(90deg);x += 10cm': ok
 edit example 'rotate_around(1,1,0,30deg)': ok
-edit example 'rotate_frame(0,0,1,0,1,0,1,0,0,0,1,0)': ok
+edit example 'rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)': ok
 edit example 'swap(x,y)': ok
 edit example 'tmp = hypot(x,y);x = tmp;y = 0cm': ok
 edit example 'time += hypot(x,y,z)/(2200m/s)': ok
@@ -156,9 +156,9 @@ rotations with other angles use cos and sin
 rotate_around(0,0,1,90deg) is exactly rotate_z(90deg)
 rotate_around(0,0,7,-90deg) is exactly rotate_z(-90deg)
 rotate_around(1,0,0,180deg) is exactly rotate_x(180deg)
-rotate_frame(0,0,1, 0,1,0, 1,0,0, 0,1,0) is exactly rotate_y(90deg)
+rotate_frame(0,0,1, 1,0,0, 0,1,0, 0,1,0) is exactly rotate_y(90deg)
 rotate_around(1,2,3,37deg) as with the formula of Rodrigues
-rotate_frame(0,0,1, 0,1,0, 1,1,0, 0,0,1) turns (0,0,1) into (1,1,0)/sqrt(2) and (0,1,0) into (0,0,1)
+rotate_frame(0,0,1, 1,1,0, 0,1,0, 0,0,1) turns (0,0,1) into (1,1,0)/sqrt(2) and (0,1,0) into (0,0,1)
 rotate_around(ux,uy,uz,33deg) keeps the directions
 normalised selection: 'pdgcode == neutron and ekin < 1MeV and hypot(x,y) < 10 cm'
 normalised edit: 'z = 0cm; wavelength = 1.8Aa'
@@ -310,9 +310,9 @@ ParticleEdit('rotate_around(0,0,1)'): rotate_around(..) takes 4 arguments (an ax
 ParticleEdit('rotate_around(0,0,0,10deg)'): In rotate_around(..), the axis must not be zero in expression "rotate_around(0,0,0,10deg)"
 ParticleEdit('rotate_around(0,0,1,1cm)'): rotate_around(..) requires an angle (e.g. 90deg) as its last argument, not length in expression "rotate_around(0,0,1,1cm)"
 ParticleEdit('rotate_around(1cm,0,1,10deg)'): Incompatible units in rotate_around(..): length and value without units (add units, e.g. 2cm) in expression "rotate_around(1cm,0,1,10deg)"
-ParticleEdit('rotate_frame(0,0,1,0,1,0)'): rotate_frame(..) takes 12 arguments (the components of the vectors v, u, vout and uout, as in rotate_frame(0,0,1,0,1,0,1,0,0,0,1,0)) in "rotate_frame(0,0,1,0,1,0)"
-ParticleEdit('rotate_frame(0,0,1, 0,0,2, 1,0,0, 0,1,0)'): In rotate_frame(..), v and u must not be parallel in expression "rotate_frame(0,0,1, 0,0,2, 1,0,0, 0,1,0)"
-ParticleEdit('rotate_frame(0,0,1, 0,1,0, 1,0,0, 1,1,0)'): In rotate_frame(..), the angle between v and u must be that between vout and uout in expression "rotate_frame(0,0,1, 0,1,0, 1,0,0, 1,1,0)"
+ParticleEdit('rotate_frame(0,0,1,0,1,0)'): rotate_frame(..) takes 12 arguments (the components of the vectors v, vout, u and uout, as in rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)) in "rotate_frame(0,0,1,0,1,0)"
+ParticleEdit('rotate_frame(0,0,1, 1,0,0, 0,0,2, 0,1,0)'): In rotate_frame(..), v and u must not be parallel in expression "rotate_frame(0,0,1, 1,0,0, 0,0,2, 0,1,0)"
+ParticleEdit('rotate_frame(0,0,1, 1,0,0, 0,1,0, 1,1,0)'): In rotate_frame(..), the angle between v and u must be that between vout and uout in expression "rotate_frame(0,0,1, 1,0,0, 0,1,0, 1,1,0)"
 ParticleEdit('x == 1cm'): Expected assignments like "x = 2*y" (or swap(..) or rotations like rotate_z(..)) in "x == 1cm"
 ParticleEdit('pi = 3'): Can not assign to "pi" in "pi = 3" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, and other lowercase names can be used for variables)
 ParticleEdit('wl = 1Aa'): Variable "wl" is assigned but never used in "wl = 1Aa" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength)

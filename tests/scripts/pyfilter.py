@@ -167,7 +167,7 @@ def test_expressions():
                 'rotate_z(1,2)', 'x = clamp(x,1cm)', 'x = min(x)',
                 'rotate_around(0,0,1)', 'rotate_around(0,0,0,10deg)', 'rotate_around(0,0,1,1cm)',
                 'rotate_around(1cm,0,1,10deg)', 'rotate_frame(0,0,1,0,1,0)',
-                'rotate_frame(0,0,1, 0,0,2, 1,0,0, 0,1,0)', 'rotate_frame(0,0,1, 0,1,0, 1,0,0, 1,1,0)',
+                'rotate_frame(0,0,1, 1,0,0, 0,0,2, 0,1,0)', 'rotate_frame(0,0,1, 1,0,0, 0,1,0, 1,1,0)',
                 'x == 1cm', 'pi = 3', 'wl = 1Aa', 'x = 1cm, y = 1cm',
                 'fileidx = 2', 'fileidx += 1', 'swap(fileidx,pdgcode)',
                 'x = y = 1cm', 'x, y = y, x', '', 'pdgcode = 1.5',
@@ -280,7 +280,7 @@ def test_exact_rotations():
     for a, b2 in ( ('rotate_around(0,0,1,90deg)','rotate_z(90deg)'),
                    ('rotate_around(0,0,7,-90deg)','rotate_z(-90deg)'),
                    ('rotate_around(1,0,0,180deg)','rotate_x(180deg)'),
-                   ('rotate_frame(0,0,1, 0,1,0, 1,0,0, 0,1,0)','rotate_y(90deg)') ):
+                   ('rotate_frame(0,0,1, 1,0,0, 0,1,0, 0,1,0)','rotate_y(90deg)') ):
         ra, rb = mcpl.ParticleEdit(a)(b), mcpl.ParticleEdit(b2)(b)
         assert all( np.array_equal(raw_bits(ra[k]),raw_bits(rb.get(k,getattr(b,k)))) for k in ra ), a
         print(f'{a} is exactly {b2}')
@@ -294,7 +294,7 @@ def test_exact_rotations():
     assert np.allclose(r['x'],ref[:,0]) and np.allclose(r['y'],ref[:,1]) and np.allclose(r['z'],ref[:,2])
     print('rotate_around(1,2,3,37deg) as with the formula of Rodrigues')
     #(rotate_frame turns v into vout and u into uout):
-    frame = 'rotate_frame(0,0,1, 0,1,0, 1,1,0, 0,0,1)'
+    frame = 'rotate_frame(0,0,1, 1,1,0, 0,1,0, 0,0,1)'
     for before, after in ( ('ux = 0; uy = 0; uz = 1',(1/np.sqrt(2),1/np.sqrt(2),0)),
                            ('ux = 0; uy = 1; uz = 0',(0,0,1)) ):
         r = mcpl.ParticleEdit(f'{before}; {frame}')(b)

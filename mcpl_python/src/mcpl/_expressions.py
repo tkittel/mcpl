@@ -83,7 +83,7 @@ _rotation_planes = { 'rotate_x' : ( ('y','z'), ('uy','uz'), ('poly','polz') ),
                      'rotate_y' : ( ('z','x'), ('uz','ux'), ('polz','polx') ),
                      'rotate_z' : ( ('x','y'), ('ux','uy'), ('polx','poly') ) }
 #The rotations given by a matrix, with the numbers of their arguments (an
-#axis and an angle, or the vectors v, u, vout, uout), and the vectors they
+#axis and an angle, or the vectors v, vout, u, uout), and the vectors they
 #rotate:
 _rotation_matrix_args = { 'rotate_around' : 4, 'rotate_frame' : 12 }
 _rotated_vectors = ( ('x','y','z'), ('ux','uy','uz'), ('polx','poly','polz') )
@@ -108,7 +108,7 @@ def _exact_cos_sin( angle ):
 
 def _rotation_matrix( fname, args ):
     """The rotation matrices (shape (n,3,3), or (1,3,3) for constants) of
-    rotate_around(ax,ay,az,angle) or of rotate_frame(v,u,vout,uout) (12
+    rotate_around(ax,ay,az,angle) or of rotate_frame(v,vout,u,uout) (12
     numbers), from the values of the arguments (arrays or numbers), or a text
     saying what is wrong with them. Matrix elements within 1e-15 of 0 or +-1
     are exactly 0 or +-1, so rotations around the axes by multiples of 90
@@ -132,7 +132,7 @@ def _rotation_matrix( fname, args ):
         R = c * np.eye(3) + s * cross + ( 1.0 - c ) * k[:,:,None] * k[:,None,:]
     else:
         tol = _rotate_frame_tolerance
-        v, u, vo, uo = ( unit(vec(i)) for i in ( 0, 3, 6, 9 ) )
+        v, vo, u, uo = ( unit(vec(i)) for i in ( 0, 3, 6, 9 ) )
         if v is None or u is None or vo is None or uo is None:
             return 'the vectors must not be zero'
         if np.any( np.linalg.norm(np.cross(v,u),axis=-1) <= tol ):
@@ -905,9 +905,9 @@ class ParticleEdit:
         (ax,ay,az) through the origin (which need not be a unit vector),
         counter-clockwise when looking from the axis towards the origin, e.g.
         "rotate_around(1,1,0,30deg)".
-      * rotate_frame(vx,vy,vz,ux,uy,uz,vox,voy,voz,uox,uoy,uoz), the rotation
+      * rotate_frame(vx,vy,vz,vox,voy,voz,ux,uy,uz,uox,uoy,uoz), the rotation
         which turns the direction of the vector v into that of vout, and u
-        into uout (e.g. a beam direction and an "up" direction of one frame
+        into uout (as RotMatrix of NCrystal) (e.g. a beam direction and an "up" direction of one frame
         into those of another). The angle between v and u must be that
         between vout and uout, and v and u must not be parallel.
     """
@@ -1007,7 +1007,7 @@ class ParticleEdit:
             if len(call.args) != nargs:
                 what = ( 'an axis and an angle, as in rotate_around(0,0,1,90deg)'
                          if fname == 'rotate_around' else 'the components of the vectors'
-                         ' v, u, vout and uout, as in rotate_frame(0,0,1,0,1,0,1,0,0,0,1,0)' )
+                         ' v, vout, u and uout, as in rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)' )
                 raise MCPLError(f'{fname}(..) takes {nargs} arguments ({what}) in'
                                 f' "{self._expr}"')
             args = tuple( _Expr(self._expr, tree = a, variables = variables)

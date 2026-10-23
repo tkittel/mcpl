@@ -1,10 +1,16 @@
-memory: {'nfile': 1006, 'end': 1006, 'size': 36, 'needed': 36216, 'limit': 500000000.0, 'fits': True, 'nfit': 1006}
-with a lower limit: {'limit': 10800.0, 'fits': False, 'nfit': 300}
-  pick '': as without memory: True
-  pick 'ekin < 1MeV': as without memory: True
-  pick '': as without memory: True
-  reading 0: blocks from [0, 100, 200, 300] to 1000, kept: 300
-  reading 1: blocks from [0, 100, 200, 300] to 1000, kept: 300
+cache: {'nrange': 1006, 'size': 44.0, 'needed': 44264.0, 'limit': 500000000.0, 'fits': True, 'nused': 1006, 'cached': 44264.0}
+with a lower limit: {'limit': 13200.0, 'fits': False, 'nused': 300, 'cached': 13200.0}
+  pick '', skip '': the first 300 particles, Σw = 300 | as the first 300 particles of the range: True | nused: None
+  pick 'ekin < 1MeV', skip '': 193 of the first 300 particles (64.3%), Σw = 193 (64.3%) | as the first 300 particles of the range: True | nused: None
+  pick '', skip '100': the first 300 particles, Σw = 300 | as the first 300 particles of the range: True | nused: None
+no cache: {'limit': None, 'fits': True, 'nused': 906, 'cached': 0}
+  pick '', skip '100': 906 particles, Σw = 906 | as the all particles of the range: True | nused: 906
+  new files get all particles of the range: MCPL: Successfully extracted 906 / 1006 particles from example.mcpl into cached.mcpl
+  blocks of 150 to 1006: from 100 to 1000, kept: 100 to 400
+  blocks of 150 to 1006: from 100 to 1000, kept: 100 to 400
+  blocks of 150 to 250: from 100 to 200, kept: 100 to 400
+  blocks of 0 to 1006: from 0 to 1000, kept: 0 to 300
+  with a lower limit, kept: 0 to 100
 skip=0 limit=None pick=None edit=None:
    example.mcpl: 1006 particles, Σw = 1006
    48 views, same figures as mcpltool -H: True

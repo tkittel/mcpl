@@ -48,6 +48,12 @@ class JupyterViewer:
                                layout=w.Layout(width='190px'))
         self._views.observe(self._on_view,'index')
         self._status = w.HTML()
+        #(the cache, at the right of the status, see ui.cache_menu):
+        self._cache = w.Dropdown(description='Cache:',tooltip=ui.cache_about,
+                                 style={'description_width':'50px'},
+                                 layout=w.Layout(width='auto'))
+        self._cache.observe(self._on_cache,'index')
+        self._cache_text = w.HTML()
         self._image = w.Image(format='png',layout=w.Layout(width='100%'))
         #The first overview as a grid of its plots, each with a button showing
         #it on its own (images in ipywidgets can not be clicked), by position
@@ -129,8 +135,9 @@ class JupyterViewer:
         helpb = w.Button(description='Help')
         helpb.on_click(self._on_help)
         self._extra = w.HTML()
-        self._right = right = w.VBox([ self._status, self._image ],
-                                     layout=w.Layout(width='100%'))
+        top = w.HBox([ self._status, w.HBox([ self._cache_text, self._cache ]) ],
+                     layout=w.Layout(width='100%',justify_content='space-between'))
+        self._right = right = w.VBox([ top, self._image ],layout=w.Layout(width='100%'))
         from ._logo import logo_png
         logo = w.Image(value=logo_png(),format='png',layout=w.Layout(width='190px'))
         self.widget = w.VBox([ self._warning, w.HBox([ w.VBox([ logo, self._views,
@@ -224,6 +231,30 @@ class JupyterViewer:
         finally:
             self._syncing = False
 
+    def _on_cache( self, change ):
+        if self._syncing or change['new'] is None:
+            return
+        self.v.set_cache_limit(ui.cache_menu(self.v.cache_info())[change['new']][1])
+        self._message.value = html.escape(ui.cache_line(self.v.cache_info()))
+        self.refresh()
+
+    def _sync_cache( self ):
+        """The text of the cache, in green when the plots use all particles
+        (else red), and the choices"""
+        info = self.v.cache_info()
+        text, used = ui.cache_text(info)
+        color = '#2ca02c' if used else '#d62728'
+        self._cache_text.value = f'<span style="color:{color}">{html.escape(text)}</span>'
+        entries = ui.cache_menu(info)
+        self._syncing = True#(changing the options also changes the index)
+        try:
+            labels = [ e[0] for e in entries ]
+            if list(self._cache.options) != labels:
+                self._cache.options = labels
+            self._cache.index = next( ( i for i, e in enumerate(entries) if e[2] ), None )
+        finally:
+            self._syncing = False
+
     def _sync_views( self ):
         labels = [ label for _, label in self.v.views ]
         current = self.v.current
@@ -271,6 +302,7 @@ class JupyterViewer:
             self._shown[image] = ( key, fig )
 
     def _refresh( self ):
+        self._sync_cache()
         first, second = self.v.status_lines()
         self._status.value = ( f'<b>{html.escape(first)}</b><br>'
                                f'<span style="color:#555">{html.escape(second)}</span>' )
@@ -297,7 +329,7 @@ class JupyterViewer:
             self._show(self._image,key)
             shown = self._image
         if self._right.children[1] is not shown:
-            self._right.children = ( self._status, shown )
+            self._right.children = ( self._right.children[0], shown )
 
 def _png( figure ):
     """The figure drawn with matplotlib, as PNG data"""

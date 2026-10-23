@@ -287,24 +287,22 @@
    linear: custom:x : y;logz=0 [('Logarithmic colour scale', False, 'log'), ('Linear colour scale', True, 'linear')]
    line (normal): 
    log again: custom:x : y
-==> particles which do not fit in memory: a marker and choices
-   marker: None
-   marker: Not kept in memory (36 kB)
-   The particles used need 36 kB of memory (the first 1006 of the 1006 particles in the file), but the viewer keeps at most 11 kB of particles in memory, so each change reads those which do not fit from the file again.
-   limit '': 1006 particles, 100.0% of the file, 36 kB, more than is kept in memory
-   limit '200': 200 particles, 19.9% of the file, 7 kB
-   limit '2000': 1006 particles, 100.0% of the file, 36 kB, more than is kept in memory
-   limit 'all': 1006 particles, 100.0% of the file, 36 kB, more than is kept in memory
-   limit 'nonsense': Limit must be a number of particles (or all)
-   check of limit: None
-   field limit: '300'
-   line (normal): 
-   fitting: limit 300 | marker: None
-   check of limit: None
-   field limit: ''
-   line (normal): 
-   line (normal): The particles used are kept in memory when they are read the next time
-   all kept: marker None | limit: 36216.0
+==> the cache: green when the plots use all particles, else red, with a menu of limits
+   button: ('cached: 44 kB', True)
+   menu: ('5 MB (all particles)', 5000000.0, False, True)
+   menu: ('20 MB (all particles)', 20000000.0, False, True)
+   menu: ('100 MB (all particles)', 100000000.0, False, True)
+   menu: ('500 MB (all particles)', 500000000.0, True, True)
+   menu: ('2 GB (all particles)', 2000000000.0, False, True)
+   menu: ('5 GB (all particles)', 5000000000.0, False, True)
+   menu: ('10 GB (all particles)', 10000000000.0, False, True)
+   menu: ('no cache (read all particles from the file for each change)', None, False, True)
+   line (normal): The plots use the first 300 of the 1006 particles (those in the cache), but new files get all
+   button: ('cached: 13 kB', False)
+   counts: 273 of the first 300 particles (91.0%), Σw = 273 (91.0%) | write button count: None
+   line (normal): The plots use all 1006 particles
+   button: ('no cache', True)
+   line (normal): The plots use all 1006 particles
 ==> plot strings of quantities and expressions
    'Energy' against '' with (): 'ekin;logx=auto', settings 1d
    'Energy' against '' with (('logx', 'linear'), ('logy', 'log')): 'ekin;logy', settings 1d

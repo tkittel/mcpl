@@ -653,36 +653,54 @@ def test_range_and_userdata():
               f' message {msg!r}')
     pathlib.Path(fn).unlink()
 
-def test_memory():
-    #The particles are kept in memory from the start of the file up to the
-    #memory limit, giving the same figures as without, and only those after
-    #them are read again:
+def test_cache():
+    #The plots use the particles of the range which fit in the cache (the
+    #others are not read), giving the same figures as reading those from the
+    #file, and without a cache all particles of the range:
     import numpy as np
-    from mcpldev._viewer_reading import _InMemory
+    from mcpldev._viewer_reading import _Cache
     v = Viewer(ex,plots = [ 'ekin;bins=20' ])
-    info = v.memory_info()
-    print('memory:', info)
-    v.set_memory_limit(info['size'] * 300)
-    print('with a lower limit:', { k : v.memory_info()[k] for k in ( 'limit', 'fits', 'nfit' ) })
+    info = v.cache_info()
+    print('cache:', info)
+    v.set_cache_limit(info['size'] * 300)
+    print('with a lower limit:', { k : v.cache_info()[k] for k in ( 'limit', 'fits', 'nused', 'cached' ) })
     v.start()
-    for pick in ( '', 'ekin < 1MeV', '' ):
+    def check( pick, skip, limit ):
         v.set('pick',pick)
+        v.set('skip',skip)
         v.wait()
         vals = np.concatenate([ np.asarray(it.values) for it in
                                 v.figure(key = 'custom:ekin;bins=20').panels[0].items
                                 if hasattr(it,'values') ])
-        h = mcpl.histogram(mcpl.MCPLFile(ex,pick = pick or None),'ekin;bins=20')
-        ref = np.concatenate([ np.asarray(c) for c in h.contents.values() ])
-        print(f'  pick {pick!r}: as without memory: {np.array_equal(vals,ref)}')
+        f = mcpl.MCPLFile(ex,pick = pick or None,skip = int(skip or 0),limit = limit)
+        ref = np.concatenate([ np.asarray(c) for c in
+                               mcpl.histogram(f,'ekin;bins=20').contents.values() ])
+        print(f'  pick {pick!r}, skip {skip!r}: {v.counts_text()} | as the'
+              f' {f"first {limit}" if limit else "all"} particles of the range:'
+              f' {np.array_equal(vals,ref)} | nused: {v.nused}')
+    for pick, skip in ( ( '', '' ), ( 'ekin < 1MeV', '' ), ( '', '100' ) ):
+        check(pick,skip,v.cache_info()['nused'])
+    v.set_cache_limit(None)
+    print('no cache:', { k : v.cache_info()[k] for k in ( 'limit', 'fits', 'nused', 'cached' ) })
+    check('','100',None)
+    v.set_cache_limit(info['size'] * 300)
+    v.wait()
+    print('  new files get all particles of the range:', v.write('cached.mcpl').splitlines()[-1])
     v.stop()
+    #The blocks kept start at the block of the first particle of the range,
+    #and only those after them are read from the file again:
     class Limit:
-        memory_limit = info['size'] * 300
-    f = _InMemory(mcpl.MCPLFile(ex,blocklength = 100),Limit())
-    for i in range(2):
-        offsets = [ b.file_offset for b in f.particle_blocks ]
-        print(f'  reading {i}: blocks from {offsets[:4]} to {offsets[-1]}, kept: {f._end}')
+        cache_limit = 300 * info['size']
+    f = _Cache(mcpl.MCPLFile(ex,blocklength = 100),Limit())
+    for first, end in ( ( 150, 1006 ), ( 150, 1006 ), ( 150, 250 ), ( 0, 1006 ) ):
+        offsets = [ b.file_offset for b in f.blocks(first,end) ]
+        print(f'  blocks of {first} to {end}: from {offsets[0]} to {offsets[-1]},'
+              f' kept: {f._start} to {f._end}')
+    Limit.cache_limit = 150 * info['size']
+    list(f.blocks(0,1006))
+    print(f'  with a lower limit, kept: {f._start} to {f._end}')
 
-test_memory()
+test_cache()
 test_figures()
 test_code()
 test_c_translation()

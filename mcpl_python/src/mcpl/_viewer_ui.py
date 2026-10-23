@@ -113,6 +113,9 @@ def shortcut_text( name ):
         return 'Views: click on one, or press Up and Down (with Shift, Ctrl or Alt to move the plot)'
     if name == 'panel':
         return 'Click to show this plot on its own'
+    if name == 'cache':
+        return ( 'Cache: the memory for the particles which are read, which decides how'
+                 ' many of them the plots use (click to change it)' )
     if name == 'advanced':
         return ( 'Advanced: show the plot expression (the histogram string of the plot,'
                  ' with its axes and settings)' )
@@ -473,3 +476,55 @@ class LineEditor:
         self._recheck()
         return None
 
+#The particles kept in memory by the viewer (see Viewer.cache_info), with the
+#button and the menu of the viewers with windows:
+
+def _bytes( n ):
+    """A number of bytes as a text (like 2 GB, 1.2 GB or 500 MB)"""
+    if n >= 1e9:
+        return f'{n/1e9:.2g} GB' if n < 1e10 else f'{n/1e9:.0f} GB'
+    return f'{n/1e6:.0f} MB' if n >= 1e6 else f'{n/1e3:.0f} kB'
+
+def cache_text( info ):
+    """The text of the button of the cache (info from Viewer.cache_info), and
+    whether the plots use all particles of the range (else only the first
+    ones, which fit in the cache), as (text, all used)"""
+    if info['limit'] is None:
+        return 'no cache', True
+    return f'cached: {_bytes(info["cached"])}', info['fits']
+
+#The cache limits offered (in bytes, None for no cache):
+cache_presets = ( 5e6, 20e6, 100e6, 500e6, 2e9, 5e9, 10e9, None )
+
+def cache_menu( info ):
+    """The entries of the menu of the cache (info from Viewer.cache_info), as
+    (label, cache limit, whether it is used, whether the plots use all
+    particles with it)"""
+    entries = []
+    for limit in cache_presets:
+        fits = limit is None or info['needed'] <= limit
+        if limit is None:
+            what = 'read all particles from the file for each change'
+        elif fits:
+            what = 'all particles'
+        else:
+            what = f'the first {100.0*limit/info["needed"]:.2g}% of the particles'
+        label = f'{"no cache" if limit is None else _bytes(limit)} ({what})'
+        entries.append( ( label, limit, limit == info['limit'], fits ) )
+    return entries
+
+def cache_line( info ):
+    """The message after the cache limit was changed"""
+    if info['fits']:
+        return f'The plots use all {info["nrange"]} particles'
+    return ( f'The plots use the first {info["nused"]} of the {info["nrange"]} particles'
+             ' (those in the cache), but new files get all' )
+
+cache_about = ( 'The viewer keeps the particles it reads in memory (the cache), so it'
+                ' does not need to read the file again when the plots, the pick or the'
+                ' edit change. When the particles do not all fit in the cache (marked'
+                ' in red), the plots use only the first particles, those which fit,'
+                ' and the others are not read, so the viewer stays fast. With no cache,'
+                ' all particles are read from the file again for each change. New'
+                ' files always get all particles (of the skip and limit, picked and'
+                ' edited).' )

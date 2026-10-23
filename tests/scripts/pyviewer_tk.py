@@ -156,7 +156,8 @@ print('cache menu:', labels)
 tv.on_cache_limit(v.cache_info()['size'] * 300)
 wait()
 show('with a small cache')
-menu.invoke(3)#(500 MB)
+menu.invoke(next( i for i in range(menu.index('end') + 1) if menu.type(i) != 'separator'
+                 and menu.entrycget(i,'label').startswith('500 MB') ))
 wait()
 show('with 500 MB')
 

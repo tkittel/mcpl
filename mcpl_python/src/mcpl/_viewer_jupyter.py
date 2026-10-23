@@ -49,7 +49,7 @@ class JupyterViewer:
         self._views.observe(self._on_view,'index')
         self._status = w.HTML()
         #(the cache, at the right of the status, see ui.cache_menu):
-        self._cache = w.Dropdown(description='Cache:',tooltip=ui.cache_about,
+        self._cache = w.Dropdown(description='Memory:',tooltip=ui.cache_menu_title,
                                  style={'description_width':'50px'},
                                  layout=w.Layout(width='auto'))
         self._cache.observe(self._on_cache,'index')

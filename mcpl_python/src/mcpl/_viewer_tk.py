@@ -498,20 +498,18 @@ class TkViewer(WidgetViewer):
                            foreground=colors['ok' if ok else 'error'])
 
     def _cache_menu( self ):
-        """Fill the menu of the cache button (see cache_menu)"""
-        from tkinter import messagebox
+        """Fill the menu of the cache button (see cache_menu), under its title"""
         menu = self._cache_choices
         menu.delete(0,'end')
         menu._used = tk_modules()[0].StringVar(menu,value='')
+        menu.add_command(label=ui.cache_menu_title,state='disabled')
+        menu.add_separator()
         for i, ( label, limit, used, fits ) in enumerate(ui.cache_menu(self.v.cache_info())):
             if used:
                 menu._used.set(str(i))
             menu.add_radiobutton(label=label,value=str(i),variable=menu._used,
                                  foreground=colors['ok' if fits else 'error'],
                                  command=lambda x=limit : self.on_cache_limit(x))
-        menu.add_separator()
-        menu.add_command(label='About the cache...',command=lambda : messagebox.showinfo(
-            'The cache',ui.cache_about,parent=self.root))
 
     def show_colour_bar_menu( self, entries ):
         tk, _ttk = tk_modules()

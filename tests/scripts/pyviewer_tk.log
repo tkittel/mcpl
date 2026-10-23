@@ -28,7 +28,7 @@ after the pick:
 cache menu: ['Memory for the particles used by the plots (counted before the pick):', '5 MB: all 1,006 particles', '20 MB: all 1,006 particles', '100 MB: all 1,006 particles', '500 MB: all 1,006 particles', '2 GB: all 1,006 particles', '5 GB: all 1,006 particles', '10 GB: all 1,006 particles', 'No memory cache (refreshing plots from file on each change)']
 with a small cache:
    status: example.mcpl: 1,006 particles
-   counts: 193/300 particles (64.3%), Σw = 193 (64.3%)
+   counts: ≈647/1,006 particles (64.3%), Σw ≈ 647 (64.3%)
    cache button: cached: 13 kB CacheCut.Compact.TMenubutton
    write button: Create new MCPL file...
    shown: plot:ekin;logx=auto;logy;split=pdgcode

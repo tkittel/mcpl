@@ -150,5 +150,23 @@ menu.invoke(3)#(500 MB)
 wait()
 show('with 500 MB')
 
+#A click on the grey card of an inactive group activates it and shows its
+#overview (and only the group of the shown view is expanded):
+def click_slot( slot ):
+    canvas.yview_moveto(0)
+    pump()
+    top, bottom = slot[0], slot[1]
+    frac = top / float(canvas.cget('scrollregion').split()[3])
+    canvas.yview_moveto(frac)
+    pump()
+    y = int( ( top + bottom ) / 2 - canvas.canvasy(0) )
+    canvas.event_generate('<ButtonPress-1>',x=60,y=y)
+    canvas.event_generate('<ButtonRelease-1>',x=60,y=y)
+    pump()
+inactive = next( s for s in tv._cards._slots if s[2] == 'card' and s[3].inactive )
+click_slot(inactive)
+print('after clicking the inactive group', repr(inactive[3].name), ':', v.current_key,
+      '| folded:', sorted(tv.folded_groups()))
+
 tv.close_window()
 print('closed:', tv.closed)

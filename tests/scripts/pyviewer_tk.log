@@ -6,7 +6,7 @@ after reading the file:
    cache button: cached: 44 kB CacheAll.Compact.TMenubutton
    write button: Create new MCPL file...
    shown: overview:overview
-cards: 23 | first: ['Overview', 'Energy', 'Wavelength', 'Angle to the z axis']
+cards: 14 | first: ['Overview', 'Energy', 'Wavelength', 'Angle to the z axis']
 axes drawn: True
 after clicking the card 'Energy' : plot:ekin;logx=auto;logy;split=pdgcode
 X axis after typing 'ek' and <Tab>: 'ekin', focus kept: True
@@ -34,4 +34,5 @@ with 500 MB:
    cache button: cached: 44 kB CacheAll.Compact.TMenubutton
    write button: Create new MCPL file with 544 particles...
    shown: plot:ekin;logx=auto;logy;split=pdgcode
+after clicking the inactive group 'Beam along z' : overview:beamz | folded: ['Correlations', 'Fields', 'Overview']
 closed: True

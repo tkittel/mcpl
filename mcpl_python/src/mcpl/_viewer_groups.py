@@ -86,10 +86,6 @@ class PlotGroups:
                 res.append( ( k, Overview(title_of(k),cells,ncols,corner = 'pairs' in opts) ) )
         return res
 
-    def folded( self ):
-        """The titles of the groups which are folded at the start"""
-        return [ _groups[k][0] for k in _groups if _groups[k][3].get('folded') ]
-
     def is_custom( self, plot ):
         return plot in self.custom
 

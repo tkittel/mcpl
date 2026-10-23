@@ -477,10 +477,6 @@ class Viewer(_Reading):
         """Whether the plot (histogram string) is one of the custom plots"""
         return self._groups.is_custom(plot)
 
-    def folded_groups( self ):
-        """The titles of the groups which are folded at the start"""
-        return self._groups.folded()
-
     def plot_info( self, key ):
         """What the viewers with windows show of the view with the key (see
         views), as a dict: the title (if given), the name shown (the title, or

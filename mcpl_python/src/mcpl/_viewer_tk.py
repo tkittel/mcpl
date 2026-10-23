@@ -27,7 +27,7 @@ _viewer_widgets for what happens when they are used)."""
 __all__ = []
 
 from . import _viewer_ui as ui
-from ._viewer_tkbase import tk_modules
+from ._viewer_tkbase import focus_of, tk_modules
 from ._viewer_tkcards import CardList
 from ._viewer_tkwindows import CodeWindow, Examples, WriteWindow
 from ._viewer_widgets import (
@@ -445,14 +445,14 @@ class TkViewer(WidgetViewer):
                 self._showing.discard(w)
                 w.delete(0,'end')
                 w.configure(state='disabled')
-            elif str(w['state']) == 'disabled' or self.root.focus_get() is not w:
+            elif str(w['state']) == 'disabled' or focus_of(self.root) is not w:
                 #(not while it is edited):
                 w.configure(state='normal')
                 if self._text(w) != ( value or '' ) or ( not value and w not in self._showing ):
                     self._set_text(w,value or '')
                 if w is self._entries['shown_plot']:
                     self.show_pending('shown_plot',False)
-        if self.root.focus_get() not in self._axes:
+        if focus_of(self.root) not in self._axes:
             self.show_pending('axes',False)#(the axes are those of the plot)
         self._remove.configure(state='disabled' if text is None else 'normal')
         #(the fields are only shown for plots, so the overview gets more room):
@@ -758,7 +758,7 @@ class TkViewer(WidgetViewer):
         w.delete(0,'end')
         self._showing.discard(w)
         w.configure(foreground=colors['normal'])
-        if not text and w in self._placeholders and self.root.focus_get() is not w:
+        if not text and w in self._placeholders and focus_of(self.root) is not w:
             w.insert(0,self._placeholders[w])
             w.configure(foreground=colors['dim'])
             self._showing.add(w)
@@ -782,7 +782,7 @@ class TkViewer(WidgetViewer):
         text = self._text(w)
         self._on_entry_unfocus(w)
         def check():
-            new = self.root.focus_get()
+            new = focus_of(self.root)
             if new is not None and new is not w and new.winfo_toplevel() is self.root:
                 self.on_field_unfocused(field,text)
         self.root.after_idle(check)
@@ -960,7 +960,7 @@ class _Controls:
                 self._widgets[name] = w
         if not controls:
             return
-        focus = self.frame.focus_get()
+        focus = focus_of(self.frame)
         for name, _, choices, shown, used in controls[1]:
             w = self._widgets[name]
             if w is focus:

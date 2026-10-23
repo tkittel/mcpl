@@ -19,6 +19,9 @@ X axis after typing 'po' and <Tab> <Down> <Return>: 'poly', focus kept: True
 apply of the axes: True
 after typing an axis: False | shown: plot:ekin;logx=auto;logy;split=pdgcode
 after clicking Apply: True | shown: custom:x;logx=auto;logy;split=pdgcode
+focus in the open list of the Y axis: True
+3D plot shown: ['3d']
+mouse events after the 3D plot handled
 shown parts of the plot: {'axes': True, 'settings': True, 'expression': False}
 after clicking Advanced (on: True): {'axes': False, 'settings': False, 'expression': True}, expression 'ekin;logx=auto;logy;split=pdgcode'
 after clicking Advanced (on: False): {'axes': True, 'settings': True, 'expression': False}, expression 'ekin;logx=auto;logy;split=pdgcode'
@@ -41,5 +44,5 @@ with 500 MB:
    cache button: cached: 44 kB CacheAll.Compact.TMenubutton
    write button: New MCPL file (544 particles)...
    shown: plot:ekin;logx=auto;logy;split=pdgcode
-after clicking the inactive group 'Beam along z' : overview:beamz | folded: ['Correlations', 'Fields', 'Overview']
+after clicking the inactive group 'Beam along z' : overview:beamz | folded: ['3D', 'Correlations', 'Fields', 'Overview']
 closed: True

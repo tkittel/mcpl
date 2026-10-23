@@ -35,6 +35,7 @@ import tkinter
 import mcpldev._viewer_tk as viewer_tk
 from mcpldev._viewer import Viewer
 from mcpldev._viewer_tk import TkViewer, _root
+from mcpldev._viewer_tkbase import focus_of
 from MCPLTestUtils.dirs import test_data_dir
 
 shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
@@ -140,6 +141,33 @@ pump()
 print('after clicking Apply:', 'disabled' in apply.state(), '| shown:', v.current_key)
 tv.on_select_key('plot:ekin;logx=auto;logy;split=pdgcode')
 pump()
+
+#With the list of a combobox open, the focus can be in it (which tkinter
+#before Python 3.13 does not know as a widget, so focus_get fails), also when
+#a field loses the focus:
+yaxis = tv._axes[1]
+root.tk.call('ttk::combobox::Post',str(yaxis))
+root.tk.call('focus','-force',f'{yaxis}.popdown.f.l')
+pump()
+focus = focus_of(root)
+print('focus in the open list of the Y axis:', focus is None or isinstance(focus,tkinter.Misc))
+tv._on_entry_unfocus(yaxis)
+root.tk.call('ttk::combobox::Unpost',str(yaxis))
+pump()
+
+#After a 3D plot, the mouse events of the plot shown next do not go to the
+#3D plot any more (which would fail):
+from matplotlib.backend_bases import MouseEvent
+
+v.show_group('3d')
+tv.on_select_key('plot:x : y : z;split=pdgcode')
+pump(1)
+print('3D plot shown:', [ a.name for a in tv.canvas.figure.axes ])
+tv.on_select_key('plot:ekin;logx=auto;logy;split=pdgcode')
+pump(1)
+for name in ( 'button_press_event', 'button_release_event', 'motion_notify_event' ):
+    MouseEvent(name,tv.canvas,100,100,1)._process()
+print('mouse events after the 3D plot handled')
 
 #"Advanced" shows the plot expression instead of the axes and settings (the
 #parts of it), and back:

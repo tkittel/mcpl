@@ -357,6 +357,18 @@ def figure_png( figure, width, height ):
     fig.savefig(out,format='png',dpi=dpi)
     return out.getvalue()
 
+def _remove_axes( ax ):
+    """Remove the axes from their figure, with the event handlers which 3D axes
+    connect to the canvas (which they do not disconnect themselves, so they
+    would fail on the next mouse events)"""
+    if ax.name == '3d' and ax.figure is not None:
+        reg = ax.figure.canvas.callbacks
+        for refs in list(reg.callbacks.values()):
+            for cid, ref in list(refs.items()):
+                if getattr(ref(),'__self__',None) is ax:
+                    reg.disconnect(cid)
+    ax.remove()
+
 class FigurePane:
     """The plot of a view of a viewer (see mcpl._viewer.Viewer) in a box of a
     matplotlib figure, for the viewers with matplotlib figures (in a window,
@@ -424,7 +436,7 @@ class FigurePane:
     def clear( self ):
         """Remove the plot (so the next show() draws it again)"""
         for ax in self.axes:
-            ax.remove()
+            _remove_axes(ax)
         if self._title is not None:
             self._title.remove()
         self.axes, self._title, self._panels = [], None, []

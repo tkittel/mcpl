@@ -514,13 +514,11 @@ def _used_text( n, nrange ):
 
 def cache_text( info ):
     """The text of the button of the cache (info from Viewer.cache_info): the
-    particles used by the plots and the memory they need, and whether the
-    plots use all particles of the range (else only the first ones, which fit
-    in the cache), as (text, all used)"""
-    used = _used_text(info['nused'],info['nrange'])
+    memory used, and whether the plots use all particles of the range (else
+    only the first ones, which fit in the cache), as (text, all used)"""
     if info['limit'] is None:
-        return f'Plots use {used} (not kept in memory)', True
-    return f'Plots use {used} ({_bytes(info["cached"])} in memory)', info['fits']
+        return 'no cache', True
+    return f'cached: {_bytes(info["cached"])}', info['fits']
 
 #The cache limits offered (in bytes, None for no cache):
 cache_presets = ( 5e6, 20e6, 100e6, 500e6, 2e9, 5e9, 10e9, None )
@@ -535,7 +533,7 @@ def cache_menu( info ):
     entries, n = [], info['nrange']
     for limit in cache_presets:
         if limit is None:
-            label = f'No cache: all {count_text(n)} particles, read again for each change'
+            label = 'No memory cache (refreshing plots from file on each change)'
             fits = True
         else:
             used = n if info['size'] * n <= limit else max( 1, int( limit // info['size'] ) )

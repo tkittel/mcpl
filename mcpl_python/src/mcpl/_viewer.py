@@ -733,18 +733,14 @@ class Viewer(_Reading):
             counts = self._counts
         if counts is None:
             return None
-        #(noting when only the first particles of the range are used, those
-        #in the cache):
-        first = '' if self.cache_info()['fits'] else 'the first '
         if self._s.pick is None:
             #(all particles of the range are used, so only the numbers):
             n, _, w, _ = counts
-            return f'{first}{count_text(n)} particles, {weights} = {number_text(w)}'
+            return f'{count_text(n)} particles, {weights} = {number_text(w)}'
         n, ntot, w, wtot = counts
         pct = f'{100.0*n/ntot:.1f}%' if ntot else '-'
         wpct = f'{100.0*w/wtot:.1f}%' if wtot else '-'
-        of = f' of {first}' if first else '/'
-        return ( f'{count_text(n)}{of}{count_text(ntot)} particles ({pct}),'
+        return ( f'{count_text(n)}/{count_text(ntot)} particles ({pct}),'
                  f' {weights} = {number_text(w)} ({wpct})' )
 
     #The state:

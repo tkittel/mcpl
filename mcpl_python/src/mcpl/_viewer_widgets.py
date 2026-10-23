@@ -54,6 +54,9 @@ def _split_axes( x, y ):
         x, _, y = ( e.strip() for e in ( x or y ).partition(':') )
     return x, y
 
+#The title of the cards of the inactive groups (see WidgetViewer.cards):
+inactive_groups_title = 'Inactive plot groups'
+
 class Card:
     """A card of the list of views of the viewers with windows (see
     WidgetViewer.cards), which the front ends show as far as they can: the
@@ -63,15 +66,17 @@ class Card:
     file"), the problem of a plot which failed, and whether it has an image
     (see WidgetViewer.thumbnail), can be selected (shown), dragged (moved)
     and removed (see WidgetViewer.on_remove, with remove_text saying what
-    that does, if not just removing the card), and whether it is shown also
-    when its group is folded (pinned). The key is that of the view, or starts
-    with info: for cards which are not views."""
+    that does, if not just removing the card), whether it is shown also
+    when its group is folded (pinned), and whether it is the card of an
+    inactive group (inactive, see WidgetViewer.cards). The key is that of the
+    view, or starts with info: for cards which are not views."""
     __slots__ = (
         'badges',
         'draggable',
         'group',
         'grouped',
         'image',
+        'inactive',
         'key',
         'name',
         'pinned',
@@ -86,9 +91,9 @@ class Card:
     def __init__( self, key, name, *, title = None, plot = None, group = None,
                   grouped = False, badges = (), status = None, problem = None,
                   image = False, selectable = True, draggable = False, removable = False,
-                  pinned = False, remove_text = None ):
+                  pinned = False, remove_text = None, inactive = False ):
         self.key, self.name, self.title, self.plot = key, name, title, plot
-        self.pinned, self.remove_text = pinned, remove_text
+        self.pinned, self.remove_text, self.inactive = pinned, remove_text, inactive
         self.group, self.grouped, self.badges = group, grouped, list(badges)
         self.status, self.problem, self.image = status, problem, image
         self.selectable, self.draggable, self.removable = selectable, draggable, removable
@@ -248,9 +253,27 @@ class WidgetViewer:
         self.refresh()
 
     def on_select_key( self, key ):
+        if key.startswith('info:group:'):
+            #(the card of an inactive group activates it, see cards):
+            self.on_show_group(key[11:])
+            return
         self._new_plot = None
         self.v.select_key(key)
         self.refresh()
+
+    def on_group_header( self, title ):
+        """The header of a group was clicked: its overview is shown (which
+        expands the group, see folded_groups)"""
+        key = next( ( k for k, ov in self.v.overviews() if ov.title == title ), None )
+        if key is not None:
+            self.on_select_key(key)
+
+    def folded_groups( self ):
+        """The titles of the groups which are folded (showing only their
+        overview): the standard groups except that of the shown view (the
+        custom plots are never folded)"""
+        shown = self.v.plot_info(self.shown_key)['group'] if self.shown_key else None
+        return { t for k, t, _, active in self.v.group_list() if active and t != shown }
 
     def on_move( self, delta ):
         if self.v.move(delta):
@@ -304,7 +327,7 @@ class WidgetViewer:
         Viewer.show_group)"""
         if self.v.show_group(key,shown):
             title = { k : t for k, t, _, _ in self.v.group_list() }[key]
-            self.show_line(f'{"Shown" if shown else "Hidden"}: the group {title}','normal')
+            self.show_line(f'{"Activated" if shown else "Deactivated"}: the group {title}','normal')
             if shown:
                 self.v.select_key(f'overview:{key}')
         self.refresh()
@@ -520,7 +543,7 @@ class WidgetViewer:
                 custom = key == 'overview:custom'
                 res.append(Card(key,info['name'],group=info['group'],grouped=True,
                                 badges=info['badges'],image=True,pinned=True,
-                                removable=not custom,remove_text='Hide this group'))
+                                removable=not custom,remove_text='Deactivate this group'))
                 continue
             fig = self.v.figure(key = key)
             items = fig.panels[0].items if fig is not None and len(fig.panels) == 1 else []
@@ -542,6 +565,12 @@ class WidgetViewer:
         if self._new_plot is not None:
             res.append(Card('info:new',self._new_plot or 'New plot',group='Custom',grouped=True,
                             badges=( 'choose what to plot', ),selectable=False,removable=True))
+        #(the inactive standard groups, at the end, which are activated by a
+        #click, see on_select_key):
+        for key, title, _, active in self.v.group_list():
+            if not active:
+                res.append(Card(f'info:group:{key}',title,group=inactive_groups_title,
+                                grouped=True,status='click to activate',inactive=True))
         return res
 
     def thumbnail( self, key, width, height ):

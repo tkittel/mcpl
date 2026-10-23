@@ -34,11 +34,13 @@ class CardList:
     """The cards of the views (see WidgetViewer.cards and Card) on a canvas
     which can be scrolled: a small image of the plot, its name and badges, or
     a compact card with its name and status, under the headers of their
-    groups (which can be folded), with the shown one selected. Cards are
-    clicked to show them, dragged to move them (the custom plots), and
-    removed with their menu (right click), as far as they allow it. The
-    groups can be folded (showing only their overview), and the standard
-    ones hidden with the menu of their header."""
+    groups, with the shown one selected. Cards are clicked to show them,
+    dragged to move them (the custom plots), and removed with their menu
+    (right click), as far as they allow it. The groups are folded (showing
+    only their overview) except that of the shown view (see
+    WidgetViewer.folded_groups), a click on a header shows the overview of
+    its group, and the standard groups are deactivated with the menu of their
+    header. The inactive groups are at the end, and activated by a click."""
     width, thumb = 300, ( 84, 50 )
 
     def __init__( self, parent, viewer ):
@@ -52,7 +54,6 @@ class CardList:
         self.canvas.configure(yscrollcommand=bar.set)
         bar.pack(side='right',fill='y')
         self.canvas.pack(side='left',fill='both',expand=True)
-        self.folded = None#(the titles of the groups which are folded, see show)
         self._images = {}#PNG data -> PhotoImage (kept, as Tk needs them)
         self._shown = None#(what is drawn, to only draw it again when changed)
         self._slots = []#(top, bottom, kind, what): 'card' (the Card), 'header' (group) or 'add'
@@ -93,28 +94,30 @@ class CardList:
         view selected (if anything changed; current, the index of the shown
         view, is not needed, since the cards have the keys of the views)"""
         self._used = set()
-        if self.folded is None:#(at the start, those of the viewer)
-            self.folded = set(self.tv.v.folded_groups())
+        folded = self.tv.folded_groups()
         images = [ self._image(c.key) if c.image else None for c in cards ]
         current = self.tv.shown_key
-        shown = ( tuple(cards), current, tuple(sorted(self.folded)),
+        shown = ( tuple(cards), current, tuple(sorted(folded)),
                   tuple( id(i) for i in images ) )
         if shown == self._shown:
             return
         new_current = self._shown is None or self._shown[1] != current
         self._shown = shown
-        c, col = self.canvas, card_colors
+        c = self.canvas
         c.delete('all')
         self._slots = []
         y, group = 6, False#(False: before the first header)
         selected = None#(where the shown card is, if it is a new one)
+        added = False#(whether the card adding a plot is drawn)
         for card, img in zip(cards,images):
+            if card.inactive and not added:
+                y, added = self._add_card(y), True
             if card.grouped and card.group != group:
                 group = card.group
                 self._header(y,group)
                 y += _card_heights['header']
             shown = card.key == current
-            if card.grouped and group in self.folded and not ( shown or card.pinned ):
+            if card.grouped and group in folded and not ( shown or card.pinned ):
                 continue
             h = _card_heights['small' if card.compact else 'card']
             self._card(y,h,card,img,shown)
@@ -122,12 +125,8 @@ class CardList:
             if shown and new_current:
                 selected = ( y, y + h )
             y += h + 6
-        #(the card adding a plot):
-        self._rect(4,y,self.width,y+34,12,outline=col['border'],dash=(3,3),fill='')
-        c.create_text(self.width/2,y+17,text='+  New plot',fill=col['accent'],
-                      font=self.tv.bold)
-        self._slots.append( ( y, y + 34, 'add', None ) )
-        y += 40
+        if not added:
+            y = self._add_card(y)
         c.configure(scrollregion=( 0, 0, self.width + 8, y ))
         if selected is not None:
             #(the selected card is scrolled into view):
@@ -140,8 +139,18 @@ class CardList:
                 x1-r, y1, x0+r, y1, x0, y1, x0, y1-r, x0, y0+r, x0, y0 ]
         return self.canvas.create_polygon(pts,smooth=True,**kw)
 
+    def _add_card( self, y ):
+        """Draw the card adding a plot (after the custom plots), returning the
+        position below it"""
+        col = card_colors
+        self._rect(4,y,self.width,y+34,12,outline=col['border'],dash=(3,3),fill='')
+        self.canvas.create_text(self.width/2,y+17,text='+  New plot',fill=col['accent'],
+                                font=self.tv.bold)
+        self._slots.append( ( y, y + 34, 'add', None ) )
+        return y + 40
+
     def _header( self, y, group ):
-        mark = '\u25b8' if group in self.folded else '\u25be'
+        mark = '\u25b8' if group in self.tv.folded_groups() else '\u25be'
         self.canvas.create_text(8,y+13,anchor='w',fill=card_colors['dim'],
                                 text=f'{mark}  {( group or "More plots" ).upper()}',
                                 font=( self.tv.bold.cget('family'), 8, 'bold' ))
@@ -149,6 +158,13 @@ class CardList:
 
     def _card( self, y, h, card, img, selected ):
         c, col = self.canvas, card_colors
+        if card.inactive:
+            #(the card of an inactive group, in grey with a dashed outline):
+            self._rect(4,y,self.width,y+h,12,fill=col['bg'],outline=col['border'],dash=(3,3))
+            c.create_text(16,y+h/2,anchor='w',fill=col['dim'],font=self.tv.bold,text=card.name)
+            c.create_text(self.width-10,y+h/2,anchor='e',fill=col['accent'],
+                          font=( self.tv.bold.cget('family'), 8 ),text=card.status)
+            return
         self._rect(4,y,self.width,y+h,12,fill=col['selected'] if selected else col['card'],
                    outline=col['accent'] if selected else col['border'],width=2 if selected else 1)
         if card.compact:
@@ -192,7 +208,7 @@ class CardList:
         if key is not None:
             #(the standard groups can be hidden):
             menu = tk.Menu(self.canvas,tearoff=0)
-            menu.add_command(label='Hide this group',
+            menu.add_command(label='Deactivate this group',
                              command=lambda : self.tv.on_show_group(key,False))
             menu.tk_popup(event.x_root,event.y_root)
             return
@@ -240,8 +256,7 @@ class CardList:
         if s is None:
             return
         if s[2] == 'header':
-            self.folded ^= { s[3] }
-            self.tv.refresh(plot = False)
+            self.tv.on_group_header(s[3])
         elif s[2] == 'card' and s[3].selectable:
             self.tv.on_select_key(s[3].key)
         elif s[2] == 'add':

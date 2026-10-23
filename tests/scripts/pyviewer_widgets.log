@@ -299,7 +299,7 @@
    menu: ('No memory cache (refreshing plots from file on each change)', None, False, True)
    line (normal): The plots use the first 300 of the 1,006 particles (those in the cache), but new files get all
    button: ('cached: 13 kB', False)
-   counts: ≈915/1,006 particles (91.0%), Σw ≈ 915 (91.0%) | write button count: None
+   counts: ≈915/1,006 particles (91.0%), Σw ≈ 915 (91.0%) | write button count: 915
    line (normal): The plots use all 1,006 particles
    button: ('no cache', True)
    line (normal): The plots use all 1,006 particles

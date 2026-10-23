@@ -25,9 +25,9 @@
   skip '1.5': (False, 'Skip must be a number of particles')
 cache: {'nrange': 1006, 'size': 44.0, 'needed': 44264.0, 'limit': 500000000.0, 'fits': True, 'nused': 1006, 'cached': 44264.0}
 with a lower limit: {'limit': 13200.0, 'fits': False, 'nused': 300, 'cached': 13200.0}
-  pick '', skip '': 1,006 particles, Σw ≈ 1,006 | as the first 300 particles of the range: True | nused: None
-  pick 'ekin < 1MeV', skip '': ≈647/1,006 particles (64.3%), Σw ≈ 647 (64.3%) | as the first 300 particles of the range: True | nused: None
-  pick '', skip '100': 906 particles, Σw ≈ 906 | as the first 300 particles of the range: True | nused: None
+  pick '', skip '': 1,006 particles, Σw ≈ 1,006 | as the first 300 particles of the range: True | nused: 1006
+  pick 'ekin < 1MeV', skip '': ≈647/1,006 particles (64.3%), Σw ≈ 647 (64.3%) | as the first 300 particles of the range: True | nused: 647
+  pick '', skip '100': 906 particles, Σw ≈ 906 | as the first 300 particles of the range: True | nused: 906
 no cache: {'limit': None, 'fits': True, 'nused': 906, 'cached': 0}
   pick '', skip '100': 906 particles, Σw = 906 | as the all particles of the range: True | nused: 906
   new files get all particles of the range: MCPL: Successfully extracted 906 / 1006 particles from example.mcpl into cached.mcpl

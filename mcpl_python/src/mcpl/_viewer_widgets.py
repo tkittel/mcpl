@@ -522,6 +522,7 @@ class WidgetViewer:
         if problem:
             self.show_line(problem,'error')
             return False
+        self.show_pending('axes',False)
         if self._new_plot is not None:
             title, self._new_plot = self._new_plot, None
             return self.on_add_plot(self.compose(x,y,z),title)
@@ -541,8 +542,12 @@ class WidgetViewer:
 
     def on_axes_edited( self, x, y = '', z = '' ):
         """The expressions of the axes are edited (see on_axes): they are
-        checked (as the field 'axes')"""
+        checked (as the field 'axes'), with the Apply button of the axes
+        enabled while they differ from those of the shown plot (or for a new
+        plot)"""
         x, y, z = ( a.strip() for a in ( x, y, z ) )
+        self.show_pending('axes',bool(x) and ( self._new_plot is not None
+                                               or ( x, y, z ) != self.axis_texts() ))
         if not x:
             self.show_check('axes',None)
             self.show_line('Choose or type what to plot on the X axis (and on the Y and Z axes'

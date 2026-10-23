@@ -646,8 +646,9 @@ class Viewer(_Reading):
         return [] if ov is None else [ None if p is None else f'{kind}:{p}' for p in ov.cells ]
 
     def _reading_settings( self ):
-        """What is read: the settings, with the plots of the overviews too"""
-        s = self._s.copy()
+        """What is read: the settings (see _Reading), with the plots of the
+        overviews too"""
+        s = super()._reading_settings()
         s.plots = list(dict.fromkeys( s.plots + [ p for _, ov in self._groups.overviews()
                                                   for p in ov.plots ] ))
         return s
@@ -721,9 +722,12 @@ class Viewer(_Reading):
 
     @property
     def nused( self ):
-        """The number of particles used (picked), or None while not known"""
+        """The number of particles used (picked), which are written to new
+        files, or None while not known (or when the plots use only the
+        particles of the range in the cache, see cache_info)"""
         with self._lock:
-            return None if self._counts is None else self._counts[0]
+            counts = self._counts
+        return None if counts is None or not self.cache_info()['fits'] else counts[0]
 
     def counts_text( self, weights = '\u03a3w' ):
         """The numbers of particles used (of those in the range, when picked)
@@ -733,14 +737,18 @@ class Viewer(_Reading):
             counts = self._counts
         if counts is None:
             return None
+        #(noting when only the first particles of the range are used, those
+        #in the cache):
+        first = '' if self.cache_info()['fits'] else 'the first '
         if self._s.pick is None:
             #(all particles of the range are used, so only the numbers):
             n, _, w, _ = counts
-            return f'{n} particles, {weights} = {w:g}'
+            return f'{first}{n} particles, {weights} = {w:g}'
         n, ntot, w, wtot = counts
         pct = f'{100.0*n/ntot:.1f}%' if ntot else '-'
         wpct = f'{100.0*w/wtot:.1f}%' if wtot else '-'
-        return f'{n}/{ntot} particles ({pct}), {weights} = {w:g} ({wpct})'
+        of = f' of {first}' if first else '/'
+        return f'{n}{of}{ntot} particles ({pct}), {weights} = {w:g} ({wpct})'
 
     #The state:
 

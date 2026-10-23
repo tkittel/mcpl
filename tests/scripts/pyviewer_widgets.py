@@ -31,6 +31,7 @@ import shutil
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
+from mcpldev import _viewer_ui as ui
 from mcpldev._viewer import Viewer
 from mcpldev._viewer_widgets import WidgetViewer
 from MCPLTestUtils.dirs import test_data_dir
@@ -108,7 +109,6 @@ class FakeToolkit(WidgetViewer):
         self.on_close()
 
 def ui_help_lines():
-    from mcpldev import _viewer_ui as ui
     return len(ui.help_text.splitlines())
 
 def step( what ):
@@ -195,18 +195,19 @@ t.on_control('logz','linear')
 print('   linear:', v.current_key, t.colour_bar_menu())
 t.on_control('logz','log')
 print('   log again:', v.current_key)
-step('particles which do not fit in memory: a marker and choices')
-print('   marker:', t.memory_text())
-v.set_memory_limit(v.memory_info()['size'] * 300)
-print('   marker:', t.memory_text())
-print('  ', t.memory_summary())
-for limit in ( '', '200', '2000', 'all', 'nonsense' ):
-    print(f'   limit {limit!r}:', t.memory_choice(limit))
-t.on_memory_fit()
-print('   fitting: limit', v.field_text('limit'), '| marker:', t.memory_text())
-t.on_field_apply('limit','')
-t.on_memory_keep_all()
-print('   all kept: marker', t.memory_text(), '| limit:', v.memory_info()['limit'])
+step('the cache: green when the plots use all particles, else red, with a menu of limits')
+print('   button:', ui.cache_text(v.cache_info()))
+for entry in ui.cache_menu(v.cache_info()):
+    print('   menu:', entry)
+t.on_cache_limit(v.cache_info()['size'] * 300)
+print('   button:', ui.cache_text(v.cache_info()))
+v.wait()
+t.refresh()
+print('   counts:', v.counts_text(), '| write button count:', v.nused)
+t.on_cache_limit(None)
+print('   button:', ui.cache_text(v.cache_info()))
+t.on_cache_limit(500e6)
+v.wait()
 step('plot strings of quantities and expressions')
 for x, y, settings in ( ('Energy','',()), ('Energy','',(('logx','linear'),('logy','log'))),
                         ('Position x','Direction x',(('bins','30'),)),

@@ -29,7 +29,7 @@ __all__ = []
 from . import _viewer_ui as ui
 from ._viewer_tkbase import tk_modules
 from ._viewer_tkcards import CardList
-from ._viewer_tkwindows import CodeWindow, Examples, MemoryWindow, WriteWindow
+from ._viewer_tkwindows import CodeWindow, Examples, WriteWindow
 from ._viewer_widgets import (
     WidgetViewer,
     card_colors,
@@ -95,6 +95,9 @@ class TkViewer(WidgetViewer):
         style.configure('Small.TButton',padding=(2,0))
         style.configure('Small.Accent.TButton',padding=(2,0))
         style.configure('Compact.TMenubutton',padding=(6,0))
+        #(the cache button, green when the plots use all particles, else red):
+        for name, color in ( ( 'CacheAll', colors['ok'] ), ( 'CacheCut', colors['error'] ) ):
+            style.configure(f'{name}.Compact.TMenubutton',foreground=color)
         #(the compact buttons in the header of the part of the shown plot):
         for name in ( 'Head.TButton', 'Head.Accent.TButton' ):
             style.configure(name,padding=(8,0),width=-4)
@@ -147,6 +150,12 @@ class TkViewer(WidgetViewer):
         self._status = [ ttk.Label(main,font=bold), ttk.Label(main,foreground=colors['dim']) ]
         for i, label in enumerate(self._status):
             label.grid(row=i,column=0,sticky='w')
+        #(the button of the cache at the right of the name of the file, away
+        #from the pick and edit, see cache_menu):
+        self._cache = ttk.Menubutton(main,takefocus=0,style='CacheAll.Compact.TMenubutton')
+        self._cache.grid(row=0,column=0,sticky='e')
+        self._cache['menu'] = tk.Menu(self._cache,tearoff=0,postcommand=self._cache_menu)
+        self._hover(self._cache,'cache')
         #(the part of the shown plot, in the colours of its selected card: the
         #plot with its toolbar, and its fields below them, see _plot_part):
         bg = part_colors['Plot']
@@ -193,12 +202,6 @@ class TkViewer(WidgetViewer):
         #(the numbers of the particles used, at the right of the header):
         self._counts = ttk.Label(head,foreground=colors['dim'],style='Particles.TLabel')
         self._counts.pack(side='right')
-        #(left of them, a marker when the particles do not fit in memory, which
-        #shows the choices, see show_memory):
-        self._memory = ttk.Label(head,foreground=colors['error'],style='Particles.TLabel',
-                                 cursor='hand2')
-        self._memory.pack(side='right',padx=(0,12))
-        self._memory.bind('<Button-1>',lambda _e : self.show_memory())
         part.master.grid(row=0,column=0,sticky='ew',pady=(2,0))
         info = { f[0] : f for f in ui.fields }
         #(plots are added with "+ New plot", and the collection is chosen
@@ -399,8 +402,8 @@ class TkViewer(WidgetViewer):
         self._status[0].configure(text=v.file_text())
         self._status[1].configure(text=second)
         self._counts.configure(text=v.counts_text() or '')
-        memory = self.memory_text()
-        self._memory.configure(text=f'\u26a0 {memory}...' if memory else '')
+        text, used = ui.cache_text(v.cache_info())
+        self._cache.configure(text=text,style=f'Cache{"All" if used else "Cut"}.Compact.TMenubutton')
 
     def show_field( self, field, text ):
         if field == 'plot':
@@ -480,9 +483,21 @@ class TkViewer(WidgetViewer):
             mark.configure(text='\u2713' if ok else '\u2717',
                            foreground=colors['ok' if ok else 'error'])
 
-    def show_memory( self ):
-        if self.memory_text():
-            MemoryWindow(self)
+    def _cache_menu( self ):
+        """Fill the menu of the cache button (see cache_menu)"""
+        from tkinter import messagebox
+        menu = self._cache['menu']
+        menu.delete(0,'end')
+        menu._used = tk_modules()[0].StringVar(menu,value='')
+        for i, ( label, limit, used, fits ) in enumerate(ui.cache_menu(self.v.cache_info())):
+            if used:
+                menu._used.set(str(i))
+            menu.add_radiobutton(label=label,value=str(i),variable=menu._used,
+                                 foreground=colors['ok' if fits else 'error'],
+                                 command=lambda x=limit : self.on_cache_limit(x))
+        menu.add_separator()
+        menu.add_command(label='About the cache...',command=lambda : messagebox.showinfo(
+            'The cache',ui.cache_about,parent=self.root))
 
     def show_colour_bar_menu( self, entries ):
         tk, _ttk = tk_modules()

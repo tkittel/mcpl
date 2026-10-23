@@ -68,8 +68,13 @@ class _Reading:
             self._thread = None
 
     def _reading_settings( self ):
-        """The settings which are read (a copy)"""
-        return self._s.copy()
+        """The settings which are read (a copy, with the range of the particles
+        used by the plots, see cache_info)"""
+        s = self._s.copy()
+        info = self.cache_info()
+        if not info['fits']:
+            s.limit = info['nused']
+        return s
 
     @property
     def error( self ):
@@ -105,9 +110,9 @@ class _Reading:
     def _worker( self ):
         from ._reader import MCPLFile
         with MCPLFile(self.filename) as f:
-            #(the particles are kept in memory up to the memory limit, so
+            #(the particles are kept in memory up to the cache limit, so
             #those are only read, and decompressed, once):
-            f = _InMemory(f,self)
+            f = _Cache(f,self)
             while True:
                 with self._lock:
                     while self._job is None and not self._stopping:
@@ -150,38 +155,43 @@ class _Reading:
             self._error = error
             self._updates += 1
 
-    #The memory used for the particles (see _InMemory):
+    #The particles kept in memory (see _Cache):
 
     @property
-    def memory_limit( self ):
-        """The largest particle data (in bytes) kept in memory"""
-        return getattr(self,'_memory_limit',_memory_limit)
+    def cache_limit( self ):
+        """The memory (in bytes) for the particles kept in memory, or None
+        for no cache"""
+        return getattr(self,'_cache_limit',_cache_limit)
 
-    def set_memory_limit( self, nbytes ):
-        """Set the largest particle data (in bytes) kept in memory, e.g. to keep
-        all particles used in memory (see memory_info). Particles which then
-        fit are kept when they are read the next time."""
-        self._memory_limit = max( 0.0, float(nbytes) )
+    def set_cache_limit( self, nbytes ):
+        """Set the memory (in bytes) for the particles kept in memory, or None
+        for no cache. The plots use the particles of the range which fit (and
+        the others are not read), and without a cache all particles of the
+        range, which are read from the file again for each change."""
+        self._cache_limit = None if nbytes is None else max( 0.0, float(nbytes) )
+        self._restart()
 
-    def memory_info( self ):
+    def cache_info( self ):
         """The particles of the range in memory, as a dict: the number of
-        particles in the file (nfile) and the end of the range (end, the
-        particles before it are kept, also those skipped), the bytes per
-        particle (size), the bytes the range needs (needed), the memory limit
-        (limit), whether the range fits in it (fits), and the number of
-        particles from the start of the file which fit (nfit)"""
-        if getattr(self,'_particlesize',None) is None:
+        particles in the range (nrange), the bytes per particle in memory
+        (size), the bytes they need (needed), the cache limit (limit, None for
+        no cache), whether all particles of the range are used (fits: they
+        fit, or there is no cache), the number of particles of the range
+        used by the plots (nused), and the bytes kept in memory (cached)"""
+        if getattr(self,'_particle_nbytes',None) is None:
             from ._reader import MCPLFile
             with MCPLFile(self.filename) as f:
-                self._particlesize = f.particlesize
-        size, n = self._particlesize, self._ntotal
-        s = self._s
-        skip = min( s.skip or 0, n )
-        end = n if not s.limit else min( n, skip + s.limit )
-        limit = self.memory_limit
-        return { 'nfile' : n, 'end' : end, 'size' : size, 'needed' : end * size,
-                 'limit' : limit, 'fits' : end * size <= limit,
-                 'nfit' : min( n, int( limit // size ) ) }
+                b = f.read_block()
+                self._particle_nbytes = ( _block_nbytes(b[:]) / len(b) if b is not None
+                                          else f.particlesize )
+        size, limit = self._particle_nbytes, self.cache_limit
+        first, end = self._range(self._s.skip,self._s.limit)
+        n = end - first
+        fits = limit is None or n * size <= limit
+        nused = n if fits else max( 1, int( limit // size ) )
+        return { 'nrange' : n, 'size' : size, 'needed' : n * size, 'limit' : limit,
+                 'fits' : fits, 'nused' : nused,
+                 'cached' : 0 if limit is None else nused * size }
 
     def _blocks( self, f, settings, gen, progress ):
         """Blocks of the range of particles, picked and edited, with the
@@ -189,7 +199,8 @@ class _Reading:
         _range_blocks"""
         self._range_counts = [ 0, 0.0 ]
         yield from _range_blocks(f,settings,progress,self._range_counts,
-                                 lambda : self._cancelled(gen))
+                                 lambda : self._cancelled(gen),
+                                 blocks = f.blocks(*self._range(settings.skip,settings.limit)))
 
     def preview( self, plot, nparticles = 20000 ):
         """The figure of the plot (a histogram string) for the first nparticles
@@ -279,27 +290,44 @@ class _Reading:
 class _Cancelled(Exception):
     pass
 
-#The largest particle data (in bytes) kept in memory by the viewer, unless
-#changed (see _Reading.set_memory_limit):
-_memory_limit = 500e6
+#The cache limit (in bytes) unless changed (see _Reading.set_cache_limit, and
+#the limits offered by the viewers in _viewer_ui.cache_presets):
+_cache_limit = 500e6
 
-class _InMemory:
+def _block_nbytes( b ):
+    """The memory used by a particle block"""
+    from ._numpy import np
+    return sum( v.nbytes for v in vars(b).values() if isinstance(v,np.ndarray) )
+
+class _Cache:
     """An MCPLFile whose particle blocks are kept in memory once they were read
-    (as copies, since the file reuses its block objects), from the start of
-    the file up to the memory limit of the viewer (see _Reading.memory_info),
-    so only the particles after those are read from the file again"""
+    (as copies, since the file reuses its block objects): those from the start
+    of the range read (see blocks) which fit in the cache limit of the viewer,
+    so only the particles after them are read from the file again"""
     def __init__( self, f, viewer ):
         self._f, self._viewer = f, viewer
-        self._blocks, self._end = [], 0#(the blocks kept, up to the particle end)
+        #(the blocks kept, from the particle start to the end, and their bytes):
+        self._blocks, self._start, self._end, self._nbytes = [], 0, 0, 0
 
     def __getattr__( self, name ):
         return getattr(self._f,name)
 
-    @property
-    def particle_blocks( self ):
-        yield from list(self._blocks)
-        f, n = self._f, self._f.nparticles
-        if self._end >= n:
+    def blocks( self, first, end ):
+        """The blocks of the file with the particles from first to end"""
+        f, limit = self._f, self._viewer.cache_limit
+        #(the blocks kept start at the block of the first particle):
+        start = first - first % f.blocklength
+        if start != self._start or limit is None:
+            self._blocks, self._start, self._end, self._nbytes = [], start, start, 0
+        while self._blocks and self._nbytes > limit:#(after lowering the limit)
+            b = self._blocks.pop()
+            self._end -= len(b)
+            self._nbytes -= _block_nbytes(b)
+        for b in list(self._blocks):
+            if b.file_offset >= end:
+                return
+            yield b
+        if self._end >= end:
             return
         #(the blocks after those kept, which are kept while they fit):
         f.rewind()
@@ -307,13 +335,15 @@ class _InMemory:
             f.skip_forward(self._end - 1)#(so the next block starts at the end)
         while True:
             b = f.read_block()
-            if b is None:
+            if b is None or b.file_offset >= end:
                 return
             b = b[:]
-            if ( b.file_offset == self._end
-                 and ( self._end + len(b) ) * f.particlesize <= self._viewer.memory_limit ):
+            nb = _block_nbytes(b)
+            if ( limit is not None and b.file_offset == self._end
+                 and self._nbytes + nb <= limit ):
                 self._blocks.append(b)
                 self._end += len(b)
+                self._nbytes += nb
             yield b
 
 def _make_filler( text, pick ):
@@ -404,19 +434,20 @@ class _Computation:
             res[f'plot:{p}'] = hist.figure()
         return res
 
-def _range_blocks( f, settings, progress = None, counts = None, cancelled = None ):
+def _range_blocks( f, settings, progress = None, counts = None, cancelled = None,
+                   blocks = None ):
     """Blocks of the range of particles of the file f (see settings), picked
-    and edited. progress (if given) is called with the fraction of the range
-    read, counts (if given) gets the number of particles in the range and the
-    sum of their weights, and cancelled (if given) tells when to stop (with
-    _Cancelled)."""
+    and edited, from its blocks (or those given). progress (if given) is called
+    with the fraction of the range read, counts (if given) gets the number of
+    particles in the range and the sum of their weights, and cancelled (if
+    given) tells when to stop (with _Cancelled)."""
     from ._blocks import _EditedParticleBlock
     n = f.nparticles
     skip = min( settings.skip or 0, n )
     end = n if not settings.limit else min( n, skip + settings.limit )
     if counts is not None:
         counts[:] = [ end - skip, 0.0 ]
-    for b in f.particle_blocks:
+    for b in ( f.particle_blocks if blocks is None else blocks ):
         if cancelled is not None and cancelled():
             raise _Cancelled()
         off = b.file_offset

@@ -83,7 +83,9 @@ class PlotGroups:
                 cells = [ p for p, _ in self._items(k) ]
                 ncols = grid_columns(len(cells))
             if cells:
-                res.append( ( k, Overview(title_of(k),cells,ncols,corner = 'pairs' in opts) ) )
+                descr = _groups[k][1] if k != custom_key else 'the plots which were added'
+                res.append( ( k, Overview(title_of(k),cells,ncols,corner = 'pairs' in opts,
+                                          description = descr) ) )
         return res
 
     def is_custom( self, plot ):

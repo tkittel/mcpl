@@ -30,10 +30,12 @@ import math
 
 
 class Overview:
-    """An overview: its title, and the plots (histogram strings) of the cells
-    of its grid of nrows x ncols, row by row (None for empty cells)"""
-    def __init__( self, title, cells, ncols, corner = False ):
+    """An overview: its title (and the description of its plots, if any), and
+    the plots (histogram strings) of the cells of its grid of nrows x ncols,
+    row by row (None for empty cells)"""
+    def __init__( self, title, cells, ncols, corner = False, description = None ):
         self.title, self.cells, self.ncols = title, list(cells), ncols
+        self.description = description
         self.corner = corner#(a corner plot, see pair_cells)
         self.nrows = max( 1, math.ceil( len(self.cells) / ncols ) )
 
@@ -57,8 +59,9 @@ def pair_cells( exprs ):
 def overview_figure( figures, overview ):
     """The figure of the overview, from the figures of its plots (as far as they
     are available, with empty panels for the others, and None for empty
-    cells), or None if none is available. The title is that of the plots (the
-    pick and edit)."""
+    cells), or None if none is available. The title says what the plots are
+    (as "Fields plots: the fields of the particles"), followed by that of the
+    plots, if any."""
     import copy
 
     from .plotting import Figure, Panel, Text
@@ -77,6 +80,9 @@ def overview_figure( figures, overview ):
             panel.ylabel = None#(as "weights per bin" of each plot meets its neighbours)
         panels.append(panel)
     title = next( ( f.title for f in figs.values() if f is not None ), None )
+    if overview.description:
+        what = f'{overview.title} plots: {overview.description}'
+        title = what if not title else f'{what} ({title})'
     fig = Figure( title = title, nrows = overview.nrows, ncols = overview.ncols,
                   panels = panels )
     fig._corner = overview.corner#(drawn with shared axes, see _plotbackend_mpl)

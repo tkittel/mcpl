@@ -46,13 +46,16 @@ card_colors = { 'bg' : '#eef1f5', 'card' : '#ffffff', 'selected' : '#e2ebf6',
                 'dim' : '#7a8594', 'badge' : '#dfe7f1' }
 part_colors = { 'Plot' : card_colors['selected'], 'Particles' : card_colors['bg'] }
 
-def _split_axes( x, y ):
-    """The expressions of the x and y axes, with "x : y" written in one of them
-    (while the other is empty) split onto both"""
-    x, y = x.strip(), y.strip()
-    if ':' in ( x or y ) and not ( x and y ):
-        x, _, y = ( e.strip() for e in ( x or y ).partition(':') )
-    return x, y
+def _axes_problem( axes ):
+    """What is wrong with the expressions of the axes (x, y, z), or None: each
+    field has one expression ("x : y" is written in the plot expression), and
+    a z axis needs a y axis"""
+    if any( ':' in a for a in axes ):
+        return ( 'Each axis has one expression: use the fields of the Y and Z axes for 2D'
+                 ' histograms and 3D plots (or "Advanced" for the plot expression)' )
+    if axes[2] and not axes[1]:
+        return 'Choose the Y axis too for a 3D plot (or empty the Z axis)'
+    return None
 
 #The title of the cards of the inactive groups (see WidgetViewer.cards):
 inactive_groups_title = 'Inactive plot groups'
@@ -67,9 +70,10 @@ class Card:
     (see WidgetViewer.thumbnail), can be selected (shown), dragged (moved)
     and removed (see WidgetViewer.on_remove, with remove_text saying what
     that does, if not just removing the card), whether it is shown also
-    when its group is folded (pinned), and whether it is the card of an
-    inactive group (inactive, see WidgetViewer.cards). The key is that of the
-    view, or starts with info: for cards which are not views."""
+    when its group is folded (pinned), whether it is the overview of its
+    group (overview, shown differently from the plots), and whether it is the
+    card of an inactive group (inactive, see WidgetViewer.cards). The key is
+    that of the view, or starts with info: for cards which are not views."""
     __slots__ = (
         'badges',
         'draggable',
@@ -79,6 +83,7 @@ class Card:
         'inactive',
         'key',
         'name',
+        'overview',
         'pinned',
         'plot',
         'problem',
@@ -91,9 +96,10 @@ class Card:
     def __init__( self, key, name, *, title = None, plot = None, group = None,
                   grouped = False, badges = (), status = None, problem = None,
                   image = False, selectable = True, draggable = False, removable = False,
-                  pinned = False, remove_text = None, inactive = False ):
+                  pinned = False, remove_text = None, inactive = False, overview = False ):
         self.key, self.name, self.title, self.plot = key, name, title, plot
         self.pinned, self.remove_text, self.inactive = pinned, remove_text, inactive
+        self.overview = overview
         self.group, self.grouped, self.badges = group, grouped, list(badges)
         self.status, self.problem, self.image = status, problem, image
         self.selectable, self.draggable, self.removable = selectable, draggable, removable
@@ -141,6 +147,9 @@ class WidgetViewer:
         #is not drawn yet, see on_timer):
         self._drawn_at, self._draw_time, self._plot_pending = 0.0, 0.0, False
         self.closed = False
+        #(the view shown at the start, while all groups are folded, see
+        #folded_groups):
+        self._first_key = viewer.current_key
 
     #To implement for the toolkit:
 
@@ -159,7 +168,7 @@ class WidgetViewer:
 
     def show_plot_field( self, text, title, axes ):
         """Set the texts of the fields of the shown plot: its histogram string,
-        its title and the expressions of its axes (x, y), or disable them if
+        its title and the expressions of its axes (x, y, z), or disable them if
         text is None (the shown view is not a plot). For a new plot (see
         on_new_plot), they are empty but for the title."""
         raise NotImplementedError
@@ -249,6 +258,7 @@ class WidgetViewer:
 
     def on_select( self, index ):
         self._new_plot = None#(a new plot without axes is given up)
+        self._first_key = None#(a view was chosen, see folded_groups)
         self.v.select(index)
         self.refresh()
 
@@ -258,6 +268,7 @@ class WidgetViewer:
             self.on_show_group(key[11:])
             return
         self._new_plot = None
+        self._first_key = None#(a view was chosen, see folded_groups)
         self.v.select_key(key)
         self.refresh()
 
@@ -270,9 +281,13 @@ class WidgetViewer:
 
     def folded_groups( self ):
         """The titles of the groups which are folded (showing only their
-        overview): the standard groups except that of the shown view (the
-        custom plots are never folded)"""
-        shown = self.v.plot_info(self.shown_key)['group'] if self.shown_key else None
+        overview): the standard groups except that of the shown view, once a
+        view was chosen, or another view than the first one shown (the custom
+        plots are never folded)"""
+        if self.shown_key != self._first_key:
+            self._first_key = None#(from now on, the group of the shown view is expanded)
+        shown = ( self.v.plot_info(self.shown_key)['group']
+                  if self.shown_key and self._first_key is None else None )
         return { t for k, t, _, active in self.v.group_list() if active and t != shown }
 
     def on_move( self, delta ):
@@ -421,21 +436,22 @@ class WidgetViewer:
         self.show_line(msg,'normal' if done else 'error')
         self.refresh(plot = replot)
 
-    def compose( self, x, y = '', settings = () ):
-        """A plot string from the quantities x and y (names of
-        _viewer_ui.quantities or expressions, y empty for a 1D histogram) and
-        the settings, as (option, shown text) of the controls. The expressions
-        of the quantities come with their options (as their names)."""
+    def compose( self, x, y = '', z = '', settings = () ):
+        """A plot string from the quantities x, y and z (names of
+        _viewer_ui.quantities or expressions, y empty for a 1D histogram, z
+        empty unless it is a 3D plot) and the settings, as (option, shown text)
+        of the controls. The expressions of the quantities come with their
+        options (as their names)."""
         from ._histstring import _hist_parts
         q = dict(ui.quantities)
         for _, p in reversed(ui.quantities):
             q[p.split(';')[0]] = p
         def parts( t ):
             return _hist_parts(q.get(t.strip(),t.strip()))
-        ( ex, ox ), ( ey, _ ) = parts(x), parts(y)
+        ( ex, ox ), ( ey, _ ), ( ez, _ ) = parts(x), parts(y), parts(z)
         #(the options of a quantity are kept only for 1D histograms):
-        plot = f'{ex} : {ey}' if ey else ';'.join( [ ex ] + [ n if v is None else f'{n}={v}'
-                                                             for n, v in ox ] )
+        plot = ( ' : '.join( e for e in ( ex, ey, ez ) if e ) if ey else
+                 ';'.join( [ ex ] + [ n if v is None else f'{n}={v}' for n, v in ox ] ) )
         for name, shown in settings:
             plot = self._option(plot,name,shown)
         return plot
@@ -460,14 +476,14 @@ class WidgetViewer:
         return 'info:new' if self._new_plot is not None else self.v.current_key
 
     def axis_texts( self ):
-        """The expressions of the x and y axes of the shown plot (y empty for
-        1D histograms), as texts"""
+        """The expressions of the x, y and z axes of the shown plot (y empty for
+        1D histograms, z unless it is a 3D plot), as texts"""
         from ._histstring import _hist_parts
         plot = self._shown_plot()
         if plot is None:
-            return '', ''
-        x, _, y = _hist_parts(plot)[0].partition(':')
-        return x.strip(), y.strip()
+            return '', '', ''
+        exprs = [ e.strip() for e in _hist_parts(plot)[0].split(':') ]
+        return tuple( exprs + [ '' ] * ( 3 - len(exprs) ) )
 
     def on_new_plot( self ):
         """Start a new plot, which is added when what to plot is chosen (see
@@ -475,28 +491,32 @@ class WidgetViewer:
         self._new_plot = ''#(its title, see on_title)
         self.refresh()
         self.focus_field('x_axis')
-        self.show_line('Choose or type what to plot on the X axis (and on the Y axis for 2D'
-                       ' histograms)','dim')
+        self.show_line('Choose or type what to plot on the X axis (and on the Y and Z axes for'
+                       ' 2D histograms and 3D plots)','dim')
 
-    def on_axes( self, x, y = '' ):
-        """The expressions of the x and y axes of the shown plot (or of a new
+    def on_axes( self, x, y = '', z = '' ):
+        """The expressions of the x, y and z axes of the shown plot (or of a new
         plot) are given (names of _viewer_ui.quantities, or expressions, y
-        empty for 1D histograms; "x : y" in either is split, see _split_axes). The options
-        of the plot are kept if they can be used for the new axes. Returns
-        whether the plot was changed (or added)."""
+        empty for 1D histograms, z unless it is a 3D plot, see _axes_problem).
+        The options of the plot are kept if they can be used for the new axes.
+        Returns whether the plot was changed (or added)."""
         from ._histstring import _hist_parts
-        x, y = _split_axes(x,y)
+        x, y, z = ( a.strip() for a in ( x, y, z ) )
         if not x:
             self.show_line('Choose or type what to plot on the X axis','error')
             return False
+        problem = _axes_problem(( x, y, z ))
+        if problem:
+            self.show_line(problem,'error')
+            return False
         if self._new_plot is not None:
             title, self._new_plot = self._new_plot, None
-            return self.on_add_plot(self.compose(x,y),title)
+            return self.on_add_plot(self.compose(x,y,z),title)
         plot = self._shown_plot()
         if plot is None:
             return False
         q = dict(ui.quantities)
-        exprs = ' : '.join( _hist_parts(q.get(e,e))[0] for e in ( x, y ) if e )
+        exprs = ' : '.join( _hist_parts(q.get(e,e))[0] for e in ( x, y, z ) if e )
         opts = [ n if v is None else f'{n}={v}' for n, v in _hist_parts(plot)[1] ]
         new = ';'.join( [ exprs ] + opts )
         if not self.v.check('plot',new)[0] and self.v.check('plot',exprs)[0]:
@@ -506,16 +526,21 @@ class WidgetViewer:
         self.refresh(plot = replot)
         return done
 
-    def on_axes_edited( self, x, y = '' ):
+    def on_axes_edited( self, x, y = '', z = '' ):
         """The expressions of the axes are edited (see on_axes): they are
         checked (as the field 'axes')"""
-        x, y = _split_axes(x,y)
+        x, y, z = ( a.strip() for a in ( x, y, z ) )
         if not x:
             self.show_check('axes',None)
-            self.show_line('Choose or type what to plot on the X axis (and on the Y axis for 2D'
-                           ' histograms), and press Enter','dim')
+            self.show_line('Choose or type what to plot on the X axis (and on the Y and Z axes'
+                           ' for 2D histograms and 3D plots), and press Enter','dim')
             return
-        ok, msg = self.v.check('plot',self.compose(x,y))
+        problem = _axes_problem(( x, y, z ))
+        if problem:
+            self.show_check('axes',False)
+            self.show_line(problem,'error')
+            return
+        ok, msg = self.v.check('plot',self.compose(x,y,z))
         self.show_check('axes',ok)
         self.show_line(msg if not ok else 'Enter: show this   Esc: cancel',
                        'error' if not ok else 'dim')
@@ -538,11 +563,13 @@ class WidgetViewer:
         for key, _ in self.v.views:
             info = self.v.plot_info(key)
             if ui.plot_of(key) is None:
-                #(the overview of a group, see Viewer.overviews, which is shown
-                #also when the group is folded, and hides the group):
+                #(the overview of a group, see Viewer.overviews, named after the
+                #group, which is shown also when the group is folded, and
+                #deactivates the group):
                 custom = key == 'overview:custom'
-                res.append(Card(key,info['name'],group=info['group'],grouped=True,
-                                badges=info['badges'],image=True,pinned=True,
+                res.append(Card(key,info['group'],group=info['group'],grouped=True,
+                                badges=[ f'overview \u00b7 {b}' for b in info['badges'] ],
+                                image=True,pinned=True,overview=True,
                                 removable=not custom,remove_text='Deactivate this group'))
                 continue
             fig = self.v.figure(key = key)
@@ -813,7 +840,7 @@ class WidgetViewer:
         self.show_status(*v.status_lines())
         shown = self._shown_plot()
         if self._new_plot is not None:
-            self.show_plot_field('',self._new_plot,( '', '' ))
+            self.show_plot_field('',self._new_plot,( '', '', '' ))
         else:
             self.show_plot_field(shown,v.plot_info(self._shown_key())['title'] if shown else None,
                                  self.axis_texts())
@@ -821,7 +848,7 @@ class WidgetViewer:
         self.show_enabled('write',self.v.changes_particles)
         if plot and self._new_plot is not None:
             self.pane.clear()
-            self.pane.show_message('Choose or type what to plot below (X axis)')
+            self.pane.show_message(ui.new_plot_hints,left = True)
             self.draw_plot()
         elif plot and v.figure() is None and not v.reading:
             #(nothing to show, e.g. when no particles are picked: said in the

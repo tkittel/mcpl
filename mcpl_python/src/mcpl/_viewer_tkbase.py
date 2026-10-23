@@ -30,6 +30,15 @@ def tk_modules():
     from tkinter import ttk
     return tkinter, ttk
 
+def focus_of( widget ):
+    """The widget with the keyboard focus (as widget.focus_get()), or None,
+    also while the focus is in the list of a combobox (which tkinter does
+    not know as a widget)"""
+    try:
+        return widget.focus_get()
+    except KeyError:
+        return None
+
 def wrapped( text, font, width, nlines = 2 ):
     """The text in at most nlines lines which fit the width (in pixels) with
     the font, broken at spaces, with the last line elided if needed"""

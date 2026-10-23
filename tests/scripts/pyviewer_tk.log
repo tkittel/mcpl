@@ -3,7 +3,7 @@ window title: MCPL viewer: example.mcpl
 after reading the file:
    status: example.mcpl: 1,006 particles
    counts: 1,006 particles, Σw = 1,006
-   cache button: Plots use all 1,006 particles (44 kB in memory) CacheAll.Compact.TMenubutton
+   cache button: cached: 44 kB CacheAll.Compact.TMenubutton
    write button: Create new MCPL file...
    shown: overview:overview
 cards: 8 | first: ['Overview', 'Fields', 'Correlations', 'Beam along z']
@@ -22,20 +22,20 @@ after clicking Advanced (on: False): {'axes': True, 'settings': True, 'expressio
 after the pick:
    status: example.mcpl: 1,006 particles
    counts: 544/1,006 particles (54.1%), Σw = 544 (54.1%)
-   cache button: Plots use all 1,006 particles (44 kB in memory) CacheAll.Compact.TMenubutton
+   cache button: cached: 44 kB CacheAll.Compact.TMenubutton
    write button: Create new MCPL file with 544 particles...
    shown: plot:ekin;logx=auto;logy;split=pdgcode
-cache menu: ['Memory for the particles used by the plots (counted before the pick):', '5 MB: all 1,006 particles', '20 MB: all 1,006 particles', '100 MB: all 1,006 particles', '500 MB: all 1,006 particles', '2 GB: all 1,006 particles', '5 GB: all 1,006 particles', '10 GB: all 1,006 particles', 'No cache: all 1,006 particles, read again for each change']
+cache menu: ['Memory for the particles used by the plots (counted before the pick):', '5 MB: all 1,006 particles', '20 MB: all 1,006 particles', '100 MB: all 1,006 particles', '500 MB: all 1,006 particles', '2 GB: all 1,006 particles', '5 GB: all 1,006 particles', '10 GB: all 1,006 particles', 'No memory cache (refreshing plots from file on each change)']
 with a small cache:
    status: example.mcpl: 1,006 particles
-   counts: 193 of the first 300 particles (64.3%), Σw = 193 (64.3%)
-   cache button: Plots use the first 300 of 1,006 particles (13 kB in memory) CacheCut.Compact.TMenubutton
+   counts: 193/300 particles (64.3%), Σw = 193 (64.3%)
+   cache button: cached: 13 kB CacheCut.Compact.TMenubutton
    write button: Create new MCPL file...
    shown: plot:ekin;logx=auto;logy;split=pdgcode
 with 500 MB:
    status: example.mcpl: 1,006 particles
    counts: 544/1,006 particles (54.1%), Σw = 544 (54.1%)
-   cache button: Plots use all 1,006 particles (44 kB in memory) CacheAll.Compact.TMenubutton
+   cache button: cached: 44 kB CacheAll.Compact.TMenubutton
    write button: Create new MCPL file with 544 particles...
    shown: plot:ekin;logx=auto;logy;split=pdgcode
 after clicking the inactive group 'Beam along z' : overview:beamz | folded: ['Correlations', 'Fields', 'Overview']

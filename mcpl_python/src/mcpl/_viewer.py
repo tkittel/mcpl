@@ -728,20 +728,28 @@ class Viewer(_Reading):
     def counts_text( self, weights = '\u03a3w' ):
         """The numbers of particles used (of those in the range, when picked)
         and the sum of their weights (named weights), as a text, or None while
-        they are not known"""
+        they are not known. When the plots use only the first particles of the
+        range (see cache_info), the numbers for the whole range are estimated
+        from them (marked with \u2248)."""
         with self._lock:
             counts = self._counts
         if counts is None:
             return None
-        if self._s.pick is None:
-            #(all particles of the range are used, so only the numbers):
-            n, _, w, _ = counts
-            return f'{count_text(n)} particles, {weights} = {number_text(w)}'
         n, ntot, w, wtot = counts
         pct = f'{100.0*n/ntot:.1f}%' if ntot else '-'
         wpct = f'{100.0*w/wtot:.1f}%' if wtot else '-'
-        return ( f'{count_text(n)}/{count_text(ntot)} particles ({pct}),'
-                 f' {weights} = {number_text(w)} ({wpct})' )
+        nrange = self.cache_info()['nrange']
+        if ntot and nrange > ntot:
+            #(estimates for the whole range, with the same fractions):
+            n, w, ntot, eq = round( n * nrange / ntot ), _estimate( w * nrange / ntot ), nrange, '\u2248'
+        else:
+            eq = '='
+        if self._s.pick is None:
+            #(all particles of the range are used, so only the numbers):
+            return f'{count_text(ntot)} particles, {weights} {eq} {number_text(w)}'
+        approx = '' if eq == '=' else '\u2248'
+        return ( f'{approx}{count_text(n)}/{count_text(ntot)} particles ({pct}),'
+                 f' {weights} {eq} {number_text(w)} ({wpct})' )
 
     #The state:
 
@@ -1075,6 +1083,11 @@ def _plot_field( text ):
     from ._histstring import _parse_hist
     exprs = _parse_hist(text)['exprs']
     return _Expr(exprs[0]).field if len(exprs) == 1 else None
+
+def _estimate( x ):
+    """An estimated value, rounded to a whole number if it is large, else to 3
+    significant digits"""
+    return float(round(x)) if abs(x) >= 100 else float(f'{x:.3g}')
 
 def _parse_count( text ):
     """The integer of a text like 1000, 1,000 or 1e6 (or None if it is not one)"""

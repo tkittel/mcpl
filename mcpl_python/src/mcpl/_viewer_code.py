@@ -142,7 +142,7 @@ class _CTranslator:
         precedence, value if constant)"""
         import ast
 
-        from ._expressions import _expr_constants
+        from ._exprcore import _expr_constants
         from ._exprsyntax import _expr_units, _Unit
         def const( v ):
             if isinstance(v,int):
@@ -264,7 +264,8 @@ class _CTranslator:
 
 def _c_condition( pick, tr ):
     """The C or C++ condition of the pick (an expression), or None"""
-    from ._expressions import _Expr, _split_statements
+    from ._exprcore import _Expr
+    from ._expressions import _split_statements
     if len(_split_statements(pick)) > 1:
         return None#(statements before the condition)
     res = tr(_Expr(pick).tree)
@@ -272,7 +273,8 @@ def _c_condition( pick, tr ):
 
 def _c_edit( edit, tr, indent ):
     """The C or C++ statements of the edit (of the struct of tr), or None"""
-    from ._expressions import ParticleEdit, _rotation_matrix_args, _rotation_planes
+    from ._exprcore import _rotation_matrix_args, _rotation_planes
+    from ._expressions import ParticleEdit
     lines = []
     for st in ParticleEdit(edit)._statements:
         if st[0] == 'swap':
@@ -307,7 +309,7 @@ def _c_rotation( fname, angle, tr, indent ):
     angle"""
     import math
 
-    from ._expressions import _rotation_planes
+    from ._exprcore import _rotation_planes
     value = tr(angle.tree)
     if value is None or value[3] is None:
         return None#(angles which are not constants)
@@ -337,7 +339,7 @@ def _c_rotation_matrix( fname, args, tr, indent ):
     arguments: the rotation matrix (as for the edits) applied to the position,
     direction and polarisation, without its zero elements (so the rotations
     around the axes by multiples of 90 degrees are exact)"""
-    from ._expressions import _rotated_vectors
+    from ._exprcore import _rotated_vectors
     from ._exprrotation import _rotation_matrix
     values = []
     for a in args:

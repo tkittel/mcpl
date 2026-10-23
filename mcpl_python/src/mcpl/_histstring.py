@@ -26,7 +26,8 @@
 __all__ = []
 
 from ._common import MCPLError
-from ._expressions import _dimstr, _range_value
+from ._expressions import _dimstr
+from ._exprplot import _range_value
 
 #Options of histogram strings ("EXPR;logx;bins=50"), as NAME=VALUE, with the
 #kinds of their values (bool: 1 or 0, auto: also auto):

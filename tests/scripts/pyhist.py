@@ -244,7 +244,7 @@ def test_help_topics():
 def test_units():
     ex = 'example.mcpl'
     #Expressions with units get a unit chosen for their axes (see _plot_unit):
-    from mcpldev._expressions import _plot_unit
+    from mcpldev._exprplot import _plot_unit
     for what, args in ( ( 'x, 0.3m', ((1,0,0),-30,30) ), ( 'x, 2.5m', ((1,0,0),0,250) ),
                         ( 'x, 5mm', ((1,0,0),0,0.5) ), ( 'ekin, 9.7GeV', ((0,1,0),0.0014,9725) ),
                         ( 'ekin, log axis', ((0,1,0),1e-9,10,True) ), ( 'time, log axis', ((0,0,1),1e-6,1e-3,True) ),

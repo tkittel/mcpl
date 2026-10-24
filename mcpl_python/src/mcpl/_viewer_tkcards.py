@@ -119,11 +119,11 @@ class CardList:
             shown = card.key == current
             if card.grouped and group in folded and not ( shown or card.pinned ):
                 continue
-            lines = None if card.compact or card.inactive else self._name_lines(card)
-            #(all cards with images have the same height, with room for two
-            #lines of the name and the badges, also with larger fonts):
-            h = ( _card_heights['small'] if lines is None else
-                  max( _card_heights['card'], 12 + 2 * self.tv.bold.metrics('linespace') + 22 ) )
+            #(all cards with images have the same height, with room for a line
+            #of the name and the badges, also with larger fonts, see
+            #_name_lines):
+            h = ( _card_heights['small'] if card.compact or card.inactive else self._height() )
+            lines = None if card.compact or card.inactive else self._name_lines(card,h)
             self._card(y,h,card,img,shown,lines)
             self._slots.append( ( y, y + h, 'card', card ) )
             if shown and new_current:
@@ -167,15 +167,34 @@ class CardList:
                                 font=( self.tv.bold.cget('family'), 8, 'bold' ))
         self._slots.append( ( y, y + _card_heights['header'], 'header', group ) )
 
-    def _name_lines( self, card ):
-        """The lines of the name of a card (one or two, see wrapped)"""
-        return wrapped(card.name,self.tv.bold,self.width-( 14 + self.thumb[0] + 12 )-22)
+    def _height( self ):
+        """The height of the cards with images: room for a line of the name
+        and the badges below it"""
+        return max( _card_heights['card'], 12 + self.tv.bold.metrics('linespace') + 22 )
 
-    def _text_height( self, card, lines ):
-        """The height of the lines of the name and of the badges (or the
-        problem) below them, as drawn by _card"""
+    def _name_lines( self, card, h ):
+        """The lines of the name of a card, and their font, as (lines, font):
+        one line, or if it does not fit, two lines in a smaller font if they
+        fit in the card (of height h), else one elided line"""
+        width = self.width - ( 14 + self.thumb[0] + 12 ) - 22
+        bold = self.tv.bold
+        if bold.measure(card.name) <= width:
+            return [ card.name ], bold
+        if getattr(self,'_small',None) is None:
+            self._small = bold.copy()
+            #(2 smaller, in points, or in pixels if negative):
+            size = int(bold.cget('size'))
+            self._small.configure(size=max( 7, size - 2 ) if size > 0 else min( -9, size + 2 ))
+        lines = wrapped(card.name,self._small,width)
+        if 12 + self._text_height(card,lines,self._small) <= h:
+            return lines, self._small
+        return [ elided(card.name,bold,width) ], bold
+
+    def _text_height( self, card, lines, font ):
+        """The height of the lines of the name (in the font) and of the badges
+        (or the problem) below them, as drawn by _card"""
         below = card.problem or card.badges
-        return len(lines) * self.tv.bold.metrics('linespace') + ( 22 if below else 0 )
+        return len(lines) * font.metrics('linespace') + ( 22 if below else 0 )
 
     def _card( self, y, h, card, img, selected, lines ):
         c, col = self.canvas, card_colors
@@ -207,10 +226,11 @@ class CardList:
         x += self.thumb[0] + 12
         #(the name in one or two lines, with the badges or the problem below
         #them, in the middle of the card):
-        ls = self.tv.bold.metrics('linespace')
-        y0 = y + ( h - self._text_height(card,lines) ) / 2
+        lines, font = lines
+        ls = font.metrics('linespace')
+        y0 = y + ( h - self._text_height(card,lines,font) ) / 2
         for i, line in enumerate(lines):
-            c.create_text(x,y0+ls*i,anchor='nw',fill=col['text'],font=self.tv.bold,text=line)
+            c.create_text(x,y0+ls*i,anchor='nw',fill=col['text'],font=font,text=line)
         top = y0 + len(lines) * ls + 4
         if card.problem:
             c.create_text(x,top+9,anchor='w',fill=colors['error'],

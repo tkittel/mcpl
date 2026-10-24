@@ -76,7 +76,7 @@ def _beam( axis, a, b ):
              _item(f'{b} : {div_b}',f'Phase space {b}'),
              'ekin;logx=auto;logy;split=pdgcode',
              'wavelength;logx=auto;logy=auto;split=pdgcode',
-             _item(f'hypot({a},{b})','Distance to the axis'),
+             _item(f'hypot({a},{b})','Distance to axis'),
              _item(f'angle(dir,({vector}))/deg;logy',f'Angle to {axis} axis'),
              'time;logx=auto;logy',
              'pdgcode;bar;logy=auto',

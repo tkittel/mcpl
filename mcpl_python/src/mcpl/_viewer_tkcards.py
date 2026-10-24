@@ -120,9 +120,10 @@ class CardList:
             if card.grouped and group in folded and not ( shown or card.pinned ):
                 continue
             lines = None if card.compact or card.inactive else self._name_lines(card)
-            h = _card_heights['small' if lines is None else 'card']
-            if lines is not None:
-                h = max( h, 12 + self._text_height(card,lines) )#(e.g. for larger fonts)
+            #(all cards with images have the same height, with room for two
+            #lines of the name and the badges, also with larger fonts):
+            h = ( _card_heights['small'] if lines is None else
+                  max( _card_heights['card'], 12 + 2 * self.tv.bold.metrics('linespace') + 22 ) )
             self._card(y,h,card,img,shown,lines)
             self._slots.append( ( y, y + h, 'card', card ) )
             if shown and new_current:

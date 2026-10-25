@@ -355,6 +355,13 @@ for _ in range(2):
 for k, r in m.coefficients().items():
     print('   coefficients of', k, ':', { f'{a}:{b}' : None if c is None else round(c,4)
                                          for ( a, b ), c in r.items() })
+step('the most correlated variables of a single particle (none varies)')
+t1 = FakeToolkit(Viewer('example.mcpl',limit=1))
+t1.start()
+t1.v.wait()
+t1.on_select_key('overview:correlations')
+t1.on_overview_control('most',ui.most_correlated)
+t1.v.stop()
 step('the buttons of the actions, and quit')
 t.on_action('help')
 t.on_action('quit')

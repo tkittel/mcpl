@@ -258,9 +258,14 @@ class MCPLFile:
 
         self._is_gz = is_gz
         if is_gz:
-            fh = gzip.GzipFile(fileobj=fh)
+            raw, fh = fh, gzip.GzipFile(fileobj=fh)
             if not fh:
                 raise MCPLError('failed to open compressed file')
+            #(closing the GzipFile does not close the file given to it):
+            def close():
+                fh.close()
+                raw.close()
+            self._fileclose = close
 
         if not is_gz:
             #not gzipped input - read bytes by passing filehandle to np.fromfile

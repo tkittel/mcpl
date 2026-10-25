@@ -470,9 +470,10 @@ class FigurePane:
     is (left, right, bottom, top) in figure coordinates, with title_space less
     at the top for plots with a title, which is drawn at title_y. The font size
     of the plots is fontsize (or overview_fontsize for several plots), if
-    given."""
+    given, and with scale_fonts smaller in small boxes (see _font_scale)."""
     def __init__( self, fig, box, title_space = 0.05, title_y = None,
-                  title_size = 10, fontsize = None, overview_fontsize = None ):
+                  title_size = 10, fontsize = None, overview_fontsize = None,
+                  scale_fonts = False ):
         self.fig, self._box = fig, box
         self._title_space, self._title_y = title_space, title_y
         self._title_size = title_size
@@ -480,7 +481,21 @@ class FigurePane:
         self.axes = []#(all axes of the plot, also those of colour bars)
         self._title = None
         self._key = self._figure = None#(the view and figure drawn)
+        self._scale = None#(of the fonts, when drawn)
+        self._scale_fonts = scale_fonts
         self._panels = []#(axes, view key) of the plots of the overview
+
+    def _font_scale( self ):
+        """The factor of the font sizes: 1 for boxes of at least 900 x 450
+        pixels (e.g. in a large window), and less in smaller boxes (down to
+        0.6), so the texts of the plots do not collide (rounded, so the plots
+        are only drawn again for larger changes of the size)"""
+        if not self._scale_fonts:
+            return 1.0
+        left, right, bottom, top = self._box
+        w = self.fig.get_figwidth() * self.fig.dpi * ( right - left )
+        h = self.fig.get_figheight() * self.fig.dpi * ( top - bottom )
+        return round( max( 0.6, min( 1.0, w / 900, h / 450 ) ), 1 )
 
     def show( self, viewer, key = None ):
         """Draw the figure of the view with the key (default the shown one) if
@@ -492,24 +507,27 @@ class FigurePane:
                 return False
             self.clear()
             return True
-        if key == self._key and figure is self._figure:
+        scale = self._font_scale()
+        if key == self._key and figure is self._figure and scale == self._scale:
             return False
         old_axes, old_key = self.axes, self._key
         self.clear()
+        self._scale = scale
         left, right, bottom, top = self._box
         if figure.title:
             top -= self._title_space
         several = len(figure.panels) > 1
-        self.axes = draw_in_box(self.fig,figure,left,right,bottom,top,
-                                fontsize = ( self._overview_fontsize if several
-                                             and self._overview_fontsize else self._fontsize ))
+        import matplotlib
+        size = ( self._overview_fontsize if several and self._overview_fontsize
+                 else self._fontsize ) or matplotlib.rcParams['font.size']
+        self.axes = draw_in_box(self.fig,figure,left,right,bottom,top,fontsize = size * scale)
         if key == old_key:
             keep_zoom(old_axes,self.axes)
         if figure.title:
             y = self._title_y if self._title_y is not None else self._box[3]
             #(long titles are wrapped, within narrow windows):
             self._title = self.fig.text(0.5*(left+right),y,figure.title,ha='center',
-                                        va='top',size=self._title_size,wrap=True)
+                                        va='top',size=self._title_size * scale,wrap=True)
         #(the first axes are those of the plots, in order, see draw_in):
         self._panels = ( [ ( ax, k ) for ax, k in zip(self.axes,viewer.overview_keys(key))
                            if k is not None ] if key.startswith('overview:') else [] )

@@ -1,3 +1,13 @@
+ekin/MeV;bins=20;only=ekin < 1MeV (pick None): as picking them: True | title 'only: ekin < 1MeV'
+x/cm : y/cm;bins=8;only=pdgcode == neutron (pick None): as picking them: True | title 'only: pdgcode == neutron'
+pdgcode;bar;only=ekin > 1MeV (pick None): as picking them: True | title 'only: ekin > 1MeV'
+ekin/MeV;bins=20;split=pdgcode;only=ekin < 1MeV (pick x > 0): as picking them: True | title 'pick: x > 0, only: ekin < 1MeV'
+x : y : z;points=50;only=ekin < 1MeV (pick None): as picking them: True | title 'only: ekin < 1MeV'
+canonical: x;bins=5;only=pdgcode==neutron
+'x;only': Histogram option "only" needs a value, like only=..., in "x;only"
+'x;only=r = x': Histogram option "only" must be a condition as in picks (like only=pdgcode == neutron), in "x;only=r = x": Syntax error in expression "r = x", after "r": unexpected "=" (use == for comparisons)
+'x;only=foo > 1': Histogram option "only" must be a condition as in picks (like only=pdgcode == neutron), in "x;only=foo > 1": Unknown name "foo" in expression "foo > 1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+'x;only=1cm': Histogram option "only" must be a condition as in picks (like only=pdgcode == neutron), in "x;only=1cm": Expression "1cm" is not a condition (e.g. a comparison)
 'x : y': logz True, panel True, key 'x:y'
 'x : y;logz': logz True, panel True, key 'x:y'
 'x : y;logz=0': logz False, panel False, key 'x:y;logz=0'
@@ -501,7 +511,7 @@ mcpltool -H x/cm;logx=1;logx=1 example.mcpl: exit code 1
    | 
    | Run with "-H help" for how to write histograms
 mcpltool -H x/cm;foo example.mcpl: exit code 1
-   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, split, groups, bar, unweighted, print, points, equal)
+   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, split, groups, bar, unweighted, print, points, equal, only)
    | 
    | Run with "-H help" for how to write histograms
 mcpltool -H x/cm -B foo example.mcpl: exit code 1
@@ -719,7 +729,7 @@ mcpltool --edit=help: exit code 0, 175 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    |   -E "z += 1cm"               Move the particles 1 cm along z.
    |   -E "weight *= 0.5"          Halve the weights.
-mcpltool -H help example.mcpl: exit code 0, 65 lines, starting with:
+mcpltool -H help example.mcpl: exit code 0, 68 lines, starting with:
    | HIST: what to plot, an expression of the particles (written as for -p),
    | or two separated by ":" for a 2D histogram (or three for a 3D plot of a
    | sample of the particles, in windows), followed by options separated by ";".

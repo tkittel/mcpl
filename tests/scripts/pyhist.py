@@ -376,6 +376,34 @@ def test_equal():
         except mcpl.MCPLError as e:
             print(f'{bad!r}: {e}')
 
+def test_only():
+    #The option only uses only the particles of a condition (on top of the
+    #pick), the same as picking them, in all kinds of histograms:
+    import numpy as np
+    ex = str(example_file)
+    def contents( h ):
+        c = h.contents
+        return np.concatenate([ np.ravel(v) for v in c.values() ]) if isinstance(c,dict) else np.ravel(c)
+    for text, cond, pick in ( ( 'ekin/MeV;bins=20', 'ekin < 1MeV', None ),
+                              ( 'x/cm : y/cm;bins=8', 'pdgcode == neutron', None ),
+                              ( 'pdgcode;bar', 'ekin > 1MeV', None ),
+                              ( 'ekin/MeV;bins=20;split=pdgcode', 'ekin < 1MeV', 'x > 0' ),
+                              ( 'x : y : z;points=50', 'ekin < 1MeV', None ) ):
+        h = mcpl.histogram(ex,f'{text};only={cond}',pick = pick)
+        both = cond if pick is None else f'({pick}) and ({cond})'
+        ref = mcpl.histogram(ex,text,pick = both)
+        same = ( h.nparticles == ref.nparticles if hasattr(h,'nparticles')
+                 else np.array_equal(contents(h),contents(ref)) )
+        print(f'{text};only={cond} (pick {pick}): as picking them: {same} | title {h.title!r}')
+    from mcpldev._histstring import _hist_key
+    print('canonical:', _hist_key('x;only= pdgcode  ==  neutron;bins=5'))
+    for bad in ( 'x;only', 'x;only=r = x', 'x;only=foo > 1', 'x;only=1cm' ):
+        try:
+            mcpl.histogram(ex,bad)
+        except mcpl.MCPLError as e:
+            print(f'{bad!r}: {e}')
+
+test_only()
 test_logz()
 test_equal()
 test_3d()

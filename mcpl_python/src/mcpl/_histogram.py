@@ -636,30 +636,36 @@ def _filler_for( o, pick = None, labels = ( None, ), _maxbins = None ):
     if len(o['exprs']) == 3:
         return _Points3DFiller(o['exprs'],pick = pick,points = o['points'],
                                unweighted = o['unweighted'],split = o['split'],
-                               max_curves = o['groups'] or 8)
+                               max_curves = o['groups'] or 8,only = o['only'])
     if len(o['exprs']) == 2:
         return _Hist2DFiller(o['exprs'][0],o['exprs'][1],pick = pick,bins = bins,
                              xrange = o['xrange'],yrange = o['yrange'],
                              unweighted = o['unweighted'],_maxbins = _maxbins,
-                             logz = o['logz'] is not False,equal = o['equal'])
+                             logz = o['logz'] is not False,equal = o['equal'],
+                             only = o['only'])
     if o['bar'] is not False:
         return _BarFiller(o['exprs'][0],pick = pick,
                           limit = 10 if o['bar'] is True else o['bar'],
-                          unweighted = o['unweighted'],logy = o['logy'],labels = labels)
+                          unweighted = o['unweighted'],logy = o['logy'],labels = labels,
+                          only = o['only'])
     return _Hist1DFiller(o['exprs'][0],pick = pick,bins = bins,range = o['range'],
                          logx = o['logx'],unweighted = o['unweighted'],split = o['split'],
                          lethargy = o['lethargy'],max_curves = o['groups'] or 8,
-                         logy = o['logy'] or False,labels = labels,_maxbins = _maxbins)
+                         logy = o['logy'] or False,labels = labels,_maxbins = _maxbins,
+                         only = o['only'])
 
 class _Filler:
     """Common basis of the fillers, which make histograms from blocks of (picked)
     particles of files: if needs_range, the blocks are first given to
     add_range (to find the ranges of the values), and then, after start_fill,
     to add. The labels are those of the files, and result() is the histogram
-    of the blocks given to add so far."""
+    of the blocks given to add so far. With only (a pick, see ParticleFilter,
+    the option only of histogram strings), only those particles of the blocks
+    are used."""
     needs_range = False
-    def __init__( self, expressions, pick, unweighted, labels ):
+    def __init__( self, expressions, pick, unweighted, labels, only = None ):
         self.pick = _as(ParticleFilter,pick)
+        self._only = _as(ParticleFilter,only)
         self._vals = [ _PlotValue(e) for e in expressions ]
         self._notes = [ _DomainNote(v) for v in self._vals ]
         self._weighted = not unweighted
@@ -670,24 +676,39 @@ class _Filler:
 
     @property
     def _title( self ):
-        return f'pick: {self.pick.expression}' if self.pick is not None else None
+        picks = [ f'{what}: {p.expression}' for what, p in ( ( 'pick', self.pick ),
+                                                             ( 'only', self._only ) )
+                  if p is not None ]
+        return ', '.join(picks) or None
+
+    def _used( self, b ):
+        """The mask of the particles of the block which are used (see only), or
+        None for all"""
+        return None if self._only is None else np.asarray(self._only(b),dtype=bool)
 
     def _values( self, b ):
         """The values of the expressions, and the weights, of the particles of
-        the block for which the expressions are defined (and the mask of those)"""
+        the block which are used and for which the expressions are defined (and
+        the mask of those)"""
+        used = self._used(b)
         for n in self._notes:
-            n.add(b)
+            n.add(b if used is None else b[used])
         vals = [ np.asarray(v(b),dtype=float) for v in self._vals ]
         w = np.broadcast_to(b.weight if self._weighted else 1.0,(len(b),))
         #(values are NaN where the expressions are not defined):
         defined = ~np.any([ np.isnan(v) for v in vals ],axis=0)
+        if used is not None:
+            defined &= used
         if not defined.all():
             vals, w = [ v[defined] for v in vals ], w[defined]
         return vals, w, defined
 
     def add_range( self, flabel, b ):
+        used = self._used(b)
         for lim, v, positive in zip(self._lims,self._vals,self._positive):
             x = np.asarray(v(b),dtype=float)
+            if used is not None:
+                x = x[used]
             x = x[np.isfinite(x)&(x>0)] if positive else x[np.isfinite(x)]
             if len(x):
                 lim[0], lim[1] = min(lim[0],x.min()), max(lim[1],x.max())
@@ -714,8 +735,8 @@ class _Hist1DFiller(_Filler):
     def __init__( self, expression, pick = None, bins = 'auto', range = None,
                   logx = False, unweighted = False, split = None,
                   lethargy = False, max_curves = 8, logy = False,
-                  labels = ( None, ), _maxbins = None ):
-        super().__init__([ expression ],pick,unweighted,labels)
+                  labels = ( None, ), _maxbins = None, only = None ):
+        super().__init__([ expression ],pick,unweighted,labels,only)
         self._spl = _SplitValue(split) if split is not None else None
         #(with logx='auto', it is decided from the range, see _auto_logx):
         self._logx = True if lethargy else logx
@@ -817,8 +838,8 @@ class _BarFiller(_Filler):
     """Makes the bar charts of histogram() with bar (see _Filler; no range is
     needed)"""
     def __init__( self, expression, pick = None, limit = 10, unweighted = False,
-                  logy = None, labels = ( None, ) ):
-        super().__init__([ expression ],pick,unweighted,labels)
+                  logy = None, labels = ( None, ), only = None ):
+        super().__init__([ expression ],pick,unweighted,labels,only)
         if self._vals[0].dim is not None:
             self._not_whole()
         self._limit, self._logy = limit, logy
@@ -869,8 +890,8 @@ class _Hist2DFiller(_Filler):
     combined)"""
     def __init__( self, xexpression, yexpression, pick = None, bins = 'auto',
                   xrange = None, yrange = None, unweighted = False,
-                  _maxbins = None, logz = True, equal = False ):
-        super().__init__([ xexpression, yexpression ],pick,unweighted,( None, ))
+                  _maxbins = None, logz = True, equal = False, only = None ):
+        super().__init__([ xexpression, yexpression ],pick,unweighted,( None, ),only)
         self._bins, self._maxbins, self._logz, self._equal = bins, _maxbins, logz, equal
         if equal and self._vals[0].dim != self._vals[1].dim:
             raise MCPLError('Equal scales of the axes (the histogram option "equal")'
@@ -938,8 +959,8 @@ class _Points3DFiller(_Filler):
     (weighted, with the method of Efraimidis and Spirakis: the points with the
     largest u^(1/w), for random u in [0,1)), which needs no ranges"""
     def __init__( self, expressions, pick = None, points = None, unweighted = False,
-                  split = None, max_curves = 8 ):
-        super().__init__(list(expressions),pick,unweighted,( None, ))
+                  split = None, max_curves = 8, only = None ):
+        super().__init__(list(expressions),pick,unweighted,( None, ),only)
         self._npoints = points or 5000
         self._spl = _SplitValue(split) if split is not None else None
         self._max_curves = max_curves

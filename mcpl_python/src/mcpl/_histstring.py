@@ -35,7 +35,7 @@ _hist_options = { 'bins' : 'bins', 'range' : 'range', 'xrange' : 'range',
                   'yrange' : 'range', 'logx' : 'auto', 'logy' : 'auto', 'logz' : 'bool',
                   'lethargy' : 'bool', 'split' : 'expr', 'groups' : 'count',
                   'bar' : 'count', 'unweighted' : 'bool', 'print' : 'bool',
-                  'points' : 'count', 'equal' : 'bool' }
+                  'points' : 'count', 'equal' : 'bool', 'only' : 'pick' }
 #The values of the options given without a value (as "logy" or "bar"):
 _hist_implied = { 'logx' : '1', 'logy' : '1', 'logz' : '1', 'lethargy' : '1', 'unweighted' : '1',
                   'print' : '1', 'bar' : 'auto', 'equal' : '1' }
@@ -74,7 +74,7 @@ def _hist_defaults( exprs ):
     return { 'exprs' : list(exprs), 'bins' : None, 'range' : None, 'xrange' : None,
              'yrange' : None, 'logx' : False, 'logy' : None, 'logz' : None, 'lethargy' : False,
              'split' : None, 'unweighted' : False, 'print' : False, 'groups' : None,
-             'bar' : False, 'points' : None, 'equal' : False }
+             'bar' : False, 'points' : None, 'equal' : False, 'only' : None }
 
 def _parse_hist( text ):
     """Parse a histogram string: an expression (or two separated by ":" for 2D
@@ -131,10 +131,23 @@ def _parse_hist( text ):
                                 f' {"2D" if len(exprs) == 1 else "1D"} histograms'
                                 f' (use {use}), in "{text}"')
             res[name] = _as_range(value,name,text)
+        elif name == 'only':
+            res['only'] = _only_pick(value,text)
         else:
             res['split'] = value
     _check_hist_options(res,text)
     return res
+
+def _only_pick( value, text ):
+    """The pick of the option only (a single condition, as in picks, without
+    variables, since the options are separated by ";"), checked"""
+    from ._expressions import ParticleFilter
+    try:
+        ParticleFilter(value)
+    except MCPLError as e:
+        raise MCPLError(f'Histogram option "only" must be a condition as in picks (like'
+                        f' only=pdgcode == neutron), in "{text}": {e}') from None
+    return value
 
 def _check_hist_options( o, text ):
     """Check that the options o (see _parse_hist) of the histogram text can be
@@ -229,8 +242,8 @@ def _hist_key( text ):
             parts.append(name)#(the implied value, see _hist_implied)
         elif v == 'auto':
             parts.append(f'{name}=auto')
-        elif name == 'split':
-            parts.append(f'split={_expr_canonical(v)}')
+        elif name in ( 'split', 'only' ):
+            parts.append(f'{name}={_expr_canonical(v)}')
         elif isinstance(v,_Range):
             #(the values, in the units of MCPL):
             parts.append(f'{name}={v.lo!r}:{v.hi!r}')

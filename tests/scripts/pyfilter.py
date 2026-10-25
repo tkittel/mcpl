@@ -560,7 +560,8 @@ def test_in_and_userdata():
                 mcpl.ParticleFilter(bad)(u)
             except mcpl.MCPLError as e:
                 print(f'{bad}: {e}')
-    b2 = mcpl.MCPLFile(fn,edit='x = userdata.temp*1cm;y = userdata.dir.at(1)*1m').read_block()
+    with mcpl.MCPLFile(fn,edit='x = userdata.temp*1cm;y = userdata.dir.at(1)*1m') as f:
+        b2 = f.read_block()
     print('edited with userdata values:', b2.x.tolist(), b2.y.tolist())
     for bad in ( 'userdata.nscat += 1', 'userdata.dir.at(1) = 2' ):
         try:

@@ -33,7 +33,7 @@ class Examples:
     """A window with examples of expressions (of _exprhelp.examples), with what
     they do, where clicking one calls on_choose with it"""
     def __init__( self, tv, topic, on_choose ):
-        from ._exprhelp import examples
+        from ._exprhelp import example_rows, examples
         tk, ttk = tk_modules()
         w = tk.Toplevel(tv.root)
         w.title(ui.example_titles[topic])
@@ -42,24 +42,38 @@ class Examples:
         f.pack(fill='both',expand=True)
         ttk.Label(f,text='Click an example to use it (and change it as needed). Help lists all'
                   ' fields, units and functions.',foreground=colors['dim']).pack(anchor='w')
-        text = tk.Text(f,width=84,height=min(30,3*len(examples[topic])),wrap='word',
+        text = tk.Text(f,width=84,height=min(34,3*len(example_rows(topic))),wrap='word',
                        relief='flat',background='white',padx=8,pady=6,cursor='arrow')
         text.pack(fill='both',expand=True,pady=(6,0))
         text.tag_configure('what',lmargin1=24,lmargin2=24,spacing3=6,foreground=colors['dim'],
                            font='TkDefaultFont')
         text.tag_configure('expr',font='TkFixedFont',foreground=card_colors['accent'])
         text.tag_configure('hover',underline=True)
-        for i, ( expr, what ) in enumerate(examples[topic]):
-            tag = f'example{i}'
-            text.insert('end',expr,( 'expr', tag ))
-            text.insert('end','\n')
-            text.insert('end',what + '\n','what')
-            text.tag_bind(tag,'<Button-1>',lambda _e, x=expr : ( on_choose(x), w.destroy() ))
-            text.tag_bind(tag,'<Enter>',lambda _e, t=tag : text.tag_add('hover',f'{t}.first',f'{t}.last'))
-            text.tag_bind(tag,'<Leave>',lambda _e : text.tag_remove('hover','1.0','end'))
+        text.tag_configure('title',font=tv.bold,spacing1=8,spacing3=2)
+        text.tag_configure('note',foreground=colors['dim'],spacing3=4,font='TkDefaultFont')
+        i = 0
+        for title, note, group in examples[topic]:
+            text.insert('end',title + '\n','title')
+            if note:
+                text.insert('end',note + '\n','note')
+            for expr, what in group:
+                i += 1
+                self._example(text,w,i,expr,what,on_choose)
         text.configure(state='disabled')
         ttk.Button(f,text='Close',command=w.destroy).pack(side='right',pady=(8,0))
         w.bind('<Escape>',lambda _e : w.destroy())
+
+    @staticmethod
+    def _example( text, w, i, expr, what, on_choose ):
+        """Insert the example (number i), which calls on_choose with it when
+        clicked"""
+        tag = f'example{i}'
+        text.insert('end',expr,( 'expr', tag ))
+        text.insert('end','\n')
+        text.insert('end',what + '\n','what')
+        text.tag_bind(tag,'<Button-1>',lambda _e : ( on_choose(expr), w.destroy() ))
+        text.tag_bind(tag,'<Enter>',lambda _e : text.tag_add('hover',f'{tag}.first',f'{tag}.last'))
+        text.tag_bind(tag,'<Leave>',lambda _e : text.tag_remove('hover','1.0','end'))
 
 class CodeWindow:
     """A window with the command of mcpltool, and tabs with the code (in

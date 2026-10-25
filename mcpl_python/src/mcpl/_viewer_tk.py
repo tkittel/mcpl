@@ -1090,6 +1090,7 @@ def _format_help( text, blocks ):
     column = max( int(call('font','measure',bold,'Shift+Up, Shift+Down')),
                   int(call('font','measure',code,'x'*28)) ) + 30
     text.tag_configure('section',font=heading,spacing1=14,spacing3=4)
+    text.tag_configure('subsection',font=bold,spacing1=10,spacing3=2)
     text.tag_configure('para',spacing1=6,spacing3=6)
     text.tag_configure('note',lmargin1=12,lmargin2=12,spacing3=6)
     text.tag_configure('item',lmargin1=12,lmargin2=36,spacing1=3)
@@ -1106,8 +1107,8 @@ def _format_help( text, blocks ):
             for para in args[0].split('\n\n'):
                 text.insert('end',' '.join(para.split('\n')) + '\n',
                             'para' if kind == 'text' else 'note')
-        elif kind == 'section':
-            text.insert('end',args[0] + '\n','section')
+        elif kind in ( 'section', 'subsection' ):
+            text.insert('end',args[0] + '\n',kind)
         elif kind == 'item':
             text.insert('end',args[0],( 'item', 'code' ),': ' + args[1] + '\n','item')
         elif kind == 'key':

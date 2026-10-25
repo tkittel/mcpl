@@ -57,7 +57,8 @@ class PlotGroups:
         if key == custom_key:
             return Overview(custom_title,self.custom,'user added plots',add_cell = add_cell)
         title, descr, items, opts = _groups[key]
-        only = particle_condition(self.setting(key,'particle'))
+        from ._particles import _particle_condition
+        only = _particle_condition(self.setting(key,'particle'))
         if 'variables' in opts:
             return Overview(title,description = descr,layout = 'correlation',only = only,
                             variables = self.setting(key,'variables'))
@@ -246,8 +247,3 @@ def group_names():
     return ( [ ( n, d ) for n, ( d, _ ) in _presets.items() ]
              + [ ( k, f'only {_groups[k][0]}: {_groups[k][1]}' ) for k in _groups
                  if k not in _presets ] )
-
-def particle_condition( pdgcode ):
-    """The condition for the particles of a type (a PDG code), or None for all"""
-    from ._particles import _particle_name
-    return None if pdgcode is None else f'pdgcode == {_particle_name(pdgcode)}'

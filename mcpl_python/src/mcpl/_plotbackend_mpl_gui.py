@@ -174,6 +174,10 @@ class MplViewer:
         return None
 
     def _on_click( self, event ):
+        from ._plotbackend_mpl import after_event
+        after_event(event.canvas,self._on_click_after,event)
+
+    def _on_click_after( self, event ):
         what = self._target(event)
         if what is None:
             return

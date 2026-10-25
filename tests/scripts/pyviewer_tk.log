@@ -31,7 +31,7 @@ after the pick:
    cache button: cached: 44 kB CacheAll.Compact.TMenubutton
    write button: New MCPL file (544 particles)...
    shown: plot:ekin;logx=auto;logy;split=pdgcode
-cache menu: ['Memory for the particles used by the plots (counted before the pick):', 'Max 5 MB: all 1,006 particles', 'Max 20 MB: all 1,006 particles', 'Max 100 MB: all 1,006 particles', 'Max 500 MB: all 1,006 particles', 'Max 2 GB: all 1,006 particles', 'Max 5 GB: all 1,006 particles', 'Max 10 GB: all 1,006 particles', 'No memory cache (refreshing plots from file on each change)', 'Help about data caching']
+cache menu: ['Memory for the particles used by the plots (counted before the pick):', 'Max 5 MB: all 1,006 particles', 'Max 20 MB: all 1,006 particles', 'Max 100 MB: all 1,006 particles', 'Max 500 MB: all 1,006 particles', 'Max 2 GB: all 1,006 particles', 'Max 5 GB: all 1,006 particles', 'Max 10 GB: all 1,006 particles', 'No memory cache (refreshing plots from file on each change)', 'About caching']
 with a small cache:
    status: example.mcpl: 1,006 particles
    counts: ≈647/1,006 particles (64.3%), Σw ≈ 647 (64.3%)
@@ -45,9 +45,10 @@ with 500 MB:
    write button: New MCPL file (544 particles)...
    shown: plot:ekin;logx=auto;logy;split=pdgcode
 after clicking the inactive group 'Beam along z' : overview:beamz | folded: ['3D', 'Correlations', 'Fields', 'Overview']
-settings of the correlations: {'shown': True, 'plot fields shown': False, 'particle': 'neutron (86%)', 'variables': ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time']}
-after turning ux off and choosing all: {'shown': True, 'plot fields shown': False, 'particle': 'all', 'variables': ['x', 'y', 'uy', 'uz', 'ekin', 'time']} None
-after clicking 'Most correlated': ['x', 'ux', 'ekin', 'time']
+settings of the correlations: {'shown': True, 'plot fields shown': False, 'particle': 'neutron (86%)', 'variables': ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time'], 'most': 'Most correlated'}
+after turning ux off and choosing all: {'shown': True, 'plot fields shown': False, 'particle': 'all', 'variables': ['x', 'y', 'uy', 'uz', 'ekin', 'time'], 'most': 'Most correlated'} None
+after clicking 'Most correlated': ['x', 'ux', 'ekin', 'time'] | button now: All variables
+after clicking 'All variables': ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time'] | button now: Most correlated
 with a plot shown: False True
 help 'The viewer': MCPL viewer: The viewer | sections: 1 | lines: True
    closed with q: True

@@ -182,9 +182,10 @@ class JupyterViewer:
             self.refresh()
 
     def _on_click( self, event ):
+        from ._plotbackend_mpl import after_event
         key = self._pane.view_at(event)
         if key is not None:
-            self._on_panel(key)
+            after_event(event.canvas,self._on_panel,key)
 
     def _on_move( self, delta ):
         if self.v.move(delta):

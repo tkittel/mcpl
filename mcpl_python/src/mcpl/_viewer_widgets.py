@@ -403,6 +403,7 @@ class WidgetViewer:
         given = dict(_hist_parts(plot)[1])
         res = []
         for name, label, choices in ui.plot_controls[kind]:
+            choices = self._choices(choices)
             v = given.get(name,False)
             #(the option given without a value, or with 1, is True, and 0 is
             #as if not given, except for those which are on by default):
@@ -438,7 +439,8 @@ class WidgetViewer:
     def _option( self, plot, name, shown ):
         """The plot with the option set from the shown text of its control"""
         from ._histstring import _hist_set_option
-        choices = next( ( c for n, _, c in sum( ui.plot_controls.values(), () ) if n == name ), None )
+        choices = self._choices(next( ( c for n, _, c in sum( ui.plot_controls.values(), () )
+                                        if n == name ), None ))
         text = shown.strip()
         if choices is not None:
             value = dict(choices).get(text,text or None)
@@ -447,45 +449,66 @@ class WidgetViewer:
             value = text or ( True if name == 'bar' else None )
         return _hist_set_option(plot,name,value)
 
+    def _choices( self, choices ):
+        """The choices of a setting of plots (see _viewer_ui.plot_controls), as
+        (shown text, value), with those of the particle types"""
+        from ._particles import _particle_condition
+        if choices != 'types':
+            return choices
+        return [ ( t, _particle_condition(pdg) ) for t, pdg in self.type_choices() ]
+
+    def type_choices( self ):
+        """The choices of particle types (see Viewer.found), as (shown text,
+        PDG code), the first for all (None)"""
+        from ._particles import _particle_text
+        types = self.v.found['types']
+        total = sum( w for _, w in types ) or 1.0
+        return [ ( ui.particle_type_text(None,1.0), None ) ] + [
+            ( ui.particle_type_text(_particle_text(pdg),w / total), pdg ) for pdg, w in types ]
+
     def overview_controls( self ):
         """The settings of the shown overview, if it is that of a standard group
         (else None), as a list of (name, label, choices, shown): for a menu
-        (the particle type), the texts of its choices and the chosen one, and
-        for toggles (the variables of correlation plots), the texts of the toggles
-        and those which are on"""
-        from ._particles import _particle_text
+        (the particle type), the texts of its choices and the chosen one, for
+        toggles (the variables of correlation plots), the texts of the toggles and
+        those which are on, and for the button choosing the most correlated
+        variables (or all again, if they are shown), its text"""
         key = self._shown_group()
         if key is None or not self.v.group_settings(key):#(e.g. of custom plots)
             return None
         found = self.v.found
-        total = sum( w for _, w in found['types'] ) or 1.0
-        weights = dict(found['types'])
         res = []
         for name, value, choices in self.v.group_settings(key):
             if name == 'particle':
-                texts = [ ui.particle_type_text(None if c is None else _particle_text(c),
-                                                weights.get(c,0.0) / total ) for c in choices ]
-                shown = texts[choices.index(value)] if value in choices else str(value)
+                types = { pdg : t for t, pdg in self.type_choices() }
+                texts = [ types.get(c,str(c)) for c in choices ]
+                shown = types.get(value,str(value))
             else:
                 texts = [ ui.variable_text(c,found['constants'].get(c)) for c in choices ]
                 shown = [ t for t, c in zip(texts,choices) if c in value ]
             res.append( ( name, ui.overview_controls[name], texts, shown ) )
+            if name == 'variables':
+                most = value == self.v.most_correlated(key)
+                text = ui.all_variables if most else ui.most_correlated
+                res.append( ( 'most', None, [ text ], text ) )
         return res
 
     def on_overview_control( self, name, shown ):
         """A setting of the shown overview was changed: the particle type (to
         the shown text of the menu), or a variable (the text of its toggle) was
-        turned on or off, or the variables with the strongest correlations
-        were chosen (with the text ui.most_correlated)"""
+        turned on or off, or the button (name most) choosing the variables
+        with the strongest correlations, or all again, was clicked"""
         key = self._shown_group()
         if key is None:
             return
-        if name == 'variables' and shown == ui.most_correlated:
-            value = self.v.most_correlated(key)
-            if value is None:
+        if name == 'most':
+            value = self.v.most_correlated(key) if shown == ui.most_correlated else None
+            if value is None and shown == ui.most_correlated:
                 self.show_line('The correlations are known when the file is read','error')
-            elif self.v.set_group_setting(key,name,value):
-                self.show_line(f'The most correlated: {", ".join(value)}','normal')
+            else:
+                self.v.set_group_setting(key,'variables',value)
+                self.show_line(f'Variables: {", ".join(self.v.group_setting(key,"variables"))}',
+                               'normal')
             self.refresh()
             return
         controls = { n : ( texts, now ) for n, _, texts, now in self.overview_controls() }

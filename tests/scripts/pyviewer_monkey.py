@@ -27,6 +27,7 @@
 # userdata, with one particle and without particles, failing on any exception
 # (also in the callbacks of Tk and matplotlib, and in threads) or warning.
 
+import gzip
 import random
 import shutil
 import threading
@@ -47,7 +48,9 @@ with mcpl.MCPLOutFile('one.mcpl') as o:
     o.add_particles( x = [1.0], uz = 1.0, ekin = 1.0, pdgcode = 2112, weight = 1.0 )
 with mcpl.MCPLOutFile('empty.mcpl') as o:
     pass
-files = [ 'example.mcpl', 'ud.mcpl', 'one.mcpl', 'empty.mcpl' ]
+with open('example.mcpl','rb') as fin, gzip.open('example.mcpl.gz','wb') as fout:
+    fout.write(fin.read())
+files = [ 'example.mcpl', 'example.mcpl.gz', 'ud.mcpl', 'one.mcpl', 'empty.mcpl' ]
 
 rng = random.Random(1)
 problems, done = [], []
@@ -58,6 +61,7 @@ threading.excepthook = lambda a : record('thread',''.join(traceback.format_excep
 def on_warning( message, category, filename, lineno, file = None, line = None ):
     record('warning',f'{category.__name__}: {message} ({filename}:{lineno})')
 warnings.showwarning = on_warning
+warnings.simplefilter('always',ResourceWarning)#(e.g. files not closed, hidden by default)
 
 viewer_tk._check_fonts = lambda root : None
 root = viewer_tk._root()

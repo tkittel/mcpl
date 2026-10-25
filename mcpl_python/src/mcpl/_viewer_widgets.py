@@ -505,10 +505,15 @@ class WidgetViewer:
             value = self.v.most_correlated(key) if shown == ui.most_correlated else None
             if value is None and shown == ui.most_correlated:
                 self.show_line('The correlations are known when the file is read','error')
+            elif value is not None and len(value) < 2:
+                self.show_line('Fewer than two of the variables have more than one value','error')
             else:
-                self.v.set_group_setting(key,'variables',value)
-                self.show_line(f'Variables: {", ".join(self.v.group_setting(key,"variables"))}',
-                               'normal')
+                try:
+                    self.v.set_group_setting(key,'variables',value)
+                    self.show_line(f'Variables: {", ".join(self.v.group_setting(key,"variables"))}',
+                                   'normal')
+                except MCPLError as e:#(e.g. when only one of them varies)
+                    self.show_line(str(e),'error')
             self.refresh()
             return
         controls = { n : ( texts, now ) for n, _, texts, now in self.overview_controls() }

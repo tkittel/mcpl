@@ -246,10 +246,15 @@ class Backend(PlotBackend):
                 _draw_correlation(ax,item)
             elif isinstance(item,NewPlot):
                 _draw_new_plot(ax,item)
-        if panel.logx:
-            ax.set_xscale('log')
-        if panel.logy:
-            ax.set_yscale('log')
+        import warnings
+        with warnings.catch_warnings():
+            #(plots without positive values, e.g. when no particles are picked,
+            #are just empty, which matplotlib warns about):
+            warnings.filterwarnings('ignore',message='Data has no positive values')
+            if panel.logx:
+                ax.set_xscale('log')
+            if panel.logy:
+                ax.set_yscale('log')
         if panel.xlim:
             ax.set_xlim(*panel.xlim)
         if panel.ylim:

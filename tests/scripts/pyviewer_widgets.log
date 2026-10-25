@@ -519,6 +519,14 @@
    coefficients of 22 : {'x:y': 1.0, 'x:ekin': 1.0, 'x:z': None, 'y:ekin': 1.0, 'y:z': None, 'ekin:z': None}
    coefficients of 2112 : {'x:y': 1.0, 'x:ekin': 1.0, 'x:z': None, 'y:ekin': 1.0, 'y:z': None, 'ekin:z': None}
    coefficients of None : {'x:y': 0.9929, 'x:ekin': 1.0, 'x:z': None, 'y:ekin': 0.9929, 'y:z': None, 'ekin:z': None}
+==> the most correlated variables of a single particle (none varies)
+   field skip: ''
+   field limit: '1'
+   field collection: 'default'
+   field pick: ''
+   field edit: ''
+   field plot: ''
+   line (error): Fewer than two of the variables have more than one value
 ==> the buttons of the actions, and quit
    help shown: 43 lines
    window closed

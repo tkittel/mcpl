@@ -231,7 +231,9 @@ class _Reading:
             settings = settings.copy()
             settings.plots = [ p for p in settings.plots if f'plot:{p}' not in known ]
             if not settings.plots:
-                self._publish(gen,figures=known,constants=done[2],progress='',counts=done[3])
+                self._publish(gen,figures=known,constants=done[2]['constants'],progress='',
+                              counts=done[3])
+                self._on_found(done[2])
                 return
         def figures( figs ):
             return None if figs is None else { **known, **figs }
@@ -281,11 +283,17 @@ class _Reading:
                     nextpoint = next(points)
                 self._publish(gen,figures=figures(comp.figures()),constants=comp.constants(),
                               progress=f'reading: {100*frac[0]:.0f}% of particles')
-        figs, constants = figures(comp.figures()), comp.constants()
-        self._publish(gen,figures=figs,constants=constants,progress='',counts=counts)
+        figs, found = figures(comp.figures()), comp.found()
+        self._publish(gen,figures=figs,constants=found['constants'],progress='',counts=counts)
         with self._lock:
-            if gen == self._generation:
-                self._done = ( key, figs, constants, counts )
+            current = gen == self._generation
+            if current:
+                self._done = ( key, figs, found, counts )
+        if current:
+            self._on_found(found)
+
+    def _on_found( self, found ):
+        """Called after a reading with what it found (see _Computation.found)"""
 
 class _Cancelled(Exception):
     pass
@@ -372,6 +380,7 @@ class _Computation:
             h = self._guard(p,_make_filler,p,None)
             self._plots.append( ( p, h ) )
         self._lims = { f : [ None, None ] for f in _const_fields }
+        self._types = {}#(pdgcode -> sum of weights)
 
     def _guard( self, p, fct, *args ):
         """fct(*args), or None if the plot p failed (noting the problem)"""
@@ -403,6 +412,11 @@ class _Computation:
             lo, hi = float(v.min()), float(v.max())
             lim[0] = lo if lim[0] is None else min( lim[0], lo )
             lim[1] = hi if lim[1] is None else max( lim[1], hi )
+        pdg, idx = np.unique(np.broadcast_to(b.pdgcode,(len(b),)),return_inverse=True)
+        sums = np.bincount(idx.ravel(),weights=np.broadcast_to(b.weight,(len(b),)),
+                           minlength=len(pdg))
+        for k, w in zip(pdg.tolist(),sums.tolist()):
+            self._types[k] = self._types.get(k,0.0) + w
 
     def constants( self ):
         """The fields where all particles have the same value, with the value
@@ -414,6 +428,12 @@ class _Computation:
                 unit = _expr_unit_hints.get(_expr_field_dims.get(field))
                 res[field] = f'{lo:g}' + ( f' {unit}' if unit else '' )
         return res
+
+    def found( self ):
+        """What was found: the fields with one value (see constants), and the
+        particle types as (pdgcode, sum of weights), the largest first"""
+        types = sorted( self._types.items(), key = lambda t : ( -t[1], t[0] ) )
+        return { 'constants' : self.constants(), 'types' : types }
 
     def figures( self ):
         """The figures of the plots (with the pick and edit expressions as

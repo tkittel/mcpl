@@ -76,4 +76,15 @@ _pdg_names = { p[0] : p[1] for p in _particles }
 _pdg_symbols = { p[1] : p[2] for p in _particles if p[2] is not None }
 _pdg_colors = { p[0] : p[3] for p in _particles if p[3] is not None }
 _particle_names = { name : p[0] for p in _particles for name, _ in p[4] }
+
+def _particle_name( pdgcode ):
+    """The name of a particle type (a PDG code) in expressions, like neutron
+    (or the code, if it has no name)"""
+    return next( ( n for n, p in _particle_names.items() if p == pdgcode ), str(pdgcode) )
+
+def _particle_text( pdgcode ):
+    """The name of a particle type (a PDG code) in texts: its name in
+    expressions (like neutron), else in labels (like pi+), else the code"""
+    name = _particle_name(pdgcode)
+    return _pdg_names.get(pdgcode,name) if name == str(pdgcode) else name
 _particle_help = [ ( name, p[0], descr ) for p in _particles for name, descr in p[4] ]

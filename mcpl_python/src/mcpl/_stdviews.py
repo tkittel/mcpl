@@ -23,9 +23,9 @@
 
 Each group has a key, a title, a description, its plots (fixed: changing
 one copies it into the custom group of the viewer, see _viewer_groups), and
-its overview: a grid of all its plots, or for groups of pairs, a correlation plot
+its overview: a grid of all its plots, or for groups of variables, a correlation plot
 (the histograms of the expressions on the diagonal, and the 2D histograms of
-each pair below it, see _viewer_overviews.pair_cells). The presets are sets
+each pair below it, see _viewer_overviews.correlation_cells). The presets are sets
 of groups, chosen with -wNAME (or in the viewer); the state of the viewer is
 saved as the groups which are shown and the custom plots.
 
@@ -93,10 +93,9 @@ _field_titles = { 'ekin' : 'Energy', 'x' : 'Position x', 'y' : 'Position y',
                   'wavelength' : 'Wavelength', 'fileidx' : 'Position in the file' }
 
 #The standard groups, as key -> (title, description, plot items, options),
-#with the option pairs (the expressions of a correlation plot, whose plots are
-#then those of its cells; the plots are shown in the first group which has
-#them, so the correlations, which have many plots of other groups, come
-#last):
+#with the option variables (the expressions which a correlation plot can have, see
+#_viewer_groups; the plots are shown in the first group which has them, so
+#the correlations, which have many plots of other groups, come last):
 _groups = {
     'overview' : ( 'Overview', 'the main plots of the particles', (
         'ekin;logx=auto;logy;split=pdgcode',
@@ -131,7 +130,8 @@ _groups = {
         _item('ux : uy : uz;split=pdgcode','Directions in 3D') ), {} ),
     'correlations' : ( 'Correlations', ( 'the correlations of the positions, directions,'
                                          ' energy and weight, as a correlation plot' ), (),
-                       { 'pairs' : ( 'x', 'y', 'ux', 'uy', 'uz', 'log10(ekin/eV)', 'weight' ) } ),
+                       { 'variables' : ( 'x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin', 'time',
+                                         'weight' ) } ),
 }
 
 #The presets of groups, as name -> (description, groups):

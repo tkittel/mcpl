@@ -107,6 +107,20 @@ class Text:
     def __init__( self, text ):
         self.text = text
 
+class Correlation:
+    """A correlation coefficient (from -1 to 1, or None if not known) shown in
+    a panel, as in the correlation plots of the viewer: the number, on a
+    background tinted from blue (-1) to red (1)."""
+    def __init__( self, value ):
+        self.value = value
+
+    @property
+    def text( self ):
+        if self.value is None:
+            return ''
+        v = round(self.value,2)
+        return f'{v:+.2f}' if v else '0.00'#(not -0.00)
+
 class Panel:
     """One plot (a set of axes) with items like StepHist objects. Items with
     labels are shown in a legend. The zlabel is that of the z axis of 3D

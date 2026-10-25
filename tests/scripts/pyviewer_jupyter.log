@@ -1,4 +1,4 @@
-views: 44
+views: 67
 status: <b>example.mcpl: 1,006 particles, Σw = 1,006</b><br><span style="color:#555"></span>
 overview as a grid: True plots: True
 buttons: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto']
@@ -9,7 +9,7 @@ message for an invalid edit: <span style="color:#c00">Can not assign value witho
 view: ekin/MeV;logx=1 field emptied: True
 This plot box shown: True 'ekin/MeV;logx=1'
 changed in the box: custom:ekin/keV;logx=1 current: custom:ekin/keV;logx=1 message: ''
-emptied, plot removed: plot:weight box shown: True
+emptied, plot removed: plot:time;logx=auto box shown: True
 view selected: plot:angle(dir,(0,0,1))/deg;logy;split=pdgcode
 suggested name: example_selected.mcpl.gz
 written: MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz

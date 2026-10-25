@@ -181,6 +181,7 @@ def test_cmdline():
     tool('-H','x/cm : y/cm;bins=3,2;print=1',ex)
     tool('-H','x/cm;range=-10:10;bins=4','-B','test',ex,str(ref1))
     tool('-H','time/ms;logx=1;logy=1;unweighted=1','-B','test',ex)
+    tool('-H','ekin/MeV : time/ms;logx=1;logy=auto','-B','test',ex)
     tool('-H','ekin/MeV;split=pdgcode;range=0:10;bins=2;print=1',
          '-p','x > 1km',ex)
     #-l, -s and -E (the particles are picked before they are edited):
@@ -193,7 +194,7 @@ def test_cmdline():
                  ['-H','ekin/MeV;range=1',ex], ['-H','ekin/MeV;range=2:1',ex],
                  ['-H','ekin/MeV;range=1:2,3:4',ex], ['-H','ekin/MeV;xrange=1:2',ex],
                  ['-H','x/cm : y/cm;range=1:2',ex],
-                 ['-H','x/cm : y/cm;logx=1',ex], ['-H','x/cm : y/cm : z/cm',ex], ['-H','x : y : z : x',ex], ['-H','x : y : z;bins=5',ex],
+                 ['-H','x/cm : y/cm;logx=1;equal',ex], ['-H','x/cm : y/cm : z/cm',ex], ['-H','x : y : z : x',ex], ['-H','x : y : z;bins=5',ex],
                  ['-H','x/cm;bins',ex], ['-H','x/cm;logx',ex], ['-H','x/cm;logx=true',ex],
                  ['-H','x/cm;logy=yes',ex], ['-H','x/cm;logx=2',ex], ['-H','x/cm;logy=auto',ex],
                  ['-H','x/cm;logx=1;logx=1',ex], ['-H','x/cm;foo',ex],

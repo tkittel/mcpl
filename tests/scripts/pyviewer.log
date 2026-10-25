@@ -38,16 +38,16 @@ no cache: {'limit': None, 'fits': True, 'nused': 906, 'cached': 0}
   with a lower limit, kept: 0 to 100
 skip=0 limit=None pick=None edit=None:
    example.mcpl: 1,006 particles, Σw = 1,006
-   48 views, same figures as mcpltool -H: True
+   54 views, same figures as mcpltool -H: True
 skip=0 limit=None pick='pdgcode == neutron' edit=None:
    example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   48 views, same figures as mcpltool -H: True
+   54 views, same figures as mcpltool -H: True
 skip=100 limit=500 pick='ekin > 1MeV' edit='z += 1m':
    example.mcpl: 196/500 particles (39.2%), Σw = 196 (39.2%)
-   48 views, same figures as mcpltool -H: True
+   54 views, same figures as mcpltool -H: True
 skip=0 limit=None pick='mod(fileidx,3) == 0' edit='weight *= 2':
    example.mcpl: 336/1,006 particles (33.4%), Σw = 672 (66.8%)
-   48 views, same figures as mcpltool -H: True
+   54 views, same figures as mcpltool -H: True
 The command and code of plots, and of writing files:
   mcpltool -H "ekin;logx" example.mcpl  (code: command, python)
      python | import mcpl
@@ -272,10 +272,10 @@ check of 'userdata.dir.at(2) > 0': (True, '')
 check of 'userdata.dir.at(3) > 0': (False, 'The userdata field "dir" has 3 values per particle (use userdata.dir.at(0) to userdata.dir.at(2)), in "userdata.dir.at(3) > 0"')
 check of 'userdata.nscat.at(0) > 0': (False, 'The userdata field "nscat" has one value per particle (use userdata.nscat), in "userdata.nscat.at(0) > 0"')
 without userdata: (False, 'There are no userdata fields in this file, in "userdata.nscat;bar"') (False, 'There are no userdata fields in this file, in "x > 0cm and userdata."') userdata.  there are no userdata fields in this file
-for example.mcpl (particles True): pick '', edit '', skip '', 42 views, message 'Not kept for this file: the pick and edit (There are no userdata fields in this file, in "userdata.nscat > 0")'
-for ud_viewer.mcpl (particles True): pick 'userdata.nscat > 0', edit 'z += 1m', skip '', 47 views, message ''
-for ud_viewer.mcpl (particles False): pick '', edit '', skip '', 47 views, message ''
-views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:angle(dir,(0,0,1))/deg;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz, plot:userflags;bar;logy=auto, plot:x : ux, plot:y : ux, plot:x : uy, plot:y : uy, plot:ux : uy, plot:x : uz, plot:y : uz, plot:ux : uz, plot:uy : uz, plot:x : log10(ekin/eV), plot:y : log10(ekin/eV), plot:ux : log10(ekin/eV), plot:uy : log10(ekin/eV), plot:uz : log10(ekin/eV), plot:log10(ekin/eV), plot:x : weight, plot:y : weight, plot:ux : weight, plot:uy : weight, plot:uz : weight, plot:log10(ekin/eV) : weight, plot:weight
+for example.mcpl (particles True): pick '', edit '', skip '', 65 views, message 'Not kept for this file: the pick and edit (There are no userdata fields in this file, in "userdata.nscat > 0")'
+for ud_viewer.mcpl (particles True): pick 'userdata.nscat > 0', edit 'z += 1m', skip '', 70 views, message ''
+for ud_viewer.mcpl (particles False): pick '', edit '', skip '', 70 views, message ''
+views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:angle(dir,(0,0,1))/deg;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz, plot:userflags;bar;logy=auto, plot:x;logx=auto, plot:x : y;logx=auto;logy=auto, plot:x : z;logx=auto;logy=auto, plot:x : ux;logx=auto;logy=auto, plot:x : uy;logx=auto;logy=auto, plot:x : uz;logx=auto;logy=auto, plot:x : ekin;logx=auto;logy=auto, plot:x : time;logx=auto;logy=auto, plot:x : weight;logx=auto;logy=auto, plot:y;logx=auto, plot:y : z;logx=auto;logy=auto, plot:y : ux;logx=auto;logy=auto, plot:y : uy;logx=auto;logy=auto, plot:y : uz;logx=auto;logy=auto, plot:y : ekin;logx=auto;logy=auto, plot:y : time;logx=auto;logy=auto, plot:y : weight;logx=auto;logy=auto, plot:z;logx=auto, plot:z : ux;logx=auto;logy=auto, plot:z : uy;logx=auto;logy=auto, plot:z : uz;logx=auto;logy=auto, plot:z : ekin;logx=auto;logy=auto, plot:z : time;logx=auto;logy=auto, plot:z : weight;logx=auto;logy=auto, plot:ux;logx=auto, plot:ux : uy;logx=auto;logy=auto, plot:ux : uz;logx=auto;logy=auto, plot:ux : ekin;logx=auto;logy=auto, plot:ux : time;logx=auto;logy=auto, plot:ux : weight;logx=auto;logy=auto, plot:uy;logx=auto, plot:uy : uz;logx=auto;logy=auto, plot:uy : ekin;logx=auto;logy=auto, plot:uy : time;logx=auto;logy=auto, plot:uy : weight;logx=auto;logy=auto, plot:uz;logx=auto, plot:uz : ekin;logx=auto;logy=auto, plot:uz : time;logx=auto;logy=auto, plot:uz : weight;logx=auto;logy=auto, plot:ekin;logx=auto, plot:ekin : time;logx=auto;logy=auto, plot:ekin : weight;logx=auto;logy=auto, plot:time;logx=auto, plot:time : weight;logx=auto;logy=auto, plot:weight;logx=auto
 check('skip','10'): (True, '')
 check('skip','x'): (False, 'Skip must be a number of particles')
 check('limit','all'): (True, '')
@@ -333,14 +333,14 @@ command extract: mcpltool -e example.mcpl example_selected.mcpl.gz
 commands of the overview: {'view': 'mcpltool --view="{\'custom\':[\'time/ms;logx=1\',\'ekin/MeV\']}" example.mcpl', 'extract': 'mcpltool -e example.mcpl example_selected.mcpl.gz'}
 same pick, written differently: (True, '') restarted: False 'pdgcode==neutron'
 limit 1e3 then 1000: (True, '') (True, '') restarts: 1
-same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x : ux', 'y : ux', 'x : uy', 'y : uy', 'ux : uy', 'x : uz', 'y : uz', 'ux : uz', 'uy : uz', 'x : log10(ekin/eV)', 'y : log10(ekin/eV)', 'ux : log10(ekin/eV)', 'uy : log10(ekin/eV)', 'uz : log10(ekin/eV)', 'log10(ekin/eV)', 'x : weight', 'y : weight', 'ux : weight', 'uy : weight', 'uz : weight', 'log10(ekin/eV) : weight', 'weight', 'ekin/MeV;logx=1;bins=50'] current: custom:ekin/MeV;logx=1;bins=50
-changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x : ux', 'y : ux', 'x : uy', 'y : uy', 'ux : uy', 'x : uz', 'y : uz', 'ux : uz', 'uy : uz', 'x : log10(ekin/eV)', 'y : log10(ekin/eV)', 'ux : log10(ekin/eV)', 'uy : log10(ekin/eV)', 'uz : log10(ekin/eV)', 'log10(ekin/eV)', 'x : weight', 'y : weight', 'ux : weight', 'uy : weight', 'uz : weight', 'log10(ekin/eV) : weight', 'weight', 'ekin/MeV;logx=1;bins=50']
+same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x;logx=auto', 'x : y;logx=auto;logy=auto', 'x : z;logx=auto;logy=auto', 'x : ux;logx=auto;logy=auto', 'x : uy;logx=auto;logy=auto', 'x : uz;logx=auto;logy=auto', 'x : ekin;logx=auto;logy=auto', 'x : time;logx=auto;logy=auto', 'x : weight;logx=auto;logy=auto', 'y;logx=auto', 'y : z;logx=auto;logy=auto', 'y : ux;logx=auto;logy=auto', 'y : uy;logx=auto;logy=auto', 'y : uz;logx=auto;logy=auto', 'y : ekin;logx=auto;logy=auto', 'y : time;logx=auto;logy=auto', 'y : weight;logx=auto;logy=auto', 'z;logx=auto', 'z : ux;logx=auto;logy=auto', 'z : uy;logx=auto;logy=auto', 'z : uz;logx=auto;logy=auto', 'z : ekin;logx=auto;logy=auto', 'z : time;logx=auto;logy=auto', 'z : weight;logx=auto;logy=auto', 'ux;logx=auto', 'ux : uy;logx=auto;logy=auto', 'ux : uz;logx=auto;logy=auto', 'ux : ekin;logx=auto;logy=auto', 'ux : time;logx=auto;logy=auto', 'ux : weight;logx=auto;logy=auto', 'uy;logx=auto', 'uy : uz;logx=auto;logy=auto', 'uy : ekin;logx=auto;logy=auto', 'uy : time;logx=auto;logy=auto', 'uy : weight;logx=auto;logy=auto', 'uz;logx=auto', 'uz : ekin;logx=auto;logy=auto', 'uz : time;logx=auto;logy=auto', 'uz : weight;logx=auto;logy=auto', 'ekin;logx=auto', 'ekin : time;logx=auto;logy=auto', 'ekin : weight;logx=auto;logy=auto', 'time;logx=auto', 'time : weight;logx=auto;logy=auto', 'weight;logx=auto', 'ekin/MeV;logx=1;bins=50'] current: custom:ekin/MeV;logx=1;bins=50
+changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x;logx=auto', 'x : y;logx=auto;logy=auto', 'x : z;logx=auto;logy=auto', 'x : ux;logx=auto;logy=auto', 'x : uy;logx=auto;logy=auto', 'x : uz;logx=auto;logy=auto', 'x : ekin;logx=auto;logy=auto', 'x : time;logx=auto;logy=auto', 'x : weight;logx=auto;logy=auto', 'y;logx=auto', 'y : z;logx=auto;logy=auto', 'y : ux;logx=auto;logy=auto', 'y : uy;logx=auto;logy=auto', 'y : uz;logx=auto;logy=auto', 'y : ekin;logx=auto;logy=auto', 'y : time;logx=auto;logy=auto', 'y : weight;logx=auto;logy=auto', 'z;logx=auto', 'z : ux;logx=auto;logy=auto', 'z : uy;logx=auto;logy=auto', 'z : uz;logx=auto;logy=auto', 'z : ekin;logx=auto;logy=auto', 'z : time;logx=auto;logy=auto', 'z : weight;logx=auto;logy=auto', 'ux;logx=auto', 'ux : uy;logx=auto;logy=auto', 'ux : uz;logx=auto;logy=auto', 'ux : ekin;logx=auto;logy=auto', 'ux : time;logx=auto;logy=auto', 'ux : weight;logx=auto;logy=auto', 'uy;logx=auto', 'uy : uz;logx=auto;logy=auto', 'uy : ekin;logx=auto;logy=auto', 'uy : time;logx=auto;logy=auto', 'uy : weight;logx=auto;logy=auto', 'uz;logx=auto', 'uz : ekin;logx=auto;logy=auto', 'uz : time;logx=auto;logy=auto', 'uz : weight;logx=auto;logy=auto', 'ekin;logx=auto', 'ekin : time;logx=auto;logy=auto', 'ekin : weight;logx=auto;logy=auto', 'time;logx=auto', 'time : weight;logx=auto;logy=auto', 'weight;logx=auto', 'ekin/MeV;logx=1;bins=50']
 unchanged: (True, '') ['custom:time/ms;logx=1', 'custom:ekin/MeV'] current: custom:ekin/MeV
 change to keV: (True, '') ['custom:time/ms;logx=1', 'custom:ekin/keV'] current: custom:ekin/keV
-change to an existing plot: (True, '') ['plot:weight', 'custom:time/ms;logx=1']
+change to an existing plot: (True, '') ['plot:time;logx=auto;only=pdgcode == neutron', 'custom:time/ms;logx=1']
 invalid change: (False, 'Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)')
 unknown plot: (False, 'No plot "nope"')
-remove: (True, '') ['plot:weight'] current: plot:weight
+remove: (True, '') ['plot:time;logx=auto;only=pdgcode == neutron'] current: plot:time;logx=auto;only=pdgcode == neutron
 group overview: Overview: the main plots of the particles, 6 plots in 2x3
 group fields: Fields: a plot of each particle field, 13 plots in 3x5
 group beamz: Beam along z: profiles and divergences of a beam along z, 12 plots in 3x5
@@ -348,7 +348,7 @@ group beamx: Beam along x: profiles and divergences of a beam along x, 12 plots 
 group beamy: Beam along y: profiles and divergences of a beam along y, 12 plots in 3x5
 group shielding: Shielding: spectra, directions and weights of all particle types, 8 plots in 2x4
 group 3d: 3D: the positions and directions in 3D, of a sample of the particles, 2 plots in 1x2
-group correlations: Correlations: the correlations of the positions, directions, energy and weight, as a correlation plot, 28 plots in 7x7 (correlation plot)
+group correlations: Correlations: the correlations of the positions, directions, energy and weight, as a correlation plot, 45 plots in 9x9 (correlation plot)
 preset default: the overview, the fields and their correlations: overview, fields, correlations
 preset beamz: a beam along the z axis: profiles, divergences and correlations: beamz, correlations
 preset beamx: a beam along the x axis: profiles, divergences and correlations: beamx, correlations
@@ -386,10 +386,10 @@ state at the start: {} | command: mcpltool -w example.mcpl
 move up: True again: False down: True | current: custom:uz;bins=20 ['hypot(x,y)/cm', 'uz;bins=20']
 move the overview: False
 move a standard plot: False
-state: {'limit': 500, 'pick': 'pdgcode != gamma', 'custom': ['uz;bins=20', 'ekin/keV;logy=1'], 'view': 'weight'}
-state without the options: {'custom': ['uz;bins=20', 'ekin/keV;logy=1'], 'view': 'weight'}
-command: mcpltool --view="{'custom':['uz;bins=20','ekin/keV;logy=1'],'view':'weight'}" -l500 -p "pdgcode != gamma" example.mcpl
-opened with the command: same state: True | current: plot:weight
+state: {'limit': 500, 'pick': 'pdgcode != gamma', 'custom': ['uz;bins=20', 'ekin/keV;logy=1'], 'view': 'weight;logx=auto'}
+state without the options: {'custom': ['uz;bins=20', 'ekin/keV;logy=1'], 'view': 'weight;logx=auto'}
+command: mcpltool --view="{'custom':['uz;bins=20','ekin/keV;logy=1'],'view':'weight;logx=auto'}" -l500 -p "pdgcode != gamma" example.mcpl
+opened with the command: same state: True | current: plot:weight;logx=auto
 suggested state file: example_viewer.json
 save: (True, 'Saved the viewer state in example_viewer.json')
 save again: (False, 'The file example_viewer.json already exists')
@@ -403,7 +403,7 @@ view ' x ': plot:x
 view 'overview': overview:overview
 view 'overview:fields': overview:fields
 view 'pdgcode;bar = auto ; logy=auto': plot:pdgcode;bar;logy=auto
-view "{'foo':1}": The viewer state "{'foo':1}" is not valid: unknown entry "foo" (the entries are: skip, limit, pick, edit, groups, custom, view)
+view "{'foo':1}": The viewer state "{'foo':1}" is not valid: unknown entry "foo" (the entries are: skip, limit, pick, edit, groups, custom, settings, view)
 view '{"limit":"a"}': The viewer state "{"limit":"a"}" is not valid: limit must be a number
 view '{bad': The viewer state "{bad" is not valid JSON (Expecting property name enclosed in double quotes: line 1 column 2 (char 1))
 view '[1]': Unknown view "[1]" (the views are the overviews and the plots, given as overview, overview:GROUP or as the histogram string of a plot, e.g. ekin)
@@ -446,21 +446,21 @@ To open the viewer like this again:
    |   poly (all 0)                       │▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄▄▄▄▄▄▄
    |   polz (all 0)                       │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   userflags;bar;logy=auto            │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   x : ux                             │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   y : ux                             │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   x : uy                             │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   y : uy                             │                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   ux : uy                            │                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   x : uz                             │                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   y : uz                             │                     ▀▀▀▀▀▀▀              ▀▀▀▀▀▀▀
-   |   ux : uz                            │                     ▀▀▀▀▀▀▀              ▀▀▀▀▀▀▀
-   |   uy : uz                            │                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀
-   |   x : log10(ekin/eV)                 │                            ▀▀▀▀▀▀▀
-   |   y : log10(ekin/eV)             -65 ┤                            ▀▀▀▀▀▀▀
-   |   ux : log10(ekin/eV)                └┬────────────────────────────────────────────────────────────────────┬
-   |   uy : log10(ekin/eV)                -65                               2.5                                70
-   |   uz : log10(ekin/eV)                                                 x [cm]
-   |   log10(ekin/eV)            per cell: 0.2 ██████████ 5.745 ██████████ 165 (log scale)
+   |   x;logx=auto                        │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   x : y;logx=auto;logy=aut           │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   x : ux;logx=auto;logy=au           │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   x : uy;logx=auto;logy=au           │                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   x : uz;logx=auto;logy=au           │                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   x : ekin;logx=auto;logy=           │                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   x : time;logx=auto;logy=           │                     ▀▀▀▀▀▀▀              ▀▀▀▀▀▀▀
+   |   y;logx=auto                        │                     ▀▀▀▀▀▀▀              ▀▀▀▀▀▀▀
+   |   y : ux;logx=auto;logy=au           │                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀
+   |   y : uy;logx=auto;logy=au           │                            ▀▀▀▀▀▀▀
+   |   y : uz;logx=auto;logy=au       -65 ┤                            ▀▀▀▀▀▀▀
+   |   y : ekin;logx=auto;logy=           └┬────────────────────────────────────────────────────────────────────┬
+   |   y : time;logx=auto;logy=           -65                               2.5                                70
+   |   ux;logx=auto                                                        x [cm]
+   |   ux : uy;logx=auto;logy=a  per cell: 0.2 ██████████ 5.745 ██████████ 165 (log scale)
    |  Skip: [0]  Limit: [all]  Plot groups: [default]
    |  Pick: [pdgcode == neutron]
    |  Edit: [no changes]
@@ -488,21 +488,21 @@ To open the viewer like this again:
    |   poly (all 0)                       │         ⢸             ⡇                  ⡇          ⢸
    |   polz (all 0)                       │         ⣸             ⡇                  ⡇          ⠘⡆
    |   userflags;bar;logy=auto            │         ⡇             ⡇         ⡤⠤⡄      ⡇           ⠧⠤⡄    ⡤⠤⡄    ⡤⠤
-   |   x : ux                             │         ⡇             ⡇        ⢰⠃ ⡇      ⡇             ⡇   ⢰⠃ ⡇    ⡇
-   |   y : ux                             │⠤⠤⡄    ⠤⠤⠇             ⡇  ⡤⠤⡄ ⢠⠤⠼⡤⠤⠧⠤⡤⠤⢤  ⠧⠤⠤⠤⠤⠤⠤⡄    ⡤⠤⡧⠤⣤⠤⠼  ⡇   ⠠⠇
-   |   x : uy                             │  ⡇                    ⡇  ⡇ ⡇ ⢸ ⢰⠃   ⢳ ⢸         ⡇    ⡇ ⡇ ⢻    ⡇
-   |   y : uy                             │  ⠇                    ⡇ ⠠⠇ ⡇ ⢸ ⢸    ⢸ ⠸⡄        ⡇   ⠠⠇ ⡇ ⢸    ⡇
-   |   ux : uy                            │                ⢀⣀⣀  ⣀⣀⡇    ⡇ ⢸⣀⣸    ⢸⣀⣀⣇⣀⣀⣀⡀  ⣀⣀⣇⣀⣀⣀⣀⣀⣀⣇⣀⣸⣀⣀⣀⣀⣇⣀⡀
-   |   x : uz                             │                ⢸ ⢸    ⡇    ⡇ ⢸           ⡇ ⡇  ⡇ ⡇ ⣿ ⢸⡇ ⡇ ⣿    ⡇ ⡇
-   |   y : uz                             │                ⢸ ⢸    ⡇    ⡇ ⣸           ⡇ ⡇ ⢀⡇ ⡇ ⣿ ⢸⡇ ⡇ ⣿    ⡇ ⡇
-   |   ux : uz                            │                ⢸ ⢸         ⡇ ⢸           ⡇      ⡇ ⢸ ⢸  ⡇      ⡇
-   |   uy : uz                            │                ⢸ ⢸         ⡇ ⢸           ⡇      ⡇ ⢸ ⢸  ⡇      ⡇
-   |   x : log10(ekin/eV)          0.3333 ┤                ⣸ ⢸         ⡇ ⣸           ⡇      ⡇ ⣸ ⢸  ⡇      ⡇
-   |   y : log10(ekin/eV)                 └┬────────────────────────────────────────────────────────────────────┬
-   |   ux : log10(ekin/eV)                1393                           3.681e+06                      9.725e+09
-   |   uy : log10(ekin/eV)                                               ekin [eV]
-   |   uz : log10(ekin/eV)       ━━ n (2112)    ━━ γ (22)      ━━ e⁻ (11)     ━━ p (2212)    ━━ e⁺ (-11)
-   |   log10(ekin/eV)            ━━ π⁺ (211)    ━━ π⁻ (-211)   ━━ νμ (14)
+   |   x;logx=auto;only=pdgcode           │         ⡇             ⡇        ⢰⠃ ⡇      ⡇             ⡇   ⢰⠃ ⡇    ⡇
+   |   x : y;logx=auto;logy=aut           │⠤⠤⡄    ⠤⠤⠇             ⡇  ⡤⠤⡄ ⢠⠤⠼⡤⠤⠧⠤⡤⠤⢤  ⠧⠤⠤⠤⠤⠤⠤⡄    ⡤⠤⡧⠤⣤⠤⠼  ⡇   ⠠⠇
+   |   x : ux;logx=auto;logy=au           │  ⡇                    ⡇  ⡇ ⡇ ⢸ ⢰⠃   ⢳ ⢸         ⡇    ⡇ ⡇ ⢻    ⡇
+   |   x : uy;logx=auto;logy=au           │  ⠇                    ⡇ ⠠⠇ ⡇ ⢸ ⢸    ⢸ ⠸⡄        ⡇   ⠠⠇ ⡇ ⢸    ⡇
+   |   x : uz;logx=auto;logy=au           │                ⢀⣀⣀  ⣀⣀⡇    ⡇ ⢸⣀⣸    ⢸⣀⣀⣇⣀⣀⣀⡀  ⣀⣀⣇⣀⣀⣀⣀⣀⣀⣇⣀⣸⣀⣀⣀⣀⣇⣀⡀
+   |   x : ekin;logx=auto;logy=           │                ⢸ ⢸    ⡇    ⡇ ⢸           ⡇ ⡇  ⡇ ⡇ ⣿ ⢸⡇ ⡇ ⣿    ⡇ ⡇
+   |   x : time;logx=auto;logy=           │                ⢸ ⢸    ⡇    ⡇ ⣸           ⡇ ⡇ ⢀⡇ ⡇ ⣿ ⢸⡇ ⡇ ⣿    ⡇ ⡇
+   |   y;logx=auto;only=pdgcode           │                ⢸ ⢸         ⡇ ⢸           ⡇      ⡇ ⢸ ⢸  ⡇      ⡇
+   |   y : ux;logx=auto;logy=au           │                ⢸ ⢸         ⡇ ⢸           ⡇      ⡇ ⢸ ⢸  ⡇      ⡇
+   |   y : uy;logx=auto;logy=au    0.3333 ┤                ⣸ ⢸         ⡇ ⣸           ⡇      ⡇ ⣸ ⢸  ⡇      ⡇
+   |   y : uz;logx=auto;logy=au           └┬────────────────────────────────────────────────────────────────────┬
+   |   y : ekin;logx=auto;logy=           1393                           3.681e+06                      9.725e+09
+   |   y : time;logx=auto;logy=                                          ekin [eV]
+   |   ux;logx=auto;only=pdgcod  ━━ n (2112)    ━━ γ (22)      ━━ e⁻ (11)     ━━ p (2212)    ━━ e⁺ (-11)
+   |   ux : uy;logx=auto;logy=a  ━━ π⁺ (211)    ━━ π⁻ (-211)   ━━ νμ (14)
    |  Skip: [0]  Limit: [all]  Plot groups: [default]
    |  Pick: [all particles]
    |  Edit: [no changes]
@@ -527,7 +527,7 @@ Figure 1 (1x1): None
    Enter twice keeps the plot: custom:ekin/MeV current: custom:ekin/MeV
    Enter on an added plot, editing: 'ekin/MeV' | hint line when emptied: ('Enter: remove this plot   Esc: cancel', 'dim') True
 ==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Enter', 'WAIT']:
-   removed with an empty text: plot:weight current: plot:weight
+   removed with an empty text: plot:time;logx=auto;only=pdgcode == neutron current: plot:time;logx=auto;only=pdgcode == neutron
    Enter on another view, editing: True
 ==> keys ['WAIT', 'h']:
 ==> keys ['WAIT', 'Down', 'Down', 'MoveUp', 'WAIT']:

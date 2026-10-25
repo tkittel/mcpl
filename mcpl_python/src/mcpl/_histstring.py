@@ -153,10 +153,13 @@ def _check_hist_options( o, text ):
     """Check that the options o (see _parse_hist) of the histogram text can be
     used together"""
     if len(o['exprs']) == 2:
-        for name in ('logx','logy','lethargy','split','bar'):
+        for name in ('lethargy','split','bar'):
             if o[name]:
                 raise MCPLError(f'Histogram option "{name}" can not be used'
                                 f' for 2D histograms, in "{text}"')
+        if o['equal'] and ( o['logx'] or o['logy'] ):
+            raise MCPLError('Histogram option "equal" (equal scales of the axes) can not'
+                            f' be used with logarithmic axes, in "{text}"')
     if len(o['exprs']) == 3:
         for name in ('logx','logy','lethargy','bar','bins'):
             if o[name]:

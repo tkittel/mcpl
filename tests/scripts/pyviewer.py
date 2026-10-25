@@ -52,8 +52,6 @@ def same( a, b ):
 _plots = [ 'ekin/MeV;logx=1;split=pdgcode', 'x/cm : y/cm;bins=10', 'wavelength;logy=1' ]
 
 def test_figures():
-    from mcpldev._viewer_groups import PlotGroups
-    _default_plots = [ p for p, _, _ in PlotGroups().cards() ]
     for skip, limit, pick, edit in ( (0,None,None,None),
                                      (0,None,'pdgcode == neutron',None),
                                      (100,500,'ekin > 1MeV','z += 1m'),
@@ -72,7 +70,9 @@ def test_figures():
                         mcpl.ParticleFilter(pick) if pick else None,
                         mcpl.ParticleEdit(edit) if edit else None)
         ok, failed = True, []
-        for p in list(_default_plots) + _plots:
+        #(the plots of the groups depend on the file, e.g. the particle type
+        #of the correlations, see PlotGroups.setting):
+        for p in dict.fromkeys( [ p for p, _, _ in v._groups.cards() ] + _plots ):
             try:
                 h = mcpl.histogram(src,p)
             except mcpl.MCPLError as e:

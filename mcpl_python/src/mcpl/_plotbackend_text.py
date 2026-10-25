@@ -39,7 +39,16 @@ from ._particles import _pdg_symbols
 from ._physics import _ascii_symbols
 from ._plotbackend import PlotBackend
 from ._termcolor import _check_setting, _curve_rgb, _map_rgb, _ncolors, _paint
-from .plotting import Bars, Hist2D, Scatter3D, StepHist, Text, _line_style, _map_texts
+from .plotting import (
+    Bars,
+    Correlation,
+    Hist2D,
+    Scatter3D,
+    StepHist,
+    Text,
+    _line_style,
+    _map_texts,
+)
 
 
 class _Chars:
@@ -225,6 +234,8 @@ class _TextBackend(PlotBackend):
                 out += self._draw_bars(item)
             elif isinstance(item,Text):
                 out += [ _center(line,self._width) for line in item.text.split('\n') ]
+            elif isinstance(item,Correlation):
+                out.append(_center(f'correlation coefficient: {item.text}',self._width))
         if any( isinstance(i,Scatter3D) for i in panel.items ):
             out.append(_center('(3D plots are not shown in the terminal, only in windows)',
                                self._width))
@@ -486,17 +497,19 @@ class _TextBackend(PlotBackend):
     def _draw_hist2d( self, panel, item ):
         c = self._chars
         xlo, xhi = self._xrange(panel,item.xedges)
-        ylo, yhi = ( panel.ylim if panel.ylim else ( item.yedges[0], item.yedges[-1] ) )
-        if not yhi > ylo:
-            ylo, yhi = ylo - 1.0, yhi + 1.0
+        ylo, yhi = self._xrange(_YPanel(panel),item.yedges)
         ylabels = ( _fmt_y(yhi), _fmt_y(ylo) )
         ncols, nrows = self.resolution()
         #In colour with half blocks, each character shows two cells:
         half = bool( self._nc and self._halfblocks )
         ncells = 2 * nrows if half else nrows
         v = np.asarray(item.values,dtype=float)
-        cells = ( self._overlap_matrix(item.xedges,xlo,xhi,ncols) @ v
-                  @ self._overlap_matrix(item.yedges,ylo,yhi,ncells).T )
+        #(the cells are equal on the axes, so in log for logarithmic axes):
+        mx, my = ( self._overlap_matrix(self._to_display(e,log),
+                                        *self._to_display([lo,hi],log),n)
+                   for e, lo, hi, log, n in ( ( item.xedges, xlo, xhi, panel.logx, ncols ),
+                                              ( item.yedges, ylo, yhi, panel.logy, ncells ) ) )
+        cells = mx @ v @ my.T
         cells = np.where(_significant(cells),cells,0.0)
         pos = cells[cells>0]
         nlev = len(c.shades) - 1
@@ -525,7 +538,7 @@ class _TextBackend(PlotBackend):
                     grid[nrows-1-j][i] = self._p( c.shades[ max( 1, math.ceil( f * nlev ) ) ],
                                                   _map_rgb(f) if self._nc else None )
         out = self._frame([ ''.join(r) for r in grid ], ylabels, ncols, xlo, xhi,
-                          False, panel.xlabel)
+                          panel.logx, panel.xlabel)
         if panel.ylabel:
             out.insert( 0, f'(y: {panel.ylabel})' )
         if len(pos):
@@ -590,3 +603,8 @@ class AsciiBackend(_TextBackend):
     def __init__( self, ascii_width = None, ascii_height = None,
                   ascii_color = 'auto' ):
         super().__init__(ascii_width,ascii_height,ascii_color)
+
+class _YPanel:
+    """The y axis of a panel as its x axis (for _xrange)"""
+    def __init__( self, panel ):
+        self.xlim, self.logx = panel.ylim, panel.logy

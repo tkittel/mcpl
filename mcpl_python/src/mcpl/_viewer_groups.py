@@ -52,10 +52,11 @@ class PlotGroups:
         #types as (pdgcode, sum of weights), the largest first):
         self.found = { 'constants' : {}, 'types' : [] }
 
-    def overview( self, key ):
-        """The Overview of the group (with its settings)"""
+    def overview( self, key, add_cell = False ):
+        """The Overview of the group (with its settings, and for the custom
+        group with add_cell, the place of a new plot after its plots)"""
         if key == custom_key:
-            return Overview(custom_title,self.custom,'the plots which were added')
+            return Overview(custom_title,self.custom,'user added plots',add_cell = add_cell)
         title, descr, items, opts = _groups[key]
         only = particle_condition(self.setting(key,'particle'))
         if 'variables' in opts:
@@ -145,10 +146,11 @@ class PlotGroups:
                     res.append( ( p, t, k ) )
         return res
 
-    def overviews( self ):
-        """The overviews of the groups shown, as (group key, Overview)"""
-        return [ ( k, ov ) for k, ov in ( ( k, self.overview(k) ) for k in self.keys() )
-                 if ov.cells ]
+    def overviews( self, add_cell = False ):
+        """The overviews of the groups shown, as (group key, Overview), see
+        overview"""
+        return [ ( k, ov ) for k, ov in ( ( k, self.overview(k,add_cell) ) for k in self.keys() )
+                 if ov.plots ]
 
     def is_custom( self, plot ):
         return plot in self.custom

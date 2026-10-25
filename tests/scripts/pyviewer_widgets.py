@@ -292,6 +292,16 @@ print('   order of the groups:', list(dict.fromkeys( c.group for c in t.cards() 
 t.on_select_key('overview:custom')
 t.on_key('Delete')
 print('   the custom group is not hidden:', t.shown_key)
+#(its overview ends with the place of a new plot, which starts one when
+#clicked):
+print('   cells of the custom overview:', v.overview_keys('overview:custom')[-2:],
+      [ type(p.items[0]).__name__ for p in v.figure(key='overview:custom').panels[-2:] ])
+t.on_timer()
+ax = t.pane._panels[-1][0]
+bb = ax.get_window_extent()
+t.on_click(MouseEvent('button_press_event',t.fig.canvas,(bb.x0+bb.x1)/2,(bb.y0+bb.y1)/2,button=1))
+print('   after clicking it:', t.shown_key)
+t.on_remove()
 step('the settings of overviews: the particle type, and the variables of corner plots')
 t.on_field_apply('pick','')
 v.wait()

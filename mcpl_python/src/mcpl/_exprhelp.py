@@ -25,7 +25,6 @@ the help texts of mcpltool -p help, -E help and -H help."""
 
 __all__ = []
 
-import textwrap
 
 from ._particles import _particle_help
 
@@ -360,21 +359,6 @@ examples = {
     ),
 }
 
-def _examples_text( topic ):
-    """The examples of the topic, as in the help texts of mcpltool"""
-    opt = { 'pick' : '-p', 'edit' : '-E', 'hist' : '-H' }[topic]
-    lines = []
-    for expr, what in examples[topic]:
-        arg = f'  {opt} "{expr}"'
-        text = textwrap.wrap(what,width = 79 - 30)
-        if len(arg) <= 28:
-            lines.append(f'{arg:<30}{text[0]}')
-            text = text[1:]
-        else:
-            lines.append(arg)
-        lines += [ ' ' * 30 + t for t in text ]
-    return '\n'.join(lines)
-
 _intro = {
     'pick' : ( 'PICK: an expression which is true for the particles to use, for example:',
                '''The operators are: + - * / (and ^ for powers), == != < <= > >=, in and
@@ -426,24 +410,27 @@ _topic_groups = {
     'hist' : ( 'histoptions', ),
 }
 
+def _help_blocks( topic ):
+    """Help for -p help ('pick'), -E help ('edit') or -H help ('hist'), as
+    blocks (see _helptext)"""
+    head, tail = _intro[topic]
+    opt = { 'pick' : '-p', 'edit' : '-E', 'hist' : '-H' }[topic]
+    blocks = [ ( 'text', head ),
+               ( 'examples', [ ( f'{opt} "{expr}"', what ) for expr, what in examples[topic] ] ),
+               ( 'text', tail ) ]
+    for g in _topic_groups[topic]:
+        blocks += [ ( 'gap', ), ( 'section', _group_titles[g] ) ]
+        if g in _group_notes:
+            blocks.append( ( 'note', _group_notes[g] ) )
+        blocks += [ ( 'item', name, long ) for grp, name, _short, long in _hints if grp == g ]
+    if topic in _outro:
+        blocks += [ ( 'gap', ), ( 'text', _outro[topic] ) ]
+    return blocks
+
 def _help_text( topic ):
     """Help text for -p help ('pick'), -E help ('edit') or -H help ('hist')"""
-    head, tail = _intro[topic]
-    lines = [ head, _examples_text(topic), tail ]
-    for g in _topic_groups[topic]:
-        lines += [ '', _group_titles[g] + ':' ]
-        if g in _group_notes:
-            lines += textwrap.wrap( _group_notes[g], width = 79,
-                                    initial_indent = '  ', subsequent_indent = '  ' )
-        for grp, name, _short, long in _hints:
-            if grp != g:
-                continue
-            lines += textwrap.wrap( long, width = 79,
-                                    initial_indent = f'  {name}: ',
-                                    subsequent_indent = '      ' )
-    if topic in _outro:
-        lines += [ '', _outro[topic] ]
-    return '\n'.join(lines)
+    from ._helptext import plain_text
+    return plain_text(_help_blocks(topic))
 
 def _short_hint( name ):
     """Short description of a name (for completion), or None"""

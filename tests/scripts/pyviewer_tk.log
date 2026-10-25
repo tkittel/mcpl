@@ -48,4 +48,10 @@ after clicking the inactive group 'Beam along z' : overview:beamz | folded: ['3D
 settings of the correlations: {'shown': True, 'plot fields shown': False, 'particle': 'neutron (86%)', 'variables': ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time']}
 after turning ux off and choosing all: {'shown': True, 'plot fields shown': False, 'particle': 'all', 'variables': ['x', 'y', 'uy', 'uz', 'ekin', 'time']} None
 with a plot shown: False True
+help 'The viewer': MCPL viewer: The viewer | sections: 1 | lines: True
+help 'Picks (filtering particles)': MCPL viewer: Picks | sections: 6 | lines: True
+help 'Edits (modifying particles)': MCPL viewer: Edits | sections: 7 | lines: True
+help 'Plot expressions': MCPL viewer: Plot expressions | sections: 1 | lines: True
+help 'About the cache': MCPL viewer: The cache | sections: 0 | lines: False
+help in the menu: ['Open MCPL file...', 'Save viewer state...', 'Quit']
 closed: True

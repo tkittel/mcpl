@@ -43,6 +43,7 @@ from .plotting import (
     Bars,
     Correlation,
     Hist2D,
+    NewPlot,
     Scatter3D,
     StepHist,
     Text,
@@ -236,6 +237,8 @@ class _TextBackend(PlotBackend):
                 out += [ _center(line,self._width) for line in item.text.split('\n') ]
             elif isinstance(item,Correlation):
                 out.append(_center(f'correlation coefficient: {item.text}',self._width))
+            elif isinstance(item,NewPlot):
+                out.append(_center(f'+ {item.text}',self._width))
         if any( isinstance(i,Scatter3D) for i in panel.items ):
             out.append(_center('(3D plots are not shown in the terminal, only in windows)',
                                self._width))

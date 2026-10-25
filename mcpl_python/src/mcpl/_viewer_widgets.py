@@ -136,6 +136,7 @@ class WidgetViewer:
         from ._plotbackend_mpl import FigurePane
         self.v, self.fig = viewer, fig
         viewer.multi_overview = True#(the overview with all its plots)
+        viewer.new_plot_cell = True#(see on_click)
         self.pane = FigurePane(fig,( 0.08, 0.98, 0.11, 0.93 ),title_space=0.05,
                                title_y=0.98)
         self._histories = {}#field -> ui.History, while it is edited
@@ -223,19 +224,19 @@ class WidgetViewer:
         raise NotImplementedError
 
     def show_help( self ):
-        """Show ui.help_text"""
+        """Show the help of the viewer (ui.help_blocks)"""
         raise NotImplementedError
 
     def help_topics( self ):
         """The topics of the help menu of the viewers with windows, as (label,
-        title, text): the viewer, the expressions of picks, edits and plots (as
+        title, blocks, see _helptext): the viewer, the expressions of picks, edits and plots (as
         mcpltool -p help, -E help and -H help), and the cache"""
-        from ._exprhelp import _help_text
-        return [ ( 'The viewer', 'The viewer', ui.help_text ),
-                 ( 'Picks (filtering particles)', 'Picks', _help_text('pick') ),
-                 ( 'Edits (modifying particles)', 'Edits', _help_text('edit') ),
-                 ( 'Plot expressions', 'Plot expressions', _help_text('hist') ),
-                 ( 'About the cache', 'The cache', ui.cache_about ) ]
+        from ._exprhelp import _help_blocks
+        return [ ( 'The viewer', 'The viewer', ui.help_blocks ),
+                 ( 'Picks (filtering particles)', 'Picks', _help_blocks('pick') ),
+                 ( 'Edits (modifying particles)', 'Edits', _help_blocks('edit') ),
+                 ( 'Plot expressions', 'Plot expressions', _help_blocks('hist') ),
+                 ( 'About the cache', 'The cache', [ ( 'text', ui.cache_about ) ] ) ]
 
     def close_window( self ):
         """Close the window (on_close is then called)"""
@@ -314,7 +315,9 @@ class WidgetViewer:
         it is shown on its own, and on the colour bar of a 2D histogram, a menu
         of its colour scales is shown (see colour_bar_menu)"""
         key = self.pane.view_at(event)
-        if key is not None:
+        if key == 'info:new':#(the place of a new plot in the custom overview)
+            self.on_new_plot()
+        elif key is not None:
             self._expanded = True
             self.v.select_key(key)
             self.refresh()
@@ -834,6 +837,7 @@ class WidgetViewer:
         self.v.stop()
         self.v = new
         new.multi_overview = True
+        new.new_plot_cell = True
         self._thumbnails = {}
         self._plot_pending = False
         self.pane.clear()

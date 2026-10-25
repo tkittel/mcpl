@@ -35,14 +35,15 @@ layouts = ( 'grid', 'corner' )
 class Overview:
     """An overview: its title (and the description of its plots, if any), and
     its cells in a grid of nrows x ncols, row by row: the plots (histogram
-    strings, None for empty cells), and how each is shown (kinds: 'plot', or
-    'r' for the correlation coefficient of the 2D histogram of the plot).
+    strings, None for empty cells), and how each is shown (kinds: 'plot', 'r'
+    for the correlation coefficient of the 2D histogram of the plot, or 'new'
+    for the place of a new plot, after the plots with add_cell).
     With the layout 'grid', the cells are the plots, and with 'corner', they
     are made from the variables (expressions, see corner_cells). With only (a
     condition), the plots use only those particles (the option only of
     histogram strings)."""
     def __init__( self, title, plots = (), description = None, layout = 'grid',
-                  variables = (), only = None ):
+                  variables = (), only = None, add_cell = False ):
         assert layout in layouts
         self.title, self.description, self.layout = title, description, layout
         self.variables, self.only = list(variables), only
@@ -51,6 +52,9 @@ class Overview:
             self.ncols = max( 1, len(self.variables) )
         else:
             self.cells, self.kinds = list(plots), [ 'plot' ] * len(plots)
+            if add_cell:
+                self.cells.append(None)
+                self.kinds.append('new')
             self.ncols = grid_columns(len(self.cells))
         if only:
             from ._histstring import _hist_set_option
@@ -128,13 +132,16 @@ def overview_figure( figures, overview ):
     plots, if any."""
     import copy
 
-    from .plotting import Correlation, Figure, Panel, Text
+    from .plotting import Correlation, Figure, NewPlot, Panel, Text
     figs = { p : figures.get(f'plot:{p}') for p in overview.plots }#(see _viewer_reading)
     if all( f is None for f in figs.values() ):
         return None
     panels = []
     for p, kind in zip(overview.cells,overview.kinds):
         f = figs.get(p) if p is not None else None
+        if kind == 'new':
+            panels.append(Panel( items = [ NewPlot() ] ))
+            continue
         if p is None:
             panels.append(None)
             continue

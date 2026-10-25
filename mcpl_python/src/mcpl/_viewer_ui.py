@@ -25,6 +25,8 @@ status line, the help text, and what is printed when the viewer is closed."""
 
 __all__ = []
 
+from ._helptext import plain_text
+
 #The fields, in the order they are shown: (field of the Viewer, label, key,
 #position of the key in the label, text shown when the field is empty):
 fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
@@ -224,51 +226,51 @@ def hint_line( editor, popup = False ):
         return 'hint: ' + editor.hint + tab, 'dim'
     return field_hint(editor.field,editor.viewer), 'dim'
 
-help_text = '''\
-The viewer shows the particles of an MCPL file in groups of plots (in windows
+#The help of the viewer, as blocks (see _helptext), and as plain text:
+help_blocks = (
+    ( 'text', '''The viewer shows the particles of an MCPL file in groups of plots (in windows
 with an overview of each group: its plots together, or a corner plot of the
 correlations of the fields). The plots are histograms of expressions (as for
 -H). New plots are added to the custom group, where they can be changed,
 removed and reordered (changing a plot of the other groups copies it there).
 Plots are updated while the file is read, and are complete when the reading
-is done.
-
-Keys:
-  Up, Down     Show the previous or next view (or click on a view).
-  Shift+Up, Shift+Down
-               Move the shown plot up or down (also with Ctrl, Alt or the
-               Windows or Command key instead of Shift).
-  PgUp, PgDn   Scroll plots which are taller than the window (in the
-               terminal).
-  s, i         Skip particles at the start of the file, or limit the number
-               of particles used (like the -s and -l options).
-  p            Pick particles with an expression, e.g. pdgcode == neutron and
-               ekin < 1MeV (like -p, see mcpltool -p help).
-  e            Edit the particles, e.g. z += 1cm;weight *= 0.5 (like -E, see
-               mcpltool -E help). The particles are picked before they are
-               edited.
-  a            Add a plot of an expression, with options as for -H, e.g.
-               hypot(x,y)/cm;logy (see mcpltool -H help).
-  c            Choose the groups of plots shown by a preset, e.g. beamz for a
-               beam along the z axis (the custom plots are kept).
-  Enter        Change the shown plot (an empty text removes it).
-  w            Write the picked and edited particles to a new file.
-  v            Save the state of the viewer (the settings and plots) in a
-               file, which -wFILE.json (or --view=FILE.json) opens again.
-  l, k         Log or linear y or x axis of the plot: its option logy or logx
-               (in the overview of a GUI window, of the plot under the mouse).
-  o            Open the plot in a GUI window (in the terminal; the window
-               shows the plot as it is, and stays open).
-  g            Open the viewer in a GUI window, in the same state (in the
-               terminal; it stays open, and the terminal viewer goes on).
-  h, ?, F1     Show this help.
-  q            Quit (the commands doing the same are then printed).
-
-In the fields: Enter applies the text, Tab completes names, Up and Down show
+is done.''' ),
+    ( 'gap', ),
+    ( 'section', 'Keys' ),
+    ( 'key', 'Up, Down', 'Show the previous or next view (or click on a view).' ),
+    ( 'key', 'Shift+Up, Shift+Down', ( 'Move the shown plot up or down (also with Ctrl, Alt or'
+      ' the Windows or Command key instead of Shift).' ) ),
+    ( 'key', 'PgUp, PgDn', 'Scroll plots which are taller than the window (in the terminal).' ),
+    ( 'key', 's, i', ( 'Skip particles at the start of the file, or limit the number of particles'
+      ' used (like the -s and -l options).' ) ),
+    ( 'key', 'p', ( 'Pick particles with an expression, e.g. pdgcode == neutron and ekin < 1MeV'
+      ' (like -p, see mcpltool -p help).' ) ),
+    ( 'key', 'e', ( 'Edit the particles, e.g. z += 1cm;weight *= 0.5 (like -E, see mcpltool -E'
+      ' help). The particles are picked before they are edited.' ) ),
+    ( 'key', 'a', ( 'Add a plot of an expression, with options as for -H, e.g.'
+      ' hypot(x,y)/cm;logy (see mcpltool -H help).' ) ),
+    ( 'key', 'c', ( 'Choose the groups of plots shown by a preset, e.g. beamz for a beam along'
+      ' the z axis (the custom plots are kept).' ) ),
+    ( 'key', 'Enter', 'Change the shown plot (an empty text removes it).' ),
+    ( 'key', 'w', 'Write the picked and edited particles to a new file.' ),
+    ( 'key', 'v', ( 'Save the state of the viewer (the settings and plots) in a file, which'
+      ' -wFILE.json (or --view=FILE.json) opens again.' ) ),
+    ( 'key', 'l, k', ( 'Log or linear y or x axis of the plot: its option logy or logx (in the'
+      ' overview of a GUI window, of the plot under the mouse).' ) ),
+    ( 'key', 'o', ( 'Open the plot in a GUI window (in the terminal; the window shows the plot'
+      ' as it is, and stays open).' ) ),
+    ( 'key', 'g', ( 'Open the viewer in a GUI window, in the same state (in the terminal; it'
+      ' stays open, and the terminal viewer goes on).' ) ),
+    ( 'key', 'h, ?, F1', 'Show this help.' ),
+    ( 'key', 'q', 'Quit (the commands doing the same are then printed).' ),
+    ( 'gap', ),
+    ( 'text', '''In the fields: Enter applies the text, Tab completes names, Up and Down show
 earlier texts, and Esc cancels. In the window, a changed text is also applied
 with its Apply button, or by clicking elsewhere in the window. Texts are
 checked while they are typed. When Tab shows several completions, Up and Down
-choose one, Enter or Tab inserts it, and Esc closes them.'''
+choose one, Enter or Tab inserts it, and Esc closes them.''' ),
+)
+help_text = plain_text(help_blocks)
 
 #Shown in Jupyter without the ipympl backend of matplotlib:
 no_widget_text = ( 'For interactive plots (zoom, pan, and clicking the plots of'

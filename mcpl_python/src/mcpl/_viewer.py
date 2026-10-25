@@ -114,6 +114,9 @@ class Viewer(_Reading):
         #(the front ends which can show several plots at once set
         #multi_overview, see views):
         self.multi_overview = False
+        #(the front ends which start a new plot when its place in the overview
+        #of the custom plots is clicked set new_plot_cell, see overview_keys):
+        self.new_plot_cell = False
         #(whether Tab completion was used, after which the hints of the fields
         #no longer mention it, see _viewer_ui.field_hint):
         self.tab_used = False
@@ -678,14 +681,16 @@ class Viewer(_Reading):
         views), as (view key, Overview), with the keys overview:GROUP"""
         if not self.multi_overview:
             return []
-        return [ ( f'overview:{k}', ov ) for k, ov in self._groups.overviews() ]
+        return [ ( f'overview:{k}', ov ) for k, ov in self._groups.overviews(self.new_plot_cell) ]
 
     def overview_keys( self, key ):
         """The keys of the views of the plots of the cells of the overview with
-        the key (in the order of its panels, None for empty cells)"""
+        the key (in the order of its panels, None for empty cells, and
+        info:new for the place of a new plot, see new_plot_cell)"""
         ov = dict(self.overviews()).get(key)
         kind = 'custom' if key == f'overview:{custom_key}' else 'plot'
-        return [] if ov is None else [ None if p is None else f'{kind}:{p}' for p in ov.cells ]
+        return [] if ov is None else [ 'info:new' if k == 'new' else None if p is None
+                                       else f'{kind}:{p}' for p, k in zip(ov.cells,ov.kinds) ]
 
     def _reading_settings( self ):
         """What is read: the settings (see _Reading), with the plots of the
@@ -738,7 +743,7 @@ class Viewer(_Reading):
     def _overview_figure( self, key, ov ):
         """The figure of the overview (made again only when the figures or its
         plots changed, so the same figure is returned until then)"""
-        made_from = ( self._figures, tuple(ov.cells), ov.ncols )
+        made_from = ( self._figures, tuple(ov.cells), tuple(ov.kinds), ov.ncols )
         old = self._overviews.get(key)
         if old is None or old[0] != made_from:
             self._overviews[key] = old = ( made_from, overview_figure(self._figures,ov) )

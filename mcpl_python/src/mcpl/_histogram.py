@@ -281,8 +281,9 @@ class Histogram2D(_Plot):
     of the public API (it is not made directly)."""
     _panel_options = ( 'logz', )
     def __init__( self, xexpression, yexpression, xedges, yedges, *, weighted, title,
-                  xunit = None, yunit = None ):
+                  xunit = None, yunit = None, logx = False, logy = False ):
         super().__init__(weighted,title)
+        self.logx, self.logy = logx, logy#(logarithmic bins and axes)
         self.xexpression, self.yexpression = xexpression, yexpression
         self.xunit, self.yunit = xunit, yunit
         self.xnote, self.ynote = None, None
@@ -313,7 +314,7 @@ class Histogram2D(_Plot):
         p = Panel( title = self.title,
                    xlabel = _with_unit(self.xexpression,self.xunit,notes.get('x',self.xnote)),
                    ylabel = _with_unit(self.yexpression,self.yunit,notes.get('y',self.ynote)),
-                   aspect = self.aspect )
+                   aspect = self.aspect, logx = self.logx, logy = self.logy )
         p.add(Hist2D(self.xedges,self.yedges,self.contents,logz = logz))
         return p
 
@@ -592,7 +593,7 @@ def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
 
 def histogram2d( files, xexpression, yexpression, *, pick = None, bins = 'auto',
                  xrange = None, yrange = None, unweighted = False,
-                 _maxbins = None ):
+                 logx = False, logy = False, _maxbins = None ):
     """2D histogram of the values of two expressions (see histogram()) for the
     particles in one or more files, for instance:
 
@@ -604,12 +605,15 @@ def histogram2d( files, xexpression, yexpression, *, pick = None, bins = 'auto',
     is otherwise chosen from the effective number of entries N (the cube root
     of N per axis, between 10 and 400). The ranges of the axes can be
     given as tuples (low,high) with xrange and yrange, otherwise they cover
-    all values. The histogram contains the sum of weights in each bin, or the
-    number of particles if unweighted is True.
+    all values. The bins of the axes are logarithmic with logx and logy (or
+    with 'auto', if suitable for the values). The histogram contains the sum
+    of weights in each bin, or the number of particles if unweighted is
+    True.
     """
     o = _hist_defaults([ xexpression, yexpression ])
     o.update( bins = None if bins == 'auto' else bins, xrange = _as_range(xrange,'xrange'),
-              yrange = _as_range(yrange,'yrange'), unweighted = unweighted )
+              yrange = _as_range(yrange,'yrange'), unweighted = unweighted,
+              logx = logx, logy = logy )
     return _histogram(files,o,pick = pick,_maxbins = _maxbins)
 
 def _histogram( files, o, pick = None, _maxbins = None ):
@@ -642,7 +646,7 @@ def _filler_for( o, pick = None, labels = ( None, ), _maxbins = None ):
                              xrange = o['xrange'],yrange = o['yrange'],
                              unweighted = o['unweighted'],_maxbins = _maxbins,
                              logz = o['logz'] is not False,equal = o['equal'],
-                             only = o['only'])
+                             only = o['only'],logx = o['logx'],logy = o['logy'] or False)
     if o['bar'] is not False:
         return _BarFiller(o['exprs'][0],pick = pick,
                           limit = 10 if o['bar'] is True else o['bar'],
@@ -890,9 +894,13 @@ class _Hist2DFiller(_Filler):
     combined)"""
     def __init__( self, xexpression, yexpression, pick = None, bins = 'auto',
                   xrange = None, yrange = None, unweighted = False,
-                  _maxbins = None, logz = True, equal = False, only = None ):
+                  _maxbins = None, logz = True, equal = False, only = None,
+                  logx = False, logy = False ):
         super().__init__([ xexpression, yexpression ],pick,unweighted,( None, ),only)
         self._bins, self._maxbins, self._logz, self._equal = bins, _maxbins, logz, equal
+        #(logarithmic axes, or 'auto' to decide from the ranges, see _auto_logx):
+        self._log = [ logx, logy ]
+        self._positive = [ lg is True for lg in self._log ]
         if equal and self._vals[0].dim != self._vals[1].dim:
             raise MCPLError('Equal scales of the axes (the histogram option "equal")'
                             ' need expressions with the same units, not'
@@ -904,10 +912,17 @@ class _Hist2DFiller(_Filler):
             self._setup()
 
     def start_fill( self ):
-        self._ranges = [ r or self._found_range(i) for i, r in enumerate(self._ranges) ]
+        for i, r in enumerate(self._ranges):
+            if r is None and self._log[i] == 'auto':
+                self._log[i] = _auto_logx(*self._found_range(i,nice=False))
+        self._ranges = [ r or self._found_range(i,self._log[i])
+                         for i, r in enumerate(self._ranges) ]
         self._setup()
 
     def _setup( self ):
+        #(with given ranges, 'auto' is decided from them):
+        self._log = [ _auto_logx(*r) if lg == 'auto' else bool(lg)
+                      for lg, r in zip(self._log,self._ranges) ]
         bins = self._bins
         self._auto = ( isinstance(bins,str) and bins == 'auto' )
         if self._auto:
@@ -917,18 +932,24 @@ class _Hist2DFiller(_Filler):
             bx, by = bins if isinstance(bins,(tuple,list)) else ( bins, bins )
             bx, by = int(bx), int(by)
         self._bx, self._by = bx, by
-        self._xe, self._ye = ( _make_edges(r,n,False) for r, n in zip(self._ranges,(bx,by)) )
+        self._xe, self._ye = ( _make_edges(r,n,lg) for r, n, lg in
+                               zip(self._ranges,(bx,by),self._log) )
         #(the units of the axes, for expressions with units):
-        self._units = [ _plot_unit(v.dim,*r,False,v.wavelength) or ( None, 1.0 )
-                        for v, r in zip(self._vals,self._ranges) ]
+        self._units = [ _plot_unit(v.dim,*r,lg,v.wavelength) or ( None, 1.0 )
+                        for v, r, lg in zip(self._vals,self._ranges,self._log) ]
         self._contents = np.zeros((bx,by))
         self._sumw, self._sumw2 = 0.0, 0.0
 
     def add( self, flabel, b ):
         xe, ye = self._xe, self._ye
         ( x, y ), w, _ = self._values(b)
-        self._contents += np.histogram2d(x,y,bins=(xe,ye),weights=w)[0]
-        wi = w[ ( x >= xe[0] ) & ( x <= xe[-1] ) & ( y >= ye[0] ) & ( y <= ye[-1] ) ]
+        inside = ( x >= xe[0] ) & ( x <= xe[-1] ) & ( y >= ye[0] ) & ( y <= ye[-1] )
+        #(as np.histogram2d, but much faster, see _bin_index):
+        flat = ( _bin_index(x[inside],xe,self._log[0]) * self._by
+                 + _bin_index(y[inside],ye,self._log[1]) )
+        wi = w[inside]
+        self._contents += np.bincount(flat,weights=wi,
+                                      minlength=self._bx*self._by).reshape(self._bx,self._by)
         self._sumw += float(wi.sum())
         self._sumw2 += float((wi*wi).sum())
 
@@ -943,7 +964,7 @@ class _Hist2DFiller(_Filler):
         ( xunit, xscale ), ( yunit, yscale ) = self._units
         h = Histogram2D(self._vals[0].expression,self._vals[1].expression,xe/xscale,
                         ye/yscale,weighted=self._weighted,title=self._title,xunit=xunit,
-                        yunit=yunit)
+                        yunit=yunit,logx=self._log[0],logy=self._log[1])
         h.xnote, h.ynote = ( n.note() for n in self._notes )
         h._plot_notes['x'], h._plot_notes['y'] = ( n.note(True) for n in self._notes )
         h.contents += contents

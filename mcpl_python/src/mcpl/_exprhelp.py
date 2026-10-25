@@ -261,7 +261,7 @@ _hints = (
       'logarithmic binning and x axis (e.g. "ekin/MeV;logx", or logx=auto if suitable for the values)' ),
     ( 'histoptions', 'logy=1|0|auto',
       'logarithmic y axis',
-      'logarithmic y axis, or scale of the bars of bar charts (logy=auto if suitable for the values)' ),
+      'logarithmic y axis (and bins, of 2D histograms), or scale of bar charts (logy=auto if suitable)' ),
     ( 'histoptions', 'logz=1|0',
       'logarithmic colour scale',
       'logarithmic colour scale of 2D histograms (the default, logz=0 gives a linear scale)' ),

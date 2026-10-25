@@ -167,6 +167,9 @@ class TkViewer(WidgetViewer):
         fields = ttk.Frame(part)
         fields.pack(side='bottom',fill='x')
         self._plot_fields = fields#(not shown for views which are not plots)
+        #(the settings of overviews, shown instead of the fields, see
+        #show_overview_controls):
+        self._overview_controls = _OverviewControls(part,self.on_overview_control,'Plot')
         plot = tk.Frame(part,name='plotbox',background=bg)
         self._plotbox = plot
         plot.pack(fill='both',expand=True,pady=(0,4))
@@ -494,6 +497,15 @@ class TkViewer(WidgetViewer):
 
     def show_controls( self, controls ):
         self._controls.show(controls)
+
+    def show_overview_controls( self, controls ):
+        frame = self._overview_controls.frame
+        if controls is None:
+            frame.pack_forget()
+            return
+        if not frame.winfo_manager():
+            frame.pack(side='bottom',fill='x',pady=(0,4),before=self._plotbox)
+        self._overview_controls.show(controls)
 
     def show_check( self, field, ok ):
         if field in ( 'plot', 'collection' ):#(no marks)
@@ -1007,6 +1019,55 @@ class _Controls:
     def values( self ):
         """The shown texts of the settings, as (option, text)"""
         return [ ( n, w.get() ) for n, w in self._widgets.items() ]
+
+class _OverviewControls:
+    """The settings of an overview (see WidgetViewer.overview_controls): a menu,
+    or toggle buttons (for the variables), for each, in a row, which call
+    on_change(name, shown text) when changed (for toggles, the text of the
+    toggle). The row is made again when the choices change. The style is
+    that of the labels and the frame (see _Controls)."""
+    def __init__( self, parent, on_change, style ):
+        _, ttk = tk_modules()
+        self.frame = ttk.Frame(parent,style=f'{style}.TFrame')
+        self._label = { 'style' : f'{style}.TLabel' }
+        self._on_change = on_change
+        self._made, self._widgets = None, {}
+
+    def show( self, controls ):
+        tk, ttk = tk_modules()
+        made = [ ( name, tuple(texts) ) for name, _, texts, _ in controls ]
+        if made != self._made:
+            for w in self.frame.winfo_children():
+                w.destroy()
+            self._made, self._widgets = made, {}
+            ttk.Label(self.frame,text='Settings:',**_row_label,**self._label).pack(side='left',
+                                                                                 padx=(0,4))
+            for i, ( name, label, texts, _ ) in enumerate(controls):
+                ttk.Label(self.frame,text=f'{label}:',**self._label).pack(side='left',
+                                                                     padx=(0 if i == 0 else 12,3))
+                if name == 'variables':
+                    toggles = {}
+                    for t in texts:
+                        var = tk.BooleanVar(self.frame,value=False)
+                        ttk.Checkbutton(self.frame,text=t,variable=var,takefocus=0,
+                                        style='Choice.Toolbutton',
+                                        command=lambda n=name, t=t : self._on_change(n,t)
+                                        ).pack(side='left',padx=(0,2))
+                        toggles[t] = var
+                    self._widgets[name] = toggles
+                else:
+                    w = ttk.Combobox(self.frame,values=texts,state='readonly',
+                                     width=max( len(t) for t in texts ) + 1)
+                    w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._on_change(n,w.get()))
+                    w.pack(side='left')
+                    self._widgets[name] = w
+        for name, _, _, shown in controls:
+            w = self._widgets[name]
+            if isinstance(w,dict):#(toggles, on if shown)
+                for t, var in w.items():
+                    var.set(t in shown)
+            else:
+                w.set(shown)
 
 def _has_xft( root ):
     """Whether Tk uses Xft for its fonts, or None if not known: as Tk says

@@ -223,5 +223,30 @@ click_slot(inactive)
 print('after clicking the inactive group', repr(inactive[3].name), ':', v.current_key,
       '| folded:', sorted(tv.folded_groups()))
 
+#The settings of overviews, shown instead of the fields of plots: a menu of
+#the particle types, and the toggles of the variables of corner plots:
+def overview_settings():
+    oc = tv._overview_controls
+    return { 'shown' : bool(oc.frame.winfo_ismapped()),
+             'plot fields shown' : bool(tv._plot_fields.winfo_ismapped()),
+             **{ name : ( w.get() if not isinstance(w,dict)
+                          else [ t for t, var in w.items() if var.get() ] )
+                 for name, w in oc._widgets.items() } }
+tv.on_select_key('overview:correlations')
+wait()
+print('settings of the correlations:', overview_settings())
+toggles = [ c for c in tv._overview_controls.frame.winfo_children()
+            if str(c.cget('style')) == 'Choice.Toolbutton' ]
+next( c for c in toggles if text(c) == 'ux' ).invoke()
+menu = tv._overview_controls._widgets['particle']
+menu.set(menu.cget('values')[0])
+menu.event_generate('<<ComboboxSelected>>')
+wait()
+print('after turning ux off and choosing all:', overview_settings(),
+      v.group_settings('correlations')[0][1])
+tv.on_select_key('plot:x')
+pump()
+print('with a plot shown:', overview_settings()['shown'], overview_settings()['plot fields shown'])
+
 tv.close_window()
 print('closed:', tv.closed)

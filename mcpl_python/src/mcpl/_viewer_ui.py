@@ -563,6 +563,22 @@ cache_about = ( 'The viewer keeps the particles it reads in memory (the cache), 
 
 #Shown instead of the plot while a new plot is made (in the viewers with
 #windows, see WidgetViewer.on_new_plot):
+#The settings of the overviews of the standard groups (see
+#WidgetViewer.overview_controls), as name -> label:
+overview_controls = { 'particle' : 'Particle type', 'variables' : 'Variables' }
+
+def particle_type_text( name, fraction ):
+    """The text of a particle type (its name, or None for all) in the menu of
+    the settings of overviews, with its share of the weights"""
+    if name is None:
+        return 'all'
+    return f'{name} ({100*fraction:.0f}%)' if fraction >= 0.01 else f'{name} (<1%)'
+
+def variable_text( expr, constant ):
+    """The text of a variable of a corner plot, with its value if all
+    particles have it (e.g. "z: all 20 cm")"""
+    return expr if constant is None else f'{expr}: all {constant}'
+
 new_plot_hints = """New plot: choose or type what to plot below, and press Enter
 
 \u2022  Choose a quantity in the list of an axis, or type any expression

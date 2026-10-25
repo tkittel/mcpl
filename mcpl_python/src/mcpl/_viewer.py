@@ -101,7 +101,7 @@ class Viewer(_Reading):
         self._seen_gen = 0#(the last reading which is done)
         #(the figures of the last reading which was done, for its particles,
         #which are kept for plots which do not change, see _read):
-        self._done = None#(particles key, {view key: figure}, constants, counts)
+        self._done = None#(particles key, {view key: figure}, found, counts)
         #(the last change of toggle_scale, which the same key undoes: the
         #option, the plot after the change, and before):
         self._scale_undo = None
@@ -143,6 +143,52 @@ class Viewer(_Reading):
     def _sync( self ):
         """The plots of the settings (shown as views) from the groups"""
         self._s.plots = [ p for p, _, _ in self._groups.cards() ]
+
+    def _on_found( self, found ):
+        """After a reading: the defaults of the settings of the groups depend on
+        what it found (see PlotGroups.setting), so their plots are read if
+        they changed"""
+        if found == self._groups.found:
+            return
+        before = self._reading_settings().plots
+        with self._lock:
+            self._groups.found = found
+            self._sync()
+        if self._reading_settings().plots != before:
+            self._restart()
+
+    #The settings of the groups of plots (see PlotGroups.setting):
+
+    @property
+    def found( self ):
+        """What the last reading found: the fields where all particles have the
+        same value (with the value as a text, see constants), and the particle
+        types, as (pdgcode, sum of weights), the largest first"""
+        return self._groups.found
+
+    def group_setting( self, key, name ):
+        """The value of the setting of the standard group with the key"""
+        return self._groups.setting(key,name)
+
+    def group_settings( self, key ):
+        """The names of the settings of the group (with the key), with their
+        possible values, as (name, value, choices)"""
+        g = self._groups
+        return [ ( n, g.setting(key,n), g.setting_choices(key,n) ) for n in g.setting_names(key) ]
+
+    def set_group_setting( self, key, name, value ):
+        """Set the setting of the standard group with the key (the particle type
+        as a PDG code or None for all, or the variables of a corner plot as a
+        list of expressions, or None for the default): whether it changed"""
+        if name == 'variables' and value is not None and len(value) < 2:
+            raise MCPLError('The correlations plot needs at least two variables')
+        with self._lock:
+            changed = self._groups.set_setting(key,name,value)
+            if changed:
+                self._sync()
+        if changed:
+            self._restart()
+        return changed
 
     def _userdata_items( self ):
         """Plots of the fields of the userdata (of each value, for arrays)"""
@@ -810,6 +856,9 @@ class Viewer(_Reading):
             p = self._same_plot(p,self._groups.custom)
             if self._groups.is_custom(p):
                 self._groups.set_title(p,title)
+        for k, settings in state.get('settings',{}).items():
+            for name, value in settings.items():
+                self._groups.set_setting(k,name,value)
         self._sync()
         self._current = None
 
@@ -1003,7 +1052,7 @@ def _free_filename( filename, suffix, ext, *other_exts ):
         i += 1
 
 #The entries of the state (see Viewer.state), and of its changes of the plots:
-_state_keys = ( 'skip', 'limit', 'pick', 'edit', 'groups', 'custom', 'view' )
+_state_keys = ( 'skip', 'limit', 'pick', 'edit', 'groups', 'custom', 'settings', 'view' )
 
 def _as_state( view ):
     """The state given as the view argument of the viewer (a dict, its JSON
@@ -1049,6 +1098,12 @@ def _as_state( view ):
           or ( isinstance(groups,list) and all( g in _groups for g in groups ) ),
           f'groups must be the name of a preset ({", ".join(_presets)}) or a list of the'
           f' groups of plots ({", ".join(_groups)})')
+    settings = state.get('settings',{})
+    check(isinstance(settings,dict) and all( k in _groups and isinstance(v,dict)
+                                             and set(v) <= { 'particle', 'variables' }
+                                             for k, v in settings.items() ),
+          'settings must give the settings of groups, like {"correlations": {"particle":'
+          ' 2112}}')
     custom = state.get('custom',[])
     check(isinstance(custom,list),'custom must be a list of plots')
     for item in custom:

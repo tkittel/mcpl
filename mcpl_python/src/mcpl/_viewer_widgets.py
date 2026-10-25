@@ -183,6 +183,10 @@ class WidgetViewer:
         (if controls is None)"""
         raise NotImplementedError
 
+    def show_overview_controls( self, controls ):
+        """Show the settings of the shown overview (see overview_controls), or
+        none (if controls is None)"""
+
     def show_title( self, filename ):
         """Show the name of the file (e.g. in the title of the window)"""
 
@@ -438,6 +442,57 @@ class WidgetViewer:
             #(an empty number of bars is the default number):
             value = text or ( True if name == 'bar' else None )
         return _hist_set_option(plot,name,value)
+
+    def overview_controls( self ):
+        """The settings of the shown overview, if it is that of a standard group
+        (else None), as a list of (name, label, choices, shown): for a menu
+        (the particle type), the texts of its choices and the chosen one, and
+        for toggles (the variables of corner plots), the texts of the toggles
+        and those which are on"""
+        from ._particles import _particle_text
+        key = self._shown_group()
+        if key is None or not self.v.group_settings(key):#(e.g. of custom plots)
+            return None
+        found = self.v.found
+        total = sum( w for _, w in found['types'] ) or 1.0
+        weights = dict(found['types'])
+        res = []
+        for name, value, choices in self.v.group_settings(key):
+            if name == 'particle':
+                texts = [ ui.particle_type_text(None if c is None else _particle_text(c),
+                                                weights.get(c,0.0) / total ) for c in choices ]
+                shown = texts[choices.index(value)] if value in choices else str(value)
+            else:
+                texts = [ ui.variable_text(c,found['constants'].get(c)) for c in choices ]
+                shown = [ t for t, c in zip(texts,choices) if c in value ]
+            res.append( ( name, ui.overview_controls[name], texts, shown ) )
+        return res
+
+    def on_overview_control( self, name, shown ):
+        """A setting of the shown overview was changed: the particle type (to
+        the shown text of the menu), or a variable (the text of its toggle) was
+        turned on or off"""
+        key = self._shown_group()
+        if key is None:
+            return
+        controls = { n : ( texts, now ) for n, _, texts, now in self.overview_controls() }
+        texts, now = controls[name]
+        choices = { n : c for n, _, c in self.v.group_settings(key) }[name]
+        if name == 'particle':
+            value = choices[texts.index(shown)]
+        else:
+            on = set(now) ^ { shown }
+            value = [ c for t, c in zip(texts,choices) if t in on ]
+        try:
+            self.v.set_group_setting(key,name,value)
+        except MCPLError as e:
+            self.show_line(str(e),'error')
+        self.refresh()
+
+    def _shown_group( self ):
+        """The key of the group whose overview is shown, if any"""
+        key = None if self._new_plot is not None else self.v.current_key
+        return key[9:] if ( key or '' ).startswith('overview:') else None
 
     def on_control( self, name, shown ):
         """A setting of the shown plot was changed (to the shown text)"""
@@ -863,6 +918,7 @@ class WidgetViewer:
             self.show_plot_field(shown,v.plot_info(self._shown_key())['title'] if shown else None,
                                  self.axis_texts())
         self.show_controls(self.plot_controls())
+        self.show_overview_controls(self.overview_controls())
         self.show_enabled('write',self.v.changes_particles)
         if plot and self._new_plot is not None:
             self.pane.clear()

@@ -5,10 +5,10 @@
    field pick: ''
    field edit: ''
    field plot: ''
-   views: 50 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
-   compact cards: ['Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
+   compact cards: ['Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 37
+   thumbnails: 44
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 1,006 particles, Σw = 1,006
    shown plot field: (None, None, ('', '', ''))
@@ -25,10 +25,10 @@
    check of pick: None
    field pick: 'pdgcode == neutron'
    line (normal): 
-   views: 50 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', '', ''))
@@ -57,10 +57,10 @@
    check of collection: None
    field collection: 'beamz'
    line (normal): 
-   views: 47 views, shown: 'Beam along z' (None, group Beam along z, badges ['overview · 12 plots'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Weight: all 1', 'Overview: click to activate', 'Fields: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 48 views, shown: 'Beam along z' (None, group Beam along z, badges ['overview · 12 plots'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Overview: click to activate', 'Fields: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 37
+   thumbnails: 39
    kinds of cards: ['s--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', '', ''))
@@ -70,10 +70,10 @@
    check of collection: None
    field collection: 'default'
    line (normal): 
-   views: 50 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', '', ''))
@@ -84,10 +84,10 @@
    check of plot: None
    field plot: ''
    line (normal): 
-   views: 52 views, shown: 'hypot(x,y)/cm' (hypot(x,y)/cm;logy, group Custom, badges ['log y'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 58 views, shown: 'hypot(x,y)/cm' (hypot(x,y)/cm;logy, group Custom, badges ['log y'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 38
+   thumbnails: 45
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/cm;logy', None, ('hypot(x,y)/cm', '', ''))
@@ -99,10 +99,10 @@
    line (dim): Enter: remove this plot   Esc: cancel
    check of shown_plot: None
    line (normal): 
-   views: 52 views, shown: 'hypot(x,y)/mm' (hypot(x,y)/mm;logy, group Custom, badges ['log y'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 58 views, shown: 'hypot(x,y)/mm' (hypot(x,y)/mm;logy, group Custom, badges ['log y'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 38
+   thumbnails: 45
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/mm;logy', None, ('hypot(x,y)/mm', '', ''))
@@ -111,107 +111,107 @@
    plot: 1 axes
    check of shown_plot: None
    line (normal): 
-   views: 50 views, shown: 'Weight' (weight, group Correlations, badges [])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'Time' (time;logx=auto, group Correlations, badges ['log x'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('weight', None, ('weight', '', ''))
-   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
+   shown plot field: ('time;logx=auto', None, ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
    plot: 1 axes
 ==> keys outside the fields
   key Down:
-   views: 50 views, shown: 'Weight' (weight, group Correlations, badges [])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'Time' (time;logx=auto, group Correlations, badges ['log x'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('weight', None, ('weight', '', ''))
-   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
+   shown plot field: ('time;logx=auto', None, ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
    plot: 1 axes
   key MoveDown:
-   views: 50 views, shown: 'Weight' (weight, group Correlations, badges [])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'Time' (time;logx=auto, group Correlations, badges ['log x'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('weight', None, ('weight', '', ''))
-   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
+   shown plot field: ('time;logx=auto', None, ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
    plot: 1 axes
   key Up:
-   views: 50 views, shown: 'log10(ekin/eV) : weight' (log10(ekin/eV) : weight, group Correlations, badges ['2D'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight', ''))
+   shown plot field: ('ekin : time;logx=auto;logy=auto', 'ekin : time', ('ekin', 'time', ''))
    settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key P:
    focus: pick
-   views: 50 views, shown: 'log10(ekin/eV) : weight' (log10(ekin/eV) : weight, group Correlations, badges ['2D'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight', ''))
+   shown plot field: ('ekin : time;logx=auto;logy=auto', 'ekin : time', ('ekin', 'time', ''))
    settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key Enter:
    focus: shown_plot
-   views: 50 views, shown: 'log10(ekin/eV) : weight' (log10(ekin/eV) : weight, group Correlations, badges ['2D'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight', ''))
+   shown plot field: ('ekin : time;logx=auto;logy=auto', 'ekin : time', ('ekin', 'time', ''))
    settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key w:
    asked for a file to write, suggested: example_selected.mcpl.gz
-   views: 50 views, shown: 'log10(ekin/eV) : weight' (log10(ekin/eV) : weight, group Correlations, badges ['2D'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight', ''))
+   shown plot field: ('ekin : time;logx=auto;logy=auto', 'ekin : time', ('ekin', 'time', ''))
    settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key v:
    asked for a file to state, suggested: example_viewer.json
-   views: 50 views, shown: 'log10(ekin/eV) : weight' (log10(ekin/eV) : weight, group Correlations, badges ['2D'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight', ''))
+   shown plot field: ('ekin : time;logx=auto;logy=auto', 'ekin : time', ('ekin', 'time', ''))
    settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
   key ?:
    help shown: 44 lines
-   views: 50 views, shown: 'log10(ekin/eV) : weight' (log10(ekin/eV) : weight, group Correlations, badges ['2D'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('log10(ekin/eV) : weight', None, ('log10(ekin/eV)', 'weight', ''))
+   shown plot field: ('ekin : time;logx=auto;logy=auto', 'ekin : time', ('ekin', 'time', ''))
    settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': ''})
    bins used: 10,10
    plot: 2 axes
@@ -220,20 +220,20 @@
    line (error): Not written: The file example_selected.mcpl.gz already exists
    written: ['example_selected.mcpl.gz']
 ==> a click on a plot of the overview shows it on its own
-   views: 50 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', '', ''))
    settings: None
    bins used: None
    plot: 7 axes
-   views: 50 views, shown: 'Angle to z axis' (angle(dir,(0,0,1))/deg;logy;split=pdgcode, group Overview, badges ['log y', 'by particle'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 56 views, shown: 'Angle to z axis' (angle(dir,(0,0,1))/deg;logy;split=pdgcode, group Overview, badges ['log y', 'by particle'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 36
+   thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'Angle to z axis', ('angle(dir,(0,0,1))/deg', '', ''))
@@ -246,10 +246,10 @@
    line (normal): 
    dragged: ['uz;bins=10', 'hypot(x,y)/cm']
    line (error): Only the custom plots are reordered
-   views: 53 views, shown: 'Position x' (x, group Fields, badges [])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 59 views, shown: 'Position x' (x, group Fields, badges [])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 39
+   thumbnails: 46
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('x', None, ('x', '', ''))
@@ -270,10 +270,10 @@
    line (normal): 
   logx set to 'nonsense':
    line (error): Histogram option "logx" must be 1, 0 or auto (not "nonsense"), in "x;bins=40;logx=nonsense"
-   views: 54 views, shown: 'Position x' (x;bins=40, group Custom, badges [])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 60 views, shown: 'Position x' (x;bins=40, group Custom, badges [])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 40
+   thumbnails: 47
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('x;bins=40', None, ('x', '', ''))
@@ -312,10 +312,10 @@
    line (normal): 
    added: True
    3D: x : y : z
-   views: 56 views, shown: 'Arrival time' (time;logx=auto, group Custom, badges ['log x'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 62 views, shown: 'Arrival time' (time;logx=auto, group Custom, badges ['log x'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 42
+   thumbnails: 49
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('time;logx=auto', 'Arrival time', ('time', '', ''))
@@ -324,10 +324,10 @@
    plot: 1 axes
    line (normal): 
    added again, with another title: True
-   views: 56 views, shown: 'Arrival time' (time;logx=auto, group Custom, badges ['log x'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 62 views, shown: 'Arrival time' (time;logx=auto, group Custom, badges ['log x'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 42
+   thumbnails: 49
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('time;logx=auto', 'Arrival time', ('time', '', ''))
@@ -344,7 +344,7 @@
    line (error): Choose or type what to plot on the X axis
   '', 'time : ekin', '': False custom:ekin;logx=auto ('ekin', '', '')
    line (normal): 
-  'x', 'y', '': True custom:x : y ('x', 'y', '')
+  'x', 'y', '': True custom:x : y;logx=auto ('x', 'y', '')
    line (normal): 
   'x', 'y', 'z': True custom:x : y : z ('x', 'y', 'z')
    line (error): Choose the Y axis too for a 3D plot (or empty the Z axis)
@@ -359,23 +359,23 @@
    line (error): Each axis has one expression: use the fields of the Y and Z axes for 2D histograms and 3D plots (or "Advanced" for the plot expression)
    check of axes: False
    line (error): Choose the Y axis too for a 3D plot (or empty the Z axis)
-   views: 55 views, shown: 'Position x-y (??)' (x, group Custom, badges [])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 62 views, shown: 'Arrival time (??)' (x, group Custom, badges [])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 41
+   thumbnails: 49
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('x', 'Position x-y (??)', ('x', '', ''))
+   shown plot field: ('x', 'Arrival time (??)', ('x', '', ''))
    settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
    plot: 1 axes
 ==> a new plot: shown as a card until its axes are chosen, or given up
    focus: x_axis
    line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
-   views: 56 views, shown: 'New plot' (None, group Custom, badges ['choose what to plot'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 63 views, shown: 'New plot' (None, group Custom, badges ['choose what to plot'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 41
+   thumbnails: 49
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('', '', ('', '', ''))
@@ -386,10 +386,10 @@
    line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots), and press Enter
    line (normal): 
    added: True
-   views: 55 views, shown: 'Radius' (hypot(x,y)/cm, group Custom, badges [])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 62 views, shown: 'Radius' (hypot(x,y)/cm, group Custom, badges [])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 41
+   thumbnails: 49
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/cm', 'Radius', ('hypot(x,y)/cm', '', ''))
@@ -398,10 +398,10 @@
    plot: 1 axes
    focus: x_axis
    line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
-   given up when another view is shown: plot:ekin;logx=auto;logy;split=pdgcode 55
+   given up when another view is shown: plot:ekin;logx=auto;logy;split=pdgcode 62
    focus: x_axis
    line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
-   given up when removed: plot:ekin;logx=auto;logy;split=pdgcode 55
+   given up when removed: plot:ekin;logx=auto;logy;split=pdgcode 62
    focus: x_axis
    line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
    line (normal): 
@@ -414,10 +414,10 @@
    check of pick: None
    field pick: ''
    line (normal): 
-   views: 56 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
-   compact cards: ['Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 63 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
+   compact cards: ['Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 43
+   thumbnails: 51
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 1,006 particles, Σw = 1,006
    shown plot field: (None, None, ('', '', ''))
@@ -430,10 +430,10 @@
    check of pick: None
    field pick: 'pdgcode == neutron'
    line (normal): 
-   views: 56 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 63 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 42
+   thumbnails: 50
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', '', ''))
@@ -448,10 +448,10 @@
    field plot: ''
    line (normal): 
    opened: True
-   views: 56 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 63 views, shown: 'Overview' (None, group Overview, badges ['overview · 6 plots'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 42
+   thumbnails: 50
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: other.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: (None, None, ('', '', ''))
@@ -464,25 +464,25 @@
 ==> removing plots, with Delete (only custom ones)
    line (error): The plots of the standard groups are not removed (the groups are shown or hidden as a whole, see the groups of plots)
    line (normal): Removed the plot "Direction z"
-   views: 55 views, shown: 'Weight' (weight, group Correlations, badges [])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Weight: all 1', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
+   views: 62 views, shown: 'Time' (time;logx=auto, group Correlations, badges ['log x'])
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
-   thumbnails: 41
+   thumbnails: 49
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: other.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('weight', None, ('weight', '', ''))
-   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
+   shown plot field: ('time;logx=auto', None, ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': ''})
    bins used: 27
    plot: 1 axes
 ==> the groups: an overview of each, which hides it with Delete, and shown again
-   [('overview:overview', 'Overview', 6, '2x3'), ('overview:fields', 'Fields', 13, '3x5'), ('overview:correlations', 'Correlations', 28, '7x7'), ('overview:custom', 'Custom', 4, '2x3')]
-   folded: ['Fields', 'Overview'] | shown: plot:weight
+   [('overview:overview', 'Overview', 6, '2x3'), ('overview:fields', 'Fields', 13, '3x5'), ('overview:correlations', 'Correlations', 28, '7x7'), ('overview:custom', 'Custom', 5, '2x3')]
+   folded: ['Fields', 'Overview'] | shown: plot:time;logx=auto
    after clicking the header of Correlations: overview:correlations ['Fields', 'Overview']
    with a plot of Fields shown: ['Correlations', 'Overview']
    inactive groups: [('info:group:beamz', 'Beam along z', 'click to activate'), ('info:group:beamx', 'Beam along x', 'click to activate'), ('info:group:beamy', 'Beam along y', 'click to activate'), ('info:group:shielding', 'Shielding', 'click to activate'), ('info:group:3d', '3D', 'click to activate')]
-   code of the shown overview: 28 plots
+   code of the shown overview: 49 plots
    line (normal): Deactivated: the group Correlations
-   after Delete: ['overview', 'fields'] overview:overview | state: {'groups': ['overview', 'fields'], 'custom': [{'title': 'Radius', 'plot': 'hypot(x,y)/cm'}, 'x;bins=40', {'title': 'Position x-y (??)', 'plot': 'x'}, 'uz;bins=20']}
+   after Delete: ['overview', 'fields'] overview:overview | state: {'groups': ['overview', 'fields'], 'custom': [{'title': 'Radius', 'plot': 'hypot(x,y)/cm'}, 'x;bins=40', {'title': 'Position x-y', 'plot': 'x : y'}, {'title': 'Arrival time (??)', 'plot': 'x'}, 'uz;bins=20']}
    line (normal): Activated: the group Correlations
    shown again: ['overview', 'fields', 'correlations'] overview:correlations
    line (normal): Activated: the group 3D
@@ -492,6 +492,23 @@
    order of the groups: ['Overview', 'Fields', 'Beam along z', '3D', 'Correlations', 'Custom', 'Inactive plot groups']
    line (error): The custom plots are removed one by one
    the custom group is not hidden: overview:custom
+==> the settings of overviews: the particle type, and the variables of corner plots
+   check of pick: None
+   field pick: ''
+   line (normal): 
+   of the overview: [('particle', 'Particle type', ['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)'], 'all')]
+   of the correlations: [('particle', 'Particle type', ['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)'], 'neutron (72%)'), ('variables', 'Variables', ['x', 'y', 'z: all 20 cm', 'ux', 'uy', 'uz', 'ekin', 'time', 'weight: all 1'], ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time'])]
+   variables: ['x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin'] 7x7 ['x;logx=auto;only=pdgcode == neutron', 'x : y;logx=auto;logy=auto;only=pdgcode == neutron'] ['plot', 'r']
+   line (error): The correlations plot needs at least two variables
+   title: Correlations plots: the correlations of the positions, directions, energy and weight, as a corner plot (only: pdgcode == gamma)
+   cells: ['StepHist', 'Correlation', 'Hist2D', 'StepHist'] ['+0.17']
+   state: {'correlations': {'variables': ['uz', 'ekin'], 'particle': 22}}
+   restored: [('particle', 22, [None]), ('variables', ['uz', 'ekin'], ['x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin', 'time', 'weight'])]
+   back to the default variables: True ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time']
+   coefficient of [[1, 0], [0, 1]] : 1.0
+   coefficient of [[0, 2], [3, 0]] : -1.0
+   coefficient of [[1, 1], [1, 1]] : 0.0
+   coefficient of [[0, 0], [0, 0]] : None
 ==> the buttons of the actions, and quit
    help shown: 44 lines
    window closed

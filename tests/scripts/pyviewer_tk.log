@@ -45,4 +45,7 @@ with 500 MB:
    write button: New MCPL file (544 particles)...
    shown: plot:ekin;logx=auto;logy;split=pdgcode
 after clicking the inactive group 'Beam along z' : overview:beamz | folded: ['3D', 'Correlations', 'Fields', 'Overview']
+settings of the correlations: {'shown': True, 'plot fields shown': False, 'particle': 'neutron (86%)', 'variables': ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time']}
+after turning ux off and choosing all: {'shown': True, 'plot fields shown': False, 'particle': 'all', 'variables': ['x', 'y', 'uy', 'uz', 'ekin', 'time']} None
+with a plot shown: False True
 closed: True

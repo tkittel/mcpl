@@ -356,6 +356,10 @@ mcpltool -H time/ms;logx=1;logy=1;unweighted=1 -B test example.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='time/ms' ylabel='particles per bin' logx logy xlim=[7.01658e-07,0.00166018]
    |     StepHist label=None color=0 bins=30 edges=[7.01658e-07,0.00166018] sum=1006 max=247 nonzero_bins=29
+mcpltool -H ekin/MeV : time/ms;logx=1;logy=auto -B test example.mcpl: exit code 0
+   | Figure 1 (1x1): None
+   |   Panel None xlabel='ekin/MeV' ylabel='time/ms' logx logy
+   |     Hist2D shape=(10, 10) x=[0.00139345,9724.96] y=[7.01658e-07,0.00166018] sum=1006 logz=True
 mcpltool -H ekin/MeV;split=pdgcode;range=0:10;bins=2;print=1 -p x > 1km example.mcpl: exit code 0
    | # histogram of: ekin/MeV
    | # pick: x > 1km
@@ -435,8 +439,8 @@ mcpltool -H x/cm : y/cm;range=1:2 example.mcpl: exit code 1
    | ERROR: Histogram option "range" can only be used for 1D histograms (use xrange and yrange), in "x/cm : y/cm;range=1:2"
    | 
    | Run with "-H help" for how to write histograms
-mcpltool -H x/cm : y/cm;logx=1 example.mcpl: exit code 1
-   | ERROR: Histogram option "logx" can not be used for 2D histograms, in "x/cm : y/cm;logx=1"
+mcpltool -H x/cm : y/cm;logx=1;equal example.mcpl: exit code 1
+   | ERROR: Histogram option "equal" (equal scales of the axes) can not be used with logarithmic axes, in "x/cm : y/cm;logx=1;equal"
    | 
    | Run with "-H help" for how to write histograms
 mcpltool -H x/cm : y/cm : z/cm example.mcpl: exit code 0

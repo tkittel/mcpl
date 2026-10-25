@@ -29,7 +29,7 @@ from typing import ClassVar
 from ._common import _determine_version
 from ._numpy import np
 from ._plotbackend import PlotBackend, numbered_filenames
-from .plotting import Bars, Hist2D, Scatter3D, StepHist, Text, _line_style
+from .plotting import Bars, Correlation, Hist2D, Scatter3D, StepHist, Text, _line_style
 
 
 class Backend(PlotBackend):
@@ -230,6 +230,8 @@ class Backend(PlotBackend):
             elif isinstance(item,Text):
                 ax.text(0.5,0.5,item.text,ha='center',va='center',
                         transform=ax.transAxes)
+            elif isinstance(item,Correlation):
+                _draw_correlation(ax,item)
         if panel.logx:
             ax.set_xscale('log')
         if panel.logy:
@@ -251,21 +253,50 @@ class Backend(PlotBackend):
         if has_legend and not compact:
             #(with larger points in the legend than in 3D plots):
             ax.legend(fontsize='small',markerscale=4 if hasattr(ax,'set_zlabel') else 1)
-        ax.grid(alpha=0.3)
+        if not getattr(ax,'_mcpl_no_grid',False):
+            ax.grid(alpha=0.3)
+
+def _draw_correlation( ax, item ):
+    """Draw the correlation coefficient on the axes, which are only its cell"""
+    import matplotlib
+    if item.value is not None:
+        #(tinted from white, towards blue or red with the size of the value):
+        rgb = matplotlib.colormaps['coolwarm'](0.5 + 0.5 * item.value)
+        ax.set_facecolor(rgb)
+        ax.text(0.5,0.5,item.text,ha='center',va='center',transform=ax.transAxes,
+                fontsize='large',fontweight='bold' if abs(item.value) >= 0.5 else 'normal')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax._mcpl_no_grid = True#(see _draw_panel)
+
+def _inner_decades( lo, hi, n = 2 ):
+    """At most n powers of 10 (every k-th) between lo and hi (lo > 0), away
+    from the ends (as MaxNLocator with prune for linear axes)"""
+    import math
+    a, b = math.log10(lo), math.log10(hi)
+    margin = 0.1 * ( b - a )
+    decades = list(range( math.ceil( a + margin ), math.floor( b - margin ) + 1 ))
+    step = max( 1, math.ceil( len(decades) / n ) )
+    return [ 10.0**d for d in decades[::step] ]
 
 def _corner_axes( axlist, nrows, ncols ):
-    """The axes of a corner plot (see _viewer_overviews.pair_cells): the labels
+    """The axes of a corner plot (see _viewer_overviews.corner_cells): the labels
     of the x axes only in the bottom row, and of the y axes only in the left
     column, with the histograms on the diagonal without their y axes (the x
     axes of each column are those of the same expression)"""
     import matplotlib.ticker
     for i, ax in enumerate(axlist[:nrows*ncols]):
         r, c = divmod(i,ncols)
+        if getattr(ax,'_mcpl_no_grid',False):
+            continue#(the cells of correlation coefficients, without axes)
         #(without the ticks at the ends, whose labels would meet those of the
         #neighbouring plots):
-        for axis in ( ax.xaxis, ax.yaxis ):
+        for axis, lim in ( ( ax.xaxis, ax.get_xlim() ), ( ax.yaxis, ax.get_ylim() ) ):
             if axis.get_scale() == 'linear':
-                axis.set_major_locator(matplotlib.ticker.MaxNLocator(4,prune='both'))
+                axis.set_major_locator(matplotlib.ticker.MaxNLocator(3,prune='both'))
+            else:
+                axis.set_major_locator(matplotlib.ticker.FixedLocator(_inner_decades(*lim)))
+                axis.set_minor_locator(matplotlib.ticker.NullLocator())
         if r < nrows - 1:
             ax.set_xlabel('')
             ax.tick_params(labelbottom=False)

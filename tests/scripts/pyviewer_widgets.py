@@ -33,7 +33,10 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from mcpldev import _viewer_ui as ui
 from mcpldev._viewer import Viewer
+from mcpldev._viewer_overviews import correlation
 from mcpldev._viewer_widgets import WidgetViewer
+from mcpldev.plotting import Figure as PlotFigure
+from mcpldev.plotting import Hist2D, Panel
 from MCPLTestUtils.dirs import test_data_dir
 
 shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
@@ -289,6 +292,36 @@ print('   order of the groups:', list(dict.fromkeys( c.group for c in t.cards() 
 t.on_select_key('overview:custom')
 t.on_key('Delete')
 print('   the custom group is not hidden:', t.shown_key)
+step('the settings of overviews: the particle type, and the variables of corner plots')
+t.on_field_apply('pick','')
+v.wait()
+t.on_select_key('overview:overview')
+print('   of the overview:', t.overview_controls())
+t.on_select_key('overview:correlations')
+print('   of the correlations:', t.overview_controls())
+for var in ( 'time', 'z: all 20 cm' ):#(off, and a constant one on)
+    t.on_overview_control('variables',var)
+ov = dict(v.overviews())['overview:correlations']
+print('   variables:', ov.variables, f'{ov.nrows}x{ov.ncols}', ov.cells[:2], ov.kinds[:2])
+for var in ( 'x', 'y', 'z: all 20 cm', 'ux', 'uy', 'uz' ):#(until fewer than two are left)
+    t.on_overview_control('variables',var)
+t.on_overview_control('particle','gamma (24%)')
+v.wait()
+fig = v.figure(key='overview:correlations')
+print('   title:', fig.title)
+print('   cells:', [ type(p.items[0]).__name__ for p in fig.panels ],
+      [ p.items[0].text for p in fig.panels if hasattr(p.items[0],'value') ])
+state = v.state(full = False)
+print('   state:', state['settings'])
+print('   restored:', Viewer('example.mcpl',view=state).group_settings('correlations'))
+t.on_overview_control('variables','x')
+print('   back to the default variables:', v.set_group_setting('correlations','variables',None),
+      v.group_setting('correlations','variables'))
+#(the coefficients of 2D histograms: of values along a line, either way, and
+#of values in a square):
+for values in ( [[1,0],[0,1]], [[0,2],[3,0]], [[1,1],[1,1]], [[0,0],[0,0]] ):
+    hist = Hist2D([0,1,2],[0,10,20],values)
+    print('   coefficient of', values, ':', correlation(PlotFigure(panels=[Panel(items=[hist])])))
 step('the buttons of the actions, and quit')
 t.on_action('help')
 t.on_action('quit')

@@ -30,7 +30,7 @@ can be reordered, given titles and removed."""
 __all__ = []
 
 from ._stdviews import _default_preset, _groups, _plot_item, _presets
-from ._viewer_overviews import Overview, grid_columns, pair_cells
+from ._viewer_overviews import Overview
 
 custom_key, custom_title = 'custom', 'Custom'
 
@@ -38,22 +38,95 @@ class PlotGroups:
     """The groups of plots: the keys of the standard groups shown (in the order
     of _stdviews), and the custom plots (histogram strings) with their titles.
     The extra plot items of groups are added to their plots (e.g. those of
-    the fields of the userdata to the fields)."""
+    the fields of the userdata to the fields). The standard groups have
+    settings (see setting): the particle type of their plots, and the
+    variables of corner plots, with defaults from what the reading of the file
+    found (see found)."""
     def __init__( self, extra = None ):
         self.shown = list(_presets[_default_preset][1])
         self.custom = []
         self.titles = {}#(custom plot -> title)
         self._extra = extra or {}
+        self.settings = {}#(group key -> {setting name -> value} chosen, see setting)
+        #(what the reading found: the fields with one value, and the particle
+        #types as (pdgcode, sum of weights), the largest first):
+        self.found = { 'constants' : {}, 'types' : [] }
+
+    def overview( self, key ):
+        """The Overview of the group (with its settings)"""
+        if key == custom_key:
+            return Overview(custom_title,self.custom,'the plots which were added')
+        title, descr, items, opts = _groups[key]
+        only = particle_condition(self.setting(key,'particle'))
+        if 'variables' in opts:
+            return Overview(title,description = descr,layout = 'corner',only = only,
+                            variables = self.setting(key,'variables'))
+        plots = [ _plot_item(i)[0] for i in ( *items, *self._extra.get(key,()) ) ]
+        return Overview(title,plots,descr,only = only)
 
     def _items( self, key ):
         """The plots (histogram strings) of the group, with their titles, as a
         list of (plot, title)"""
         if key == custom_key:
             return [ ( p, self.titles.get(p) ) for p in self.custom ]
-        _, _, items, opts = _groups[key]
-        if 'pairs' in opts:
-            return [ ( c, None ) for c in pair_cells(list(opts['pairs'])) if c is not None ]
-        return [ _plot_item(i) for i in ( *items, *self._extra.get(key,()) ) ]
+        _, _, items, _ = _groups[key]
+        ov = self.overview(key)
+        if ov.corner:
+            #(the 2D histograms are titled by their expressions, without the
+            #options, and the others get the titles of their fields):
+            from ._histstring import _hist_parts
+            return [ ( p, _hist_parts(p)[0] if ' : ' in p else None ) for p in ov.plots ]
+        titles = [ _plot_item(i)[1] for i in ( *items, *self._extra.get(key,()) ) ]
+        return list(zip(ov.cells,titles))
+
+    #The settings of the standard groups:
+
+    def setting_names( self, key ):
+        """The names of the settings of the group: the particle type, and the
+        variables of corner plots"""
+        if key == custom_key:
+            return []
+        return [ 'particle' ] + ( [ 'variables' ] if 'variables' in _groups[key][3] else [] )
+
+    def setting( self, key, name ):
+        """The value of a setting of the group: as chosen, or its default. The
+        particle type is a PDG code, or None for all particles (by default
+        the most common type for corner plots of several types), and the
+        variables are expressions (by default those of fields with more than
+        one value)"""
+        chosen = self.settings.get(key,{})
+        if name in chosen:
+            return chosen[name]
+        opts = _groups[key][3]
+        if name == 'particle':
+            types = self.found['types']
+            return types[0][0] if 'variables' in opts and len(types) > 1 else None
+        varying = [ v for v in opts['variables'] if not self._constant(v) ]
+        return varying if len(varying) >= 2 else list(opts['variables'])
+
+    def set_setting( self, key, name, value ):
+        """Choose the value of a setting of the group (see setting), or its
+        default (with None for variables): whether it changed"""
+        old = self.setting(key,name)
+        if value is None and name == 'variables':
+            self.settings.get(key,{}).pop(name,None)
+        else:
+            self.settings.setdefault(key,{})[name] = value
+        return self.setting(key,name) != old
+
+    def setting_choices( self, key, name ):
+        """The possible values of a setting: the particle types found (and None
+        for all), or the variables which corner plots can have"""
+        if name == 'particle':
+            return [ None ] + [ pdg for pdg, _ in self.found['types'] ]
+        return list(_groups[key][3]['variables'])
+
+    def _constant( self, expr ):
+        """Whether the particles have one value of the expression (of fields with
+        one value)"""
+        from ._exprcore import _Expr
+        fields = _Expr(expr).fields
+        return bool(fields) and fields <= set(self.found['constants'])
 
     def keys( self ):
         """The keys of the groups shown, in order: the standard ones, and the
@@ -74,19 +147,8 @@ class PlotGroups:
 
     def overviews( self ):
         """The overviews of the groups shown, as (group key, Overview)"""
-        res = []
-        for k in self.keys():
-            opts = _groups[k][3] if k != custom_key else {}
-            if 'pairs' in opts:
-                cells, ncols = pair_cells(list(opts['pairs'])), len(opts['pairs'])
-            else:
-                cells = [ p for p, _ in self._items(k) ]
-                ncols = grid_columns(len(cells))
-            if cells:
-                descr = _groups[k][1] if k != custom_key else 'the plots which were added'
-                res.append( ( k, Overview(title_of(k),cells,ncols,corner = 'pairs' in opts,
-                                          description = descr) ) )
-        return res
+        return [ ( k, ov ) for k, ov in ( ( k, self.overview(k) ) for k in self.keys() )
+                 if ov.cells ]
 
     def is_custom( self, plot ):
         return plot in self.custom
@@ -146,6 +208,8 @@ class PlotGroups:
             res['groups'] = self.preset() or list(self.shown)
         if self.custom:
             res['custom'] = [ _item(p,self.titles.get(p)) for p in self.custom ]
+        if any(self.settings.values()):
+            res['settings'] = { k : dict(v) for k, v in self.settings.items() if v }
         return res
 
 def title_of( key ):
@@ -158,3 +222,8 @@ def group_names():
     return ( [ ( n, d ) for n, ( d, _ ) in _presets.items() ]
              + [ ( k, f'only {_groups[k][0]}: {_groups[k][1]}' ) for k in _groups
                  if k not in _presets ] )
+
+def particle_condition( pdgcode ):
+    """The condition for the particles of a type (a PDG code), or None for all"""
+    from ._particles import _particle_name
+    return None if pdgcode is None else f'pdgcode == {_particle_name(pdgcode)}'

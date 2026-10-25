@@ -236,7 +236,7 @@ class WidgetViewer:
                  ( 'Picks (filtering particles)', 'Picks', _help_blocks('pick') ),
                  ( 'Edits (modifying particles)', 'Edits', _help_blocks('edit') ),
                  ( 'Plot expressions', 'Plot expressions', _help_blocks('hist') ),
-                 ( 'About the cache', 'The cache', [ ( 'text', ui.cache_about ) ] ) ]
+                 ( 'About data caching', 'Data caching', ui.cache_blocks ) ]
 
     def close_window( self ):
         """Close the window (on_close is then called)"""

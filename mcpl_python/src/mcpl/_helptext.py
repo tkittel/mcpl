@@ -46,7 +46,12 @@ def plain_text( blocks, width = 79 ):
         if kind == 'gap':
             lines.append('')
         elif kind == 'text':
-            lines.append(args[0])
+            #(with the line breaks given, and longer lines wrapped):
+            for line in args[0].split('\n'):
+                if len(line) > width:
+                    wrap(line,'','')
+                else:
+                    lines.append(line)
         elif kind == 'section':
             lines.append(f'{args[0]}:')
         elif kind == 'note':

@@ -257,7 +257,11 @@ for label, title, blocks in tv.help_topics():
     text = next( w for w in top.winfo_children()[0].winfo_children() if w.winfo_class() == 'Text' )
     print(f'help {label!r}:', top.title(), '| sections:', len(text.tag_ranges('section')) // 2,
           '| lines:', int(text.index('end').split('.')[0]) > 10)
-    top.destroy()
+    text.focus_force()
+    pump(0.1)
+    text.event_generate('<KeyPress-q>')#(closes it, as Esc)
+    pump(0.1)
+    print('   closed with q:', not top.winfo_exists())
 print('help in the menu:', [ tv._actions_menu.entrycget(i,'label')
                              for i in range(tv._actions_menu.index('end') + 1) ])
 

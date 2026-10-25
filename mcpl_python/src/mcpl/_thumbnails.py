@@ -81,7 +81,15 @@ def _range( values, log, lim ):
     return ( lo, hi ) if hi > lo else ( ( lo / 2, lo * 2 ) if log else ( lo - 0.5, hi + 0.5 ) )
 
 def _panel( img, panel ):
-    from .plotting import Bars, Hist2D, Scatter3D, StepHist, _line_style
+    from .plotting import (
+        Bars,
+        Correlation,
+        Hist2D,
+        NewPlot,
+        Scatter3D,
+        StepHist,
+        _line_style,
+    )
     cycle, lut = _colors()
     h, w = img.shape[:2]
     curves = [ ( i, it ) for i, it in enumerate(panel.items) if isinstance(it,StepHist) ]
@@ -148,6 +156,17 @@ def _panel( img, panel ):
                 f = np.where(m > 0,f,np.nan)#(empty bins are not coloured)
             ok = np.isfinite(f)
             img[ok] = lut[np.clip(( f[ok] * 255 ).round().astype(int),0,255)]
+        elif isinstance(it,NewPlot):
+            #(a "+" in the middle, in the colour of the plots):
+            r, t = max( 2, min( h, w ) // 4 ), max( 1, min( h, w ) // 16 )
+            cy, cx = h // 2, w // 2
+            img[cy-r:cy+r+1,cx-t:cx+t+1] = cycle[0]
+            img[cy-t:cy+t+1,cx-r:cx+r+1] = cycle[0]
+        elif isinstance(it,Correlation) and it.value is not None:
+            #(tinted from white towards red or blue with the size of the value):
+            tint = np.array(( 214, 39, 40 ) if it.value > 0 else ( 31, 119, 180 ),dtype=float)
+            a = min( 1.0, abs(it.value) )
+            img[:,:] = ( ( 1 - a ) * 255 + a * tint ).round().astype(img.dtype)
         elif isinstance(it,Bars) and len(it.values):
             n = len(it.values)
             lo, hi = _range([ it.values ],panel.logx if it.horizontal else panel.logy,None)

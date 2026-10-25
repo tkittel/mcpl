@@ -134,7 +134,9 @@ def collect_stats(mcplfile,stats='all',bin_data=True,pick=None):
     is given (an expression or a ParticleFilter), only the picked particles
     are included."""
     if not isinstance(mcplfile,(MCPLFile,_PickedFile)):
-        mcplfile = MCPLFile(mcplfile)
+        #(a file name: the file is closed when done):
+        with MCPLFile(mcplfile) as f:
+            return collect_stats(f,stats,bin_data,pick)
     if pick is not None or ( isinstance(mcplfile,MCPLFile) and (
             mcplfile.pick is not None or mcplfile.edit is not None ) ):
         mcplfile = _PickedFile(mcplfile,pick)

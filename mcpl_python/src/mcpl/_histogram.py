@@ -61,9 +61,13 @@ def _as_files( sources ):
     return res
 
 def _blocks( source, flt ):
-    """Iterate over (picked) particle blocks in a file"""
-    f = source if _is_file(source) else MCPLFile(source)
-    for b in f.particle_blocks:
+    """Iterate over (picked) particle blocks in a file (an MCPLFile, or the
+    name of a file, which is then closed when done)"""
+    if not _is_file(source):
+        with MCPLFile(source) as f:
+            yield from _blocks(f,flt)
+        return
+    for b in source.particle_blocks:
         yield b[flt(b)] if flt is not None else b
 
 def _as( cls, expr ):

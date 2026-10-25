@@ -515,16 +515,17 @@ def test_tool():
     #(without windows, also where there is a display, so plots and the
     #viewer go to the terminal, which is not one here):
     import os
-    env = { **os.environ, 'MPLBACKEND' : 'Agg' }
+    #(and with the output in UTF-8, also on Windows):
+    env = { **os.environ, 'MPLBACKEND' : 'Agg', 'PYTHONIOENCODING' : 'utf-8' }
     for args in ( ['-w','-S'], ['-w','-o','x.pdf'], ['-H','x/cm','-H','y/cm'],
                   ['-w','-B','ascii'], ['--view=foo'], ['-w','--color=always'],
                   ['-w','-p','x > 1'], ['-wekin','-w'] ):
         rv = subprocess.run([sys.executable,'-m','mcpldev',*args,ex],
-                            capture_output=True,text=True,check=False,env=env)
+                            capture_output=True,encoding='utf-8',check=False,env=env)
         print(f'mcpltool {" ".join(args)}: exit code {rv.returncode}')
         print(f'   | {rv.stdout.splitlines()[0] if rv.stdout else ""}')
     rv = subprocess.run([sys.executable,'-m','mcpldev','-w',ex,ex],
-                        capture_output=True,text=True,check=False,env=env)
+                        capture_output=True,encoding='utf-8',check=False,env=env)
     print(f'mcpltool -w with two files: {rv.stdout.splitlines()[0]}')
 
 def test_code():

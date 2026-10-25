@@ -487,17 +487,17 @@ To open the viewer like this again:
    |   polx (all 0)                       │         ⢸             ⡼                  ⡇        ⠘⠒⢲
    |   poly (all 0)                       │         ⢸             ⡇                  ⡇          ⢸
    |   polz (all 0)                       │         ⣸             ⡇                  ⡇          ⠘⡆
-   |   userflags;bar;logy=auto            │         ⡇             ⡇         ⡤⠤⡄      ⡇           ⠧⠤⡄    ⡤⠤⡄    ⡤⠤
-   |   x;logx=auto;only=pdgcode           │         ⡇             ⡇        ⢰⠃ ⡇      ⡇             ⡇   ⢰⠃ ⡇    ⡇
-   |   x : y;logx=auto;logy=aut           │⠤⠤⡄    ⠤⠤⠇             ⡇  ⡤⠤⡄ ⢠⠤⠼⡤⠤⠧⠤⡤⠤⢤  ⠧⠤⠤⠤⠤⠤⠤⡄    ⡤⠤⡧⠤⣤⠤⠼  ⡇   ⠠⠇
-   |   x : ux;logx=auto;logy=au           │  ⡇                    ⡇  ⡇ ⡇ ⢸ ⢰⠃   ⢳ ⢸         ⡇    ⡇ ⡇ ⢻    ⡇
-   |   x : uy;logx=auto;logy=au           │  ⠇                    ⡇ ⠠⠇ ⡇ ⢸ ⢸    ⢸ ⠸⡄        ⡇   ⠠⠇ ⡇ ⢸    ⡇
-   |   x : uz;logx=auto;logy=au           │                ⢀⣀⣀  ⣀⣀⡇    ⡇ ⢸⣀⣸    ⢸⣀⣀⣇⣀⣀⣀⡀  ⣀⣀⣇⣀⣀⣀⣀⣀⣀⣇⣀⣸⣀⣀⣀⣀⣇⣀⡀
-   |   x : ekin;logx=auto;logy=           │                ⢸ ⢸    ⡇    ⡇ ⢸           ⡇ ⡇  ⡇ ⡇ ⣿ ⢸⡇ ⡇ ⣿    ⡇ ⡇
-   |   x : time;logx=auto;logy=           │                ⢸ ⢸    ⡇    ⡇ ⣸           ⡇ ⡇ ⢀⡇ ⡇ ⣿ ⢸⡇ ⡇ ⣿    ⡇ ⡇
-   |   y;logx=auto;only=pdgcode           │                ⢸ ⢸         ⡇ ⢸           ⡇      ⡇ ⢸ ⢸  ⡇      ⡇
-   |   y : ux;logx=auto;logy=au           │                ⢸ ⢸         ⡇ ⢸           ⡇      ⡇ ⢸ ⢸  ⡇      ⡇
-   |   y : uy;logx=auto;logy=au    0.3333 ┤                ⣸ ⢸         ⡇ ⣸           ⡇      ⡇ ⣸ ⢸  ⡇      ⡇
+   |   userflags;bar;logy=auto            │         ⡇             ⡇         ⡤⠤⡄      ⡇           ⠧⠤⡄    ⡤⠤     ⡤⠤
+   |   x;logx=auto;only=pdgcode           │         ⡇             ⡇        ⢰⠃ ⡇      ⡇             ⡇   ⢰⠃      ⡇
+   |   x : y;logx=auto;logy=aut           │⠤⠤⡄    ⠤⠤⠇             ⡇  ⡤⠤  ⢠⠤⠼⡤⠤⠧⠤⡤⠤⢤  ⠧⠤⠤⠤⠤⠤⠤     ⡤⠤⠧⠤⣤⠤⠼      ⠠⠇
+   |   x : ux;logx=auto;logy=au           │  ⡇                    ⡇  ⡇   ⢸ ⢰⠃   ⢳ ⢸              ⡇   ⢻
+   |   x : uy;logx=auto;logy=au           │  ⠇                    ⡇ ⠠⠇   ⢸ ⢸    ⢸ ⠸⡄            ⠠⠇   ⢸
+   |   x : uz;logx=auto;logy=au           │                ⢀⣀⣀  ⣀⣀⡇      ⢸⣀⣸    ⢸⣀⣀⣇⣀⣀⣀⡀  ⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣸⣀⣀⣀⣀⣀⣀⡀
+   |   x : ekin;logx=auto;logy=           │                ⢸ ⢸    ⡇      ⢸             ⡇  ⡇   ⣿ ⢸⡇   ⣿      ⡇
+   |   x : time;logx=auto;logy=           │                ⢸ ⢸    ⡇      ⣸             ⡇ ⢀⡇   ⣿ ⢸⡇   ⣿      ⡇
+   |   y;logx=auto;only=pdgcode           │                ⢸ ⢸           ⢸                    ⢸ ⢸
+   |   y : ux;logx=auto;logy=au           │                ⢸ ⢸           ⢸                    ⢸ ⢸
+   |   y : uy;logx=auto;logy=au    0.3333 ┤                ⣸ ⢸           ⣸                    ⣸ ⢸
    |   y : uz;logx=auto;logy=au           └┬────────────────────────────────────────────────────────────────────┬
    |   y : ekin;logx=auto;logy=           1393                           3.681e+06                      9.725e+09
    |   y : time;logx=auto;logy=                                          ekin [eV]

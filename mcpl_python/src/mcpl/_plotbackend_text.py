@@ -284,7 +284,12 @@ class _TextBackend(PlotBackend):
                         - np.maximum( edges[None,:-1], bounds[:-1,None] ) )
             ok = ( edges[1:] > edges[:-1] )
             frac = np.where( ok[None,:], overlap / cellwidth, 0.0 )
-        return np.clip( np.nan_to_num(frac,nan=0.0), 0.0, 1.0 )
+        frac = np.clip( np.nan_to_num(frac,nan=0.0), 0.0, 1.0 )
+        #(round-off where edges and bounds coincide is no overlap, as it would
+        #give tiny values, drawn as drops to the bottom in log scale, and
+        #those depend on the machine):
+        frac[ frac < 1e-9 ] = 0.0
+        return frac
 
     def _columns( self, edges, values, lo, hi, log, ncols ):
         """Values of the columns, i.e. the average of the bin values over each

@@ -59,6 +59,16 @@ def pump( seconds = 0.3 ):
         root.update()
         time.sleep(0.01)
 
+def take_focus( widget ):
+    """Give the keyboard focus to the widget (keys go to the focus, which other
+    programs on the display can take, e.g. tests running in parallel)"""
+    for _ in range(100):
+        widget.focus_force()
+        pump(0.02)
+        if widget.focus_get() is widget:
+            break
+    pump()
+
 def wait():
     """Until the file is read and the window shows the result"""
     for _ in range(3000):
@@ -110,8 +120,7 @@ print('help menu:', [ tv._help_choices.entrycget(i,'label')
 #Tab completes in the X axis field (and stays there), and with several
 #completions shows a list, where Down and Enter choose one:
 xaxis = tv._axes[0]
-xaxis.focus_force()
-pump()
+take_focus(xaxis)
 for typed, keys in ( ( 'ek', [ '<Tab>' ] ), ( 'po', [ '<Tab>', '<Down>', '<Return>' ] ) ):
     tv._set_text(xaxis,typed)
     xaxis.icursor('end')
@@ -130,8 +139,7 @@ pump()
 #them as Enter does:
 apply = tv._applies['axes']
 print('apply of the axes:', 'disabled' in apply.state())
-xaxis.focus_force()
-pump()
+take_focus(xaxis)
 tv._set_text(xaxis,'x')
 xaxis.event_generate('<KeyRelease>',keysym='x')
 pump()
@@ -184,8 +192,7 @@ for _ in range(2):
 
 #Typing a pick and pressing Enter:
 entry = tv._entries['pick']
-entry.focus_force()
-pump()
+take_focus(entry)
 tv._set_text(entry,'ekin < 1MeV')
 entry.event_generate('<Return>')
 wait()
@@ -267,8 +274,7 @@ for label, title, blocks in tv.help_topics():
     text = next( w for w in top.winfo_children()[0].winfo_children() if w.winfo_class() == 'Text' )
     print(f'help {label!r}:', top.title(), '| sections:', len(text.tag_ranges('section')) // 2,
           '| lines:', int(text.index('end').split('.')[0]) > 10)
-    text.focus_force()
-    pump(0.1)
+    take_focus(text)
     text.event_generate('<KeyPress-q>')#(closes it, as Esc)
     pump(0.1)
     print('   closed with q:', not top.winfo_exists())

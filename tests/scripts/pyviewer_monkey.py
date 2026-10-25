@@ -24,7 +24,8 @@
 
 # Random use of the viewer in a real Tk window (a "monkey test"): many random
 # clicks, keys, settings, fields and windows, on files with and without
-# userdata, with one particle and without particles, failing on any exception
+# userdata, with one particle and without particles, and then on files which do
+# not fit in the memory of the viewer (its cache), failing on any exception
 # (also in the callbacks of Tk and matplotlib, and in threads) or warning.
 
 import gzip
@@ -36,6 +37,7 @@ import traceback
 import warnings
 
 import mcpldev as mcpl
+import mcpldev._viewer_reading as viewer_reading
 import mcpldev._viewer_tk as viewer_tk
 from mcpldev._viewer import Viewer
 from MCPLTestUtils.dirs import test_data_dir
@@ -144,15 +146,29 @@ def wait():
 actions = { card : 10, click : 8, key : 6, overview : 6, setting : 8, axes : 5, field : 5,
             new_plot : 3, tv.on_remove : 2, group : 3, header : 3, help_window : 2,
             tv.plot_code : 2, other_file : 1, size : 1, wait : 4,
-            ( lambda : tv.on_cache_limit(rng.choice([ 1e5, 5e6, None ])) ) : 2,
+            ( lambda : tv.on_cache_limit(rng.choice(cache_limits)) ) : 2,
             ( lambda : tv.on_title(rng.choice([ 'A title', '', 'x' * 80 ])) ) : 2,
             ( lambda : tv._toggle.invoke() ) : 2 }
-for i in range(300):
-    action = rng.choices(list(actions),list(actions.values()))[0]
-    done.append(getattr(action,'__name__','?'))
-    action()#(an exception fails the test, with its traceback)
-    pump(rng.choice([ 0.0, 0.01, 0.05 ]))
+def run( n ):
+    for _ in range(n):
+        action = rng.choices(list(actions),list(actions.values()))[0]
+        done.append(getattr(action,'__name__','?'))
+        action()#(an exception fails the test, with its traceback)
+        pump(rng.choice([ 0.0, 0.01, 0.05 ]))
+    wait()
+
+cache_limits = [ 1e5, 5e6, None ]
+run(300)
+#With a cache (of 20 kB) in which the particles of the files (44 kB) do not
+#all fit, so the plots use the first ones, and the rest are not read:
+viewer_reading._cache_limit = 2e4
+files[:] = [ 'example.mcpl', 'example.mcpl.gz' ]
+cache_limits = [ 1e4, 2e4, 3e4, None ]
+tv.on_open_file('example.mcpl')
+catch_mpl()
 wait()
+print('particles fit in the cache:', tv.v.cache_info()['fits'])
+run(150)
 tv.close_window()
 print('random actions done:', len(done), '| closed:', tv.closed)
 print('problems:', len(problems))

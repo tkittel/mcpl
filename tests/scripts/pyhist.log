@@ -725,15 +725,15 @@ mcpltool -E z = 1cm, x = 0 example.mcpl: exit code 1
    | ERROR: Separate statements with ";" (not ",") in "z = 1cm, x = 0"
    | 
    | Run with "-E help" for how to edit particles with expressions
-mcpltool -p help: exit code 0, 172 lines, starting with:
+mcpltool -p help: exit code 0, 190 lines, starting with:
    | PICK: an expression which is true for the particles to use, for example:
-   |   -p "pdgcode == neutron"     Neutrons.
-   |   -p "pdgcode in (neutron,gamma)"
-mcpltool --edit=help: exit code 0, 175 lines, starting with:
+   | 
+   | Particle types:
+mcpltool --edit=help: exit code 0, 190 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
-   |   -E "z += 1cm"               Move the particles 1 cm along z.
-   |   -E "weight *= 0.5"          Halve the weights.
-mcpltool -H help example.mcpl: exit code 0, 68 lines, starting with:
+   | 
+   | Changing values:
+mcpltool -H help example.mcpl: exit code 0, 75 lines, starting with:
    | HIST: what to plot, an expression of the particles (written as for -p),
    | or two separated by ":" for a 2D histogram (or three for a 3D plot of a
    | sample of the particles, in windows), followed by options separated by ";".

@@ -303,61 +303,86 @@ _group_titles = { 'histoptions' : 'Options',
 
 #Examples of the expressions (picks, edits and histogram strings), from simple
 #to advanced, with what they do, for the help texts and the viewers:
+#The examples of expressions, by topic, in groups of (title, the sentence
+#before them or None, and the examples as (expression, what it does)):
 examples = {
     'pick' : (
-        ( 'pdgcode == neutron', 'Neutrons.' ),
-        ( 'pdgcode in (neutron,gamma)', 'Neutrons and gammas.' ),
-        ( 'abs(pdgcode) in (electron,muon)', 'Electrons, muons and their antiparticles.' ),
-        ( 'ekin < 25meV', 'Kinetic energies below 25 meV.' ),
-        ( '0cm < z < 10cm', 'Positions between z = 0 and 10 cm.' ),
-        ( 'pdgcode == neutron and wavelength > 1.8Aa',
-          ( 'Neutrons with wavelengths above 1.8 Aa (only neutrons and gammas have'
-            ' wavelengths, so they are picked first).' ) ),
-        ( 'hypot(x,y) < 5cm and angle(dir,(0,0,1)) < 1deg',
-          'Within 5 cm of the z axis, and moving within 1 degree of its direction.' ),
-        ( 'd = pos - (0,0,1m); abs(d) < 10cm',
-          'Within 10 cm of the point (0,0,1m), with a vector variable (d).' ),
-        ( 'r = hypot(x,y); r > 2cm and r < 5cm',
-          'A variable (r) assigned before the condition, which comes last.' ),
-        ( 'not ( time > 10us or weight < 0.1 )', 'Early particles with large weights.' ),
-        ( '(userflags & 0xff) == 7', 'The lowest 8 bits of the user flags are 7.' ),
-        ( 'mod(fileidx,10) == 0', 'Every tenth particle in the file.' ),
-        ( 'userdata.nscat >= 2', 'The userdata field nscat is 2 or more (in files with userdata).' ),
-        ( 'userdata.origdir.at(2) > 0.99',
-          'The third value (counting from 0) of the userdata field origdir is above 0.99.' ),
+        ( 'Particle types', None, (
+            ( 'pdgcode == neutron', 'Neutrons.' ),
+            ( 'pdgcode in (neutron,gamma)', 'Neutrons and gammas.' ),
+            ( 'abs(pdgcode) in (electron,muon)', 'Electrons, muons and their antiparticles.' ) ) ),
+        ( 'Values and ranges', None, (
+            ( 'ekin < 25meV', 'Kinetic energies below 25 meV.' ),
+            ( '0cm < z < 10cm', 'Positions between z = 0 and 10 cm.' ),
+            ( 'pdgcode == neutron and wavelength > 1.8Aa',
+              ( 'Neutrons with wavelengths above 1.8 Aa (only neutrons and gammas have'
+                ' wavelengths, so they are picked first).' ) ),
+            ( 'not ( time > 10us or weight < 0.1 )', 'Early particles with large weights.' ) ) ),
+        ( 'Variables', ( 'Values can be given names before the condition, as NAME = VALUE'
+                         ' separated by ";", and then used in it:' ), (
+            ( 'r = hypot(x,y); r > 2cm and r < 5cm',
+              'Between 2 and 5 cm from the z axis, with the distance named r.' ),
+            ( 'e = ekin/MeV; e > 1 and e < 10',
+              'Energies from 1 to 10 MeV (e is a number, without a unit).' ) ) ),
+        ( 'Vectors', ( 'The position, direction and polarisation are the vectors pos, dir and'
+                       ' pol, vectors are written as (a,b,c), and abs(v), angle(v,w) and'
+                       ' dot(v,w) give lengths, angles and dot products:' ), (
+            ( 'angle(dir,(0,0,1)) < 1deg', 'Moving within 1 degree of the z axis.' ),
+            ( 'd = pos - (0,0,1m); abs(d) < 10cm',
+              'Within 10 cm of the point (0,0,1m), with the vector from it named d.' ),
+            ( 'dot(dir,(1,0,0)) < 0', 'Moving towards negative x.' ) ) ),
+        ( 'Bits, positions in the file and userdata', None, (
+            ( '(userflags & 0xff) == 7', 'The lowest 8 bits of the user flags are 7.' ),
+            ( 'mod(fileidx,10) == 0', 'Every tenth particle in the file.' ),
+            ( 'userdata.nscat >= 2', 'The userdata field nscat is 2 or more (in files with userdata).' ),
+            ( 'userdata.origdir.at(2) > 0.99',
+              'The third value (counting from 0) of the userdata field origdir is above 0.99.' ) ) ),
     ),
     'edit' : (
-        ( 'z += 1cm', 'Move the particles 1 cm along z.' ),
-        ( 'weight *= 0.5', 'Halve the weights.' ),
-        ( 'wavelength = 1.8Aa',
-          'Give the particles the energy of a wavelength of 1.8 Aa (only for neutrons and gammas).' ),
-        ( 'rotate_y(90deg);x += 10cm', 'Rotate around the y axis, then move along x.' ),
-        ( 'pos += 50cm*dir', 'Move the particles 50 cm along their directions.' ),
-        ( 'rotate_around((1,1,0),30deg)', 'Rotate by 30 degrees around the axis (1,1,0).' ),
-        ( 'rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))',
-          'Turn the z axis into the x axis, keeping the y axis (v=z to vout=x, u=y to uout=y).' ),
-        ( 'swap(x,y)', 'Swap the x and y coordinates.' ),
-        ( 'tmp = hypot(x,y);x = tmp;y = 0cm', 'Use a variable (tmp) in later statements.' ),
-        ( 'time += hypot(x,y,z)/(2200m/s)',
-          'Add the time to fly to the origin at 2200 m/s.' ),
+        ( 'Changing values', None, (
+            ( 'z += 1cm', 'Move the particles 1 cm along z.' ),
+            ( 'weight *= 0.5', 'Halve the weights.' ),
+            ( 'wavelength = 1.8Aa',
+              'Give the particles the energy of a wavelength of 1.8 Aa (only for neutrons and gammas).' ),
+            ( 'swap(x,y)', 'Swap the x and y coordinates.' ),
+            ( 'time += hypot(x,y,z)/(2200m/s)', 'Add the time to fly to the origin at 2200 m/s.' ) ) ),
+        ( 'Rotations', None, (
+            ( 'rotate_y(90deg);x += 10cm', 'Rotate around the y axis, then move along x.' ),
+            ( 'rotate_around((1,1,0),30deg)', 'Rotate by 30 degrees around the axis (1,1,0).' ),
+            ( 'rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))',
+              'Turn the z axis into the x axis, keeping the y axis (v=z to vout=x, u=y to uout=y).' ) ) ),
+        ( 'Variables', ( 'Values can be given names, as NAME = VALUE, and then used in the'
+                         ' statements after it:' ), (
+            ( 'r = hypot(x,y);x = r;y = 0cm', 'Move the particles onto the x axis, at the same distance.' ), ) ),
+        ( 'Vectors', ( 'The position, direction and polarisation are the vectors pos, dir and'
+                       ' pol, which can be changed as a whole:' ), (
+            ( 'pos += 50cm*dir', 'Move the particles 50 cm along their directions.' ),
+            ( 'dir = (0,0,1)', 'Make all particles move along z.' ) ) ),
     ),
     'hist' : (
-        ( 'ekin', 'The kinetic energies, in a suitable unit.' ),
-        ( 'ekin/MeV;logx;split=pdgcode',
-          'The energies in MeV, on a logarithmic axis, with a curve for each particle type.' ),
-        ( 'ekin;logx;lethargy', 'The energies per unit of lethargy.' ),
-        ( 'wavelength/Aa;range=0:10',
-          'The wavelengths from 0 to 10 Aa (only of neutrons and gammas, the others are left out).' ),
-        ( 'x : y;xrange=-10cm:10cm;yrange=-10cm:10cm', 'The positions in the x-y plane.' ),
-        ( 'atan2(uy,ux)/deg : uz', 'The directions: the azimuth around the z axis, and uz.' ),
-        ( 'pdgcode;bar', 'A bar chart of the particle types.' ),
-        ( 'x : y : z;split=pdgcode',
-          'The positions in 3D, as points for a sample of the particles, by particle type (in windows).' ),
-        ( 'angle(dir,(0,0,1))/deg;logy;split=pdgcode in (neutron,gamma)',
-          'The angles to the z axis, for neutrons and gammas, and for the others.' ),
-        ( 'userdata.nscat;bar;unweighted', 'The numbers of particles for each value of nscat.' ),
+        ( 'Histograms', None, (
+            ( 'ekin', 'The kinetic energies, in a suitable unit.' ),
+            ( 'ekin/MeV;logx;split=pdgcode',
+              'The energies in MeV, on a logarithmic axis, with a curve for each particle type.' ),
+            ( 'ekin;logx;lethargy', 'The energies per unit of lethargy.' ),
+            ( 'wavelength/Aa;range=0:10',
+              'The wavelengths from 0 to 10 Aa (only of neutrons and gammas, the others are left out).' ),
+            ( 'angle(dir,(0,0,1))/deg;logy;split=pdgcode in (neutron,gamma)',
+              'The angles to the z axis, for neutrons and gammas, and for the others.' ) ) ),
+        ( '2D histograms and 3D plots', None, (
+            ( 'x : y;xrange=-10cm:10cm;yrange=-10cm:10cm', 'The positions in the x-y plane.' ),
+            ( 'atan2(uy,ux)/deg : uz', 'The directions: the azimuth around the z axis, and uz.' ),
+            ( 'x : y : z;split=pdgcode',
+              'The positions in 3D, as points for a sample of the particles, by particle type (in windows).' ) ) ),
+        ( 'Bar charts', None, (
+            ( 'pdgcode;bar', 'A bar chart of the particle types.' ),
+            ( 'userdata.nscat;bar;unweighted', 'The numbers of particles for each value of nscat.' ) ) ),
     ),
 }
+
+def example_rows( topic ):
+    """All examples of the topic, as (expression, what it does)"""
+    return [ row for _, _, rows in examples[topic] for row in rows ]
 
 _intro = {
     'pick' : ( 'PICK: an expression which is true for the particles to use, for example:',
@@ -366,8 +391,7 @@ not in (one of the values in parentheses), and, or, not (and & | ~ for
 bits). Values with units must be written with units
 (e.g. 25meV or 10cm), except for a plain 0 (e.g. x > 0), and the wavelength
 can only be used for neutrons and gammas, which must be picked first (e.g.
-"pdgcode == neutron and wavelength > 1.8Aa"). Variables can be assigned
-before the condition, separated by ";" (e.g. "r = hypot(x,y); r < 5cm").''' ),
+"pdgcode == neutron and wavelength > 1.8Aa").''' ),
     'edit' : ( 'EDIT: statements separated by ";", executed in order, for example:',
                '''The statements are assignments to fields (=, +=, -=, *= and /=, with values
 in the units of the field, and wavelength = ... changing ekin), assignments
@@ -415,9 +439,13 @@ def _help_blocks( topic ):
     blocks (see _helptext)"""
     head, tail = _intro[topic]
     opt = { 'pick' : '-p', 'edit' : '-E', 'hist' : '-H' }[topic]
-    blocks = [ ( 'text', head ),
-               ( 'examples', [ ( f'{opt} "{expr}"', what ) for expr, what in examples[topic] ] ),
-               ( 'text', tail ) ]
+    blocks = [ ( 'text', head ) ]
+    for title, note, rows in examples[topic]:
+        blocks += [ ( 'gap', ), ( 'subsection', title ) ]
+        if note:
+            blocks.append( ( 'note', note ) )
+        blocks.append( ( 'examples', [ ( f'{opt} "{expr}"', what ) for expr, what in rows ] ) )
+    blocks += [ ( 'gap', ), ( 'text', tail ) ]
     for g in _topic_groups[topic]:
         blocks += [ ( 'gap', ), ( 'section', _group_titles[g] ) ]
         if g in _group_notes:

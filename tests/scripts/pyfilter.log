@@ -25,10 +25,12 @@ pick example 'abs(pdgcode) in (electron,muon)': 23 particles
 pick example 'ekin < 25meV': 0 particles
 pick example '0cm < z < 10cm': 0 particles
 pick example 'pdgcode == neutron and wavelength > 1.8Aa': 0 particles
-pick example 'hypot(x,y) < 5cm and angle(dir,(0,0,1)) < 1deg': 3 particles
-pick example 'd = pos - (0,0,1m); abs(d) < 10cm': 0 particles
-pick example 'r = hypot(x,y); r > 2cm and r < 5cm': 158 particles
 pick example 'not ( time > 10us or weight < 0.1 )': 1006 particles
+pick example 'r = hypot(x,y); r > 2cm and r < 5cm': 158 particles
+pick example 'e = ekin/MeV; e > 1 and e < 10': 355 particles
+pick example 'angle(dir,(0,0,1)) < 1deg': 3 particles
+pick example 'd = pos - (0,0,1m); abs(d) < 10cm': 0 particles
+pick example 'dot(dir,(1,0,0)) < 0': 474 particles
 pick example '(userflags & 0xff) == 7': 0 particles
 pick example 'mod(fileidx,10) == 0': 101 particles
 pick example 'userdata.nscat >= 2': 502 particles
@@ -36,22 +38,23 @@ pick example 'userdata.origdir.at(2) > 0.99': 1006 particles
 edit example 'z += 1cm': ok
 edit example 'weight *= 0.5': ok
 edit example 'wavelength = 1.8Aa': ok
+edit example 'swap(x,y)': ok
+edit example 'time += hypot(x,y,z)/(2200m/s)': ok
 edit example 'rotate_y(90deg);x += 10cm': ok
-edit example 'pos += 50cm*dir': ok
 edit example 'rotate_around((1,1,0),30deg)': ok
 edit example 'rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))': ok
-edit example 'swap(x,y)': ok
-edit example 'tmp = hypot(x,y);x = tmp;y = 0cm': ok
-edit example 'time += hypot(x,y,z)/(2200m/s)': ok
+edit example 'r = hypot(x,y);x = r;y = 0cm': ok
+edit example 'pos += 50cm*dir': ok
+edit example 'dir = (0,0,1)': ok
 histogram example 'ekin': Histogram
 histogram example 'ekin/MeV;logx;split=pdgcode': Histogram
 histogram example 'ekin;logx;lethargy': Histogram
 histogram example 'wavelength/Aa;range=0:10': Histogram
+histogram example 'angle(dir,(0,0,1))/deg;logy;split=pdgcode in (neutron,gamma)': Histogram
 histogram example 'x : y;xrange=-10cm:10cm;yrange=-10cm:10cm': Histogram2D
 histogram example 'atan2(uy,ux)/deg : uz': Histogram2D
-histogram example 'pdgcode;bar': BarHistogram
 histogram example 'x : y : z;split=pdgcode': Points3D
-histogram example 'angle(dir,(0,0,1))/deg;logy;split=pdgcode in (neutron,gamma)': Histogram
+histogram example 'pdgcode;bar': BarHistogram
 histogram example 'userdata.nscat;bar;unweighted': BarHistogram
 'pdgcode in (neutron,gamma)': 965 particles, normalised 'pdgcode in (neutron,gamma)', as expected: True
 'pdgcode not in ( neutron, gamma )': 41 particles, normalised 'pdgcode not in (neutron,gamma)', as expected: True

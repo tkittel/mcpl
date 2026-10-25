@@ -615,7 +615,7 @@ def test_pick_statements():
 def test_help_examples():
     #The examples of the help texts (and the viewers) are valid, and work on
     #files (with the userdata fields of the examples):
-    from mcpldev._exprhelp import examples
+    from mcpldev._exprhelp import example_rows
     fn = 'help_examples.mcpl'
     with ( mcpl.MCPLOutFile(fn,userdata_layout='nscat:uint8,origdir:float32[3]') as o,
            mcpl.MCPLFile(example_file) as f ):
@@ -624,14 +624,14 @@ def test_help_examples():
                                      'origdir' : np.tile([0.0,0.0,1.0],(len(b),1)) })
     with mcpl.MCPLFile(fn) as f:
         b = f.read_block()
-        for expr, _ in examples['pick']:
+        for expr, _ in example_rows('pick'):
             print(f'pick example {expr!r}: {int(mcpl.ParticleFilter(expr)(b).sum())} particles')
         #(for neutrons, which have wavelengths):
         neutrons = b[b.pdgcode == 2112]
-        for expr, _ in examples['edit']:
+        for expr, _ in example_rows('edit'):
             mcpl.ParticleEdit(expr)(neutrons)
             print(f'edit example {expr!r}: ok')
-    for expr, _ in examples['hist']:
+    for expr, _ in example_rows('hist'):
         h = mcpl.histogram(fn,expr)
         print(f'histogram example {expr!r}: {type(h).__name__}')
     pathlib.Path(fn).unlink()

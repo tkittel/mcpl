@@ -26,6 +26,7 @@ kind and its texts:
   ('text', TEXT)            a paragraph (with its line breaks for plain text)
   ('gap',)                  an empty line (in plain text)
   ('section', TITLE)        the title of a section
+  ('subsection', TITLE)     the title of a part of a section (e.g. of examples)
   ('note', TEXT)            a paragraph at the start of a section
   ('item', NAME, TEXT)      the description of a name (e.g. a function)
   ('key', KEYS, TEXT)       the description of keys
@@ -52,7 +53,7 @@ def plain_text( blocks, width = 79 ):
                     wrap(line,'','')
                 else:
                     lines.append(line)
-        elif kind == 'section':
+        elif kind in ( 'section', 'subsection' ):
             lines.append(f'{args[0]}:')
         elif kind == 'note':
             wrap(args[0],'  ','  ')

@@ -229,8 +229,8 @@ def overview_settings():
     oc = tv._overview_controls
     return { 'shown' : bool(oc.frame.winfo_ismapped()),
              'plot fields shown' : bool(tv._plot_fields.winfo_ismapped()),
-             **{ name : ( w.get() if not isinstance(w,dict)
-                          else [ t for t, var in w.items() if var.get() ] )
+             **{ name : ( [ t for t, var in w.items() if var.get() ] if isinstance(w,dict)
+                          else text(w) if w.winfo_class() == 'TButton' else w.get() )
                  for name, w in oc._widgets.items() } }
 tv.on_select_key('overview:correlations')
 wait()
@@ -246,9 +246,14 @@ print('after turning ux off and choosing all:', overview_settings(),
       v.group_settings('correlations')[0][1])
 button = next( c for c in tv._overview_controls.frame.winfo_children()
                if c.winfo_class() == 'TButton' )
-button.invoke()
-wait()
-print(f'after clicking {text(button)!r}:', overview_settings()['variables'])
+for _ in range(2):
+    clicked = text(button)
+    button.invoke()
+    wait()
+    button = next( c for c in tv._overview_controls.frame.winfo_children()
+                   if c.winfo_class() == 'TButton' )
+    print(f'after clicking {clicked!r}:', overview_settings()['variables'],
+          '| button now:', text(button))
 tv.on_select_key('plot:x')
 pump()
 print('with a plot shown:', overview_settings()['shown'], overview_settings()['plot fields shown'])

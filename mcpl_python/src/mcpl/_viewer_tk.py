@@ -532,7 +532,7 @@ class TkViewer(WidgetViewer):
                                  command=lambda x=limit : self.on_cache_limit(x))
         #(the help about the cache, as in the help menu):
         menu.add_separator()
-        menu.add_command(label='Help about data caching',
+        menu.add_command(label='About caching',
                          command=lambda : self.show_text('Data caching',ui.cache_blocks))
 
     def show_colour_bar_menu( self, entries ):
@@ -727,9 +727,10 @@ class TkViewer(WidgetViewer):
         self._inaxes = event.inaxes
 
     def _on_mpl_click( self, event ):
+        from ._plotbackend_mpl import after_event
         self.canvas.get_tk_widget().focus_set()
         if not self.toolbar.mode:#(not while zooming or panning)
-            self.on_click(event)
+            after_event(self.canvas,self.on_click,event)
 
     #The text fields:
 
@@ -973,7 +974,8 @@ class _Controls:
                     #(split also takes an expression, the others only the choices):
                     if name == 'split':
                         choices = [ *choices, self.expression_choice ]
-                    w = ttk.Combobox(self.frame,values=choices,width=14 if name == 'split' else 7,
+                    w = ttk.Combobox(self.frame,values=choices,
+                                     width=14 if name in ( 'split', 'only' ) else 7,
                                      state='normal' if name == 'split' else 'readonly')
                     w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._chosen(n,w))
                 else:
@@ -1103,6 +1105,12 @@ class _OverviewControls:
             ttk.Label(self.frame,text='Settings:',**_row_label,**self._label).pack(side='left',
                                                                                  padx=(0,4))
             for i, ( name, label, texts, _ ) in enumerate(controls):
+                if label is None:#(a button, with its text)
+                    w = ttk.Button(self.frame,text=texts[0],takefocus=0,style='Small.TButton',
+                                   command=lambda n=name, t=texts[0] : self._on_change(n,t))
+                    w.pack(side='left',padx=(8,0))
+                    self._widgets[name] = w
+                    continue
                 ttk.Label(self.frame,text=f'{label}:',**self._label).pack(side='left',
                                                                      padx=(0 if i == 0 else 12,3))
                 if name == 'variables':
@@ -1115,22 +1123,18 @@ class _OverviewControls:
                                         ).pack(side='left',padx=(0,2))
                         toggles[t] = var
                     self._widgets[name] = toggles
-                    ttk.Button(self.frame,text=ui.most_correlated,takefocus=0,
-                               style='Small.TButton',
-                               command=lambda n=name : self._on_change(n,ui.most_correlated)
-                               ).pack(side='left',padx=(8,0))
                 else:
                     w = ttk.Combobox(self.frame,values=texts,state='readonly',
                                      width=max( len(t) for t in texts ) + 1)
                     w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._on_change(n,w.get()))
                     w.pack(side='left')
                     self._widgets[name] = w
-        for name, _, _, shown in controls:
+        for name, label, _, shown in controls:
             w = self._widgets[name]
             if isinstance(w,dict):#(toggles, on if shown)
                 for t, var in w.items():
                     var.set(t in shown)
-            else:
+            elif label is not None:
                 w.set(shown)
 
 def _has_xft( root ):

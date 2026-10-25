@@ -130,18 +130,20 @@ def shortcut_text( name ):
 #None for a text field:
 _scale = ( ( 'linear', None ), ( 'log', True ), ( 'auto', 'auto' ) )
 _count = ( 'unweighted', 'Count', ( ( 'weights', None ), ( 'particles', True ) ) )
+#(the particle types of the file, see WidgetViewer.type_choices):
+_only = ( 'only', 'Particles', 'types' )
 plot_controls = {
     '1d' : ( ( 'logx', 'X scale', _scale ), ( 'logy', 'Y scale', _scale ),
              ( 'split', 'Split by', ( ( 'none', None ), ( 'particle type', 'pdgcode' ) ) ),
-             _count, ( 'bins', 'Bins', None ), ( 'range', 'Range', None ) ),
-    'bar' : ( ( 'logy', 'Scale', _scale ), _count, ( 'bar', 'Bars', None ) ),
+             _count, ( 'bins', 'Bins', None ), ( 'range', 'Range', None ), _only ),
+    'bar' : ( ( 'logy', 'Scale', _scale ), _count, ( 'bar', 'Bars', None ), _only ),
     '2d' : ( ( 'logz', 'Colour scale', ( ( 'log', None ), ( 'linear', '0' ) ) ),
              ( 'equal', 'Aspect', ( ( 'auto', None ), ( 'equal', True ) ) ), _count,
              ( 'bins', 'Bins', None ), ( 'xrange', 'X range', None ),
-             ( 'yrange', 'Y range', None ) ),
+             ( 'yrange', 'Y range', None ), _only ),
     '3d' : ( ( 'split', 'Split by', ( ( 'none', None ), ( 'particle type', 'pdgcode' ) ) ),
              ( 'unweighted', 'Sample by', ( ( 'weights', None ), ( 'particles', True ) ) ),
-             ( 'points', 'Points', None ) ),
+             ( 'points', 'Points', None ), _only ),
 }
 
 #(the options which are on unless given as 0, like the logarithmic colour
@@ -579,8 +581,9 @@ cache_blocks = (
 overview_controls = { 'particle' : 'Particle type', 'variables' : 'Variables' }
 
 #The button of the settings of corner plots choosing the variables with the
-#strongest correlations:
-most_correlated = 'Most correlated'
+#strongest correlations, and then all of them again (see
+#WidgetViewer.overview_controls):
+most_correlated, all_variables = 'Most correlated', 'All variables'
 
 def particle_type_text( name, fraction ):
     """The text of a particle type (its name, or None for all) in the menu of

@@ -718,7 +718,8 @@ class _Filler:
         _nice_range)"""
         lo, hi = self._lims[i]
         if not lo <= hi:
-            raise MCPLError('No values to histogram (no particles picked?)')
+            only = f', or none with only={self._only.expression}' if self._only is not None else ''
+            raise MCPLError(f'No values to histogram (no particles picked{only}?)')
         if lo == hi:
             return ( lo/2, lo*2 ) if log else ( lo - 1.0, hi + 1.0 )
         return ( lo, hi ) if log or not nice else _nice_range(lo,hi)

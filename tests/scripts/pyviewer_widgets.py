@@ -325,8 +325,21 @@ print('   restored:', Viewer('example.mcpl',view=state).group_settings('correlat
 t.on_overview_control('variables','x')
 print('   back to the default variables:', v.set_group_setting('correlations','variables',None),
       v.group_setting('correlations','variables'))
-t.on_overview_control('variables',ui.most_correlated)
-print('   most correlated:', v.group_setting('correlations','variables'))
+t.on_overview_control('most',ui.most_correlated)
+print('   most correlated:', v.group_setting('correlations','variables'),
+      '| button:', t.overview_controls()[-1][3])
+t.on_overview_control('most',ui.all_variables)
+print('   all again:', v.group_setting('correlations','variables'),
+      '| button:', t.overview_controls()[-1][3])
+#(the particle type of a group is the setting Particles of its plots, also
+#when they are copied into the custom group):
+t.on_select_key('overview:overview')
+t.on_overview_control('particle','gamma (24%)')
+v.wait()
+t.on_select_key(next( c.key for c in t.cards() if c.group == 'Overview' and 'wavelength' in c.key ))
+print('   Particles of a plot of the overview:', t.plot_controls()[1][-1][2:4])
+t.on_control('only','all')
+print('   after choosing all:', t.shown_key)
 #(the coefficients, from sums over blocks of particles: of values on a line,
 #either way, with weights, by particle type and for all, on a logarithmic
 #axis for values spanning more than two decades, and none for one value):

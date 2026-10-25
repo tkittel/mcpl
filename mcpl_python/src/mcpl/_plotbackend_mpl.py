@@ -416,6 +416,21 @@ def figure_png( figure, width, height ):
     fig.savefig(out,format='png',dpi=dpi)
     return out.getvalue()
 
+def after_event( canvas, fct, *args ):
+    """Call fct(*args) after the event being handled (e.g. a click which
+    changes the plots, which could otherwise remove 3D plots which still get
+    the event), with a timer of the canvas (or at once, for canvases without
+    timers, e.g. those of files)"""
+    from matplotlib.backend_bases import TimerBase
+    timer = canvas.new_timer(interval = 1)
+    if type(timer) is TimerBase:
+        fct(*args)
+        return
+    timer.single_shot = True
+    timer.add_callback(fct,*args)
+    canvas._mcpl_timer = timer#(kept until it is done)
+    timer.start()
+
 def _remove_axes( ax ):
     """Remove the axes from their figure, with the event handlers which 3D axes
     connect to the canvas (which they do not disconnect themselves, so they

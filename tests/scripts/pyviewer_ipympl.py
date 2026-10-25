@@ -44,6 +44,9 @@ shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
 def click( fig, ax ):
     x, y = ax.transAxes.transform((0.5,0.5))
     MouseEvent('button_press_event',fig.canvas,x,y,1)._process()
+    #(the click is handled after the event, with a timer of the canvas, run by
+    #the event loop of Jupyter, see _plotbackend_mpl.after_event):
+    fig.canvas._mcpl_timer._on_timer()
 
 v = Viewer('example.mcpl')
 j = JupyterViewer(v)

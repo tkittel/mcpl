@@ -63,3 +63,46 @@ def elided( text, font, width ):
     while text and font.measure(text + '\u2026') > width:
         text = text[:-1]
     return text.rstrip() + '\u2026'
+
+def on_paste( widget, fct ):
+    """Call fct after text is pasted in or cut from the widget (with the keys or
+    the menus: on macOS, Cmd+V gives no key release event)"""
+    for event in ( '<<Paste>>', '<<Cut>>' ):
+        widget.bind(event,lambda _e : widget.after_idle(fct),'+')
+
+class Flow:
+    """Lays out widgets of a frame (the items, in their order) in rows as wide
+    as the frame, as many on each row as fit, and again when its width
+    changes (e.g. the settings of plots, in narrow windows). The rows have the
+    style (of frames) given."""
+    def __init__( self, frame, style = None, pad = 10 ):
+        self.frame, self._style, self._pad = frame, style, pad
+        self._items, self._rows, self._width = [], [], None
+        frame.bind('<Configure>',lambda _e : self.layout(),'+')
+
+    def set( self, items ):
+        """Lay out these items (instead of those before)"""
+        self._items, self._width = list(items), None
+        self.layout()
+
+    def layout( self ):
+        _, ttk = tk_modules()
+        width = self.frame.winfo_width()
+        if width == self._width:
+            return
+        self._width = width
+        if width <= 1:#(not shown yet: in one row)
+            width = 10**9
+        for row in self._rows:
+            row.destroy()#(which unpacks the items in it)
+        self._rows, x = [], width
+        for w in self._items:
+            need = w.winfo_reqwidth() + self._pad
+            if x + need > width and ( x > 0 or not self._rows ):
+                row = ttk.Frame(self.frame,**( { 'style' : self._style } if self._style else {} ))
+                row.pack(fill='x',anchor='w')
+                self._rows.append(row)
+                x = 0
+            w.pack(in_=self._rows[-1],side='left',padx=(0,self._pad))
+            w.lift()#(above the row, which is made after it)
+            x += need

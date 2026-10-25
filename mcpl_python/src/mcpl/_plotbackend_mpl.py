@@ -489,8 +489,9 @@ class FigurePane:
             keep_zoom(old_axes,self.axes)
         if figure.title:
             y = self._title_y if self._title_y is not None else self._box[3]
+            #(long titles are wrapped, within narrow windows):
             self._title = self.fig.text(0.5*(left+right),y,figure.title,ha='center',
-                                        va='top',size=self._title_size)
+                                        va='top',size=self._title_size,wrap=True)
         #(the first axes are those of the plots, in order, see draw_in):
         self._panels = ( [ ( ax, k ) for ax, k in zip(self.axes,viewer.overview_keys(key))
                            if k is not None ] if key.startswith('overview:') else [] )

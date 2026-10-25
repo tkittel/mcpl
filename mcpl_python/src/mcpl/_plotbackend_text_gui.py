@@ -482,18 +482,19 @@ def run_viewer( viewer, backend = None ):
     """Run the viewer in the terminal (with curses), with the plots drawn with
     the backend (a text backend, default unicode, whose colour setting is
     used)"""
+    import sys
+    #(first the terminal, which is needed anyway, e.g. on Windows without
+    #curses):
+    if not ( sys.stdin.isatty() and sys.stdout.isatty() ):
+        raise MCPLError('The viewer in the terminal needs a terminal (its input'
+                        ' and output can not be redirected)')
     try:
         import curses
     except ImportError:
-        import sys
         extra = ( ' (install the windows-curses Python package)'
                   if sys.platform == 'win32' else '' )
         raise MCPLError('The viewer in the terminal needs the curses module of'
                         f' Python{extra}')
-    import sys
-    if not ( sys.stdin.isatty() and sys.stdout.isatty() ):
-        raise MCPLError('The viewer in the terminal needs a terminal (its input'
-                        ' and output can not be redirected)')
     from ._termcolor import _use_colors
     #(as for plots printed in the terminal, but curses knows which colours the
     #terminal has):

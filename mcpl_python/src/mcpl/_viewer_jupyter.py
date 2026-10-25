@@ -33,6 +33,17 @@ from . import _viewer_ui as ui
 from ._common import MCPLError
 
 
+def _exclusive( method ):
+    """The handler of a widget, run while no other thread refreshes the widgets
+    (the polling thread of JupyterViewer), which could otherwise see the viewer
+    while it is changed"""
+    import functools
+    @functools.wraps(method)
+    def handler( self, *args ):
+        with self._refreshing:
+            return method(self,*args)
+    return handler
+
 class JupyterViewer:
     """The viewer as an ipywidgets panel (the widget attribute)"""
     def __init__( self, viewer ):
@@ -154,7 +165,8 @@ class JupyterViewer:
         #widget, which can be the polling thread while the user types):
         self._local = threading.local()
         self._shown = {}#image -> (view key, figure) shown in it
-        #(only one thread at a time draws with matplotlib):
+        #(only one thread at a time draws with matplotlib, or changes the viewer
+        #with the handlers of the widgets, see _exclusive):
         self._refreshing = threading.RLock()
 
     def start( self ):
@@ -176,6 +188,7 @@ class JupyterViewer:
             if self.v.poll():
                 self.refresh()
 
+    @_exclusive
     def _on_view( self, change ):
         if change['new'] is not None and not self._syncing:
             self.v.select(change['new'])
@@ -187,16 +200,19 @@ class JupyterViewer:
         if key is not None:
             after_event(event.canvas,self._on_panel,key)
 
+    @_exclusive
     def _on_move( self, delta ):
         if self.v.move(delta):
             self._sync_views()
             self.refresh()
 
+    @_exclusive
     def _on_panel( self, key ):
         self.v.select_key(key)
         self._sync_views()
         self.refresh()
 
+    @_exclusive
     def _on_field( self, field, change ):
         if self._syncing:
             return
@@ -205,6 +221,7 @@ class JupyterViewer:
         if ok and field == 'plot':
             self._set_quietly(self._fields['plot'],'')
 
+    @_exclusive
     def _on_change( self, change ):
         key = self.v.current_key
         if self._syncing or ui.plot_of(key) is None:
@@ -232,6 +249,7 @@ class JupyterViewer:
         finally:
             self._syncing = False
 
+    @_exclusive
     def _on_cache( self, change ):
         if self._syncing or change['new'] is None:
             return
@@ -267,9 +285,11 @@ class JupyterViewer:
         finally:
             self._syncing = False
 
+    @_exclusive
     def _on_write( self, _ ):
         self._write_or_save('write',self._filename,self.v.suggested_filename)
 
+    @_exclusive
     def _on_save_state( self, _ ):
         self._write_or_save('state',self._statefile,self.v.suggested_state_filename)
 
@@ -282,10 +302,12 @@ class JupyterViewer:
         else:
             self._message.value = f'<span style="color:#c00">{html.escape(msg)}</span>'
 
+    @_exclusive
     def _on_help( self, _ ):
         self._extra.value = ( '' if self._extra.value.startswith('<pre>The viewer')
                               else f'<pre>{html.escape(ui.help_text)}</pre>' )
 
+    @_exclusive
     def _on_names( self, _ ):
         from ._exprhelp import _help_text
         self._extra.value = f'<pre>{html.escape(_help_text("pick"))}</pre>'

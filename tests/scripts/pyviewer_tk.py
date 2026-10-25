@@ -35,7 +35,7 @@ import tkinter
 import mcpldev._viewer_tk as viewer_tk
 from mcpldev._viewer import Viewer
 from mcpldev._viewer_tk import TkViewer, _root
-from mcpldev._viewer_tkbase import focus_of
+from mcpldev._viewer_tkbase import Flow, focus_of
 from MCPLTestUtils.dirs import test_data_dir
 
 shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
@@ -280,6 +280,24 @@ for label, title, blocks in tv.help_topics():
     print('   closed with q:', not top.winfo_exists())
 print('help in the menu:', [ tv._actions_menu.entrycget(i,'label')
                              for i in range(tv._actions_menu.index('end') + 1) ])
+
+#Rows of settings wrap in narrow frames, also with items in frames, whose sizes
+#Tk only knows when idle:
+top = tkinter.Toplevel(root)
+narrow = tkinter.Frame(top,width=200,height=100)
+narrow.pack(fill='both',expand=True)
+top.geometry('200x100')
+pump()
+flow = Flow(narrow)
+items = []
+for i in range(4):
+    item = tkinter.Frame(narrow)
+    tkinter.Label(item,text=f'setting {i}').pack(side='left')
+    items.append(item)
+flow.set(items)
+pump()
+print('settings in a narrow frame, rows:', len(flow._rows))
+top.destroy()
 
 tv.close_window()
 print('closed:', tv.closed)

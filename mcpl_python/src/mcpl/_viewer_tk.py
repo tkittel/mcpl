@@ -284,9 +284,12 @@ class TkViewer(WidgetViewer):
         self._statusbar = ttk.Label(bottom,foreground=colors['dim'])
         self._statusbar.grid(row=1,column=0,sticky='e',pady=(2,0))
         #(the window is at least as wide as the cards and the widest row of
-        #the fields of the shown plot, so nothing is cut off):
+        #the fields of the shown plot, so nothing is cut off, but fits on the
+        #screen, as in the geometry above, where the fields get narrower):
         root.update_idletasks()
-        root.minsize(left.winfo_reqwidth() + self._axes[0].master.winfo_reqwidth() + 40,600)
+        root.minsize(min( left.winfo_reqwidth() + self._axes[0].master.winfo_reqwidth() + 40,
+                          root.winfo_screenwidth() - 40 ),
+                     min( 600, root.winfo_screenheight() - 120 ))
         self._popup = None#(the list of completions: (field, start, Toplevel, Listbox))
         root.bind('<Key>',self._on_root_key)
         root.protocol('WM_DELETE_WINDOW',self.close_window)

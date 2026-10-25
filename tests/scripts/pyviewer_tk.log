@@ -61,4 +61,5 @@ help 'Plot expressions': MCPL viewer: Plot expressions | sections: 1 | lines: Tr
 help 'About data caching': MCPL viewer: Data caching | sections: 2 | lines: False
    closed with q: True
 help in the menu: ['Open MCPL file...', 'Save viewer state...', 'Quit']
+settings in a narrow frame, rows: 2
 closed: True

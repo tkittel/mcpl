@@ -205,7 +205,10 @@ class Backend(PlotBackend):
                 ax.plot(x,y,label=item.label,linewidth=1.5,color=f'C{c}',linestyle=style)
                 has_legend |= item.label is not None
             elif isinstance(item,Hist2D):
-                v = np.where(item.values>0,item.values,np.nan) if item.logz else item.values
+                #(empty bins are not coloured, also on a linear scale, where the
+                #lowest colour would look like a few particles):
+                v = np.asarray(item.values,dtype=float)
+                v = np.where(v>0,v,np.nan) if item.logz else np.where(v!=0,v,np.nan)
                 if np.isfinite(v).any():
                     im = ax.pcolormesh(item.xedges,item.yedges,np.asarray(v).T,
                                        norm=( matplotlib.colors.LogNorm()

@@ -34,6 +34,7 @@ from ._expressions import ParticleFilter, ParticleValue
 from ._exprplot import _plot_unit, _PlotValue
 from ._histstring import (
     _as_range,
+    _auto_logx,
     _check_range,
     _hist_defaults,
     _hist_with_args,
@@ -64,12 +65,6 @@ def _blocks( source, flt ):
     f = source if _is_file(source) else MCPLFile(source)
     for b in f.particle_blocks:
         yield b[flt(b)] if flt is not None else b
-
-def _auto_logx( lo, hi ):
-    """Whether values from lo to hi get a logarithmic axis with logx='auto':
-    if they are positive and span more than two decades (as in the overview
-    of collect_stats)"""
-    return bool( lo > 0 and hi > 100 * lo )
 
 def _as( cls, expr ):
     if expr is None or isinstance(expr,cls):

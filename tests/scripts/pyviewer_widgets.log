@@ -505,14 +505,15 @@
    variables: ['x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin'] 7x7 ['x;logx=auto;only=pdgcode == neutron', 'x : y;logx=auto;logy=auto;only=pdgcode == neutron'] ['plot', 'r']
    line (error): The correlations plot needs at least two variables
    title: Correlations plots: the correlations of the positions, directions, energy and weight, as a corner plot (only: pdgcode == gamma)
-   cells: ['StepHist', 'Correlation', 'Hist2D', 'StepHist'] ['+0.17']
+   cells: ['StepHist', 'Correlation', 'Hist2D', 'StepHist'] ['+0.20']
    state: {'correlations': {'variables': ['uz', 'ekin'], 'particle': 22}}
    restored: [('particle', 22, [None]), ('variables', ['uz', 'ekin'], ['x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin', 'time', 'weight'])]
    back to the default variables: True ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time']
-   coefficient of [[1, 0], [0, 1]] : 1.0
-   coefficient of [[0, 2], [3, 0]] : -1.0
-   coefficient of [[1, 1], [1, 1]] : 0.0
-   coefficient of [[0, 0], [0, 0]] : None
+   line (normal): The most correlated: x, y, uy, time
+   most correlated: ['x', 'y', 'uy', 'time']
+   coefficients of 22 : {'x:y': 1.0, 'x:ekin': 1.0, 'x:z': None, 'y:ekin': 1.0, 'y:z': None, 'ekin:z': None}
+   coefficients of 2112 : {'x:y': 1.0, 'x:ekin': 1.0, 'x:z': None, 'y:ekin': 1.0, 'y:z': None, 'ekin:z': None}
+   coefficients of None : {'x:y': 0.9929, 'x:ekin': 1.0, 'x:z': None, 'y:ekin': 0.9929, 'y:z': None, 'ekin:z': None}
 ==> the buttons of the actions, and quit
    help shown: 43 lines
    window closed

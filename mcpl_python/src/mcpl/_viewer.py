@@ -157,6 +157,7 @@ class Viewer(_Reading):
         with self._lock:
             self._groups.found = found
             self._sync()
+            self._updates += 1#(e.g. the correlation coefficients are new)
         if self._reading_settings().plots != before:
             self._restart()
 
@@ -178,6 +179,12 @@ class Viewer(_Reading):
         possible values, as (name, value, choices)"""
         g = self._groups
         return [ ( n, g.setting(key,n), g.setting_choices(key,n) ) for n in g.setting_names(key) ]
+
+    def most_correlated( self, key ):
+        """The variables of the corner plot of the group with the strongest
+        correlations (see PlotGroups.most_correlated), or None if not yet
+        known"""
+        return self._groups.most_correlated(key)
 
     def set_group_setting( self, key, name, value ):
         """Set the setting of the standard group with the key (the particle type
@@ -743,10 +750,12 @@ class Viewer(_Reading):
     def _overview_figure( self, key, ov ):
         """The figure of the overview (made again only when the figures or its
         plots changed, so the same figure is returned until then)"""
-        made_from = ( self._figures, tuple(ov.cells), tuple(ov.kinds), ov.ncols )
+        coefficients = self._groups.coefficients(key[9:])
+        made_from = ( self._figures, tuple(ov.cells), tuple(ov.kinds), ov.ncols, coefficients )
         old = self._overviews.get(key)
         if old is None or old[0] != made_from:
-            self._overviews[key] = old = ( made_from, overview_figure(self._figures,ov) )
+            self._overviews[key] = old = ( made_from, overview_figure(self._figures,ov,
+                                                                     coefficients) )
         return old[1]
 
     def status_lines( self, weights = '\u03a3w' ):

@@ -82,8 +82,16 @@ class Flow:
 
     def set( self, items ):
         """Lay out these items (instead of those before)"""
-        self._items, self._width = list(items), None
-        self.layout()
+        self._items = list(items)
+        self._relayout()
+        #(again when the sizes of new items are known, which Tk computes when
+        #idle, e.g. of frames):
+        self.frame.after_idle(self._relayout)
+
+    def _relayout( self ):
+        if self.frame.winfo_exists():
+            self._width = None
+            self.layout()
 
     def layout( self ):
         _, ttk = tk_modules()

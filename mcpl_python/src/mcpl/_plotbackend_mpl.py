@@ -163,7 +163,8 @@ class Backend(PlotBackend):
             if panel is None:#(an empty cell of the grid)
                 ax.set_visible(False)
             else:
-                self._draw_panel(fig,ax,panel,compact=corner)
+                self._draw_panel(fig,ax,panel,compact=corner,
+                                 several=len(figure.panels) > 1)
         if corner:
             _corner_axes(axlist,figure.nrows,figure.ncols)
         for ax in axlist[len(figure.panels):]:
@@ -189,10 +190,11 @@ class Backend(PlotBackend):
             ax._mcpl_home = _axes_view(ax)
         return new
 
-    def _draw_panel( self, fig, ax, panel, compact = False ):
+    def _draw_panel( self, fig, ax, panel, compact = False, several = False ):
         """Draw the panel on the axes ax (without colour bars and legends if
-        compact)"""
+        compact, and with fewer labels on colour bars if one of several)"""
         import matplotlib.colors
+        import matplotlib.ticker
         has_legend = False
         for i,item in enumerate(panel.items):
             if isinstance(item,StepHist):
@@ -214,8 +216,13 @@ class Backend(PlotBackend):
                                        norm=( matplotlib.colors.LogNorm()
                                               if item.logz else None ))
                     if not compact:
-                        #(marked, see Pane.on_colour_bar):
-                        fig.colorbar(im,ax=ax).ax._mcpl_colour_bar = True
+                        bar = fig.colorbar(im,ax=ax)
+                        bar.ax._mcpl_colour_bar = True#(see Pane.on_colour_bar)
+                        if several and item.logz and _has_decade(im.norm.vmin,im.norm.vmax):
+                            #(only the powers of 10 are labelled, as on the
+                            #axes, see _draw_axes, since the labels of the
+                            #others collide in the small plots of overviews):
+                            bar.ax.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
             elif isinstance(item,Bars):
                 pos = list(range(len(item.values)))
                 colors = [ f'C{c%10}' for c in item.colors ] if item.colors else None
@@ -293,6 +300,11 @@ def _draw_correlation( ax, item ):
     ax.set_xticks([])
     ax.set_yticks([])
     ax._mcpl_no_grid = True#(see _draw_panel)
+
+def _has_decade( lo, hi ):
+    """Whether there is a power of 10 between lo and hi (lo > 0)"""
+    import math
+    return math.floor(math.log10(hi)) >= math.ceil(math.log10(lo))
 
 def _inner_decades( lo, hi, n = 2 ):
     """At most n powers of 10 (every k-th) between lo and hi (lo > 0), away
@@ -486,16 +498,18 @@ class FigurePane:
         self._panels = []#(axes, view key) of the plots of the overview
 
     def _font_scale( self ):
-        """The factor of the font sizes: 1 for boxes of at least 900 x 450
-        pixels (e.g. in a large window), and less in smaller boxes (down to
-        0.6), so the texts of the plots do not collide (rounded, so the plots
-        are only drawn again for larger changes of the size)"""
+        """The factor of the font sizes: 1 for boxes of at least 9 x 4.5 inches
+        (e.g. in a large window), and less in smaller boxes (down to 0.6), so
+        the texts of the plots do not collide (rounded, so the plots are only
+        drawn again for larger changes of the size). In inches, as the font
+        sizes (in points), and not in pixels, which are smaller on screens with
+        a high resolution (e.g. Retina displays, where the dpi is doubled)."""
         if not self._scale_fonts:
             return 1.0
         left, right, bottom, top = self._box
-        w = self.fig.get_figwidth() * self.fig.dpi * ( right - left )
-        h = self.fig.get_figheight() * self.fig.dpi * ( top - bottom )
-        return round( max( 0.6, min( 1.0, w / 900, h / 450 ) ), 1 )
+        w = self.fig.get_figwidth() * ( right - left )
+        h = self.fig.get_figheight() * ( top - bottom )
+        return round( max( 0.6, min( 1.0, w / 9, h / 4.5 ) ), 1 )
 
     def show( self, viewer, key = None ):
         """Draw the figure of the view with the key (default the shown one) if

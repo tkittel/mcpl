@@ -114,21 +114,26 @@ jobs:
             python3 -m pip install --user --upgrade "pip>=26.2.2"
             python3 -m pip install --user ${FREEBSD_PIPS}
             echo "PATH IS NOW: ${PATH}"
+            #TODO: revisit. Since pip 26.2, pip check fails for all Python
+            #packages installed by FreeBSD itself (with pkg), as "not supported
+            #on this platform", so for now only problems of our own packages
+            #(mcpl*) fail the job (all of the output is still shown):
+            pipcheck_ours() { python3 -mpip check > pipcheck.txt || true; cat pipcheck.txt; ! grep -i '^mcpl' pipcheck.txt; }
             ./src/devel/bin/mcpldevtool check -n "fix""me"
             python3 -mpip install --user ./src/mcpl_python
             python3 -mpip show mcpl-python
             ls -l /home/runner/.local/bin
             which mcpltool
             mcpltool ./src/examples/example.mcpl
-            python3 -mpip check
+            pipcheck_ours
             python3 -mpip install --user -v ./src/mcpl_core
             python3 -mpip show mcpl-core
-            python3 -mpip check
+            pipcheck_ours
             mcpltool-c -h
             mcpltool-c ./src/examples/example.mcpl
             python3 -mpip install --user --no-build-isolation ./src/mcpl_metapkg
             python3 -mpip show mcpl
-            python3 -mpip check
+            pipcheck_ours
             python3 -mpip install --user scikit_build_core ./src/mcpl_extra --no-build-isolation
             mcpl2phits ./src/examples/example.mcpl foo.dmp
             phits2mcpl foo.dmp foo.mcpl

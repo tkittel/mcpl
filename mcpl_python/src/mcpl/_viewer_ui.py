@@ -554,17 +554,26 @@ def cache_line( info ):
              f' {count_text(info["nrange"])} particles'
              ' (those in the cache), but new files get all' )
 
-cache_about = ( 'The viewer keeps the particles it reads in memory (the cache), so it'
-                ' does not need to read the file again when the plots, the pick or the'
-                ' edit change. When the particles do not all fit in the cache (marked'
-                ' in red), the plots use only the first particles, those which fit,'
-                ' and the others are not read, so the viewer stays fast. With no cache,'
-                ' all particles are read from the file again for each change. New'
-                ' files always get all particles (of the skip and limit, picked and'
-                ' edited).' )
+#The help about the cache (see cache_menu), as blocks (see _helptext):
+cache_blocks = (
+    ( 'text', ( 'The viewer keeps the particles it reads in memory (the cache), so it does'
+      ' not need to read the file again when the plots, the pick or the edit change.' ) ),
+    ( 'gap', ),
+    ( 'section', 'The memory limit' ),
+    ( 'text', ( 'The button at the top right shows the memory used, and its menu sets the'
+      ' limit (500 MB unless chosen). The memory is counted for the particles before the'
+      ' pick.' ) ),
+    ( 'key', 'Green', 'All particles fit: the plots use all of them.' ),
+    ( 'key', 'Red', ( 'Not all particles fit: the plots use only the first ones, those which'
+      ' fit, and the others are not read, so the viewer stays fast. The numbers of'
+      ' picked particles are then estimates (marked \u2248).' ) ),
+    ( 'key', 'No cache', 'All particles are read from the file again for each change.' ),
+    ( 'gap', ),
+    ( 'section', 'New files' ),
+    ( 'text', ( 'New MCPL files always get all particles (of the skip and limit, picked and'
+      ' edited), whatever the limit.' ) ),
+)
 
-#Shown instead of the plot while a new plot is made (in the viewers with
-#windows, see WidgetViewer.on_new_plot):
 #The settings of the overviews of the standard groups (see
 #WidgetViewer.overview_controls), as name -> label:
 overview_controls = { 'particle' : 'Particle type', 'variables' : 'Variables' }
@@ -581,6 +590,8 @@ def variable_text( expr, constant ):
     particles have it (e.g. "z: all 20 cm")"""
     return expr if constant is None else f'{expr}: all {constant}'
 
+#Shown instead of the plot while a new plot is made (in the viewers with
+#windows, see WidgetViewer.on_new_plot):
 new_plot_hints = """New plot: choose or type what to plot below, and press Enter
 
 \u2022  Choose a quantity in the list of an axis, or type any expression

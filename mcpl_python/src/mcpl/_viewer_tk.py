@@ -623,8 +623,18 @@ class TkViewer(WidgetViewer):
         text.pack(side='left',fill='both',expand=True)
         _format_help(text,blocks)
         text.configure(state='disabled')
+        #(as high as the text needs, up to 40 lines, when it has its width):
+        top.update_idletasks()
+        #(the height is in lines of the font, and the text has larger headings
+        #and spacing, so its height in pixels is used):
+        pixels = text.count('1.0','end','update','ypixels')
+        pixels = pixels[-1] if isinstance(pixels,tuple) else pixels
+        line = int(text.tk.call('font','metrics','TkDefaultFont','-linespace'))
+        if pixels:
+            text.configure(height=min( 40, -( -int(pixels) // line ) + 1 ))
         ttk.Button(top,text='Close',command=top.destroy).pack(pady=4)
-        top.bind('<Escape>',lambda _e : top.destroy())
+        for key in ( '<Escape>', '<KeyPress-q>', '<KeyPress-Q>' ):
+            top.bind(key,lambda _e : top.destroy())
         top.focus_set()
 
     def copy_text( self, text ):

@@ -530,6 +530,10 @@ class TkViewer(WidgetViewer):
             menu.add_radiobutton(label=label,value=str(i),variable=menu._used,
                                  foreground=colors['ok' if fits else 'error'],
                                  command=lambda x=limit : self.on_cache_limit(x))
+        #(the help about the cache, as in the help menu):
+        menu.add_separator()
+        menu.add_command(label='Help about data caching',
+                         command=lambda : self.show_text('Data caching',ui.cache_blocks))
 
     def show_colour_bar_menu( self, entries ):
         tk, _ttk = tk_modules()
@@ -1111,6 +1115,10 @@ class _OverviewControls:
                                         ).pack(side='left',padx=(0,2))
                         toggles[t] = var
                     self._widgets[name] = toggles
+                    ttk.Button(self.frame,text=ui.most_correlated,takefocus=0,
+                               style='Small.TButton',
+                               command=lambda n=name : self._on_change(n,ui.most_correlated)
+                               ).pack(side='left',padx=(8,0))
                 else:
                     w = ttk.Combobox(self.frame,values=texts,state='readonly',
                                      width=max( len(t) for t in texts ) + 1)

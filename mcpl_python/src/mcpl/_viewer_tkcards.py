@@ -205,11 +205,18 @@ class CardList:
             c.create_text(self.width-10,y+h/2,anchor='e',fill=col['accent'],
                           font=( self.tv.bold.cget('family'), 8 ),text=card.status)
             return
-        fill = col['selected'] if selected else ( col['badge'] if card.overview else col['card'] )
-        self._rect(4,y,self.width,y+h,12,fill=fill,
+        right = self.width
+        if card.overview:
+            #(the overview of a group: a stack of cards, tinted, with a stripe
+            #at its left, and its name in the colour of the stripe):
+            for d in ( 6, 3 ):
+                self._rect(4+d,y+d,self.width,y+h,12,fill=col['stack'] if d == 3 else col['badge'],
+                           outline=col['border'])
+            right, h = self.width - 6, h - 6
+        fill = col['selected'] if selected else ( col['overview'] if card.overview else col['card'] )
+        self._rect(4,y,right,y+h,12,fill=fill,
                    outline=col['accent'] if selected else col['border'],width=2 if selected else 1)
         if card.overview:
-            #(the overview of a group: tinted, with a stripe at its left):
             c.create_rectangle(5,y+10,9,y+h-10,fill=col['accent'],outline='')
         if card.compact:
             c.create_text(16,y+h/2,anchor='w',fill=col['dim'],
@@ -230,7 +237,8 @@ class CardList:
         ls = font.metrics('linespace')
         y0 = y + ( h - self._text_height(card,lines,font) ) / 2
         for i, line in enumerate(lines):
-            c.create_text(x,y0+ls*i,anchor='nw',fill=col['text'],font=font,text=line)
+            c.create_text(x,y0+ls*i,anchor='nw',fill=col['accent'] if card.overview else col['text'],
+                          font=font,text=line)
         top = y0 + len(lines) * ls + 4
         if card.problem:
             c.create_text(x,top+9,anchor='w',fill=colors['error'],

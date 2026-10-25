@@ -381,6 +381,12 @@ class _Computation:
             self._plots.append( ( p, h ) )
         self._lims = { f : [ None, None ] for f in _const_fields }
         self._types = {}#(pdgcode -> sum of weights)
+        #(the sums giving the correlation coefficients of the fields of the
+        #correlation plots):
+        from ._stdviews import _groups
+        from ._viewer_overviews import Moments
+        self._moments = Moments(dict.fromkeys( v for g in _groups.values()
+                                               for v in g[3].get('variables',()) ))
 
     def _guard( self, p, fct, *args ):
         """fct(*args), or None if the plot p failed (noting the problem)"""
@@ -417,6 +423,7 @@ class _Computation:
                            minlength=len(pdg))
         for k, w in zip(pdg.tolist(),sums.tolist()):
             self._types[k] = self._types.get(k,0.0) + w
+        self._moments.add(b)
 
     def constants( self ):
         """The fields where all particles have the same value, with the value
@@ -430,10 +437,13 @@ class _Computation:
         return res
 
     def found( self ):
-        """What was found: the fields with one value (see constants), and the
-        particle types as (pdgcode, sum of weights), the largest first"""
+        """What was found: the fields with one value (see constants), the
+        particle types as (pdgcode, sum of weights), the largest first, and
+        the correlation coefficients of the fields of correlation plots (see
+        Moments.coefficients)"""
         types = sorted( self._types.items(), key = lambda t : ( -t[1], t[0] ) )
-        return { 'constants' : self.constants(), 'types' : types }
+        return { 'constants' : self.constants(), 'types' : types,
+                 'correlations' : self._moments.coefficients() }
 
     def figures( self ):
         """The figures of the plots (with the pick and edit expressions as

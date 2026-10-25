@@ -149,6 +149,12 @@ def _only_pick( value, text ):
                         f' only=pdgcode == neutron), in "{text}": {e}') from None
     return value
 
+def _auto_logx( lo, hi ):
+    """Whether values from lo to hi get a logarithmic axis with logx='auto':
+    if they are positive and span more than two decades (as in the overview
+    of collect_stats)"""
+    return bool( lo > 0 and hi > 100 * lo )
+
 def _check_hist_options( o, text ):
     """Check that the options o (see _parse_hist) of the histogram text can be
     used together"""

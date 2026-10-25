@@ -80,8 +80,9 @@ def grid_columns( n ):
 def correlation_cells( exprs ):
     """The cells of a correlation plot of the expressions, with the expression of the
     column on the x axis below the diagonal, and above it the correlation
-    coefficient of the mirrored pair, as (cells, kinds), see Overview. The
-    axes are logarithmic if suitable for the values (with logx=auto)."""
+    coefficient of the mirrored pair (see Moments), as (cells, kinds), see
+    Overview. The axes are logarithmic if suitable for the values (with
+    logx=auto)."""
     n = len(exprs)
     cells, kinds = [], []
     for i in range(n):
@@ -92,42 +93,86 @@ def correlation_cells( exprs ):
             kinds.append( 'plot' if j <= i else 'r' )
     return cells, kinds
 
-def _centres( edges, log ):
-    """The centres of the bins (of the logarithms, if log)"""
-    from ._numpy import np
-    e = np.log(np.asarray(edges,dtype=float)) if log else np.asarray(edges,dtype=float)
-    return 0.5 * ( e[:-1] + e[1:] )
+class Moments:
+    """The weighted sums of the fields, of their logarithms and of their
+    products, by particle type (from the blocks given to add), from which
+    follow the weighted correlation coefficients of all pairs of the fields
+    (see coefficients), on the axes of correlation plots: logarithmic for fields
+    whose values are positive and span more than two decades (as with
+    logx=auto, see _histstring._auto_logx)"""
+    def __init__( self, fields ):
+        self.fields = list(fields)
+        self._sums = {}#(pdgcode -> [ sum of weights, sums, sums of products, min, max ])
+        self._shift = None#(subtracted from the values, against rounding errors)
 
-def correlation( figure ):
-    """The weighted correlation coefficient of the values of the 2D histogram
-    of the figure (from the contents of its bins, on its axes, so of the
-    logarithms of the values of logarithmic axes), or None"""
-    from ._numpy import np
-    from .plotting import Hist2D
-    hist = next( ( it for it in ( figure.panels[0].items if figure is not None
-                                  and figure.panels else () ) if isinstance(it,Hist2D) ), None )
-    if hist is None:
-        return None
-    w = np.nan_to_num(np.asarray(hist.values,dtype=float))
-    total = w.sum()
-    if not total > 0:
-        return None
-    #(of the values on the axes, so in log for logarithmic axes):
-    panel = figure.panels[0]
-    xc, yc = ( _centres(e,log) for e, log in ( ( hist.xedges, panel.logx ),
-                                              ( hist.yedges, panel.logy ) ) )
-    wx, wy = w.sum(axis=1), w.sum(axis=0)
-    mx, my = ( wx * xc ).sum() / total, ( wy * yc ).sum() / total
-    vx, vy = ( wx * ( xc - mx )**2 ).sum() / total, ( wy * ( yc - my )**2 ).sum() / total
-    if not ( vx > 0 and vy > 0 ):
-        return None
-    cov = ( w * np.outer(xc - mx,yc - my) ).sum() / total
-    return float( max( -1.0, min( 1.0, cov / math.sqrt( vx * vy ) ) ) )
+    def add( self, b ):
+        from ._numpy import np
+        n = len(b)
+        if not n:
+            return
+        x = np.stack([ np.broadcast_to(np.asarray(getattr(b,f),dtype=float),(n,))
+                       for f in self.fields ],axis=1)
+        w = np.broadcast_to(np.asarray(b.weight,dtype=float),(n,))
+        pdg = np.broadcast_to(np.asarray(b.pdgcode),(n,))
+        ok = np.isfinite(x).all(axis=1) & np.isfinite(w)
+        x, w, pdg = x[ok], w[ok], pdg[ok]
+        if not len(x):
+            return
+        with np.errstate(divide='ignore',invalid='ignore'):
+            lx = np.where(x > 0,np.log(np.where(x > 0,x,1.0)),0.0)
+        z = np.concatenate([ x, lx ],axis=1)
+        if self._shift is None:
+            self._shift = z.mean(axis=0)
+        z = z - self._shift
+        for k in np.unique(pdg).tolist():
+            m = pdg == k
+            zk, wk, xk = z[m], w[m], x[m]
+            add = [ wk.sum(), wk @ zk, zk.T @ ( wk[:,None] * zk ), xk.min(axis=0), xk.max(axis=0) ]
+            old = self._sums.get(k)
+            if old is None:
+                self._sums[k] = add
+            else:
+                self._sums[k] = [ *( o + a for o, a in zip(old[:3],add[:3]) ),
+                                  np.minimum(old[3],add[3]), np.maximum(old[4],add[4]) ]
 
-def overview_figure( figures, overview ):
+    def coefficients( self ):
+        """The correlation coefficients, as {pdgcode : {(field, field) : r}},
+        with the key None for all particles (r is None if not defined, e.g.
+        for fields with one value)"""
+        from ._histstring import _auto_logx
+        from ._numpy import np
+        if not self._sums:
+            return {}
+        sums = dict(self._sums)
+        all_types = list(sums.values())
+        sums[None] = [ *( sum( s[i] for s in all_types ) for i in range(3) ),
+                       np.min([ s[3] for s in all_types ],axis=0),
+                       np.max([ s[4] for s in all_types ],axis=0) ]
+        n, res = len(self.fields), {}
+        for k, ( sw, s, ss, lo, hi ) in sums.items():
+            if not sw > 0:
+                continue
+            mean = s / sw
+            cov = ss / sw - np.outer(mean,mean)
+            var = np.diag(cov)
+            #(values which are all the same, up to rounding errors, have no
+            #correlations):
+            varies = var > 1e-12 * np.diag(ss) / sw
+            cols = [ n + i if _auto_logx(lo[i],hi[i]) else i for i in range(n) ]
+            res[k] = r = {}
+            for i in range(n):
+                for j in range(i + 1,n):
+                    a, b = cols[i], cols[j]
+                    c = cov[a,b] / np.sqrt(var[a] * var[b]) if varies[a] and varies[b] else None
+                    r[( self.fields[i], self.fields[j] )] = ( None if c is None
+                                                             else float(np.clip(c,-1.0,1.0)) )
+        return res
+
+def overview_figure( figures, overview, coefficients = None ):
     """The figure of the overview, from the figures of its plots (as far as they
     are available, with empty panels for the others, and None for empty
-    cells), or None if none is available. The title says what the plots are
+    cells), with the correlation coefficients of correlation plots (as {(field,
+    field) : r}, see Moments), or None if no plot is available. The title says what the plots are
     (as "Fields plots: the fields of the particles"), followed by that of the
     plots, if any."""
     import copy
@@ -146,7 +191,10 @@ def overview_figure( figures, overview ):
             panels.append(None)
             continue
         if kind == 'r':
-            panels.append(Panel( items = [ Correlation(correlation(f)) ] ))
+            from ._histstring import _hist_parts
+            a, b = ( e.strip() for e in _hist_parts(p)[0].split(':') )
+            r = coefficients or {}
+            panels.append(Panel( items = [ Correlation(r.get(( a, b ),r.get(( b, a )))) ] ))
             continue
         panel = copy.copy(f.panels[0]) if f is not None else Panel( items = [ Text('') ] )
         panel.title = None#(the title of the plots is that of the overview)

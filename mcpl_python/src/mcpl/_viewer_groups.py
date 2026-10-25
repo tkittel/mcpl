@@ -48,9 +48,8 @@ class PlotGroups:
         self.titles = {}#(custom plot -> title)
         self._extra = extra or {}
         self.settings = {}#(group key -> {setting name -> value} chosen, see setting)
-        #(what the reading found: the fields with one value, and the particle
-        #types as (pdgcode, sum of weights), the largest first):
-        self.found = { 'constants' : {}, 'types' : [] }
+        #(what the reading found, see _viewer_reading._Computation.found):
+        self.found = { 'constants' : {}, 'types' : [], 'correlations' : {} }
 
     def overview( self, key, add_cell = False ):
         """The Overview of the group (with its settings, and for the custom
@@ -121,6 +120,29 @@ class PlotGroups:
         if name == 'particle':
             return [ None ] + [ pdg for pdg, _ in self.found['types'] ]
         return list(_groups[key][3]['variables'])
+
+    def coefficients( self, key ):
+        """The correlation coefficients of the fields of the correlation plot of the
+        group (for its particle type), as {(field, field) : r}, as far as
+        known (see Moments.coefficients)"""
+        if key == custom_key or 'variables' not in _groups[key][3]:
+            return {}
+        return self.found['correlations'].get(self.setting(key,'particle'),{})
+
+    def most_correlated( self, key, n = 4 ):
+        """The n variables of the correlation plot of the group with the strongest
+        correlations (the largest absolute correlation coefficient with any
+        other one, of those with more than one value), in their order, or
+        None if the coefficients are not known"""
+        coeffs = self.coefficients(key)
+        if not coeffs:
+            return None
+        choices = [ v for v in self.setting_choices(key,'variables') if not self._constant(v) ]
+        def score( v ):
+            return max( ( abs(r) for pair, r in coeffs.items() if v in pair and r is not None
+                          and all( u in choices for u in pair ) ), default = 0.0 )
+        top = sorted(choices,key = lambda v : -score(v))[:n]
+        return [ v for v in choices if v in top ]
 
     def _constant( self, expr ):
         """Whether the particles have one value of the expression (of fields with

@@ -43,7 +43,8 @@ code_styles = { 'comment' : { 'foreground' : '#6a737d' },
                 'option' : { 'foreground' : '#871094' } }
 card_colors = { 'bg' : '#eef1f5', 'card' : '#ffffff', 'selected' : '#e2ebf6',
                 'border' : '#d5dbe3', 'accent' : '#2f5f8f', 'text' : '#1d2733',
-                'dim' : '#7a8594', 'badge' : '#dfe7f1' }
+                'dim' : '#7a8594', 'badge' : '#dfe7f1', 'overview' : '#d3e0ef',
+                'stack' : '#b9c9dc' }
 part_colors = { 'Plot' : card_colors['selected'], 'Particles' : card_colors['bg'] }
 
 def _axes_problem( axes ):
@@ -474,9 +475,18 @@ class WidgetViewer:
     def on_overview_control( self, name, shown ):
         """A setting of the shown overview was changed: the particle type (to
         the shown text of the menu), or a variable (the text of its toggle) was
-        turned on or off"""
+        turned on or off, or the variables with the strongest correlations
+        were chosen (with the text ui.most_correlated)"""
         key = self._shown_group()
         if key is None:
+            return
+        if name == 'variables' and shown == ui.most_correlated:
+            value = self.v.most_correlated(key)
+            if value is None:
+                self.show_line('The correlations are known when the file is read','error')
+            elif self.v.set_group_setting(key,name,value):
+                self.show_line(f'The most correlated: {", ".join(value)}','normal')
+            self.refresh()
             return
         controls = { n : ( texts, now ) for n, _, texts, now in self.overview_controls() }
         texts, now = controls[name]

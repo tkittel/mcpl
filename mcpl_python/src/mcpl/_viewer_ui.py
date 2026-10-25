@@ -578,6 +578,10 @@ cache_blocks = (
 #WidgetViewer.overview_controls), as name -> label:
 overview_controls = { 'particle' : 'Particle type', 'variables' : 'Variables' }
 
+#The button of the settings of correlation plots choosing the variables with the
+#strongest correlations:
+most_correlated = 'Most correlated'
+
 def particle_type_text( name, fraction ):
     """The text of a particle type (its name, or None for all) in the menu of
     the settings of overviews, with its share of the weights"""

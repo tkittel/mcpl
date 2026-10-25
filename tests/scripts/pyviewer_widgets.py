@@ -33,10 +33,8 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from mcpldev import _viewer_ui as ui
 from mcpldev._viewer import Viewer
-from mcpldev._viewer_overviews import correlation
+from mcpldev._viewer_overviews import Moments
 from mcpldev._viewer_widgets import WidgetViewer
-from mcpldev.plotting import Figure as PlotFigure
-from mcpldev.plotting import Hist2D, Panel
 from MCPLTestUtils.dirs import test_data_dir
 
 shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
@@ -327,11 +325,23 @@ print('   restored:', Viewer('example.mcpl',view=state).group_settings('correlat
 t.on_overview_control('variables','x')
 print('   back to the default variables:', v.set_group_setting('correlations','variables',None),
       v.group_setting('correlations','variables'))
-#(the coefficients of 2D histograms: of values along a line, either way, and
-#of values in a square):
-for values in ( [[1,0],[0,1]], [[0,2],[3,0]], [[1,1],[1,1]], [[0,0],[0,0]] ):
-    hist = Hist2D([0,1,2],[0,10,20],values)
-    print('   coefficient of', values, ':', correlation(PlotFigure(panels=[Panel(items=[hist])])))
+t.on_overview_control('variables',ui.most_correlated)
+print('   most correlated:', v.group_setting('correlations','variables'))
+#(the coefficients, from sums over blocks of particles: of values on a line,
+#either way, with weights, by particle type and for all, on a logarithmic
+#axis for values spanning more than two decades, and none for one value):
+class Block:
+    def __init__( self, **fields ):
+        self.__dict__.update(fields)
+    def __len__( self ):
+        return len(self.x)
+m = Moments(['x','y','ekin','z'])
+for _ in range(2):
+    m.add(Block(x=[1.,2.,3.,4.],y=[2.,4.,6.,9.],ekin=[1e-3,1e-2,1e-1,1.],z=[5.,5.,5.,5.],
+                weight=[1.,1.,2.,2.],pdgcode=[2112,2112,22,22]))
+for k, r in m.coefficients().items():
+    print('   coefficients of', k, ':', { f'{a}:{b}' : None if c is None else round(c,4)
+                                         for ( a, b ), c in r.items() })
 step('the buttons of the actions, and quit')
 t.on_action('help')
 t.on_action('quit')

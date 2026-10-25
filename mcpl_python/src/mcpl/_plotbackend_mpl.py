@@ -348,11 +348,14 @@ def _correlation_axes( axlist, nrows, ncols ):
             else:
                 axis.set_major_locator(matplotlib.ticker.FixedLocator(_inner_decades(*lim)))
                 axis.set_minor_locator(matplotlib.ticker.NullLocator())
+        #(the expression of the row, as the labels of the y axes of the left
+        #column, also for the histogram at the top left):
+        expression = ax.get_xlabel()
         if r < nrows - 1:
             ax.set_xlabel('')
             ax.tick_params(labelbottom=False)
         if r == c:
-            ax.set_ylabel('')
+            ax.set_ylabel('' if c > 0 else expression)
             ax.set_yticks([])
         elif c > 0:
             ax.set_ylabel('')

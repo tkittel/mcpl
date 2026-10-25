@@ -235,7 +235,7 @@ def overview_settings():
 tv.on_select_key('overview:correlations')
 wait()
 print('settings of the correlations:', overview_settings())
-toggles = [ c for c in tv._overview_controls.frame.winfo_children()
+toggles = [ c for c in tv._overview_controls._body.winfo_children()
             if str(c.cget('style')) == 'Choice.Toolbutton' ]
 next( c for c in toggles if text(c) == 'ux' ).invoke()
 menu = tv._overview_controls._widgets['particle']
@@ -244,13 +244,13 @@ menu.event_generate('<<ComboboxSelected>>')
 wait()
 print('after turning ux off and choosing all:', overview_settings(),
       v.group_settings('correlations')[0][1])
-button = next( c for c in tv._overview_controls.frame.winfo_children()
+button = next( c for c in tv._overview_controls._body.winfo_children()
                if c.winfo_class() == 'TButton' )
 for _ in range(2):
     clicked = text(button)
     button.invoke()
     wait()
-    button = next( c for c in tv._overview_controls.frame.winfo_children()
+    button = next( c for c in tv._overview_controls._body.winfo_children()
                    if c.winfo_class() == 'TButton' )
     print(f'after clicking {clicked!r}:', overview_settings()['variables'],
           '| button now:', text(button))

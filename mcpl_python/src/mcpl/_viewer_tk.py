@@ -27,7 +27,7 @@ _viewer_widgets for what happens when they are used)."""
 __all__ = []
 
 from . import _viewer_ui as ui
-from ._viewer_tkbase import focus_of, tk_modules
+from ._viewer_tkbase import Flow, focus_of, on_paste, tk_modules
 from ._viewer_tkcards import CardList
 from ._viewer_tkwindows import CodeWindow, Examples, WriteWindow
 from ._viewer_widgets import (
@@ -45,13 +45,22 @@ _keymap = { 'Return' : 'Enter', 'KP_Enter' : 'Enter', 'Escape' : 'Esc', 'Delete'
 #(Shift, Control, Alt, and the Windows or Command key, in Tk event states):
 _modifiers = 0x1 | 0x4 | 0x8 | 0x40
 
+#(Control, and Alt, or the Command key of macOS, where Option is 0x10, as
+#the num lock of X11):
+_shortcut_modifiers = 0x4 | 0x8
+
 def _key_name( event ):
-    """The name of the key of a Tk event, as in _viewer_ui, or None"""
+    """The name of the key of a Tk event, as in _viewer_ui, or None (also for
+    characters typed with Control, Alt, Command or Option, which are not the
+    keys of the viewer, e.g. Cmd+W)"""
     name = _keymap.get(event.keysym)
     if name in ( 'Up', 'Down' ) and event.state & _modifiers:
         return 'Move' + name
     if name is None and len(event.char) == 1 and event.char.isprintable():
-        return event.char
+        mods = _shortcut_modifiers
+        if event.widget.tk.call('tk','windowingsystem') == 'aqua':
+            mods |= 0x10
+        return None if event.state & mods else event.char
     return name
 
 class TkViewer(WidgetViewer):
@@ -65,9 +74,17 @@ class TkViewer(WidgetViewer):
         from matplotlib.figure import Figure
         self.root = root
         root.title(f'MCPL viewer: {viewer.filename}')#(see show_title)
-        root.geometry('1400x900')
+        #(1400x900, or less to fit on the screen, with room for the menu bars,
+        #docks and task bars of the desktop):
+        root.geometry(f'{min( 1400, root.winfo_screenwidth() - 40 )}'
+                      f'x{min( 900, root.winfo_screenheight() - 120 )}')
         style = ttk.Style(root)
-        system = root.tk.call('tk','windowingsystem')
+        system = self._system = root.tk.call('tk','windowingsystem')
+        #(text in dark grey on white, also in the dark mode of macOS, where the
+        #default text colour is light):
+        for option, value in ( ( 'foreground', card_colors['text'] ), ( 'background', 'white' ) ):
+            for widget in ( 'Text', 'Listbox' ):
+                root.option_add(f'*{widget}.{option}',value)
         if system in ( 'x11', 'aqua' ):
             #(the default theme of X11 looks dated, and the native theme of
             #macOS ignores the colours of the parts and buttons):
@@ -105,12 +122,17 @@ class TkViewer(WidgetViewer):
         bold = tkinter.font.nametofont('TkDefaultFont').copy()
         bold.configure(weight='bold')
         self.bold = bold
+        #(the size of small texts, e.g. badges: 8 for the usual default size 10
+        #of Linux, and more on macOS, where it is 13; negative sizes are in
+        #pixels):
+        size = int(bold.cget('size'))
+        self.small = ( 1 if size > 0 else -1 ) * max( 7, round( 0.8 * abs(size) ) )
         #(the parts below the plot, see _part):
         for name, bg in part_colors.items():
             style.configure(f'{name}.TFrame',background=bg)
             style.configure(f'{name}.TLabel',background=bg)
             style.configure(f'{name}Head.TLabel',background=bg,foreground=card_colors['accent'],
-                            font=( bold.cget('family'), 8, 'bold' ))
+                            font=( bold.cget('family'), self.small, 'bold' ))
         root.columnconfigure(1,weight=1)
         root.rowconfigure(0,weight=1)
         #The logo and the views (on the left):
@@ -329,6 +351,7 @@ class TkViewer(WidgetViewer):
             w.pack(side='left')
             w.bind('<<ComboboxSelected>>',lambda _e, w=w : self._on_axis_chosen(w))
             w.bind('<KeyRelease>',lambda e, w=w : self._on_axis_key(w,e))
+            on_paste(w,lambda : self.on_axes_edited(*self._axis_texts()))
             w.bind('<Return>',lambda _e, w=w : self._on_axes_enter(w))
             w.bind('<KP_Enter>',lambda _e, w=w : self._on_axes_enter(w))
             w.bind('<Escape>',lambda _e : self._on_axis_escape())
@@ -381,7 +404,7 @@ class TkViewer(WidgetViewer):
         self._controls = _Controls(frame,self.on_control,
                                    on_hint = lambda text : self.show_line(text,'dim'),
                                    style = 'Plot')
-        self._controls.frame.pack(side='left',fill='x')
+        self._controls.frame.pack(side='left',fill='x',expand=True)
 
     def _axis_texts( self ):
         """The texts of the axes (empty while showing their placeholders)"""
@@ -639,7 +662,8 @@ class TkViewer(WidgetViewer):
         ttk.Button(top,text='Close',command=top.destroy).pack(pady=4)
         for key in ( '<Escape>', '<KeyPress-q>', '<KeyPress-Q>' ):
             top.bind(key,lambda _e : top.destroy())
-        top.focus_set()
+        #(when it is shown, so it gets the keys also on macOS):
+        top.after_idle(top.focus_force)
 
     def copy_text( self, text ):
         """Copy the text to the clipboard (for Ctrl+V) and to the primary
@@ -767,6 +791,7 @@ class TkViewer(WidgetViewer):
 
     def _bind_entry( self, w, field ):
         w.bind('<KeyRelease>',lambda e : self._on_entry_key(w,field,e))
+        on_paste(w,lambda : self.on_field_edited(field,self._text(w)))
         w.bind('<Return>',lambda _e : self._on_entry_enter(w,field))
         w.bind('<KP_Enter>',lambda _e : self._on_entry_enter(w,field))
         w.bind('<Escape>',lambda _e : self._on_entry_escape(field))
@@ -880,6 +905,13 @@ class TkViewer(WidgetViewer):
         tk, _ttk = tk_modules()
         top = tk.Toplevel(self.root)
         top.overrideredirect(True)
+        if self._system == 'aqua':
+            #(else it takes the focus from the field on macOS, which closes it):
+            try:
+                top.tk.call('::tk::unsupported::MacWindowStyle','style',top._w,'help',
+                            'noActivates')
+            except tk.TclError:
+                pass
         nw = max( len(n) for n, _ in choices )
         lb = tk.Listbox(top,font='TkFixedFont',height=min(12,len(choices)),
                         width=min(100,max( nw + 2 + len(d or '') for n, d in choices )),
@@ -952,7 +984,10 @@ class _Controls:
         _, ttk = tk_modules()
         #(the style of the labels and the frame, e.g. of a part, see _part):
         self._styles = { 'style' : f'{style}.TLabel' } if style else {}
-        self.frame = ttk.Frame(parent,**( { 'style' : f'{style}.TFrame' } if style else {} ))
+        self._frames = { 'style' : f'{style}.TFrame' } if style else {}
+        self.frame = ttk.Frame(parent,**self._frames)
+        #(each setting in a frame, in rows as wide as the window):
+        self._flow = Flow(self.frame,**self._frames)
         self._on_change = on_change
         self._on_hint = on_hint
         self._kind = None
@@ -967,19 +1002,21 @@ class _Controls:
             self._kind, self._widgets = kind, {}
             self._used = {}#entry -> its greyed text (what is used)
             self._greyed = set()#(the entries showing it)
-            for i, ( name, label, choices, _, _ ) in enumerate( controls[1] if controls else () ):
-                ttk.Label(self.frame,text=label,**self._styles).pack(side='left',
-                                                                     padx=(0 if i == 0 else 10,3))
+            items = []
+            for name, label, choices, _, _ in ( controls[1] if controls else () ):
+                item = ttk.Frame(self.frame,**self._frames)
+                items.append(item)
+                ttk.Label(item,text=label,**self._styles).pack(side='left',padx=(0,3))
                 if choices is not None:
                     #(split also takes an expression, the others only the choices):
                     if name == 'split':
                         choices = [ *choices, self.expression_choice ]
-                    w = ttk.Combobox(self.frame,values=choices,
+                    w = ttk.Combobox(item,values=choices,
                                      width=14 if name in ( 'split', 'only' ) else 7,
                                      state='normal' if name == 'split' else 'readonly')
                     w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._chosen(n,w))
                 else:
-                    w = ttk.Entry(self.frame,width=12 if 'range' in name else 7)
+                    w = ttk.Entry(item,width=12 if 'range' in name else 7)
                     #(the greyed text is removed while it is edited):
                     w.bind('<FocusIn>',lambda _e, w=w : self._show_used(w,None),'+')
                     w.bind('<FocusOut>',lambda _e, w=w : self._show_used(w,self._used.get(w)),'+')
@@ -987,6 +1024,7 @@ class _Controls:
                     w.bind('<Return>',lambda _e, n=name, w=w : self._on_change(n,self._text(w)))
                 w.pack(side='left')
                 self._widgets[name] = w
+            self._flow.set(items)
         if not controls:
             return
         focus = focus_of(self.frame)
@@ -1084,14 +1122,21 @@ def _format_help( text, blocks ):
 
 class _OverviewControls:
     """The settings of an overview (see WidgetViewer.overview_controls): a menu,
-    or toggle buttons (for the variables), for each, in a row, which call
-    on_change(name, shown text) when changed (for toggles, the text of the
-    toggle). The row is made again when the choices change. The style is
-    that of the labels and the frame (see _Controls)."""
+    toggle buttons (for the variables) or a button for each, in rows as wide
+    as the window, which call on_change(name, shown text) when changed (for
+    toggles, the text of the toggle). They are made again when the choices
+    change. The style is that of the labels and the frames (see
+    _Controls)."""
     def __init__( self, parent, on_change, style ):
         _, ttk = tk_modules()
-        self.frame = ttk.Frame(parent,style=f'{style}.TFrame')
+        self._frames = { 'style' : f'{style}.TFrame' }
+        self.frame = ttk.Frame(parent,**self._frames)
         self._label = { 'style' : f'{style}.TLabel' }
+        ttk.Label(self.frame,text='Settings:',**_row_label,**self._label).pack(side='left',
+                                                                             anchor='n',padx=(0,4))
+        body = ttk.Frame(self.frame,**self._frames)
+        body.pack(side='left',fill='x',expand=True)
+        self._body, self._flow = body, Flow(body,pad = 4,**self._frames)
         self._on_change = on_change
         self._made, self._widgets = None, {}
 
@@ -1099,42 +1144,41 @@ class _OverviewControls:
         tk, ttk = tk_modules()
         made = [ ( name, tuple(texts) ) for name, _, texts, _ in controls ]
         if made != self._made:
-            for w in self.frame.winfo_children():
+            for w in self._body.winfo_children():
                 w.destroy()
-            self._made, self._widgets = made, {}
-            ttk.Label(self.frame,text='Settings:',**_row_label,**self._label).pack(side='left',
-                                                                                 padx=(0,4))
-            for i, ( name, label, texts, _ ) in enumerate(controls):
-                if label is None:#(a button, with its text)
-                    w = ttk.Button(self.frame,text=texts[0],takefocus=0,style='Small.TButton',
+            self._made, self._widgets, items = made, {}, []
+            def label( text ):
+                items.append(ttk.Label(self._body,text=text,**self._label))
+            for name, text, texts, _ in controls:
+                if text is None:#(a button, with its text)
+                    w = ttk.Button(self._body,text=texts[0],takefocus=0,style='Small.TButton',
                                    command=lambda n=name, t=texts[0] : self._on_change(n,t))
-                    w.pack(side='left',padx=(8,0))
+                    items.append(w)
                     self._widgets[name] = w
                     continue
-                ttk.Label(self.frame,text=f'{label}:',**self._label).pack(side='left',
-                                                                     padx=(0 if i == 0 else 12,3))
+                label(f'{text}:')
                 if name == 'variables':
                     toggles = {}
                     for t in texts:
-                        var = tk.BooleanVar(self.frame,value=False)
-                        ttk.Checkbutton(self.frame,text=t,variable=var,takefocus=0,
-                                        style='Choice.Toolbutton',
-                                        command=lambda n=name, t=t : self._on_change(n,t)
-                                        ).pack(side='left',padx=(0,2))
+                        var = tk.BooleanVar(self._body,value=False)
+                        items.append(ttk.Checkbutton(self._body,text=t,variable=var,takefocus=0,
+                                                     style='Choice.Toolbutton',
+                                                     command=lambda n=name, t=t : self._on_change(n,t)))
                         toggles[t] = var
                     self._widgets[name] = toggles
                 else:
-                    w = ttk.Combobox(self.frame,values=texts,state='readonly',
+                    w = ttk.Combobox(self._body,values=texts,state='readonly',
                                      width=max( len(t) for t in texts ) + 1)
                     w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._on_change(n,w.get()))
-                    w.pack(side='left')
+                    items.append(w)
                     self._widgets[name] = w
-        for name, label, _, shown in controls:
+            self._flow.set(items)
+        for name, text, _, shown in controls:
             w = self._widgets[name]
             if isinstance(w,dict):#(toggles, on if shown)
                 for t, var in w.items():
                     var.set(t in shown)
-            elif label is not None:
+            elif text is not None:
                 w.set(shown)
 
 def _has_xft( root ):

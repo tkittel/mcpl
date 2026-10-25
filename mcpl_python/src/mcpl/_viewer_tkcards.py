@@ -58,6 +58,7 @@ class CardList:
         self._shown = None#(what is drawn, to only draw it again when changed)
         self._slots = []#(top, bottom, kind, what): 'card' (the Card), 'header' (group) or 'add'
         self._drag = None#(the key of the card dragged, and where it started)
+        self._menu_click = False#(whether the menu was shown with Ctrl+click)
         c = self.canvas
         c.bind('<ButtonPress-1>',self._on_press)
         c.bind('<B1-Motion>',self._on_motion)
@@ -66,15 +67,40 @@ class CardList:
         #macOS, where Tk before 8.7 gives the right button as button 2):
         if c.tk.call('tk','windowingsystem') == 'aqua':
             old = tk.TkVersion < 8.7
-            buttons = ( '<Button-2>' if old else '<Button-3>', '<Control-Button-1>' )
+            buttons = ( '<Button-2>' if old else '<Button-3>', )
         else:
             buttons = ( '<Button-3>', '<Button-2>' )
         for button in buttons:
             c.bind(button,self._on_menu)
-        #(scrolling with the wheel, as given by Windows and macOS, or X11):
-        c.bind('<MouseWheel>',lambda e : c.yview_scroll(-1 if e.delta > 0 else 1,'units'))
-        c.bind('<Button-4>',lambda _e : c.yview_scroll(-1,'units'))
-        c.bind('<Button-5>',lambda _e : c.yview_scroll(1,'units'))
+        c.bind('<Control-Button-1>',self._on_ctrl_click)
+        #(scrolling with the wheel and the touchpad, see _on_wheel):
+        c.bind('<MouseWheel>',lambda e : self._on_wheel(e.delta))
+        c.bind('<Button-4>',lambda _e : self._on_wheel(120))#(X11)
+        c.bind('<Button-5>',lambda _e : self._on_wheel(-120))
+        if tk.TkVersion >= 8.7:#(touchpads of macOS, with Tk 9)
+            c.bind('<TouchpadScroll>',self._on_touchpad)
+
+    def _on_wheel( self, delta ):
+        """Scroll for a wheel event: 40 pixels for each notch of mouse wheels
+        (deltas of 120), and less for the small deltas of the touchpads of
+        macOS (with Tk 8.6)"""
+        if delta:
+            self._scroll(-( delta / 3 if abs(delta) >= 120 else 4 * delta ))
+
+    def _on_touchpad( self, event ):
+        """Scroll for a touchpad event of Tk 9 (with the vertical motion in
+        pixels in the lower 16 bits of the delta, signed)"""
+        dy = event.delta & 0xffff
+        dy = dy - 0x10000 if dy >= 0x8000 else dy
+        if dy:
+            self._scroll(-dy)
+
+    def _scroll( self, pixels ):
+        """Scroll the cards by a number of pixels (down if positive)"""
+        c = self.canvas
+        height = float(c.cget('scrollregion').split()[3] or 0) if c.cget('scrollregion') else 0
+        if height > 0:
+            c.yview_moveto(c.yview()[0] + pixels / height)
 
     def _image( self, key ):
         tk, _ttk = tk_modules()
@@ -164,7 +190,7 @@ class CardList:
         mark = '\u25b8' if group in self.tv.folded_groups() else '\u25be'
         self.canvas.create_text(8,y+13,anchor='w',fill=card_colors['dim'],
                                 text=f'{mark}  {( group or "More plots" ).upper()}',
-                                font=( self.tv.bold.cget('family'), 8, 'bold' ))
+                                font=( self.tv.bold.cget('family'), self.tv.small, 'bold' ))
         self._slots.append( ( y, y + _card_heights['header'], 'header', group ) )
 
     def _height( self ):
@@ -203,7 +229,7 @@ class CardList:
             self._rect(4,y,self.width,y+h,12,fill=col['bg'],outline=col['border'],dash=(3,3))
             c.create_text(16,y+h/2,anchor='w',fill=col['dim'],font=self.tv.bold,text=card.name)
             c.create_text(self.width-10,y+h/2,anchor='e',fill=col['accent'],
-                          font=( self.tv.bold.cget('family'), 8 ),text=card.status)
+                          font=( self.tv.bold.cget('family'), self.tv.small ),text=card.status)
             return
         right = self.width
         if card.overview:
@@ -242,14 +268,14 @@ class CardList:
         top = y0 + len(lines) * ls + 4
         if card.problem:
             c.create_text(x,top+9,anchor='w',fill=colors['error'],
-                          font=( self.tv.bold.cget('family'), 8 ),
+                          font=( self.tv.bold.cget('family'), self.tv.small ),
                           text=elided(card.problem,self.tv.bold,self.width-x-22))
+        font = ( self.tv.bold.cget('family'), self.tv.small )
         for b in ( () if card.problem else card.badges ):
-            w = 10 + 6.5 * len(b)
+            w = 12 + int(c.tk.call('font','measure',font,b))
             self._rect(x,top,x+w,top+18,8,fill=col['card'] if card.overview else col['badge'],
                        outline='')
-            c.create_text(x+w/2,top+9,text=b,fill=col['accent'],
-                          font=( self.tv.bold.cget('family'), 8 ))
+            c.create_text(x+w/2,top+9,text=b,fill=col['accent'],font=font)
             x += w + 5
         if card.draggable:
             c.create_text(self.width-10,y+h/2,text='\u2807',fill=col['border'])#(drag handle)
@@ -257,6 +283,14 @@ class CardList:
     def _slot( self, event ):
         y = self.canvas.canvasy(event.y)
         return next( ( s for s in self._slots if s[0] <= y < s[1] + 6 ), None )
+
+    def _on_ctrl_click( self, event ):
+        """Ctrl+click: the menu of the card on macOS (as a right click), or else
+        a click"""
+        if self.canvas.tk.call('tk','windowingsystem') != 'aqua':
+            return self._on_press(event)
+        self._menu_click = True
+        self._on_menu(event)
 
     def _on_menu( self, event ):
         """A menu for the card: show or remove it (as far as it allows it), or
@@ -300,6 +334,9 @@ class CardList:
                                         width=3,tags='drop')
 
     def _on_release( self, event ):
+        if self._menu_click:#(the release of a Ctrl+click, which showed a menu)
+            self._menu_click = False
+            return
         drag, self._drag = self._drag, None
         self.canvas.delete('drop')
         s = self._slot(event)

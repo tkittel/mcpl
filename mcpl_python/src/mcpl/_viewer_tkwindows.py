@@ -25,7 +25,7 @@ expressions, the code of the plots, and the writing of a new file"""
 __all__ = []
 
 from . import _viewer_ui as ui
-from ._viewer_tkbase import tk_modules
+from ._viewer_tkbase import on_paste, tk_modules
 from ._viewer_widgets import card_colors, code_styles, colors
 
 
@@ -146,7 +146,9 @@ class CodeWindow:
 
     def _copy( self, text ):
         self.tv.copy_text(text.get('1.0','end-1c'))
-        self.tv.show_line('Copied (paste with Ctrl+V or the middle mouse button)','normal')
+        how = { 'aqua' : 'Cmd+V', 'win32' : 'Ctrl+V' }.get(self.tv._system,
+                                                           'Ctrl+V or the middle mouse button')
+        self.tv.show_line(f'Copied (paste with {how})','normal')
 
 class WriteWindow:
     """The window for writing the picked and edited particles to a new file:
@@ -166,6 +168,7 @@ class WriteWindow:
         self._name.insert(0,self.tv.suggested_filename('write'))
         self._name.pack(side='left',fill='x',expand=True)
         self._name.bind('<KeyRelease>',lambda _e : self._changed())
+        on_paste(self._name,self._changed)
         self._name.bind('<Return>',lambda _e : self._write())
         ttk.Button(row,text='Browse...',takefocus=0,
                    command=lambda : self.tv.ask_file_name('write',self._chosen)).pack(side='left',padx=(6,0))

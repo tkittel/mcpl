@@ -22,3 +22,4 @@ closed: True
 Ctrl-C while the window is shown: viewer stopped: True windows left: 0
    window closed by Ctrl-C: True
 SIGINT while the window is shown: viewer stopped: True | SIGINT handler restored: True
+empty plots with log scales drawn, scales: [('linear', 'linear'), ('linear', 'linear')]

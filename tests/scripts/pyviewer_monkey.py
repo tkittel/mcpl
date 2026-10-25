@@ -28,6 +28,7 @@
 # not fit in the memory of the viewer (its cache), failing on any exception
 # (also in the callbacks of Tk and matplotlib, and in threads) or warning.
 
+import faulthandler
 import gzip
 import random
 import shutil
@@ -41,6 +42,10 @@ import mcpldev._viewer_reading as viewer_reading
 import mcpldev._viewer_tk as viewer_tk
 from mcpldev._viewer import Viewer
 from MCPLTestUtils.dirs import test_data_dir
+
+#(if it hangs, the stacks of all threads are shown before the timeout of the
+#test, and it ends):
+faulthandler.dump_traceback_later(420,exit=True)
 
 shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
 with mcpl.MCPLOutFile('ud.mcpl',userdata_layout='nscat:uint8,dir:float32[3]') as o:

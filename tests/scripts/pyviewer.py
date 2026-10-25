@@ -32,6 +32,7 @@ import runpy
 import shutil
 import subprocess
 import sys
+import threading
 
 import mcpldev as mcpl
 from mcpldev import _viewer_ui as ui
@@ -352,7 +353,8 @@ def test_write():
     print(ui.closing_text(Viewer(ex,limit=100)))
 
 class FakeScreen:
-    """A screen in memory, with the keys to give"""
+    """A screen in memory, with the keys to give (WAIT waits for the reading,
+    and functions are called between keys)"""
     colors = True
     def __init__( self, keys, h = 44, w = 110 ):
         self.h, self.w, self.keys = h, w, list(keys)
@@ -373,6 +375,9 @@ class FakeScreen:
         self.frames = getattr(self,'frames',[]) + [ self.last ]
         while self.keys:
             k = self.keys.pop(0)
+            if callable(k):
+                k()
+                continue
             if k == 'WAIT':
                 self.viewer.wait()
                 return None
@@ -394,7 +399,7 @@ def test_terminal():
         if window is not None:
             t.open_window = window
         t.run()
-        print(f'==> keys {keys}:')
+        print(f'==> keys {[ k.__name__ if callable(k) else k for k in keys ]}:')
         if show:
             for line in s.text().splitlines():
                 print(f'   | {line}')
@@ -449,7 +454,18 @@ def test_terminal():
     v, t = run(['WAIT','l','WAIT','k','Down','WAIT','K','WAIT'],show=False)
     print('   l and k:', [ k for k, _ in v.views ][:3])
     print('   the figure:', 'logx' if v.figure().panels[0].logx else 'linear x')
-    v, t = run(['WAIT','l','k'],show=False)
+    #(the reading of the changed plot is held until k is pressed):
+    from mcpldev._viewer_reading import _Computation
+    add2, release = _Computation.add2, threading.Event()
+    def held( self, b ):
+        release.wait()
+        add2(self,b)
+    def hold():
+        _Computation.add2 = held
+    def unhold():
+        release.set()
+        _Computation.add2 = add2
+    v, t = run(['WAIT',hold,'l','k',unhold,'WAIT'],show=False)
     print('   k before the changed plot is drawn:', next( ln.strip() for f in t.s.frames
                                                           for ln in f.splitlines() if 'not drawn' in ln ))
     #c shows a menu of the collections of plots (Up and Down choose one, which

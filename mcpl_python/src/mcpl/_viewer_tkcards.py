@@ -213,9 +213,9 @@ class CardList:
                 self._rect(4+d,y+d,self.width,y+h,12,fill=col['stack'] if d == 3 else col['badge'],
                            outline=col['border'])
             right, h = self.width - 6, h - 6
-        fill = col['selected'] if selected else ( col['overview'] if card.overview else col['card'] )
-        self._rect(4,y,right,y+h,12,fill=fill,
-                   outline=col['accent'] if selected else col['border'],width=2 if selected else 1)
+        #(the shown card is marked by its outline, not its colour):
+        self._rect(4,y,right,y+h,12,fill=col['overview'] if card.overview else col['card'],
+                   outline=col['accent'] if selected else col['border'],width=3 if selected else 1)
         if card.overview:
             c.create_rectangle(5,y+10,9,y+h-10,fill=col['accent'],outline='')
         if card.compact:

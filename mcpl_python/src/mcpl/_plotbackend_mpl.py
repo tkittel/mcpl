@@ -251,9 +251,11 @@ class Backend(PlotBackend):
             #(plots without positive values, e.g. when no particles are picked,
             #are just empty, which matplotlib warns about):
             warnings.filterwarnings('ignore',message='Data has no positive values')
-            if panel.logx:
+            #(only with positive values, which matplotlib can not draw without,
+            #e.g. for bar charts without bars):
+            if panel.logx and _positive(ax.dataLim.intervalx):
                 ax.set_xscale('log')
-            if panel.logy:
+            if panel.logy and _positive(ax.dataLim.intervaly):
                 ax.set_yscale('log')
         if panel.xlim:
             ax.set_xlim(*panel.xlim)
@@ -274,6 +276,10 @@ class Backend(PlotBackend):
             ax.legend(fontsize='small',markerscale=4 if hasattr(ax,'set_zlabel') else 1)
         if not getattr(ax,'_mcpl_no_grid',False):
             ax.grid(alpha=0.3)
+
+def _positive( interval ):
+    """Whether the interval of the data (lo, hi) has positive values"""
+    return bool( np.isfinite(interval[1]) and interval[1] > 0 )
 
 def _draw_correlation( ax, item ):
     """Draw the correlation coefficient on the axes, which are only its cell"""

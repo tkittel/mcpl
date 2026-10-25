@@ -248,5 +248,18 @@ tv.on_select_key('plot:x')
 pump()
 print('with a plot shown:', overview_settings()['shown'], overview_settings()['plot fields shown'])
 
+#The windows of the help topics, formatted (see _helptext):
+for label, title, blocks in tv.help_topics():
+    before = set(root.winfo_children())
+    tv.show_text(title,blocks)
+    pump(0.1)
+    top, = set(root.winfo_children()) - before
+    text = next( w for w in top.winfo_children()[0].winfo_children() if w.winfo_class() == 'Text' )
+    print(f'help {label!r}:', top.title(), '| sections:', len(text.tag_ranges('section')) // 2,
+          '| lines:', int(text.index('end').split('.')[0]) > 10)
+    top.destroy()
+print('help in the menu:', [ tv._actions_menu.entrycget(i,'label')
+                             for i in range(tv._actions_menu.index('end') + 1) ])
+
 tv.close_window()
 print('closed:', tv.closed)

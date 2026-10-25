@@ -136,7 +136,7 @@ class TkViewer(WidgetViewer):
         menu.add_command(label='Open MCPL file...',command=self._ask_open)
         self._actions_menu, self._actions = menu, {}#(action -> index of its entry)
         for action, label, keys, kpos in ui.actions:
-            if action != 'write':
+            if action not in ( 'write', 'help' ):#(help has its own menu)
                 menu.add_command(label=label,underline=kpos,accelerator=keys[0],
                                  command=lambda a=action : self.on_action(a))
                 self._actions[action] = menu.index('end')
@@ -605,22 +605,23 @@ class TkViewer(WidgetViewer):
         then(chosen or None)
 
     def show_help( self ):
-        self.show_text('Help',ui.help_text)
+        self.show_text('Help',ui.help_blocks)
 
-    def show_text( self, title, content ):
-        """A window with the text (of help, see help_topics), which can be
-        scrolled"""
+    def show_text( self, title, blocks ):
+        """A window with the help (see help_topics), formatted from its blocks
+        (see _helptext), which can be scrolled"""
         tk, ttk = tk_modules()
         top = tk.Toplevel(self.root)
         top.title(f'MCPL viewer: {title}')
         frame = ttk.Frame(top)
         frame.pack(fill='both',expand=True)
-        text = tk.Text(frame,width=82,height=40,font='TkFixedFont',wrap='word')
+        text = tk.Text(frame,width=90,height=40,wrap='word',padx=14,pady=10,
+                       font='TkDefaultFont',relief='flat',spacing1=1,spacing3=1)
         bar = ttk.Scrollbar(frame,orient='vertical',command=text.yview)
         text.configure(yscrollcommand=bar.set)
         bar.pack(side='right',fill='y')
         text.pack(side='left',fill='both',expand=True)
-        text.insert('1.0',content)
+        _format_help(text,blocks)
         text.configure(state='disabled')
         ttk.Button(top,text='Close',command=top.destroy).pack(pady=4)
         top.bind('<Escape>',lambda _e : top.destroy())
@@ -1019,6 +1020,51 @@ class _Controls:
     def values( self ):
         """The shown texts of the settings, as (option, text)"""
         return [ ( n, w.get() ) for n, w in self._widgets.items() ]
+
+def _format_help( text, blocks ):
+    """Insert the help blocks (see _helptext) in the Text widget, formatted:
+    sections as headings, the names and keys in bold in a column, code in a
+    fixed font, and paragraphs flowing with the width of the window"""
+    #(the fonts, from the default one, as (family, size, style); negative
+    #sizes are in pixels):
+    call = text.tk.call
+    actual = dict(zip(*[ iter(call('font','actual','TkDefaultFont')) ] * 2))
+    family, size = str(actual['-family']), int(actual['-size'])
+    bold, heading = ( family, size, 'bold' ), ( family, round(1.25*size), 'bold' )
+    code = 'TkFixedFont'
+    #(the column of the descriptions of keys and examples):
+    column = max( int(call('font','measure',bold,'Shift+Up, Shift+Down')),
+                  int(call('font','measure',code,'x'*28)) ) + 30
+    text.tag_configure('section',font=heading,spacing1=14,spacing3=4)
+    text.tag_configure('para',spacing1=6,spacing3=6)
+    text.tag_configure('note',lmargin1=12,lmargin2=12,spacing3=6)
+    text.tag_configure('item',lmargin1=12,lmargin2=36,spacing1=3)
+    text.tag_configure('row',lmargin1=12,lmargin2=column,tabs=(column,),spacing1=3)
+    #(the descriptions of codes too wide for the column, on the next line):
+    text.tag_configure('below',lmargin1=column,lmargin2=column)
+    text.tag_configure('name',font=bold)
+    text.tag_configure('code',font=code,foreground=card_colors['accent'])
+    for kind, *args in blocks:
+        if kind == 'gap':
+            continue
+        if kind in ( 'text', 'note' ):
+            #(the line breaks of plain text are left out):
+            for para in args[0].split('\n\n'):
+                text.insert('end',' '.join(para.split('\n')) + '\n',
+                            'para' if kind == 'text' else 'note')
+        elif kind == 'section':
+            text.insert('end',args[0] + '\n','section')
+        elif kind == 'item':
+            text.insert('end',args[0],( 'item', 'code' ),': ' + args[1] + '\n','item')
+        elif kind == 'key':
+            text.insert('end',args[0],( 'row', 'name' ),'\t' + args[1] + '\n','row')
+        else:#(examples)
+            for c, what in args[0]:
+                if int(call('font','measure',code,c)) + 12 < column - 8:
+                    text.insert('end',c,( 'row', 'code' ),'\t' + what + '\n','row')
+                else:
+                    text.insert('end',c + '\n',( 'row', 'code' ),what + '\n','below')
+            text.insert('end','\n')
 
 class _OverviewControls:
     """The settings of an overview (see WidgetViewer.overview_controls): a menu,

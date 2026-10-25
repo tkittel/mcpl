@@ -204,7 +204,7 @@
    bins used: 10,10
    plot: 2 axes
   key ?:
-   help shown: 44 lines
+   help shown: 43 lines
    views: 56 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
@@ -492,6 +492,10 @@
    order of the groups: ['Overview', 'Fields', 'Beam along z', '3D', 'Correlations', 'Custom', 'Inactive plot groups']
    line (error): The custom plots are removed one by one
    the custom group is not hidden: overview:custom
+   cells of the custom overview: ['custom:uz;bins=20', 'info:new'] ['StepHist', 'NewPlot']
+   focus: x_axis
+   line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
+   after clicking it: info:new
 ==> the settings of overviews: the particle type, and the variables of correlation plots
    check of pick: None
    field pick: ''
@@ -510,6 +514,6 @@
    coefficient of [[1, 1], [1, 1]] : 0.0
    coefficient of [[0, 0], [0, 0]] : None
 ==> the buttons of the actions, and quit
-   help shown: 44 lines
+   help shown: 43 lines
    window closed
 closed: True

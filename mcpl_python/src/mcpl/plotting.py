@@ -121,6 +121,11 @@ class Correlation:
         v = round(self.value,2)
         return f'{v:+.2f}' if v else '0.00'#(not -0.00)
 
+class NewPlot:
+    """The place of a new plot in the overview of the custom plots of the
+    viewer (a big "+" with the text), which starts a new plot when clicked"""
+    text = 'Add new plot'
+
 class Panel:
     """One plot (a set of axes) with items like StepHist objects. Items with
     labels are shown in a legend. The zlabel is that of the z axis of 3D

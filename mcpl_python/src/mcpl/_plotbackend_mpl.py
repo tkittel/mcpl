@@ -29,7 +29,16 @@ from typing import ClassVar
 from ._common import _determine_version
 from ._numpy import np
 from ._plotbackend import PlotBackend, numbered_filenames
-from .plotting import Bars, Correlation, Hist2D, Scatter3D, StepHist, Text, _line_style
+from .plotting import (
+    Bars,
+    Correlation,
+    Hist2D,
+    NewPlot,
+    Scatter3D,
+    StepHist,
+    Text,
+    _line_style,
+)
 
 
 class Backend(PlotBackend):
@@ -232,6 +241,8 @@ class Backend(PlotBackend):
                         transform=ax.transAxes)
             elif isinstance(item,Correlation):
                 _draw_correlation(ax,item)
+            elif isinstance(item,NewPlot):
+                _draw_new_plot(ax,item)
         if panel.logx:
             ax.set_xscale('log')
         if panel.logy:
@@ -278,6 +289,20 @@ def _inner_decades( lo, hi, n = 2 ):
     decades = list(range( math.ceil( a + margin ), math.floor( b - margin ) + 1 ))
     step = max( 1, math.ceil( len(decades) / n ) )
     return [ 10.0**d for d in decades[::step] ]
+
+def _draw_new_plot( ax, item ):
+    """Draw the place of a new plot on the axes: a big "+" with the text, in a
+    dashed frame"""
+    ax.text(0.5,0.55,'+',ha='center',va='center',transform=ax.transAxes,fontsize=60,
+            color='C0')
+    ax.text(0.5,0.25,item.text,ha='center',va='center',transform=ax.transAxes,
+            fontsize='large',color='C0')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    for spine in ax.spines.values():
+        spine.set_linestyle('--')
+        spine.set_color('C0')
+    ax._mcpl_no_grid = True#(see _draw_panel)
 
 def _correlation_axes( axlist, nrows, ncols ):
     """The axes of a correlation plot (see _viewer_overviews.correlation_cells): the labels

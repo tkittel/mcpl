@@ -25,7 +25,7 @@ WidgetViewer.cards)"""
 __all__ = []
 
 from ._viewer_tkbase import elided, tk_modules, wrapped
-from ._viewer_widgets import card_colors, colors
+from ._viewer_ui import card_colors, colors
 
 #The heights of the cards:
 _card_heights = { 'card' : 64, 'small' : 30, 'header' : 26 }

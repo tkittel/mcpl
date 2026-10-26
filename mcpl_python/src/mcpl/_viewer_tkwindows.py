@@ -26,7 +26,7 @@ __all__ = []
 
 from . import _viewer_ui as ui
 from ._viewer_tkbase import on_paste, tk_modules
-from ._viewer_widgets import card_colors, code_styles, colors
+from ._viewer_ui import card_colors, code_styles, colors
 
 
 class Examples:

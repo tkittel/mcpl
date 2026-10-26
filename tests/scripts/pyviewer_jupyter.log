@@ -5,7 +5,7 @@ buttons: ['ekin;logx=auto;logy', 'wavelength;logx', 'angle(dir,(0,0,1))/deg;logy
 view after the button of wavelength: plot:wavelength;logx selected in the list: True single image: True
 plot changed by the edit: True polling thread alive: True
 status after the pick: <b>example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)</b><br><span style="color:#555"></span>
-message for an invalid edit: <span style="color:#c00">Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression &quot;x = 2&quot;</span>
+message for an invalid edit: <span style="color:#d62728">Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression &quot;x = 2&quot;</span>
 view: ekin/MeV;logx=1 field emptied: True
 This plot box shown: True 'ekin/MeV;logx=1'
 changed in the box: custom:ekin/keV;logx=1 current: custom:ekin/keV;logx=1 message: ''

@@ -123,6 +123,24 @@ def shortcut_text( name ):
                  ' (the histogram string of the plot, which has them all)' )
     return ''
 
+#The look of the viewers with windows (for toolkits with colours): the
+#colours of the line of messages and of the marks of the checks, of the
+#highlighted code (see _viewer_code.highlight), of the cards of the views (see
+#WidgetViewer.cards), and of the parts below the plot (that of the shown plot
+#in the colour of its selected card, and that of the pick and edit):
+colors = { 'normal' : 'black', 'dim' : '#777777', 'ok' : '#2ca02c', 'error' : '#d62728' }
+code_styles = { 'comment' : { 'foreground' : '#6a737d' },
+                'string' : { 'foreground' : '#067d17' },
+                'keyword' : { 'foreground' : '#0033b3' },
+                'number' : { 'foreground' : '#1750eb' },
+                'preprocessor' : { 'foreground' : '#9e5b00' },
+                'option' : { 'foreground' : '#871094' } }
+card_colors = { 'bg' : '#eef1f5', 'card' : '#ffffff', 'selected' : '#e2ebf6',
+                'border' : '#d5dbe3', 'accent' : '#2f5f8f', 'text' : '#1d2733',
+                'dim' : '#7a8594', 'badge' : '#dfe7f1', 'overview' : '#d3e0ef',
+                'stack' : '#b9c9dc' }
+part_colors = { 'Plot' : card_colors['selected'], 'Particles' : card_colors['bg'] }
+
 #The settings of the shown plot in the viewers with windows (see
 #WidgetViewer.plot_controls), for 1D histograms, bar charts and 2D histograms:
 #(option, label, choices), with the choices as (shown text, value of the
@@ -316,6 +334,74 @@ def editor_for( viewer, action ):
         if plot_of(key) is not None:
             return LineEditor(viewer,'plot',replaces=key)
     return None
+
+class KeyViewer:
+    """What the viewers used with keys (in the terminal, and on matplotlib
+    figures) have in common: the field being edited (a LineEditor, or None),
+    the message shown in the status line (with its style, see set_message),
+    whether the help is shown, and the handling of keys: by the field being
+    edited (see editor_key), the keys of log scales (see scale_key), and the
+    actions of key_action (see do). The front ends draw the viewer."""
+    def __init__( self, viewer ):
+        self.v = viewer
+        self.editor = None
+        self.message, self.message_style = '', 'normal'
+        self.hover = None
+        self.show_help = False
+
+    def set_message( self, text, ok = True ):
+        """Show the message (in the style of errors unless ok)"""
+        self.message, self.message_style = text, 'normal' if ok else 'error'
+
+    def view_changed( self ):
+        """Called when another view is shown, or the plots changed"""
+
+    def editor_key( self, k ):
+        """Give the key k to the field being edited (Enter applies it, and Esc
+        ends the editing): whether the plots changed"""
+        r = self.editor.key(k)
+        if r == 'cancel':
+            self.editor = None
+        elif r == 'apply':
+            done, msg, replot = apply_editor(self.v,self.editor)
+            self.set_message(msg,done)
+            if done:
+                self.editor = None
+            if replot:
+                self.view_changed()
+            return replot
+        return False
+
+    def scale_key( self, k, key = None ):
+        """Toggle the log scale of the plot (the view with the key, default the
+        shown one) if k is a key of log scales (see scale_keys): whether it
+        is one"""
+        option = scale_keys.get(k.lower())
+        if option is None:
+            return False
+        self.set_message(*reversed(self.v.toggle_scale(option,key)))
+        return True
+
+    def do( self, action ):
+        """Do the action (see key_action): 'quit' to quit, the action if the
+        front end does it (e.g. opening a window), or None"""
+        v = self.v
+        self.set_message('')
+        if action in ( 'previous', 'next' ):
+            v.select(v.current + ( -1 if action == 'previous' else 1 ))
+            self.view_changed()
+        elif action in ( 'move_up', 'move_down' ):
+            v.move(-1 if action == 'move_up' else 1)
+        elif action == 'write' and not v.changes_particles:
+            self.set_message(v.nothing_to_write,False)
+        elif action == 'help':
+            self.show_help = True
+        elif action == 'quit':
+            return 'quit'
+        else:
+            self.editor = editor_for(v,action)
+            return action if self.editor is None else None
+        return None
 
 #The functions below are the behaviour of the fields, for all front ends
 #(with a LineEditor, or with the text fields of a GUI toolkit):

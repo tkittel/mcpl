@@ -30,13 +30,8 @@ from . import _viewer_ui as ui
 from ._viewer_tkbase import Flow, focus_of, on_paste, tk_modules
 from ._viewer_tkcards import CardList
 from ._viewer_tkwindows import CodeWindow, Examples, WriteWindow
-from ._viewer_widgets import (
-    WidgetViewer,
-    card_colors,
-    colors,
-    part_colors,
-    run_with_ctrl_c,
-)
+from ._viewer_ui import card_colors, colors, part_colors
+from ._viewer_widgets import WidgetViewer, run_with_ctrl_c
 
 #Tk key names, as names of _viewer_ui (the others are characters):
 _keymap = { 'Return' : 'Enter', 'KP_Enter' : 'Enter', 'Escape' : 'Esc', 'Delete' : 'Delete',
@@ -212,8 +207,6 @@ class TkViewer(WidgetViewer):
         self._help_menu(self._top_row)
         self.canvas.mpl_connect('button_press_event',self._on_mpl_click)
         self.canvas.mpl_connect('key_press_event',self._on_mpl_key)
-        self.canvas.mpl_connect('motion_notify_event',self._on_mpl_motion)
-        self._inaxes = None#(the axes under the mouse)
         self._applies = {}#field -> its Apply button (see show_pending)
         self._placeholders = {}#entry -> text shown in grey while it is empty
         self._showing = set()#(the entries showing their placeholder)
@@ -740,18 +733,10 @@ class TkViewer(WidgetViewer):
         if event.key.lower() in ui.scale_keys:
             self.on_scale_key(event.key,self.pane.view_at(event))
             return
-        k = { 'up' : 'Up', 'down' : 'Down', 'enter' : 'Enter', 'escape' : 'Esc',
-              'f1' : 'F1', 'delete' : 'Delete' }.get(event.key,event.key)
-        for arrow, name in ( ( '+up', 'MoveUp' ), ( '+down', 'MoveDown' ) ):
-            if k.endswith(arrow):
-                k = name
-        if k.startswith('shift+') and len(k) == 7:
-            k = k[-1].upper()
+        from ._plotbackend_mpl import key_name
+        k = key_name(event.key)
         if len(k) == 1 or k in ( 'Up', 'Down', 'MoveUp', 'MoveDown', 'Enter', 'F1', 'Delete' ):
             self.on_key(k)
-
-    def _on_mpl_motion( self, event ):
-        self._inaxes = event.inaxes
 
     def _on_mpl_click( self, event ):
         from ._plotbackend_mpl import after_event
@@ -1080,10 +1065,6 @@ class _Controls:
         w.focus_set()
         if self._on_hint is not None:
             self._on_hint(hint)
-
-    def values( self ):
-        """The shown texts of the settings, as (option, text)"""
-        return [ ( n, w.get() ) for n, w in self._widgets.items() ]
 
 def _format_help( text, blocks ):
     """Insert the help blocks (see _helptext) in the Text widget, formatted:

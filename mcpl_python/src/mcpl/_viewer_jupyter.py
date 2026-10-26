@@ -229,7 +229,7 @@ class JupyterViewer:
         self._show_result(*self.v.change_plot(key,change['new']))
 
     def _show_result( self, ok, msg ):
-        self._message.value = '' if ok else f'<span style="color:#c00">{html.escape(msg)}</span>'
+        self._message.value = '' if ok else _error_html(msg)
         self._sync_views()
         self.refresh()
 
@@ -262,7 +262,7 @@ class JupyterViewer:
         (else red), and the choices"""
         info = self.v.cache_info()
         text, used = ui.cache_text(info)
-        color = '#2ca02c' if used else '#d62728'
+        color = ui.colors['ok' if used else 'error']
         self._cache_text.value = f'<span style="color:{color}">{html.escape(text)}</span>'
         entries = ui.cache_menu(info)
         self._syncing = True#(changing the options also changes the index)
@@ -300,7 +300,7 @@ class JupyterViewer:
             field.value = suggested()
             self.refresh()#(the command shown has the next file name)
         else:
-            self._message.value = f'<span style="color:#c00">{html.escape(msg)}</span>'
+            self._message.value = _error_html(msg)
 
     @_exclusive
     def _on_help( self, _ ):
@@ -353,6 +353,10 @@ class JupyterViewer:
             shown = self._image
         if self._right.children[1] is not shown:
             self._right.children = ( self._right.children[0], shown )
+
+def _error_html( msg ):
+    """The message as HTML, in the colour of errors"""
+    return f'<span style="color:{ui.colors["error"]}">{html.escape(msg)}</span>'
 
 def _png( figure ):
     """The figure drawn with matplotlib, as PNG data (without the logo, which is

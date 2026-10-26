@@ -438,6 +438,25 @@ def figure_png( figure, dpi = 80, logo = False ):
     draw_figure(figure,logo = logo).savefig(out,format='png',dpi=dpi)
     return out.getvalue()
 
+#The names of keys of matplotlib in the viewers (see _viewer_ui.key_action):
+_key_names = { 'up' : 'Up', 'down' : 'Down', 'left' : 'Left', 'right' : 'Right',
+               'home' : 'Home', 'end' : 'End', 'backspace' : 'Backspace',
+               'delete' : 'Delete', 'enter' : 'Enter', 'escape' : 'Esc',
+               'tab' : 'Tab', 'f1' : 'F1', 'pageup' : 'PageUp',
+               'pagedown' : 'PageDown' }
+
+def key_name( key ):
+    """The name in the viewers (see _viewer_ui.key_action) of a key of
+    matplotlib (event.key): Up and Down with any modifiers (e.g. shift+up,
+    ctrl+up or super+up) are MoveUp and MoveDown, shift+x is X"""
+    k = _key_names.get(key,key)
+    for arrow, name in ( ( '+up', 'MoveUp' ), ( '+down', 'MoveDown' ) ):
+        if k.endswith(arrow):
+            return name
+    if k.startswith('shift+') and len(k) == 7:
+        return k[-1].upper()
+    return k
+
 def after_event( canvas, fct, *args ):
     """Call fct(*args) after the event being handled (e.g. a click which
     changes the plots, which could otherwise remove 3D plots which still get
@@ -516,9 +535,10 @@ class FigurePane:
         key = viewer.current_key if key is None else key
         figure = viewer.figure(key = key)
         if figure is None:
-            if key == self._key:
+            if key == self._key and self._figure is None:
                 return False
             self.clear()
+            self._key = key#(shown without a figure, until it has one)
             return True
         scale = self._font_scale()
         if key == self._key and figure is self._figure and scale == self._scale:

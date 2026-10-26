@@ -208,19 +208,16 @@ def _viewer_in_window( viewer ):
                { 'filename' : viewer.filename, 'view' : viewer.state(),
                  'dry_run' : viewer._dry_run, 'progname' : viewer._progname })
 
-class TextViewer:
+class TextViewer(ui.KeyViewer):
     """The viewer in a terminal (on a screen, see _CursesScreen)"""
     def __init__( self, viewer, screen, backend = None ):
         from ._plotbackend_text import UnicodeBackend
-        self.v, self.s = viewer, screen
+        super().__init__(viewer)
+        self.s = screen
         #(the backend drawing the plots, also deciding whether only ASCII
         #characters are used):
         self.bk = backend if backend is not None else UnicodeBackend()
         self.ascii = self.bk.encoding == 'ascii'
-        self.editor = None#(LineEditor of the field being edited)
-        self.message = ''#(shown in the status line)
-        self.hover = None
-        self.show_help = False
         self.scroll = 0
         #(shows a figure or viewer in a window, replaced in tests):
         self.open_window = lambda action, what : ( _plot_in_window(what) if action == 'gui_plot'
@@ -256,11 +253,7 @@ class TextViewer:
             self.show_help = False
             return None
         if self.editor is not None:
-            r = self.editor.key(k)
-            if r == 'cancel':
-                self.editor = None
-            elif r == 'apply':
-                self._apply()
+            self.editor_key(k)
             return None
         if k == 'PageDown':
             self.scroll += 5
@@ -268,55 +261,32 @@ class TextViewer:
         if k == 'PageUp':
             self.scroll = max( 0, self.scroll - 5 )
             return None
-        if k.lower() in ui.scale_keys:
-            _, self.message = self.v.toggle_scale(ui.scale_keys[k.lower()])
+        if self.scale_key(k):
             return None
         return self._do( ui.key_action(k,terminal = True) )
 
+    def view_changed( self ):
+        self.scroll = 0
+
     def _do( self, action ):
-        v = self.v
-        self.message = ''
-        if action == 'previous':
-            v.select(v.current - 1)
-            self.scroll = 0
-        elif action == 'next':
-            v.select(v.current + 1)
-            self.scroll = 0
-        elif action in ( 'move_up', 'move_down' ):
-            v.move(-1 if action == 'move_up' else 1)
-        elif action == 'write' and not v.changes_particles:
-            self.message = v.nothing_to_write
-        elif action in ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot', 'write', 'state',
-                         'change' ):
-            self.editor = ui.editor_for(v,action)
-        elif action in ( 'gui_plot', 'gui_viewer' ):
-            self._window(action)
-        elif action == 'help':
-            self.show_help = True
-        elif action == 'quit':
-            return 'quit'
-        return None
+        res = self.do(action)
+        if res in ( 'gui_plot', 'gui_viewer' ):
+            self._window(res)
+        return 'quit' if res == 'quit' else None
 
     def _window( self, action ):
         """Show the plot, or the viewer, in a window (with open_window)"""
         what = self.v.figure() if action == 'gui_plot' else self.v
         if what is None:
-            self.message = 'Not shown: there is no plot yet'
+            self.set_message('Not shown: there is no plot yet',False)
             return
         try:
             self.open_window(action,what)
         except MCPLError as e:
-            self.message = f'Not shown: {e}'
+            self.set_message(f'Not shown: {e}',False)
             return
-        self.message = ( 'The plot is shown in a GUI window' if action == 'gui_plot'
-                         else 'The viewer is opened in a GUI window' )
-
-    def _apply( self ):
-        done, self.message, replot = ui.apply_editor(self.v,self.editor)
-        if done:
-            self.editor = None
-        if replot:
-            self.scroll = 0
+        self.set_message( 'The plot is shown in a GUI window' if action == 'gui_plot'
+                          else 'The viewer is opened in a GUI window' )
 
     def _mouse( self, x, y, clicked ):
         for ry, x0, x1, what in self._regions:
@@ -325,7 +295,7 @@ class TextViewer:
                 if clicked:
                     if isinstance(what,int):
                         self.v.select(what)
-                        self.scroll = 0
+                        self.view_changed()
                         self.editor = None
                     else:
                         return self._do(what)
@@ -420,7 +390,7 @@ class TextViewer:
         #Status line: messages, or the shortcut of what is under the mouse:
         status = self.message or ( ui.shortcut_text(self.hover if isinstance(self.hover,str) else 'views')
                                    if self.hover is not None else '' )
-        s.put(min(y,h-1),1,status,'error' if self.message.startswith('Not') else 'normal')
+        s.put(min(y,h-1),1,status,self.message_style)
         if popup:
             self._draw_popup(*popup)
         s.refresh()

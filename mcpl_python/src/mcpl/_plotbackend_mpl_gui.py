@@ -29,16 +29,9 @@ __all__ = []
 from . import _viewer_ui as ui
 
 #Matplotlib key names, as names of _viewer_ui:
-_keymap = { 'up' : 'Up', 'down' : 'Down', 'left' : 'Left', 'right' : 'Right',
-            'home' : 'Home', 'end' : 'End', 'backspace' : 'Backspace',
-            'delete' : 'Delete', 'enter' : 'Enter', 'escape' : 'Esc',
-            'tab' : 'Tab', 'f1' : 'F1', 'pageup' : 'PageUp',
-            'pagedown' : 'PageDown', ' ' : ' ' }
+_colors = { **ui.colors, 'key' : 'tab:blue', 'bold' : 'black' }
 
-_colors = { 'normal' : 'black', 'dim' : '0.5', 'key' : 'tab:blue',
-            'ok' : 'tab:green', 'error' : 'tab:red', 'bold' : 'black' }
-
-class MplViewer:
+class MplViewer(ui.KeyViewer):
     """The viewer on a matplotlib figure (fig, from pyplot, or any figure
     with a canvas, e.g. in tests)"""
     #Layout (in figure coordinates):
@@ -49,14 +42,11 @@ class MplViewer:
 
     def __init__( self, viewer, fig ):
         from ._plotbackend_mpl import FigurePane
-        self.v, self.fig = viewer, fig
+        super().__init__(viewer)
+        self.fig = fig
         viewer.multi_overview = True#(the overview with all its plots, see _on_click)
         self._pane = FigurePane(fig,( self._left + 0.07, 0.98, self._bottom + 0.06, 0.9 ),
                                 title_space=0.04,title_y=0.935)
-        self.editor = None
-        self.message = ''
-        self.hover = None
-        self.show_help = False
         self._artists = []#(texts of the views and the bottom panel)
         self._targets = []#(text, what) of the clickable texts
         self.closed = False
@@ -95,14 +85,8 @@ class MplViewer:
             return
         if self._scale_key(event):
             return
-        k = _keymap.get(k,k)
-        #(Up and Down with any modifiers, e.g. shift+up, ctrl+up or super+up):
-        for arrow, key in ( ('+up','MoveUp'), ('+down','MoveDown') ):
-            if k.endswith(arrow):
-                k = key
-        if k.startswith('shift+') and len(k) == 7:
-            k = k[-1].upper()
-        if self.key(k) == 'quit':
+        from ._plotbackend_mpl import key_name
+        if self.key(key_name(k)) == 'quit':
             import matplotlib.pyplot as plt
             plt.close(self.fig)
             self._on_close(None)
@@ -114,55 +98,22 @@ class MplViewer:
         if ( event.key.lower() not in ui.scale_keys or self.editor is not None
              or self.show_help ):
             return False
-        _, self.message = self.v.toggle_scale(ui.scale_keys[event.key.lower()],
-                                              self._pane.view_at(event))
+        self.scale_key(event.key,self._pane.view_at(event))
         self.refresh(plot=True)
         return True
 
     def key( self, k ):
         """Handle a key (with the names of _viewer_ui)"""
-        plot = False
         if self.show_help:
             self.show_help = False
             self.refresh(plot=True)
             return None
         if self.editor is not None:
-            r = self.editor.key(k)
-            if r == 'cancel':
-                self.editor = None
-            elif r == 'apply':
-                plot = self._apply()
-            self.refresh(plot=plot)
+            self.refresh(plot=self.editor_key(k))
             return None
-        res = self._do(ui.key_action(k))
+        res = self.do(ui.key_action(k))
         self.refresh(plot=True)
-        return res
-
-    def _do( self, action ):
-        v = self.v
-        self.message = ''
-        if action == 'previous':
-            v.select(v.current - 1)
-        elif action == 'next':
-            v.select(v.current + 1)
-        elif action in ( 'move_up', 'move_down' ):
-            v.move(-1 if action == 'move_up' else 1)
-        elif action == 'write' and not v.changes_particles:
-            self.message = v.nothing_to_write
-        elif action in ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot', 'write', 'state',
-                         'change' ):
-            self.editor = ui.editor_for(v,action)
-        elif action == 'help':
-            self.show_help = True
-        elif action == 'quit':
-            return 'quit'
-        return None
-
-    def _apply( self ):
-        done, self.message, replot = ui.apply_editor(self.v,self.editor)
-        if done:
-            self.editor = None
-        return replot
+        return 'quit' if res == 'quit' else None
 
     def _target( self, event ):
         key = self._pane.view_at(event)
@@ -190,7 +141,7 @@ class MplViewer:
             self.editor = None
             self.v.select(what)
             self.refresh(plot=True)
-        elif self._do(what) == 'quit':
+        elif self.do(what) == 'quit':
             import matplotlib.pyplot as plt
             plt.close(self.fig)
             self._on_close(None)
@@ -277,7 +228,7 @@ class MplViewer:
         elif hover is not None and not isinstance(hover,str):
             hover = 'views'
         status = self.message or ( ui.shortcut_text(hover) if hover is not None else '' )
-        lines.append( ( [ ( status, 'error' if self.message.startswith('Not') else 'normal' ) ], None ) )
+        lines.append( ( [ ( status, self.message_style ) ], None ) )
         self._draw_lines(lines)
         if ed is not None and ed.choices and popup is not None:
             self._draw_popup(*popup)

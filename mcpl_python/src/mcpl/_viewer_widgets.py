@@ -42,8 +42,6 @@ def _axes_problem( axes ):
         return 'Choose the Y axis too for a 3D plot (or empty the Z axis)'
     return None
 
-#The title of the cards of the inactive groups (see WidgetViewer.cards):
-inactive_groups_title = 'Inactive plot groups'
 
 class Card:
     """A card of the list of views of the viewers with windows (see
@@ -531,6 +529,35 @@ class WidgetViewer:
         self.show_line(msg,'normal' if done else 'error')
         self.refresh(plot = replot)
 
+    def on_control_edited( self, name, text ):
+        """The expression written in a setting of the shown plot (one of
+        ui.written_options) was changed: it is checked as the plot with it,
+        with hints as in its field"""
+        plot = self._shown_plot()
+        if plot is None:
+            return
+        _, hint, field = ui.written_options[name]
+        text = text.strip()
+        if not text:
+            self.show_line(hint,'dim')
+            return
+        try:
+            ok, msg = ui.check_text(self.v,'plot',self._option(plot,name,text),
+                                    replaces = self._shown_key())
+        except MCPLError as e:
+            ok, msg = False, str(e)
+        if not ok:
+            #(the problem of the expression itself, if any, as in its field):
+            ok_field, msg_field = self.v.check(field,text)
+            msg = msg if ok_field else msg_field
+        hint = self.v.hint(field,text)
+        if not ok and msg:
+            self.show_line(msg,'error')
+        elif hint:
+            self.show_line('hint: ' + hint,'dim')
+        else:
+            self.show_line('Enter: apply   Esc: cancel','dim')
+
     def compose( self, x, y = '', z = '', settings = () ):
         """A plot string from the quantities x, y and z (names of
         _viewer_ui.quantities or expressions, y empty for a 1D histogram, z
@@ -684,12 +711,17 @@ class WidgetViewer:
         if self._new_plot is not None:
             res.append(Card('info:new',self._new_plot or 'New plot',group=custom_title,grouped=True,
                             badges=( 'choose what to plot', ),selectable=False,removable=True))
-        #(the inactive standard groups, at the end, which are activated by a
-        #click, see on_select_key):
-        for key, title, _, active in self.v.group_list():
+        #(the inactive standard groups, in their places in the order of the
+        #groups, without headers, which are activated by a click, see
+        #on_select_key):
+        #(each before the cards of the groups after it, and of the custom one):
+        later = { custom_title }
+        for key, title, _, active in reversed(self.v.group_list()):
             if not active:
-                res.append(Card(f'info:group:{key}',title,group=inactive_groups_title,
-                                grouped=True,status='click to activate',inactive=True))
+                i = next( ( i for i, c in enumerate(res) if c.group in later ), len(res) )
+                res.insert(i,Card(f'info:group:{key}',title,group=title,status='click to activate',
+                                  inactive=True))
+            later.add(title)
         return res
 
     def thumbnail( self, key, width, height ):
@@ -800,8 +832,11 @@ class WidgetViewer:
         return h.step(delta)
 
     def on_complete( self, field, text, cursor ):
-        """Tab completion in the field (see ui.complete_text), or in the
-        expression of an axis (field 'axis')"""
+        """Tab completion in the field (see ui.complete_text), in the
+        expression of an axis (field 'axis'), or in one written in a setting of
+        the shown plot (see ui.written_options)"""
+        if field in ui.written_options:
+            field = ui.written_options[field][2]
         return ui.complete_text(self.v,'plot' if field in ( 'shown_plot', 'axis' ) else field,
                                 text,cursor)
 

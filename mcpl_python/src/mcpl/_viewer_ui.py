@@ -155,6 +155,14 @@ _only = ( 'display_only', 'Display only', 'types' )
 #of each value of an expression written in the menu):
 display_by_choices = ( ( 'particle type', None ), ( 'single', 'single' ) )
 _by = ( 'display_by', 'Display by', display_by_choices )
+#(the settings of plots in whose menus an expression can be written, with the
+#choice for it, its hint, and the field whose completions and hints it has):
+written_options = {
+    'display_by' : ( 'Type expression...', ( 'Type what to show a curve of each value of,'
+                                             ' e.g. x > 0cm or userflags, and press Enter' ),
+                     'plot' ),
+    'display_only' : ( 'Type expression...', ( 'Type which particles to show, e.g.'
+                                               ' ekin > 1MeV, and press Enter' ), 'pick' ) }
 plot_controls = {
     '1d' : ( ( 'logx', 'X scale', _scale ), ( 'logy', 'Y scale', _scale ), _by,
              _count, ( 'bins', 'Bins', None ), ( 'range', 'Range', None ), _only ),

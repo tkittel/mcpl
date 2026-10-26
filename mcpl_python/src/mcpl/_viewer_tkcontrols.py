@@ -24,6 +24,7 @@ settings of plots and overviews in them"""
 
 __all__ = []
 
+from . import _viewer_ui as ui
 from ._viewer_tkbase import Flow, GreyText, focus_of, tk_modules
 from ._viewer_ui import part_colors
 
@@ -57,23 +58,17 @@ def tint( part, name ):
         elif isinstance(w,ttk.Label) and not w.cget('style'):
             w.configure(style=f'{name}.TLabel')
 
-#(the choices of the menus of Controls for writing in them, and their hints):
-written = {
-    'display_by' : ( 'an expression...', ( 'Type what to show a curve of each value of,'
-                                           ' e.g. x > 0cm or userflags, and press Enter' ) ),
-    'display_only' : ( 'a condition...', ( 'Type which particles to show, e.g.'
-                                           ' ekin > 1MeV, and press Enter' ) ) }
-
 class Controls:
     """The settings of a plot (see WidgetViewer.plot_controls): a menu or a
     text field for each, in a row, which call on_change(option, shown text)
     when changed (with Enter, for the text fields). The row is made again
-    when the kind of plot changes. The menus of display_by and display_only
-    have a choice for writing an expression or a condition in them, which
-    on_hint (if given) explains."""
-    written = written
+    when the kind of plot changes. The menus of ui.written_options have a
+    choice for writing an expression in them, where the keys are bound by
+    bind_written(widget, option), and on_edit(option, text) is called when
+    that choice is made."""
+    written = ui.written_options
 
-    def __init__( self, parent, on_change, on_hint = None, style = None ):
+    def __init__( self, parent, on_change, on_edit, bind_written, style = None ):
         _, ttk = tk_modules()
         #(the style of the labels and the frame, e.g. of a part, see make_part):
         self._styles = { 'style' : f'{style}.TLabel' } if style else {}
@@ -82,7 +77,7 @@ class Controls:
         #(each setting in a frame, in rows as wide as the window):
         self._flow = Flow(self.frame,**self._frames)
         self._on_change = on_change
-        self._on_hint = on_hint
+        self._on_edit, self._bind_written = on_edit, bind_written
         self._kind = None
         self._widgets, self._used, self._grey = {}, {}, GreyText()
 
@@ -105,7 +100,7 @@ class Controls:
                     if name in self.written:
                         choices = [ *choices, self.written[name][0] ]
                     w = ttk.Combobox(item,values=choices,
-                                     width=14 if name in self.written else 7,
+                                     width=16 if name in self.written else 7,
                                      state='normal' if name in self.written else 'readonly')
                     w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._chosen(n,w))
                 else:
@@ -113,7 +108,9 @@ class Controls:
                     #(the greyed text is removed while it is edited):
                     w.bind('<FocusIn>',lambda _e, w=w : self._show_used(w,None),'+')
                     w.bind('<FocusOut>',lambda _e, w=w : self._show_used(w,self._used.get(w)),'+')
-                if name in self.written or choices is None:
+                if name in self.written:
+                    self._bind_written(w,name)
+                elif choices is None:
                     w.bind('<Return>',lambda _e, n=name, w=w : self._on_change(n,self._text(w)))
                 w.pack(side='left')
                 self._widgets[name] = w
@@ -123,6 +120,11 @@ class Controls:
         focus = focus_of(self.frame)
         for name, _, choices, shown, used in controls[1]:
             w = self._widgets[name]
+            if choices is not None:
+                #(e.g. the particle types, as they are found):
+                values = tuple( choices ) + ( ( self.written[name][0], ) if name in self.written else () )
+                if tuple( str(v) for v in w.cget('values') ) != values:
+                    w.configure(values=values)
             if w is focus:
                 continue#(not while it is edited)
             if choices is not None:
@@ -148,15 +150,13 @@ class Controls:
         return self._grey.text(w)
 
     def _chosen( self, name, w ):
-        choice, hint = self.written.get(name,( None, None ))
-        if w.get() != choice:
+        if name not in self.written or w.get() != self.written[name][0]:
             self._on_change(name,w.get())
             return
         #(it is written in the field, and applied with Enter):
         w.set('')
         w.focus_set()
-        if self._on_hint is not None:
-            self._on_hint(hint)
+        self._on_edit(name,'')
 
 class OverviewControls:
     """The settings of an overview (see WidgetViewer.overview_controls): a menu,

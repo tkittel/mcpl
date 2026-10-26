@@ -371,6 +371,13 @@ t1.v.wait()
 t1.on_select_key('overview:correlations')
 t1.on_overview_control('most',ui.most_correlated)
 t1.v.stop()
+step('expressions written in the settings of plots')
+t.on_select_key(next( k for k, _ in v.views if k.startswith('plot:') and ' : ' in k ))
+print('   choices of display_only:', next( c for n, _, c, _, _ in t.plot_controls()[1]
+                                           if n == 'display_only' ))
+for text in ( '', 'ekin > 1Me', 'ekin >> 1', 'ekin > 1MeV' ):
+    t.on_control_edited('display_only',text)
+print('   completed:', t.on_complete('display_only','ekin > 1Me',10)[0])
 step('the buttons of the actions, and quit')
 t.on_action('help')
 t.on_action('quit')

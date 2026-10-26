@@ -40,7 +40,8 @@ class CardList:
     only their overview) except that of the shown view (see
     WidgetViewer.folded_groups), a click on a header shows the overview of
     its group, and the standard groups are deactivated with the menu of their
-    header. The inactive groups are at the end, and activated by a click."""
+    header. The inactive groups are shown as small cards in their places,
+    and activated by a click."""
     width, thumb = 300, ( 84, 50 )
 
     def __init__( self, parent, viewer ):
@@ -134,10 +135,7 @@ class CardList:
         self._slots = []
         y, group = 6, False#(False: before the first header)
         selected = None#(where the shown card is, if it is a new one)
-        added = False#(whether the card adding a plot is drawn)
         for card, img in zip(cards,images):
-            if card.inactive and not added:
-                y, added = self._add_card(y), True
             if card.grouped and card.group != group:
                 group = card.group
                 self._header(y,group)
@@ -155,8 +153,7 @@ class CardList:
             if shown and new_current:
                 selected = ( y, y + h )
             y += h + 6
-        if not added:
-            y = self._add_card(y)
+        y = self._add_card(y)
         c.configure(scrollregion=( 0, 0, self.width + 8, y ))
         #(the view stays within the cards when there are fewer of them, e.g.
         #when groups are folded, so there is no empty space above them):
@@ -317,6 +314,8 @@ class CardList:
         menu.tk_popup(event.x_root,event.y_root)
 
     def _on_press( self, event ):
+        #(the keys then go to the viewer, not to a field edited before):
+        self.canvas.focus_set()
         s = self._slot(event)
         self._drag = None
         if s is not None and s[2] == 'card' and s[3].draggable:

@@ -229,7 +229,7 @@ class TkViewer(WidgetViewer):
         bottom = ttk.Frame(root,padding=(0,4,6,6))
         bottom.grid(row=1,column=1,sticky='ew')
         bottom.columnconfigure(0,weight=1)
-        part, head = make_part(bottom,'Particles','Pick & edit','filter or modify particles',
+        part, head = make_part(bottom,'Particles','Pick & edit','globally filter or modify entire file',
                            card_colors['border'])
         #(the numbers of the particles used, at the right of the header):
         self._counts = ttk.Label(head,foreground=colors['dim'],style='Particles.TLabel')
@@ -408,9 +408,8 @@ class TkViewer(WidgetViewer):
         frame.pack(fill='x',pady=1)
         self._settings_row = frame
         ttk.Label(frame,text='Settings:',**row_label).pack(side='left',padx=(0,4))
-        self._controls = Controls(frame,self.on_control,
-                                   on_hint = lambda text : self.show_line(text,'dim'),
-                                   style = 'Plot')
+        self._controls = Controls(frame,self.on_control,self.on_control_edited,
+                                   self._bind_written,style = 'Plot')
         self._controls.frame.pack(side='left',fill='x',expand=True)
 
     def _axis_texts( self ):
@@ -423,6 +422,42 @@ class TkViewer(WidgetViewer):
         text = w.get()
         self._set_text(w,self._menu.get(text,text))
         self._on_axes_enter()
+
+    def _bind_written( self, w, name ):
+        """The keys of the menu of a setting of plots in which an expression is
+        written (see Controls): Tab completes it, with the list of completions
+        as in the other fields, and it is checked while it is written"""
+        w.bind('<KeyRelease>',lambda e : self._on_written_key(w,name,e))
+        w.bind('<Tab>',lambda _e : self._on_entry_tab(w,name))
+        bind_enter(w,lambda : self._on_written_enter(w,name))
+        w.bind('<Escape>',lambda _e : self._on_written_escape())
+        w.bind('<FocusOut>',lambda _e : self._close_popup(),'+')
+        for key, delta in ( ( '<Up>', -1 ), ( '<Down>', 1 ) ):
+            w.bind(key,lambda _e, d=delta : ( self._on_entry_updown(w,name,d)
+                                              if self._popup is not None else None ))
+
+    def _on_written_key( self, w, name, event ):
+        if event.keysym in command_keys:
+            return
+        self._close_popup()
+        self.on_control_edited(name,w.get())
+
+    def _on_written_enter( self, w, name ):
+        if self._popup is not None:
+            self._insert_choice(w)
+            return 'break'
+        self.canvas.get_tk_widget().focus_set()
+        self.on_control(name,w.get())
+        return 'break'
+
+    def _on_written_escape( self ):
+        if self._popup is not None:
+            self._close_popup()
+            return 'break'
+        self.canvas.get_tk_widget().focus_set()
+        self.show_line('','dim')
+        self.refresh(plot = False)
+        return 'break'
 
     def _on_axis_key( self, w, event ):
         if event.keysym in command_keys:
@@ -695,9 +730,15 @@ class TkViewer(WidgetViewer):
         _bind_entry, and those over the plot by _on_mpl_key)"""
         tk, ttk = tk_modules()
         w = event.widget
+        k = _key_name(event)
+        if isinstance(w,ttk.Combobox) and str(w.cget('state')) == 'readonly':
+            #(menus take only Up, Down and Enter, and the characters are
+            #keys of the viewer):
+            if k is not None and len(k) == 1:
+                self.on_key(k)
+            return
         if isinstance(w,( ttk.Entry, ttk.Combobox, tk.Entry, tk.Text )) or w is self.canvas.get_tk_widget():
             return
-        k = _key_name(event)
         if k is not None:
             self.on_key(k)
 
@@ -840,7 +881,8 @@ class TkViewer(WidgetViewer):
         if self._popup is not None:
             self._insert_choice(w)
             return 'break'
-        if field in ui.completing_fields or field in ( 'shown_plot', 'axis' ):
+        if ( field in ui.completing_fields or field in ui.written_options
+             or field in ( 'shown_plot', 'axis' ) ):
             text, cursor, choices, start = self.on_complete(field,self._text(w),w.index('insert'))
             w.delete(0,'end')
             w.insert(0,text)
@@ -854,6 +896,8 @@ class TkViewer(WidgetViewer):
         """The text of the field (or of an axis) was changed"""
         if field == 'axis':
             self.on_axes_edited(*self._axis_texts())
+        elif field in ui.written_options:
+            self.on_control_edited(field,w.get())
         else:
             self.on_field_edited(field,self._text(w))
 

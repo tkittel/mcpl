@@ -121,10 +121,11 @@ class CardList:
         view selected (if anything changed; current, the index of the shown
         view, is not needed, since the cards have the keys of the views)"""
         self._used = set()
-        folded = self.tv.folded_groups()
+        folded = self._folded = self.tv.folded_groups(cards)
+        target = self.tv.shown_group(cards)#(where the shown view is selected)
         images = [ self._image(c.key) if c.image else None for c in cards ]
         current = self.tv.shown_key
-        shown = ( tuple(cards), current, tuple(sorted(folded)),
+        shown = ( tuple(cards), current, target, tuple(sorted(folded)),
                   tuple( id(i) for i in images ) )
         if shown == self._shown:
             return
@@ -140,7 +141,7 @@ class CardList:
                 group = card.group
                 self._header(y,group)
                 y += _card_heights['header']
-            shown = card.key == current
+            shown = card.key == current and card.group == target
             if card.grouped and group in folded and not ( shown or card.pinned ):
                 continue
             #(all cards with images have the same height, with room for a line
@@ -184,7 +185,7 @@ class CardList:
         return y + 40
 
     def _header( self, y, group ):
-        mark = '\u25b8' if group in self.tv.folded_groups() else '\u25be'
+        mark = '\u25b8' if group in self._folded else '\u25be'
         self.canvas.create_text(8,y+13,anchor='w',fill=card_colors['dim'],
                                 text=f'{mark}  {( group or "More plots" ).upper()}',
                                 font=self.tv.small_bold)
@@ -307,7 +308,7 @@ class CardList:
         card = s[3]
         menu = tk.Menu(self.canvas,tearoff=0)
         if card.selectable:
-            menu.add_command(label='Show',command=lambda : self.tv.on_select_key(card.key))
+            menu.add_command(label='Show',command=lambda : self.tv.on_select_key(card.key,card.group))
         if card.removable:
             menu.add_command(label=card.remove_text or 'Remove this card',
                              command=lambda : self.tv.on_remove(card.key))
@@ -353,6 +354,6 @@ class CardList:
         if s[2] == 'header':
             self.tv.on_group_header(s[3])
         elif s[2] == 'card' and s[3].selectable:
-            self.tv.on_select_key(s[3].key)
+            self.tv.on_select_key(s[3].key,s[3].group)
         elif s[2] == 'add':
             self.tv.on_new_plot()

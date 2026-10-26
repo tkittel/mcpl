@@ -371,6 +371,19 @@ t1.v.wait()
 t1.on_select_key('overview:correlations')
 t1.on_overview_control('most',ui.most_correlated)
 t1.v.stop()
+step('a plot of several groups has a card in each')
+t.on_show_group('shielding')
+cards = t.cards()
+def plots_of( group ):
+    return [ c.name for c in cards if c.group == group and not c.overview ]
+print('   Overview:', plots_of('Overview'))
+print('   Shielding:', plots_of('Shielding'))
+t.on_select_key('plot:x : y','Shielding')
+print('   selected in:', t.shown_group(t.cards()), '| expanded:',
+      sorted( set(plots_of('Overview')) and { 'Overview', 'Shielding' } - t.folded_groups() ))
+t.on_select_key('plot:x : y','Overview')
+print('   selected in:', t.shown_group(t.cards()))
+t.on_show_group('shielding',False)
 step('expressions written in the settings of plots')
 t.on_select_key(next( k for k, _ in v.views if k.startswith('plot:') and ' : ' in k ))
 print('   choices of display_only:', next( c for n, _, c, _, _ in t.plot_controls()[1]

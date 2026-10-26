@@ -529,6 +529,13 @@
    field edit: ''
    field plot: ''
    line (error): Fewer than two of the variables have more than one value
+==> a plot of several groups has a card in each
+   line (normal): Activated: the group Shielding
+   Overview: ['Energy', 'Wavelength', 'Angle to z axis', 'Position x-y', 'Time', 'Particle type']
+   Shielding: ['Particle type', 'Energy', 'Angle to z axis', 'Time', 'Weight', 'Position x-y', 'Distance to z axis', 'Wavelength']
+   selected in: Shielding | expanded: ['Shielding']
+   selected in: Beam along z
+   line (normal): Deactivated: the group Shielding
 ==> expressions written in the settings of plots
    choices of display_only: ['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)']
    line (dim): Type which particles to show, e.g. ekin > 1MeV, and press Enter

@@ -591,7 +591,7 @@ class Viewer(_Output,_Reading):
             badges.append('counts')
         if o['range'] or o['xrange'] or o['yrange']:
             badges.append('range')
-        return { 'title' : title, 'name' : title or _auto_title(p) or ' : '.join(o['exprs']), 'plot' : p,
+        return { 'title' : title, 'name' : _plot_name(p,title), 'plot' : p,
                  'group' : group, 'badges' : badges,
                  'constant' : self._constant_of(p,constants),
                  'absent' : _plot_field(p) in self._absent }
@@ -701,6 +701,13 @@ class Viewer(_Output,_Reading):
         if not self.multi_overview:
             return []
         return [ ( f'overview:{k}', ov ) for k, ov in self._groups.overviews(self.new_plot_cell) ]
+
+    def group_items( self, key ):
+        """The plots of the group with the key (histogram strings), with the
+        names of their cards in it (their titles in the group, or else from
+        their expressions, see plot_info)"""
+        with self._lock:
+            return [ ( p, _plot_name(p,t) ) for p, t in self._groups.items(key) ]
 
     def overview_keys( self, key ):
         """The keys of the views of the plots of the cells of the overview with
@@ -881,6 +888,11 @@ def _auto_title( plot ):
     return _field_titles.get(node.id)
 
 @functools.lru_cache(maxsize = 4096)
+def _plot_name( plot, title ):
+    """The name of the card of the plot: its title, or else from its
+    expressions"""
+    return title or _auto_title(plot) or ' : '.join(_parsed_plot(plot)['exprs'])
+
 def _parsed_plot( text ):
     """The parsed plot (see _parse_hist, which must not be changed)"""
     from ._histstring import _parse_hist

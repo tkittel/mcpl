@@ -72,7 +72,7 @@ class PlotGroups:
         return Overview(title,plots,descr,display_only = only,
                         display_by = self.setting(key,'display_by'))
 
-    def _items( self, key ):
+    def items( self, key ):
         """The plots (histogram strings) of the group, with their titles, as a
         list of (plot, title)"""
         if key == custom_key:
@@ -179,7 +179,7 @@ class PlotGroups:
         plots (also those which are in standard groups)"""
         res, seen = [], set()
         for k in self.keys():
-            for p, t in self._items(k):
+            for p, t in self.items(k):
                 if p not in seen or k == custom_key:
                     seen.add(p)
                     res.append( ( p, t, k ) )

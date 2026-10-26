@@ -134,6 +134,7 @@ class WidgetViewer:
         #(whether the group of the shown view is expanded, see folded_groups;
         #not at the start, when all groups are folded):
         self._expanded = False
+        self._browsed = None#(the title of the group of the card chosen last)
 
     #To implement for the toolkit:
 
@@ -261,7 +262,10 @@ class WidgetViewer:
         self.v.select(index)
         self.refresh()
 
-    def on_select_key( self, key ):
+    def on_select_key( self, key, group = None ):
+        """The view with the key was chosen, from its card in the group (with
+        the title) if given (a plot can have cards in several groups, see
+        cards)"""
         if key.startswith('info:group:'):
             #(the card of an inactive group activates it, see cards):
             self.on_show_group(key[11:])
@@ -271,6 +275,7 @@ class WidgetViewer:
         self._expanded = not ( key.startswith('overview:') and key == self.shown_key
                                and self._expanded )
         self._new_plot = None
+        self._browsed = group
         self.v.select_key(key)
         self.refresh()
 
@@ -281,13 +286,21 @@ class WidgetViewer:
         if key is not None:
             self.on_select_key(key)
 
-    def folded_groups( self ):
+    def folded_groups( self, cards = None ):
         """The titles of the groups which are folded (showing only their
-        overview): the standard groups except that of the shown view, if it is
-        expanded (see on_select_key; the custom plots are never folded)"""
-        shown = ( self.v.plot_info(self.shown_key)['group']
+        overview): the standard groups except that of the shown view (see
+        shown_group, of the cards, default cards()), if it is expanded (see
+        on_select_key; the custom plots are never folded)"""
+        shown = ( self.shown_group(self.cards() if cards is None else cards)
                   if self.shown_key and self._expanded else None )
         return { t for k, t, _, active in self.v.group_list() if active and t != shown }
+
+    def shown_group( self, cards ):
+        """The title of the group whose card of the shown view is selected (of
+        the cards, see cards): that of the group of the card chosen last, if
+        the view has a card there, else of its first card"""
+        groups = [ c.group for c in cards if c.key == self.shown_key ]
+        return self._browsed if self._browsed in groups else next(iter(groups),None)
 
     def on_move( self, delta ):
         if self.v.move(delta):
@@ -301,6 +314,8 @@ class WidgetViewer:
         if key == 'info:new':#(the place of a new plot in the custom overview)
             self.on_new_plot()
         elif key is not None:
+            #(the plot is shown in the group of the overview):
+            self._browsed = self.v.plot_info(self.shown_key)['group'] if self.shown_key else None
             self._expanded = True
             self.v.select_key(key)
             self.refresh()
@@ -675,8 +690,9 @@ class WidgetViewer:
         """The views as cards (see Card), in their order, and for files without
         userdata, a card for it after the fields (which is not a view), as a
         reminder that MCPL files can have userdata, the card of a new plot
-        while it is made (see on_new_plot), and the inactive groups at the
-        end"""
+        while it is made (see on_new_plot), and the inactive groups in their
+        places. A plot of several standard groups has a card in each (as the
+        same view)."""
         from .plotting import Text
         res = []
         for key, _ in self.v.views:
@@ -701,6 +717,7 @@ class WidgetViewer:
                             group=info['group'],grouped=True,badges=info['badges'],
                             status=status,problem=problem,image=status is None,
                             draggable=custom,removable=custom))
+        res = self._cards_in_all_groups(res)
         if ( 'fields' in self.v.groups and not self.v.has_userdata
              and 'info:userdata' not in self._removed ):
             fields = _groups['fields'][0]
@@ -722,6 +739,34 @@ class WidgetViewer:
                 res.insert(i,Card(f'info:group:{key}',title,group=title,status='click to activate',
                                   inactive=True))
             later.add(title)
+        return res
+
+    def _cards_in_all_groups( self, cards ):
+        """The cards (one per view, in the first group with it), with the cards
+        of each standard group in the order of its plots, also of those whose
+        views have their cards in groups before it (as copies, which are not
+        moved or removed)"""
+        import copy
+        first = {}
+        for c in cards:
+            first.setdefault(c.key,c)
+        res, made = [], set()
+        for c in cards:
+            if c.grouped and not c.overview and c.group in made:
+                continue#(made from the overview of its group, below)
+            res.append(c)
+            group = ui.group_of(c.key) if c.overview else None
+            if group is None or group == custom_key:
+                continue
+            made.add(c.group)
+            for p, name in dict(self.v.group_items(group)).items():
+                card = first.get(f'plot:{p}')
+                if card is not None and card.group != c.group:
+                    card = copy.copy(card)
+                    card.group, card.draggable, card.removable = c.group, False, False
+                    card.name = name
+                if card is not None:
+                    res.append(card)
         return res
 
     def thumbnail( self, key, width, height ):

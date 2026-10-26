@@ -225,9 +225,12 @@ class CardList:
         if card.inactive:
             #(the card of an inactive group, in grey with a dashed outline):
             self._rect(4,y,self.width,y+h,12,fill=col['bg'],outline=col['border'],dash=(3,3))
-            c.create_text(16,y+h/2,anchor='w',fill=col['dim'],font=self.tv.bold,text=card.name)
-            c.create_text(self.width-10,y+h/2,anchor='e',fill=col['accent'],
-                          font=self.tv.small_font,text=card.status)
+            status = c.create_text(self.width-10,y+h/2,anchor='e',fill=col['accent'],
+                                   font=self.tv.small_font,text=card.status)
+            #(the name, shortened if needed, with a gap before the status):
+            room = c.bbox(status)[0] - 16 - 12
+            c.create_text(16,y+h/2,anchor='w',fill=col['dim'],font=self.tv.bold,
+                          text=elided(card.name,self.tv.bold,room))
             return
         right = self.width
         if card.overview:

@@ -840,6 +840,13 @@ class WidgetViewer:
         else:
             self.focus_field(action)
 
+    def hover_text( self, name ):
+        """The text of the status line while the mouse is over the field or
+        action with the name"""
+        if name == 'write' and not self.v.changes_particles:
+            return self.v.nothing_to_write
+        return ui.shortcut_text(name)
+
     def _attach( self, viewer ):
         """Show the viewer (core), with the overviews of all groups (with all
         their plots), and the custom one with the place of a new plot (see

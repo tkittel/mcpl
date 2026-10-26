@@ -24,7 +24,7 @@ WidgetViewer.cards)"""
 
 __all__ = []
 
-from ._viewer_tkbase import elided, tk_modules, wrapped
+from ._viewer_tkbase import elided, tk_modules, windowing_system, wrapped
 from ._viewer_ui import card_colors, colors
 
 #The heights of the cards:
@@ -65,7 +65,7 @@ class CardList:
         c.bind('<ButtonRelease-1>',self._on_release)
         #(a menu of the card, with the right button, or Ctrl and a click on
         #macOS, where Tk before 8.7 gives the right button as button 2):
-        if c.tk.call('tk','windowingsystem') == 'aqua':
+        if windowing_system(c) == 'aqua':
             old = tk.TkVersion < 8.7
             buttons = ( '<Button-2>' if old else '<Button-3>', )
         else:
@@ -190,7 +190,7 @@ class CardList:
         mark = '\u25b8' if group in self.tv.folded_groups() else '\u25be'
         self.canvas.create_text(8,y+13,anchor='w',fill=card_colors['dim'],
                                 text=f'{mark}  {( group or "More plots" ).upper()}',
-                                font=( self.tv.bold.cget('family'), self.tv.small, 'bold' ))
+                                font=self.tv.small_bold)
         self._slots.append( ( y, y + _card_heights['header'], 'header', group ) )
 
     def _height( self ):
@@ -229,7 +229,7 @@ class CardList:
             self._rect(4,y,self.width,y+h,12,fill=col['bg'],outline=col['border'],dash=(3,3))
             c.create_text(16,y+h/2,anchor='w',fill=col['dim'],font=self.tv.bold,text=card.name)
             c.create_text(self.width-10,y+h/2,anchor='e',fill=col['accent'],
-                          font=( self.tv.bold.cget('family'), self.tv.small ),text=card.status)
+                          font=self.tv.small_font,text=card.status)
             return
         right = self.width
         if card.overview:
@@ -268,9 +268,9 @@ class CardList:
         top = y0 + len(lines) * ls + 4
         if card.problem:
             c.create_text(x,top+9,anchor='w',fill=colors['error'],
-                          font=( self.tv.bold.cget('family'), self.tv.small ),
+                          font=self.tv.small_font,
                           text=elided(card.problem,self.tv.bold,self.width-x-22))
-        font = ( self.tv.bold.cget('family'), self.tv.small )
+        font = self.tv.small_font
         for b in ( () if card.problem else card.badges ):
             w = 12 + int(c.tk.call('font','measure',font,b))
             self._rect(x,top,x+w,top+18,8,fill=col['card'] if card.overview else col['badge'],
@@ -287,7 +287,7 @@ class CardList:
     def _on_ctrl_click( self, event ):
         """Ctrl+click: the menu of the card on macOS (as a right click), or else
         a click"""
-        if self.canvas.tk.call('tk','windowingsystem') != 'aqua':
+        if windowing_system(self.canvas) != 'aqua':
             return self._on_press(event)
         self._menu_click = True
         self._on_menu(event)

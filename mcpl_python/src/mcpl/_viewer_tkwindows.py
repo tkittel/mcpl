@@ -160,7 +160,7 @@ class CodeWindow:
 
     def _copy( self, text ):
         self.tv.copy_text(text.get('1.0','end-1c'))
-        how = { 'aqua' : 'Cmd+V', 'win32' : 'Ctrl+V' }.get(self.tv._system,
+        how = { 'aqua' : 'Cmd+V', 'win32' : 'Ctrl+V' }.get(self.tv.system,
                                                            'Ctrl+V or the middle mouse button')
         self.tv.show_line(f'Copied (paste with {how})','normal')
 

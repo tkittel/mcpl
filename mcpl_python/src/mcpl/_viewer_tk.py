@@ -27,7 +27,16 @@ _viewer_widgets for what happens when they are used)."""
 __all__ = []
 
 from . import _viewer_ui as ui
-from ._viewer_tkbase import Flow, focus_of, on_paste, tk_modules
+from ._viewer_tkbase import (
+    Flow,
+    GreyText,
+    bind_enter,
+    command_keys,
+    focus_of,
+    on_paste,
+    tk_modules,
+    windowing_system,
+)
 from ._viewer_tkcards import CardList
 from ._viewer_tkwindows import CodeWindow, Examples, WriteWindow
 from ._viewer_ui import card_colors, colors, part_colors
@@ -53,7 +62,7 @@ def _key_name( event ):
         return 'Move' + name
     if name is None and len(event.char) == 1 and event.char.isprintable():
         mods = _shortcut_modifiers
-        if event.widget.tk.call('tk','windowingsystem') == 'aqua':
+        if windowing_system(event.widget) == 'aqua':
             mods |= 0x10
         return None if event.state & mods else event.char
     return name
@@ -74,7 +83,7 @@ class TkViewer(WidgetViewer):
         root.geometry(f'{min( 1400, root.winfo_screenwidth() - 40 )}'
                       f'x{min( 900, root.winfo_screenheight() - 120 )}')
         style = ttk.Style(root)
-        system = self._system = root.tk.call('tk','windowingsystem')
+        system = self.system = windowing_system(root)
         #(text in dark grey on white, also in the dark mode of macOS, where the
         #default text colour is light):
         for option, value in ( ( 'foreground', card_colors['text'] ), ( 'background', 'white' ) ):
@@ -122,12 +131,14 @@ class TkViewer(WidgetViewer):
         #pixels):
         size = int(bold.cget('size'))
         self.small = ( 1 if size > 0 else -1 ) * max( 7, round( 0.8 * abs(size) ) )
+        self.small_font = ( bold.cget('family'), self.small )
+        self.small_bold = ( *self.small_font, 'bold' )
         #(the parts below the plot, see _part):
         for name, bg in part_colors.items():
             style.configure(f'{name}.TFrame',background=bg)
             style.configure(f'{name}.TLabel',background=bg)
             style.configure(f'{name}Head.TLabel',background=bg,foreground=card_colors['accent'],
-                            font=( bold.cget('family'), self.small, 'bold' ))
+                            font=self.small_bold)
         root.columnconfigure(1,weight=1)
         root.rowconfigure(0,weight=1)
         #The logo and the views (on the left):
@@ -209,7 +220,7 @@ class TkViewer(WidgetViewer):
         self.canvas.mpl_connect('key_press_event',self._on_mpl_key)
         self._applies = {}#field -> its Apply button (see show_pending)
         self._placeholders = {}#entry -> text shown in grey while it is empty
-        self._showing = set()#(the entries showing their placeholder)
+        self._grey = GreyText()#(of the entries showing their placeholder)
         self._plot_part(fields,head)
         _tint(part,'Plot')
         #Below the plot: the part of the particles (for all plots), and the
@@ -322,8 +333,7 @@ class TkViewer(WidgetViewer):
         t = ttk.Entry(head,width=32)
         t.pack(side='left')
         self._placeholders[t] = 'the name in the list of plots'
-        t.bind('<Return>',lambda _e : self._on_title_enter(t))
-        t.bind('<KP_Enter>',lambda _e : self._on_title_enter(t))
+        bind_enter(t,lambda : self._on_title_enter(t))
         t.bind('<Escape>',lambda _e : self._on_title_escape())
         t.bind('<FocusIn>',lambda _e : self._on_title_focus(t),'+')
         t.bind('<FocusOut>',lambda _e : self._on_entry_unfocus(t),'+')
@@ -338,18 +348,17 @@ class TkViewer(WidgetViewer):
         simple = ttk.Frame(frame)
         simple.pack(side='left')
         self._simple = simple
-        self._menu = [ f'{name}:  {plot.split(";")[0]}' for name, plot in ui.quantities ]
+        self._menu = dict(ui.quantity_choices)#(the texts of the quantities -> expressions)
         self._axes = []
         for label in ( 'X axis:', 'Y axis:', 'Z axis:' ):
             ttk.Label(simple,text=label,**( _row_label if not self._axes else {} )).pack(
                 side='left',padx=(0 if not self._axes else 10,4))
-            w = ttk.Combobox(simple,width=18,values=self._menu if not self._axes else [ '' ] + self._menu)
+            w = ttk.Combobox(simple,width=18,values=list(self._menu) if not self._axes else [ '', *self._menu ])
             w.pack(side='left')
             w.bind('<<ComboboxSelected>>',lambda _e, w=w : self._on_axis_chosen(w))
             w.bind('<KeyRelease>',lambda e, w=w : self._on_axis_key(w,e))
             on_paste(w,lambda : self.on_axes_edited(*self._axis_texts()))
-            w.bind('<Return>',lambda _e, w=w : self._on_axes_enter(w))
-            w.bind('<KP_Enter>',lambda _e, w=w : self._on_axes_enter(w))
+            bind_enter(w,lambda w=w : self._on_axes_enter(w))
             w.bind('<Escape>',lambda _e : self._on_axis_escape())
             #(Tab completes the expressions, as in the other fields, and Up and
             #Down choose in the list of completions, if shown, else in the list
@@ -410,12 +419,11 @@ class TkViewer(WidgetViewer):
         """A quantity was chosen from the list of an axis: its expression is
         shown, and the plot changed"""
         text = w.get()
-        self._set_text(w,ui.quantities[self._menu.index(text)][1].split(';')[0]
-                       if text in self._menu else text)
+        self._set_text(w,self._menu.get(text,text))
         self._on_axes_enter()
 
     def _on_axis_key( self, w, event ):
-        if event.keysym in ( 'Return', 'KP_Enter', 'Escape', 'Up', 'Down', 'Tab' ):
+        if event.keysym in command_keys:
             return
         self._close_popup()
         self.on_axes_edited(*self._axis_texts())
@@ -464,13 +472,13 @@ class TkViewer(WidgetViewer):
                           *zip(self._axes,axes) ):
             if text is None:
                 w.configure(state='normal')
-                self._showing.discard(w)
+                self._grey.forget(w)
                 w.delete(0,'end')
                 w.configure(state='disabled')
             elif str(w['state']) == 'disabled' or focus_of(self.root) is not w:
                 #(not while it is edited):
                 w.configure(state='normal')
-                if self._text(w) != ( value or '' ) or ( not value and w not in self._showing ):
+                if self._text(w) != ( value or '' ) or ( not value and not self._grey.showing(w) ):
                     self._set_text(w,value or '')
                 if w is self._entries['shown_plot']:
                     self.show_pending('shown_plot',False)
@@ -600,8 +608,7 @@ class TkViewer(WidgetViewer):
             self._advanced.set(True)
             self._show_advanced()
         if field == 'collection':
-            self.show_line('The groups of plots are in the list of plots: the inactive ones at'
-                           ' the end are activated with a click','normal')
+            self.show_line(ui.groups_hint,'normal')
             return
         w = self._entries[field]
         w.focus_set()
@@ -699,19 +706,14 @@ class TkViewer(WidgetViewer):
         return 'break'
 
     def _on_title_focus( self, w ):
-        if w in self._showing:
+        if self._grey.showing(w):
             self._set_text(w,'')
         self.show_line('Enter: set the title (an empty title shows the expressions)'
                        '   Esc: cancel','dim')
 
-    def _hover_text( self, name ):
-        if name == 'write' and not self.v.changes_particles:
-            return self.v.nothing_to_write
-        return ui.shortcut_text(name)
-
     def _hover( self, widget, name ):
         """Show the shortcut of the field or action under the mouse"""
-        widget.bind('<Enter>',lambda _e : self._statusbar.configure(text=self._hover_text(name)),'+')
+        widget.bind('<Enter>',lambda _e : self._statusbar.configure(text=self.hover_text(name)),'+')
         widget.bind('<Leave>',lambda _e : self._statusbar.configure(text=''),'+')
 
     def _on_root_key( self, event ):
@@ -780,8 +782,7 @@ class TkViewer(WidgetViewer):
     def _bind_entry( self, w, field ):
         w.bind('<KeyRelease>',lambda e : self._on_entry_key(w,field,e))
         on_paste(w,lambda : self.on_field_edited(field,self._text(w)))
-        w.bind('<Return>',lambda _e : self._on_entry_enter(w,field))
-        w.bind('<KP_Enter>',lambda _e : self._on_entry_enter(w,field))
+        bind_enter(w,lambda : self._on_entry_enter(w,field))
         w.bind('<Escape>',lambda _e : self._on_entry_escape(field))
         w.bind('<Up>',lambda _e : self._on_entry_updown(w,field,-1))
         w.bind('<Down>',lambda _e : self._on_entry_updown(w,field,1))
@@ -791,23 +792,18 @@ class TkViewer(WidgetViewer):
 
     def _text( self, w ):
         """The text of the entry (empty while it shows its placeholder)"""
-        return '' if w in self._showing else w.get()
+        return self._grey.text(w)
 
     def _set_text( self, w, text ):
         """Set the text of the entry (or show its placeholder if it is empty and
         not edited)"""
-        w.delete(0,'end')
-        self._showing.discard(w)
-        w.configure(foreground=colors['normal'])
         if not text and w in self._placeholders and focus_of(self.root) is not w:
-            w.insert(0,self._placeholders[w])
-            w.configure(foreground=colors['dim'])
-            self._showing.add(w)
+            self._grey.show(w,self._placeholders[w])
         else:
-            w.insert(0,text)
+            self._grey.set(w,text)
 
     def _on_entry_focus( self, w, field ):
-        if w in self._showing:
+        if self._grey.showing(w):
             self._set_text(w,'')
         self.on_field_edited(field,self._text(w))
 
@@ -829,7 +825,7 @@ class TkViewer(WidgetViewer):
         self.root.after_idle(check)
 
     def _on_entry_key( self, w, field, event ):
-        if event.keysym in ( 'Return', 'KP_Enter', 'Escape', 'Up', 'Down', 'Tab' ):
+        if event.keysym in command_keys:
             return
         self._close_popup()
         self.on_field_edited(field,self._text(w))
@@ -893,7 +889,7 @@ class TkViewer(WidgetViewer):
         tk, _ttk = tk_modules()
         top = tk.Toplevel(self.root)
         top.overrideredirect(True)
-        if self._system == 'aqua':
+        if self.system == 'aqua':
             #(else it takes the focus from the field on macOS, which closes it):
             try:
                 top.tk.call('::tk::unsupported::MacWindowStyle','style',top._w,'help',
@@ -986,7 +982,7 @@ class _Controls:
         self._on_change = on_change
         self._on_hint = on_hint
         self._kind = None
-        self._widgets, self._used, self._greyed = {}, {}, set()
+        self._widgets, self._used, self._grey = {}, {}, GreyText()
 
     def show( self, controls ):
         _, ttk = tk_modules()
@@ -996,7 +992,7 @@ class _Controls:
                 w.destroy()
             self._kind, self._widgets = kind, {}
             self._used = {}#entry -> its greyed text (what is used)
-            self._greyed = set()#(the entries showing it)
+            self._grey = GreyText()#(of the entries showing it)
             items = []
             for name, label, choices, _, _ in ( controls[1] if controls else () ):
                 item = ttk.Frame(self.frame,**self._frames)
@@ -1040,20 +1036,14 @@ class _Controls:
         """Show the text of what is used greyed in the empty entry w (or remove
         it, if used is None)"""
         if used is None:
-            if w in self._greyed:
-                w.delete(0,'end')
-                w.configure(foreground=colors['normal'])
-                self._greyed.discard(w)
-            return
-        if not w.get():
+            self._grey.remove(w)
+        elif not w.get():
             self._used[w] = used
-            w.insert(0,used)
-            w.configure(foreground=colors['dim'])
-            self._greyed.add(w)
+            self._grey.show(w,used)
 
     def _text( self, w ):
         """The text of the entry w (empty while it shows a greyed text)"""
-        return '' if w in self._greyed else w.get()
+        return self._grey.text(w)
 
     def _chosen( self, name, w ):
         choice, hint = self.written.get(name,( None, None ))

@@ -188,6 +188,14 @@ quantities = tuple( ( title or _field_titles[p.split(';')[0]], p ) for title, p 
     ( 'Angle to z axis', 'angle(dir,(0,0,1))/deg' ), ( 'Distance to z axis', 'hypot(x,y)' ),
     ( None, 'weight' ), ( None, 'pdgcode;bar' ), ( None, 'userflags;bar' ) ) )
 
+#(the choices of quantities in menus, as (text, expression)):
+quantity_choices = tuple( ( f'{name}:  {p.split(";")[0]}', p.split(';')[0] )
+                          for name, p in quantities )
+
+#(where the groups of plots are chosen, in the viewers with windows):
+groups_hint = ( 'The groups of plots are in the list of plots: the inactive ones at the end'
+                ' are activated with a click' )
+
 #The titles of the examples of expressions (see _exprhelp.examples), and the
 #topics of the examples of the fields:
 example_titles = { 'pick' : 'Examples of picks', 'edit' : 'Examples of edits',

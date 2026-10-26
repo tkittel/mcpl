@@ -23,6 +23,9 @@
 
 __all__ = []
 
+from ._viewer_ui import colors
+
+
 def tk_modules():
     """The modules of tkinter (imported when used, since Python can come
     without them)"""
@@ -69,6 +72,55 @@ def on_paste( widget, fct ):
     the menus: on macOS, Cmd+V gives no key release event)"""
     for event in ( '<<Paste>>', '<<Cut>>' ):
         widget.bind(event,lambda _e : widget.after_idle(fct),'+')
+
+#The keys of entries which do something else than editing the text (so the
+#text is not checked again after them):
+command_keys = ( 'Return', 'KP_Enter', 'Escape', 'Up', 'Down', 'Tab' )
+
+def windowing_system( widget ):
+    """The windowing system of Tk (x11, win32 or aqua for macOS)"""
+    return widget.tk.call('tk','windowingsystem')
+
+def bind_enter( widget, fct ):
+    """Call fct() when Enter (also that of the keypad) is pressed in the widget"""
+    for key in ( '<Return>', '<KP_Enter>' ):
+        widget.bind(key,lambda _e : fct())
+
+class GreyText:
+    """Grey texts shown in empty entries (e.g. placeholders, or what is used
+    when nothing is given), which are not the texts of the entries"""
+    def __init__( self ):
+        self._showing = set()#(the entries showing a grey text)
+
+    def showing( self, w ):
+        return w in self._showing
+
+    def text( self, w ):
+        """The text of the entry w (empty while it shows a grey text)"""
+        return '' if w in self._showing else w.get()
+
+    def set( self, w, text ):
+        """Set the (normal) text of the entry w"""
+        w.delete(0,'end')
+        self._showing.discard(w)
+        w.configure(foreground=colors['normal'])
+        w.insert(0,text)
+
+    def show( self, w, grey ):
+        """Show the grey text in the entry w"""
+        w.delete(0,'end')
+        w.insert(0,grey)
+        w.configure(foreground=colors['dim'])
+        self._showing.add(w)
+
+    def remove( self, w ):
+        """Remove the grey text of the entry w, if it shows one"""
+        if w in self._showing:
+            self.set(w,'')
+
+    def forget( self, w ):
+        """The entry w no longer shows a grey text (e.g. it was emptied)"""
+        self._showing.discard(w)
 
 class Flow:
     """Lays out widgets of a frame (the items, in their order) in rows as wide

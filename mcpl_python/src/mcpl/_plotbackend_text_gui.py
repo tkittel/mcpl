@@ -205,8 +205,7 @@ def _viewer_in_window( viewer ):
     _in_window(f'from {__package__}._viewer import Viewer;'
                f' from {__package__}._plotbackend import _create, _viewer_backend;'
                ' _create(_viewer_backend("matplotlib",False)).run_viewer(Viewer(**x))',
-               { 'filename' : viewer.filename, 'view' : viewer.state(),
-                 'dry_run' : viewer._dry_run, 'progname' : viewer._progname })
+               viewer.arguments())
 
 class TextViewer(ui.KeyViewer):
     """The viewer in a terminal (on a screen, see _CursesScreen)"""

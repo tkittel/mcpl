@@ -29,10 +29,16 @@ can be reordered, given titles and removed."""
 
 __all__ = []
 
-from ._stdviews import _default_preset, _groups, _plot_item, _presets
+from ._stdviews import (
+    _default_preset,
+    _groups,
+    _plot_item,
+    _presets,
+    custom_key,
+    custom_title,
+)
 from ._viewer_overviews import Overview
 
-custom_key, custom_title = 'custom', 'Custom'
 
 class PlotGroups:
     """The groups of plots: the keys of the standard groups shown (in the order
@@ -76,8 +82,9 @@ class PlotGroups:
         if ov.correlation_plot:
             #(the 2D histograms are titled by their expressions, without the
             #options, and the others get the titles of their fields):
-            from ._histstring import _hist_parts
-            return [ ( p, _hist_parts(p)[0] if ' : ' in p else None ) for p in ov.plots ]
+            from ._histstring import _hist_exprs, _hist_parts
+            return [ ( p, _hist_parts(p)[0] if len(_hist_exprs(p)) == 2 else None )
+                     for p in ov.plots ]
         titles = [ _plot_item(i)[1] for i in ( *items, *self._extra.get(key,()) ) ]
         return list(zip(ov.cells,titles))
 

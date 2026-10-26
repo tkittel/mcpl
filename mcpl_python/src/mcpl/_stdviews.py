@@ -92,6 +92,9 @@ _field_titles = { 'ekin' : 'Energy', 'x' : 'Position x', 'y' : 'Position y',
                   'pdgcode' : 'Particle type', 'userflags' : 'User flags',
                   'wavelength' : 'Wavelength', 'fileidx' : 'Position in the file' }
 
+#The key and title of the group of the plots added by users:
+custom_key, custom_title = 'custom', 'Custom'
+
 #The standard groups, as key -> (title, description, plot items, options),
 #with the option variables (the expressions which a correlation plot can have, see
 #_viewer_groups; the plots are shown in the first group which has them, so

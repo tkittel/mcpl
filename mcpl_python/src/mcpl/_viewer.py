@@ -35,13 +35,13 @@ import re
 import threading
 
 from ._common import MCPLError
-from ._stdviews import _field_titles, _groups, _plot_item, _presets
-from ._viewer_groups import PlotGroups, custom_key, group_names, title_of
+from ._histstring import _display_by_choice
+from ._stdviews import _field_titles, _groups, _plot_item, _presets, custom_key
+from ._viewer_groups import PlotGroups, group_names, title_of
 from ._viewer_overviews import overview_figure
 from ._viewer_reading import _make_filler, _Reading
-from ._viewer_ui import count_text, number_text, plot_of
+from ._viewer_ui import count_text, field_names, number_text, plot_of
 
-_fields = ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot' )
 
 class _Settings:
     """What is shown: a range of particles in the file, picked and edited, and
@@ -81,7 +81,7 @@ class Viewer(_Reading):
         self._progname = progname
         self._texts = { 'skip' : '', 'limit' : '', 'pick' : '', 'edit' : '',
                         'plot' : '' }
-        self._history = { f : [] for f in _fields }
+        self._history = { f : [] for f in field_names }
         self._s = _Settings()
         #(the plots, in groups, with those of the fields of the userdata in the
         #group of the fields, see _viewer_groups):
@@ -498,12 +498,24 @@ class Viewer(_Reading):
             self._updates += 1#(the figures are the same)
         return True, ''
 
-    def _title_of( self, key ):
+    def _card_of( self, key ):
         """The title of the plot of the view with the key (given, not from its
-        expression), or None"""
+        expression, or None) and the key of its group (or None)"""
         custom, plot = key.startswith('custom:'), plot_of(key)
-        return next( ( t for p, t, g in self._groups.cards()
-                       if p == plot and ( g == custom_key ) == custom ), None )
+        return next( ( ( t, g ) for p, t, g in self._groups.cards()
+                       if p == plot and ( g == custom_key ) == custom ), ( None, None ) )
+
+    def _title_of( self, key ):
+        """The title of the plot of the view with the key (see _card_of)"""
+        return self._card_of(key)[0]
+
+    def _constant_of( self, plot, constants ):
+        """The value of the field of the plot (a histogram string) if all
+        particles have the same value (as a text, see the constants of what
+        the reading found, and 0 for the fields which the file does not have),
+        else None"""
+        field = _plot_field(plot)
+        return '0' if field in self._absent else constants.get(field) if field else None
 
     def show_group( self, key, shown = True ):
         """Show (or hide) the standard group with the key: whether it changed"""
@@ -543,9 +555,8 @@ class Viewer(_Reading):
                                   ( len(ov.plots) if ov else 0, ) ],
                      'constant' : None, 'absent' : False }
         p = plot_of(key)
-        custom = key.startswith('custom:')
-        title, group = next( ( ( t, title_of(g) ) for q, t, g in self._groups.cards()
-                               if q == p and ( g == custom_key ) == custom ), ( None, None ) )
+        title, group = self._card_of(key)
+        group = group and title_of(group)
         o = _parsed_plot(p)#(cached, for the cards, which are shown often)
         with self._lock:
             figure = self._figures.get(f'plot:{p}')
@@ -566,19 +577,18 @@ class Viewer(_Reading):
             badges.append( 'log' if logx and logy else 'log x' if logx else 'log y' )
         if o['lethargy']:
             badges.append('lethargy')
-        #(curves by particle type by default, so only other values are noted):
-        if o['display_by'] not in ( None, 'pdgcode', 'single', '1' ):
+        #(curves by particle type by default, so only other expressions are
+        #noted):
+        if _display_by_choice(o) not in ( None, 'single' ):
             badges.append(f'by {o["display_by"]}')
         if o['unweighted']:
             badges.append('counts')
         if o['range'] or o['xrange'] or o['yrange']:
             badges.append('range')
-        field = _plot_field(p)
         return { 'title' : title, 'name' : title or _auto_title(p) or ' : '.join(o['exprs']), 'plot' : p,
                  'group' : group, 'badges' : badges,
-                 'constant' : ( '0' if field in self._absent else
-                                constants.get(field) if field else None ),
-                 'absent' : field in self._absent }
+                 'constant' : self._constant_of(p,constants),
+                 'absent' : _plot_field(p) in self._absent }
 
     def _same_plot( self, text, plots = None ):
         """The plot (of plots, default all) giving the same histogram as the
@@ -674,9 +684,9 @@ class Viewer(_Reading):
                 if f'overview:{g}' in overviews:
                     res.append( ( f'overview:{g}', f'overview: {title_of(g)}' ) )
             #(plots of a field where all particles have the same value are marked):
-            field = _plot_field(p)
+            c = self._constant_of(p,constants)
             res.append( ( f'{"custom" if g == custom_key else "plot"}:{p}',
-                          f'{p} (all {constants[field]})' if field in constants else p ) )
+                          p if c is None else f'{p} (all {c})' ) )
         return res
 
     def overviews( self ):
@@ -951,6 +961,12 @@ class Viewer(_Reading):
         """Whether the particles of the file have userdata"""
         return bool(self._ud_fields)
 
+    def arguments( self ):
+        """The arguments of Viewer making a viewer of the same file in the same
+        state (also in another process, as they are simple values)"""
+        return { 'filename' : self.filename, 'view' : self.state(),
+                 'dry_run' : self._dry_run, 'progname' : self._progname }
+
     def for_file( self, filename, particles = True ):
         """A viewer of another file, in the same state, but without skip and
         limit (which are of this file), and without the pick and edit unless
@@ -958,8 +974,9 @@ class Viewer(_Reading):
         with the message saying what could not be kept (e.g. a pick with fields
         of the userdata which the other file does not have), or empty"""
         drop = ( 'skip', 'limit' ) + ( () if particles else ( 'pick', 'edit' ) )
-        state = { k : v for k, v in self.state().items() if k not in drop }
-        kw = { 'dry_run' : self._dry_run, 'progname' : self._progname }
+        kw = self.arguments()
+        state = { k : v for k, v in kw.pop('view').items() if k not in drop }
+        del kw['filename']
         try:
             return Viewer(filename,view=state,**kw), ''
         except MCPLError as e:
@@ -1025,11 +1042,11 @@ def _doubtful_title( title, old, new ):
     title of their own get the new title from their expression (see
     _auto_title)."""
     from ._expressions import _expr_canonical
-    from ._histstring import _hist_parts
+    from ._histstring import _hist_exprs
     if title is None or title.endswith('(??)'):
         return title
     def exprs( text ):
-        return [ _expr_canonical(e) for e in _hist_parts(text)[0].split(':') ]
+        return [ _expr_canonical(e) for e in _hist_exprs(text) ]
     #(the same field in other units, e.g. ekin/MeV for ekin, is the same):
     same_field = _auto_title(old) is not None and _auto_title(old) == _auto_title(new)
     return title if exprs(old) == exprs(new) or same_field else title + ' (??)'
@@ -1123,8 +1140,8 @@ def _auto_title( plot ):
     from ._common import MCPLError
     from ._exprcore import _Expr
     from ._exprsyntax import _Unit
-    from ._histstring import _hist_parts
-    exprs = _hist_parts(plot)[0].split(':')
+    from ._histstring import _hist_exprs
+    exprs = _hist_exprs(plot)
     if len(exprs) != 1:
         return None
     try:
@@ -1146,12 +1163,12 @@ def _parsed_plot( text ):
     return _parse_hist(text)
 
 @functools.lru_cache(maxsize = 4096)
+@functools.lru_cache(maxsize = 4096)
 def _plot_field( text ):
     """The field if the plot (a histogram string) is of exactly one field
     (e.g. "z" or "weight;unweighted"), else None"""
     from ._exprcore import _Expr
-    from ._histstring import _parse_hist
-    exprs = _parse_hist(text)['exprs']
+    exprs = _parsed_plot(text)['exprs']
     return _Expr(exprs[0]).field if len(exprs) == 1 else None
 
 def _estimate( x ):

@@ -26,6 +26,7 @@ status line, the help text, and what is printed when the viewer is closed."""
 __all__ = []
 
 from ._helptext import plain_text
+from ._stdviews import _field_titles
 
 #The fields, in the order they are shown: (field of the Viewer, label, key,
 #position of the key in the label, text shown when the field is empty):
@@ -35,6 +36,7 @@ fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
            ( 'pick', 'Pick', 'p', 0, 'all particles' ),
            ( 'edit', 'Edit', 'e', 0, 'no changes' ),
            ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy' ) )
+field_names = tuple( f[0] for f in fields )
 
 #What the fields are, for the hover texts:
 field_descriptions = {
@@ -166,24 +168,36 @@ plot_controls = {
              ( 'points', 'Points', None ), _only ),
 }
 
+def quantity_plot( text ):
+    """The start of a plot string for a quantity of quantities, given as its
+    name or its expression (e.g. Energy or ekin for ekin;logx=auto), or the
+    text itself for other expressions"""
+    t = text.strip()
+    return next( ( p for name, p in quantities if t in ( name, p.split(';')[0] ) ), t )
+
 #(the options which are on unless given as 0, like the logarithmic colour
 #scale of 2D histograms):
 on_by_default = ( 'logz', )
 
 #The quantities offered when adding a plot in the viewers with windows (as the
 #start of a histogram string), besides any expression:
-quantities = ( ( 'Energy', 'ekin;logx=auto' ), ( 'Wavelength', 'wavelength;logx=auto' ),
-               ( 'Time', 'time;logx=auto' ), ( 'Position x', 'x' ), ( 'Position y', 'y' ),
-               ( 'Position z', 'z' ), ( 'Direction x', 'ux' ), ( 'Direction y', 'uy' ),
-               ( 'Direction z', 'uz' ), ( 'Angle to z axis', 'angle(dir,(0,0,1))/deg' ),
-               ( 'Distance to z axis', 'hypot(x,y)' ), ( 'Weight', 'weight' ),
-               ( 'Particle type', 'pdgcode;bar' ), ( 'User flags', 'userflags;bar' ) )
+#(the titles of fields, as in the cards, see _stdviews._field_titles):
+quantities = tuple( ( title or _field_titles[p.split(';')[0]], p ) for title, p in (
+    ( None, 'ekin;logx=auto' ), ( None, 'wavelength;logx=auto' ), ( None, 'time;logx=auto' ),
+    ( None, 'x' ), ( None, 'y' ), ( None, 'z' ), ( None, 'ux' ), ( None, 'uy' ), ( None, 'uz' ),
+    ( 'Angle to z axis', 'angle(dir,(0,0,1))/deg' ), ( 'Distance to z axis', 'hypot(x,y)' ),
+    ( None, 'weight' ), ( None, 'pdgcode;bar' ), ( None, 'userflags;bar' ) ) )
 
 #The titles of the examples of expressions (see _exprhelp.examples), and the
 #topics of the examples of the fields:
 example_titles = { 'pick' : 'Examples of picks', 'edit' : 'Examples of edits',
                     'hist' : 'Examples of plot expressions' }
 example_topics = { 'pick' : 'pick', 'edit' : 'edit', 'shown_plot' : 'hist' }
+
+def group_of( key ):
+    """The key of the group of the view with the key if it is an overview
+    (overview:GROUP), else None"""
+    return key[9:] if key is not None and key.startswith('overview:') else None
 
 def plot_of( key ):
     """The plot (histogram string) of the view with the key: plot:PLOT for the
@@ -323,7 +337,7 @@ def popup_rows( editor, maxrows ):
 def editor_for( viewer, action ):
     """The LineEditor for an action (a field, 'write', 'state', or 'change' of
     the shown plot), or None if there is nothing to edit"""
-    if action in ( 'skip', 'limit', 'pick', 'edit', 'collection', 'plot' ):
+    if action in field_names:
         return LineEditor(viewer,action)
     if action == 'write':
         return LineEditor(viewer,'write',viewer.suggested_filename())

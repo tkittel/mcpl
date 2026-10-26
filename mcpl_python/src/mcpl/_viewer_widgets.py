@@ -28,6 +28,7 @@ __all__ = []
 
 from . import _viewer_ui as ui
 from ._common import MCPLError
+from ._stdviews import _groups, custom_key, custom_title
 
 
 def _axes_problem( axes ):
@@ -118,9 +119,8 @@ class WidgetViewer:
 
     def __init__( self, viewer, fig ):
         from ._plotbackend_mpl import FigurePane
-        self.v, self.fig = viewer, fig
-        viewer.multi_overview = True#(the overview with all its plots)
-        viewer.new_plot_cell = True#(see on_click)
+        self.fig = fig
+        self._attach(viewer)
         #(with smaller fonts in small windows, e.g. on laptops):
         self.pane = FigurePane(fig,( 0.08, 0.98, 0.11, 0.93 ),title_space=0.05,
                                title_y=0.98,scale_fonts=True)
@@ -408,8 +408,7 @@ class WidgetViewer:
         numbers of bins ("40", or "40,30" for 2D histograms) or of the points
         of 3D plots, as a text, or an empty text (also while it is not
         drawn)"""
-        fig = self.v.figure(key = f'plot:{plot}')#(the same for custom plots)
-        items = fig.panels[0].items if fig is not None and len(fig.panels) == 1 else ()
+        items = self._plot_items(f'plot:{plot}')#(the same for custom plots)
         if name == 'points':
             n = sum( len(item.x) for item in items if hasattr(item,'z') )
             return str(n) if n else ''
@@ -519,8 +518,7 @@ class WidgetViewer:
 
     def _shown_group( self ):
         """The key of the group whose overview is shown, if any"""
-        key = None if self._new_plot is not None else self.v.current_key
-        return key[9:] if ( key or '' ).startswith('overview:') else None
+        return ui.group_of(self._selected_key())
 
     def on_control( self, name, shown ):
         """A setting of the shown plot was changed (to the shown text)"""
@@ -538,16 +536,10 @@ class WidgetViewer:
         empty unless it is a 3D plot) and the settings, as (option, shown text)
         of the controls. The expressions of the quantities come with their
         options (as their names)."""
-        from ._histstring import _hist_parts
-        q = dict(ui.quantities)
-        for _, p in reversed(ui.quantities):
-            q[p.split(';')[0]] = p
-        def parts( t ):
-            return _hist_parts(q.get(t.strip(),t.strip()))
-        ( ex, ox ), ( ey, _ ), ( ez, _ ) = parts(x), parts(y), parts(z)
+        from ._histstring import _hist_join, _hist_parts
+        ( ex, ox ), ( ey, _ ), ( ez, _ ) = ( _hist_parts(ui.quantity_plot(t)) for t in ( x, y, z ) )
         #(the options of a quantity are kept only for 1D histograms):
-        plot = ( ' : '.join( e for e in ( ex, ey, ez ) if e ) if ey else
-                 ';'.join( [ ex ] + [ n if v is None else f'{n}={v}' for n, v in ox ] ) )
+        plot = ' : '.join( e for e in ( ex, ey, ez ) if e ) if ey else _hist_join(ex,ox)
         for name, shown in settings:
             plot = self._option(plot,name,shown)
         return plot
@@ -574,11 +566,11 @@ class WidgetViewer:
     def axis_texts( self ):
         """The expressions of the x, y and z axes of the shown plot (y empty for
         1D histograms, z unless it is a 3D plot), as texts"""
-        from ._histstring import _hist_parts
+        from ._histstring import _hist_exprs
         plot = self._shown_plot()
         if plot is None:
             return '', '', ''
-        exprs = [ e.strip() for e in _hist_parts(plot)[0].split(':') ]
+        exprs = _hist_exprs(plot)
         return tuple( exprs + [ '' ] * ( 3 - len(exprs) ) )
 
     def on_new_plot( self ):
@@ -596,7 +588,7 @@ class WidgetViewer:
         empty for 1D histograms, z unless it is a 3D plot, see _axes_problem).
         The options of the plot are kept if they can be used for the new axes.
         Returns whether the plot was changed (or added)."""
-        from ._histstring import _hist_parts
+        from ._histstring import _hist_join, _hist_parts
         x, y, z = ( a.strip() for a in ( x, y, z ) )
         if not x:
             self.show_line('Choose or type what to plot on the X axis','error')
@@ -612,10 +604,8 @@ class WidgetViewer:
         plot = self._shown_plot()
         if plot is None:
             return False
-        q = dict(ui.quantities)
-        exprs = ' : '.join( _hist_parts(q.get(e,e))[0] for e in ( x, y, z ) if e )
-        opts = [ n if v is None else f'{n}={v}' for n, v in _hist_parts(plot)[1] ]
-        new = ';'.join( [ exprs ] + opts )
+        exprs = ' : '.join( _hist_parts(ui.quantity_plot(e))[0] for e in ( x, y, z ) if e )
+        new = _hist_join(exprs,_hist_parts(plot)[1])
         if not self.v.check('plot',new)[0] and self.v.check('plot',exprs)[0]:
             new = exprs#(options which can not be used for the new axes, e.g. logx in 2D)
         done, msg, replot = ui.apply_text(self.v,'plot',new,replaces = self._shown_key())
@@ -667,14 +657,13 @@ class WidgetViewer:
                 #(the overview of a group, see Viewer.overviews, named after the
                 #group, which is shown also when the group is folded, and
                 #deactivates the group):
-                custom = key == 'overview:custom'
+                custom = ui.group_of(key) == custom_key
                 res.append(Card(key,info['group'],group=info['group'],grouped=True,
                                 badges=[ f'overview \u00b7 {b}' for b in info['badges'] ],
                                 image=True,pinned=True,overview=True,
                                 removable=not custom,remove_text='Deactivate this group'))
                 continue
-            fig = self.v.figure(key = key)
-            items = fig.panels[0].items if fig is not None and len(fig.panels) == 1 else []
+            items = self._plot_items(key)
             problem = items[0].text if len(items) == 1 and isinstance(items[0],Text) else None
             status = ( 'not in this file' if info['absent'] else
                        f'all {info["constant"]}' if info['constant'] is not None else None )
@@ -686,12 +675,13 @@ class WidgetViewer:
                             draggable=custom,removable=custom))
         if ( 'fields' in self.v.groups and not self.v.has_userdata
              and 'info:userdata' not in self._removed ):
-            i = 1 + max( ( i for i, c in enumerate(res) if c.group == 'Fields' ),
+            fields = _groups['fields'][0]
+            i = 1 + max( ( i for i, c in enumerate(res) if c.group == fields ),
                          default = len(res) - 1 )
-            res.insert(i,Card('info:userdata','Userdata',group='Fields',grouped=True,
+            res.insert(i,Card('info:userdata','Userdata',group=fields,grouped=True,
                               status='not in this file',selectable=False,removable=True))
         if self._new_plot is not None:
-            res.append(Card('info:new',self._new_plot or 'New plot',group='Custom',grouped=True,
+            res.append(Card('info:new',self._new_plot or 'New plot',group=custom_title,grouped=True,
                             badges=( 'choose what to plot', ),selectable=False,removable=True))
         #(the inactive standard groups, at the end, which are activated by a
         #click, see on_select_key):
@@ -850,6 +840,14 @@ class WidgetViewer:
         else:
             self.focus_field(action)
 
+    def _attach( self, viewer ):
+        """Show the viewer (core), with the overviews of all groups (with all
+        their plots), and the custom one with the place of a new plot (see
+        on_click)"""
+        self.v = viewer
+        viewer.multi_overview = True
+        viewer.new_plot_cell = True
+
     def on_open_file( self, filename, particles = True ):
         """Show another file (with the same plots, and the same pick and edit
         if particles is set, see Viewer.for_file). Returns whether it was
@@ -860,9 +858,7 @@ class WidgetViewer:
             self.show_line(f'Not opened: {e}','error')
             return False
         self.v.stop()
-        self.v = new
-        new.multi_overview = True
-        new.new_plot_cell = True
+        self._attach(new)
         self._thumbnails = {}
         self._plot_pending = False
         self.pane.clear()
@@ -878,12 +874,12 @@ class WidgetViewer:
             self._new_plot = None#(given up, see on_new_plot)
             self.refresh()
             return
-        if key.startswith('overview:'):
+        if ui.group_of(key) is not None:
             #(the overview of a group hides the group):
-            if key == 'overview:custom':
+            if ui.group_of(key) == custom_key:
                 self.show_line('The custom plots are removed one by one','error')
                 return
-            self.on_show_group(key[9:],False)
+            self.on_show_group(ui.group_of(key),False)
             return
         if key.startswith('info:'):
             self._removed.add(key)#(a card which is not a view, see cards)
@@ -932,8 +928,18 @@ class WidgetViewer:
     def _shown_key( self ):
         """The key of the shown view, if it is a plot (else None, also while a
         new plot is made)"""
-        key = None if self._new_plot is not None else self.v.current_key
+        key = self._selected_key()
         return key if ui.plot_of(key) is not None else None
+
+    def _selected_key( self ):
+        """The key of the shown view (None while a new plot is made)"""
+        return None if self._new_plot is not None else self.v.current_key
+
+    def _plot_items( self, key ):
+        """The items of the plot of the view with the key (none while it is
+        not drawn)"""
+        fig = self.v.figure(key = key)
+        return fig.panels[0].items if fig is not None and len(fig.panels) == 1 else []
 
     def refresh( self, plot = True ):
         """Show the views, the status and (if plot is set) the plot"""

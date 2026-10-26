@@ -85,8 +85,8 @@ def _parse_hist( text ):
     defaults for those not given)."""
     from ._exprcore import _check_chars
     _check_chars(text,'histogram')
-    first, opts = _hist_parts(text)
-    exprs = [ e.strip() for e in first.split(':') ]
+    exprs = _hist_exprs(text)
+    opts = _hist_parts(text)[1]
     if len(exprs) > 3 or not all(exprs):
         raise MCPLError(f'Histograms are of an expression, or two expressions'
                         f' separated by ":" for 2D histograms (or three for 3D plots),'
@@ -153,6 +153,13 @@ def _display_by( o ):
     if value is not None:
         return value
     return 'pdgcode' if len(o['exprs']) != 2 and o['bar'] is False else None
+
+def _display_by_choice( o ):
+    """What display_by of a histogram with the options o (see _parse_hist)
+    chooses instead of the default: the expression, 'single' (for one curve
+    where the default has several), or None for the default"""
+    by, default = _display_by(o), _display_by(dict(o,display_by = None))
+    return None if by == default else by or 'single'
 
 def _display_only_condition( value, text = None ):
     """The condition of the option display_only (a single condition, as in
@@ -263,8 +270,7 @@ def _hist_key( text ):
     #(display_by and display_only as they are used: display_by only if it is
     #not the default, as single if that is not, and display_only as a
     #condition, also for a particle type):
-    by, default_by = _display_by(o), _display_by(dict(o,display_by = None))
-    resolved = { 'display_by' : None if by == default_by else by or 'single',
+    resolved = { 'display_by' : _display_by_choice(o),
                  'display_only' : None if o['display_only'] is None
                  else _display_only_condition(o['display_only']) }
     for name in _hist_options:
@@ -301,23 +307,32 @@ def _hist_parts( text ):
             opts.append( ( name, value if eq else None ) )
     return parts[0], opts
 
+def _hist_exprs( text ):
+    """The expressions of a histogram string (one, two or three, as written)"""
+    return [ e.strip() for e in _hist_parts(text)[0].split(':') ]
+
+def _hist_join( exprs, opts ):
+    """The histogram string of the expressions (the first part, as in
+    "x : y") and options (as from _hist_parts)"""
+    return ';'.join( [ exprs ] + [ n if v is None else f'{n}={v}' for n, v in opts ] )
+
 def _hist_set_option( text, name, value ):
     """The histogram string with the option set to the value (a text, True
     for the option without a value, or None to remove it), in its place if
     it was given, else at the end, with the rest as written"""
     exprs, opts = _hist_parts(text)
-    new = None if value is None else name if value is True else f'{name}={value}'
-    out, done = [ exprs ], False
+    new = None if value is None else ( name, None if value is True else value )
+    out, done = [], False
     for n, v in opts:
         if n == name:
             if new is not None and not done:
                 out.append(new)
             done = True
         else:
-            out.append(n if v is None else f'{n}={v}')
+            out.append( ( n, v ) )
     if not done and new is not None:
         out.append(new)
-    return ';'.join(out)
+    return _hist_join(exprs,out)
 
 def _hist_with_args( expression, given ):
     """The options (as from _parse_hist) of a histogram of the expression,

@@ -214,8 +214,8 @@ def overview_figure( figures, overview, coefficients = None ):
             panels.append(None)
             continue
         if kind == 'r':
-            from ._histstring import _hist_parts
-            a, b = ( e.strip() for e in _hist_parts(p)[0].split(':') )
+            from ._histstring import _hist_exprs
+            a, b = _hist_exprs(p)
             r = coefficients or {}
             panels.append(Panel( items = [ Correlation(r.get(( a, b ),r.get(( b, a )))) ] ))
             continue

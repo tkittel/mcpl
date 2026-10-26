@@ -216,7 +216,7 @@ class JupyterViewer:
     def _on_field( self, field, change ):
         if self._syncing:
             return
-        ok, msg = self.v.set(field,change['new'])
+        ok, msg, _ = ui.apply_text(self.v,field,change['new'])
         self._show_result(ok,msg)
         if ok and field == 'plot':
             self._set_quietly(self._fields['plot'],'')
@@ -226,7 +226,7 @@ class JupyterViewer:
         key = self.v.current_key
         if self._syncing or ui.plot_of(key) is None:
             return
-        self._show_result(*self.v.change_plot(key,change['new']))
+        self._show_result(*ui.apply_text(self.v,'plot',change['new'],replaces = key)[:2])
 
     def _show_result( self, ok, msg ):
         self._message.value = '' if ok else _error_html(msg)
@@ -304,8 +304,9 @@ class JupyterViewer:
 
     @_exclusive
     def _on_help( self, _ ):
-        self._extra.value = ( '' if self._extra.value.startswith('<pre>The viewer')
-                              else f'<pre>{html.escape(ui.help_text)}</pre>' )
+        #(the button shows the help, or hides it again):
+        shown = f'<pre>{html.escape(ui.help_text)}</pre>'
+        self._extra.value = '' if self._extra.value == shown else shown
 
     @_exclusive
     def _on_names( self, _ ):

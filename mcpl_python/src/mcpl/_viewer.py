@@ -706,8 +706,9 @@ class Viewer(_Output,_Reading):
                     res.append( ( f'overview:{g}', f'overview: {title_of(g)}' ) )
             #(plots of a field where all particles have the same value are marked):
             c = self._constant_of(p,constants)
+            absent = ', absent' if _plot_field(p) in self._absent else ''
             res.append( ( f'{"custom" if g == custom_key else "plot"}:{p}',
-                          p if c is None else f'{p} (all {c})' ) )
+                          p if c is None else f'{p} (all {c}{absent})' ) )
         return res
 
     def overviews( self ):

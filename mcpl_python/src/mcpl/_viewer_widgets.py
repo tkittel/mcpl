@@ -710,8 +710,10 @@ class WidgetViewer:
                 continue
             items = self._plot_items(key)
             problem = items[0].text if len(items) == 1 and isinstance(items[0],Text) else None
-            status = ( 'not in this file' if info['absent'] else
-                       f'all {info["constant"]}' if info['constant'] is not None else None )
+            #(fields which the file does not have are 0, which is said, as their
+            #plots show it):
+            status = ( f'all {info["constant"]}' + ( ' (absent)' if info['absent'] else '' )
+                       if info['constant'] is not None else None )
             #(only custom plots are moved and removed, see Viewer.change_plot):
             custom = self.v.is_custom(info['plot'])
             res.append(Card(key,info['name'],title=info['title'],plot=info['plot'],

@@ -60,13 +60,13 @@ print('interactive figure shown:', j._right.children[1] is j._mplfig.canvas,
 print('axes of the overview:', len(j._pane.axes), 'clickable:', len(j._pane._panels))
 click(j._mplfig,j._pane.axes[3])
 print('view after clicking the 4th plot:', v.views[v.current][0],
-      'selected in the list:', j._views.index == v.current)
+      'selected in the list:', j._views.current == v.current_key)
 j._pane.axes[0].set_xlim(2,20)#(a zoom)
 j._fields['pick'].value = 'pdgcode == neutron'
 v.wait()
 j.refresh()
 print('x range after the pick, zoom kept:', tuple( float(x) for x in j._pane.axes[0].get_xlim() ))
-j._views.index = [ k for k, _ in v.views ].index('plot:x')
+j._views.click('plot:x')
 print('x range of another view, not zoomed:', j._pane.axes[0].get_xlim() != (-50,50))
 j.close()
 

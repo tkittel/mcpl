@@ -44,6 +44,58 @@ def _exclusive( method ):
             return method(self,*args)
     return handler
 
+#(the items of the list of views are left aligned, which needs a style):
+_list_style = ( '<style>.mcpl-viewer-item { justify-content: flex-start !important;'
+                ' text-align: left !important; }</style>' )
+
+class _ViewList:
+    """The views as a column of items which can be scrolled, as the cards of
+    the viewers in windows: the overviews of the groups (tinted), their plots,
+    and the inactive standard groups in their places (in grey, activated with
+    a click), with the shown view selected. A click on an item calls
+    on_click(key) with its key (info:group:KEY for inactive groups)."""
+    def __init__( self, w, on_click ):
+        self._w, self._on_click = w, on_click
+        self.box = w.VBox(layout=w.Layout(width='190px',height='420px',overflow_y='auto',
+                                          align_items='stretch'))
+        self._entries, self._buttons, self.current = None, {}, None
+
+    @property
+    def keys( self ):
+        return [ k for k, _, _ in self._entries or () ]
+
+    def click( self, key ):
+        self._on_click(key)
+
+    def show( self, entries, current ):
+        """Show the entries, as (key, label, kind), with kind 'overview',
+        'plot' or 'inactive', and the view with the key current selected"""
+        w = self._w
+        if entries != self._entries:
+            self._entries, self._buttons = entries, {}
+            items = [ w.HTML(_list_style) ]
+            for key, label, kind in entries:
+                b = w.Button(description=label,tooltip=label,
+                             layout=w.Layout(width='auto',height='auto',min_height='26px'))
+                b.add_class('mcpl-viewer-item')
+                b.on_click(lambda _, k=key : self._on_click(k))
+                self._buttons[key] = ( b, kind )
+                items.append(b)
+            self.box.children = items
+            self.current = None
+        for key, ( b, kind ) in self._buttons.items():
+            if self.current is not None and key not in ( current, self.current ):
+                continue#(only the selection changed)
+            selected = key == current
+            b.style.button_color = ( ui.card_colors['accent'] if selected else
+                                     ui.card_colors['overview'] if kind == 'overview' else
+                                     ui.card_colors['bg'] if kind == 'inactive' else ui.card_colors['card'] )
+            b.style.text_color = ( 'white' if selected else
+                                   ui.card_colors['dim'] if kind == 'inactive' else ui.card_colors['text'] )
+            b.style.font_weight = 'bold' if kind == 'overview' else 'normal'
+            b.style.font_style = 'italic' if kind == 'inactive' else 'normal'
+        self.current = current
+
 class JupyterViewer:
     """The viewer as an ipywidgets panel (the widget attribute)"""
     def __init__( self, viewer ):
@@ -54,10 +106,7 @@ class JupyterViewer:
                             ' package (pip install "mcpl-python[jupyter]")')
         self.v, self._w = viewer, w
         viewer.multi_overview = True#(the overview with all its plots)
-        self._views = w.Select(options=[ label for _, label in viewer.views ],
-                               index=viewer.current,rows=18,
-                               layout=w.Layout(width='190px'))
-        self._views.observe(self._on_view,'index')
+        self._views = _ViewList(w,self._on_view)
         self._status = w.HTML()
         #(the cache, at the right of the status, see ui.cache_menu):
         self._cache = w.Dropdown(description='Memory:',tooltip=ui.cache_menu_title,
@@ -100,19 +149,16 @@ class JupyterViewer:
         self._fields = {}
         rows = []
         fieldinfo = { f[0] : f for f in ui.fields }
-        for field in ( f for row in ui.field_rows for f in row ):
+        #(the groups of plots are chosen in the list of views, see _ViewList):
+        field_rows = [ r for r in ( tuple( f for f in row if f not in ui.menu_fields )
+                                    for row in ui.field_rows ) if r ]
+        for field in ( f for row in field_rows for f in row ):
             _, label, _key, _kpos, empty = fieldinfo[field]
-            row = next( r for r in ui.field_rows if field in r )
+            row = next( r for r in field_rows if field in r )
             common = { 'value' : viewer.field_text(field), 'description' : label + ':',
                        'style' : {'description_width':'70px'},
                        'layout' : w.Layout(width=f'{95 // len(row)}%') }
-            if field in ui.menu_fields:
-                #(the keys of the groups of plots shown, see Viewer.complete):
-                t = w.TagsInput(allowed_tags=[ n for n, _ in viewer.complete(field,'')[1] ],
-                                allow_duplicates=False,
-                                **{ **common, 'value' : viewer.field_text(field).split(',') })
-            else:
-                t = w.Text(placeholder=empty,continuous_update=False,**common)
+            t = w.Text(placeholder=empty,continuous_update=False,**common)
             t.observe(lambda change, field=field : self._on_field(field,change),'value')
             self._fields[field] = t
             if field == row[-1]:
@@ -153,7 +199,7 @@ class JupyterViewer:
         self._right = right = w.VBox([ top, self._image ],layout=w.Layout(width='100%'))
         from ._logo import logo_png
         logo = w.Image(value=logo_png(),format='png',layout=w.Layout(width='190px'))
-        self.widget = w.VBox([ self._warning, w.HBox([ w.VBox([ logo, self._views,
+        self.widget = w.VBox([ self._warning, w.HBox([ w.VBox([ logo, self._views.box,
                                                                   w.HBox(moves) ]), right ]),
                                *rows,
                                self._message, self._commands,
@@ -191,10 +237,14 @@ class JupyterViewer:
                 self.refresh()
 
     @_exclusive
-    def _on_view( self, change ):
-        if change['new'] is not None and not self._syncing:
-            self.v.select(change['new'])
-            self.refresh()
+    def _on_view( self, key ):
+        if key.startswith('info:group:'):#(an inactive group, which is activated)
+            key = key[11:]
+            self.v.show_group(key)
+            key = f'overview:{key}'
+        self.v.select_key(key)
+        self._sync_views()
+        self.refresh()
 
     def _on_click( self, event ):
         from ._plotbackend_mpl import after_event
@@ -218,8 +268,7 @@ class JupyterViewer:
     def _on_field( self, field, change ):
         if self._syncing:
             return
-        new = change['new']
-        ok, msg, _ = ui.apply_text(self.v,field,','.join(new) if isinstance(new,list) else new)
+        ok, msg, _ = ui.apply_text(self.v,field,change['new'])
         self._show_result(ok,msg)
         if ok and field == 'plot':
             self._set_quietly(self._fields['plot'],'')
@@ -278,15 +327,25 @@ class JupyterViewer:
             self._syncing = False
 
     def _sync_views( self ):
-        labels = [ label for _, label in self.v.views ]
-        current = self.v.current
-        self._syncing = True#(changing the options also changes the index)
-        try:
-            if list(self._views.options) != labels:
-                self._views.options = labels
-            self._views.index = current
-        finally:
-            self._syncing = False
+        self._views.show(self._list_entries(),self.v.current_key)
+
+    def _list_entries( self ):
+        """The entries of the list of views (see _ViewList): the views of each
+        group after its overview, and the inactive groups, in the order of the
+        groups"""
+        segments, overview = {}, None
+        for key, label in self.v.views:
+            if key.startswith('overview:'):
+                overview = key
+            kind = 'overview' if key == overview else 'plot'
+            segments.setdefault(overview,[]).append( ( key, label, kind ) )
+        res = []
+        for k, title, active in self.v.group_list():
+            if active:
+                res += segments.pop(f'overview:{k}',[])
+            else:
+                res.append( ( f'info:group:{k}', f'{title} (click to activate)', 'inactive' ) )
+        return res + [ e for entries in segments.values() for e in entries ]
 
     @_exclusive
     def _on_write( self, _ ):
@@ -330,6 +389,7 @@ class JupyterViewer:
 
     def _refresh( self ):
         self._sync_cache()
+        self._sync_views()#(e.g. with the constant fields, as the file is read)
         first, second = self.v.status_lines()
         self._status.value = ( f'<b>{html.escape(first)}</b><br>'
                                f'<span style="color:#555">{html.escape(second)}</span>' )

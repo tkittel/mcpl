@@ -37,7 +37,10 @@ j = JupyterViewer(v)
 j.start()
 v.wait()
 j.refresh()
-print('views:', len(j._views.options))
+print('views:', len(v.views))
+#(the list of views, with the inactive groups in their places, as the cards of
+#the viewers in windows):
+print('list:', [ ( k, kind ) for k, _, kind in j._views._entries if kind != 'plot' ])
 print('status:', j._status.value)
 #The overview, as a grid of its plots with buttons:
 print('overview as a grid:', j._right.children[1] is j._grid,
@@ -46,10 +49,10 @@ print('buttons:', [ c.children[1].description for c in j._grid.children ])
 next( c.children[1] for c in j._grid.children
       if c.children[1].description.startswith('wavelength') ).click()
 print('view after the button of wavelength:', v.views[v.current][0],
-      'selected in the list:', j._views.index == v.current,
+      'selected in the list:', j._views.current == v.current_key,
       'single image:', j._right.children[1] is j._image)
 #An edit changes the plot shown (also with the polling thread running):
-j._views.index = [ k for k, _ in v.views ].index('plot:x')
+j._views.click('plot:x')
 before = j._image.value
 j._fields['edit'].value = 'ekin += 1000MeV'
 v.wait()
@@ -58,7 +61,7 @@ print('plot changed by the edit:', j._image.value != before,
       'polling thread alive:', j._thread.is_alive())
 j._fields['edit'].value = ''
 v.wait()
-j._views.index = 0
+j._views.click(j._views.keys[0])
 j._fields['pick'].value = 'pdgcode == neutron'
 v.wait()
 j.refresh()
@@ -68,7 +71,7 @@ print('message for an invalid edit:', j._message.value)
 j._fields['plot'].value = 'ekin/MeV;logx=1'
 v.wait()
 j.refresh()
-print('view:', j._views.options[j._views.index], 'field emptied:', j._fields['plot'].value == '')
+print('view:', j._views.current, 'field emptied:', j._fields['plot'].value == '')
 print('This plot box shown:', j._change.layout.display != 'none', repr(j._change.value))
 j._change.value = 'ekin/keV;logx=1'
 v.wait()
@@ -79,8 +82,10 @@ j._change.value = ''
 v.wait()
 j.refresh()
 print('emptied, plot removed:', [ k for k, _ in v.views ][-1], 'box shown:', j._change.layout.display != 'none')
-j._views.index = 3
+j._views.click(j._views.keys[3])
 print('view selected:', v.views[v.current][0])
+j._views.click('info:group:beamz')
+print('group activated in the list:', v.groups, v.current_key, j._views.current)
 print('suggested name:', j._filename.value)
 j._on_write(None)
 print('written:', j._message.value)

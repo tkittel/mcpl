@@ -194,18 +194,17 @@ class MplViewer(ui.KeyViewer):
             for field in row:
                 _, label, _key, kpos, empty = fieldinfo[field]
                 ed = self.editor if self.editor is not None and self.editor.field == field else None
-                a, b, c = ui.labelled(label,kpos)
+                segs = ui.label_segments(label,kpos)
                 if ed:
                     t = ed.text
                     #(with the cursor, except in menus, see ui.LineEditor):
                     txt = t if ed.menu else t[:ed.cursor] + '\u2502' + t[ed.cursor:]
                     mark = ( ' \u2713', 'ok' ) if ed.ok else ( ' \u2717', 'error' )
-                    segs = [ (a,'normal'), (b,'key'), (c + ': ','normal'), ('[' + txt + ']','bold'), mark ]
+                    segs += [ ('[' + txt + ']','bold'), mark ]
                     popup = ( len(lines), column + len(label) + 3 + ed.choice_start )
                 else:
                     t = v.field_text(field)
-                    segs = [ (a,'normal'), (b,'key'), (c + ': ','normal'),
-                             ('[' + ( t or empty ) + ']','normal' if t else 'dim') ]
+                    segs.append( ('[' + ( t or empty ) + ']','normal' if t else 'dim') )
                 segs.append( ( '   ', 'normal' ) )
                 column += sum( len(text) for text, _ in segs )
                 groups.append( ( segs, field ) )
@@ -219,16 +218,14 @@ class MplViewer(ui.KeyViewer):
         else:
             groups = []
             for action, label, keys, kpos in ui.actions:
-                a, b, c = ui.labelled(label,kpos)
-                groups.append( ( [ ( '[' + a, 'normal' ), ( b, 'key' ), ( c + ']  ', 'normal' ) ], action ) )
+                groups.append( ( ui.action_button(label,kpos) + [ ( '  ', 'normal' ) ], action ) )
             lines.append( ( groups, 'groups' ) )
         hover = self.hover
         if isinstance(hover,tuple):
             hover = 'panel'
         elif hover is not None and not isinstance(hover,str):
             hover = 'views'
-        status = self.message or ( ui.shortcut_text(hover) if hover is not None else '' )
-        lines.append( ( [ ( status, self.message_style ) ], None ) )
+        lines.append( ( [ ( self.status_text(hover), self.message_style ) ], None ) )
         self._draw_lines(lines)
         if ed is not None and ed.choices and popup is not None:
             self._draw_popup(*popup)
@@ -242,12 +239,10 @@ class MplViewer(ui.KeyViewer):
         size = 9
         cw = 0.6 * size / 72.0 / fig.get_figwidth()
         rh = 1.45 * size / 72.0 / fig.get_figheight()
-        first, rows = ui.popup_rows(ed,12)
-        n = len(ed.choices)
-        nw = max( len(name) for name, _ in ed.choices )
-        texts = [ name.ljust(nw) + '  ' + ( descr or '' ) for name, descr in ed.choices[first:first+rows] ]
-        if rows < n:
-            texts.append( f'{ed.selected+1}/{n}' )
+        first, texts, count = ui.popup_lines(ed,12)
+        rows = len(texts)
+        if count is not None:
+            texts.append(count)
         width = ( max( len(t) for t in texts ) + 2 ) * cw
         x = min( 0.01 + column * cw, 0.99 - width )
         bottom = self._bottom - 0.01 - row * ( self._bottom - 0.02 ) / self._nlines + 0.005
@@ -277,31 +272,24 @@ class MplViewer(ui.KeyViewer):
         cw = 0.6 * size / 72.0 * fig.dpi / ( fig.get_figwidth() * fig.dpi )
         lh = ( self._bottom - 0.02 ) / self._nlines
         y = self._bottom - 0.01
+        def draw( x, parts, target ):
+            #(the segments from x, with an invisible text over them which is
+            #clicked, if they have a target):
+            full = ''.join( text for text, _ in parts )
+            for text, style in parts:
+                self._text(x,y,text,family='monospace',size=size,va='top',
+                           color=_colors[style],
+                           weight='bold' if style in ('key','bold') else 'normal')
+                x += len(text) * cw
+            if target is not None:
+                hit = self._text(x - len(full) * cw,y,full,family='monospace',size=size,
+                                 va='top',alpha=0.0)
+                self._targets.append( ( hit, target ) )
+            return x
         for segs, what in lines:
             x = 0.01
-            if what == 'groups':
-                for parts, target in segs:
-                    x0 = x
-                    for text, style in parts:
-                        self._text(x,y,text,family='monospace',size=size,va='top',
-                                   color=_colors[style],
-                                   weight='bold' if style in ('key','bold') else 'normal')
-                        x += len(text) * cw
-                    hit = self._text(x0,y,' ' * len(''.join(p[0] for p in parts)),
-                                     family='monospace',size=size,va='top')
-                    self._targets.append( ( hit, target ) )
-            else:
-                full = ''
-                for text, style in segs:
-                    self._text(x,y,text,family='monospace',size=size,va='top',
-                               color=_colors[style],
-                               weight='bold' if style in ('key','bold') else 'normal')
-                    x += len(text) * cw
-                    full += text
-                if what is not None:
-                    hit = self._text(0.01,y,full,family='monospace',size=size,
-                                     va='top',alpha=0.0)
-                    self._targets.append( ( hit, what ) )
+            for parts, target in ( segs if what == 'groups' else [ ( segs, what ) ] ):
+                x = draw(x,parts,target)
             y -= lh
 
 def run_viewer( viewer, backend = None ):

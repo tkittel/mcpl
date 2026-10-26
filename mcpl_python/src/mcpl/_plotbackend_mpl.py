@@ -535,10 +535,13 @@ class FigurePane:
         key = viewer.current_key if key is None else key
         figure = viewer.figure(key = key)
         if figure is None:
-            if key == self._key and self._figure is None:
+            #(the drawn figure of the view is kept while the view has none,
+            #e.g. while the file is read again, and another view is shown
+            #without a figure until it has one):
+            if key == self._key:
                 return False
             self.clear()
-            self._key = key#(shown without a figure, until it has one)
+            self._key = key
             return True
         scale = self._font_scale()
         if key == self._key and figure is self._figure and scale == self._scale:

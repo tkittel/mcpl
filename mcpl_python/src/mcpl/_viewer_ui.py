@@ -327,6 +327,30 @@ def labelled( label, keypos ):
     (for highlighting the key)"""
     return label[:keypos], label[keypos:keypos+1], label[keypos+1:]
 
+def label_segments( label, keypos ):
+    """The label of a field as segments (text, style), with its shortcut key
+    in the style 'key', followed by ': '"""
+    a, b, c = labelled(label,keypos)
+    return [ ( a, 'normal' ), ( b, 'key' ), ( c + ': ', 'normal' ) ]
+
+def action_button( label, keypos ):
+    """The button of an action (in the viewers drawn as text), as segments
+    (text, style), like [Write], with its shortcut key in the style 'key'"""
+    a, b, c = labelled(label,keypos)
+    return [ ( '[' + a, 'normal' ), ( b, 'key' ), ( c + ']', 'normal' ) ]
+
+def popup_lines( editor, maxrows ):
+    """The lines of the popup of the completions of the editor (see popup_rows):
+    (index of the first shown, the texts of the completions shown, as the
+    name and its description, and the count, like 3/40, or None if all are
+    shown)"""
+    first, rows = popup_rows(editor,maxrows)
+    choices = editor.choices
+    nw = max( len(name) for name, _ in choices )
+    texts = [ name.ljust(nw) + '  ' + ( descr or '' ) for name, descr in choices[first:first+rows] ]
+    count = f'{editor.selected+1}/{len(choices)}' if rows < len(choices) else None
+    return first, texts, count
+
 def popup_rows( editor, maxrows ):
     """The completions shown in a popup with at most maxrows lines (scrolled
     to the chosen one): (index of the first, number shown)"""
@@ -362,6 +386,12 @@ class KeyViewer:
         self.message, self.message_style = '', 'normal'
         self.hover = None
         self.show_help = False
+
+    def status_text( self, hover ):
+        """The text of the status line: the message, or else the shortcut of
+        what is under the mouse (the hover, a field or action, 'views' or
+        'panel'), if any"""
+        return self.message or ( shortcut_text(hover) if hover is not None else '' )
 
     def set_message( self, text, ok = True ):
         """Show the message (in the style of errors unless ok)"""

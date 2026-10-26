@@ -336,12 +336,11 @@ class TextViewer(ui.KeyViewer):
         x = 1
         fieldinfo = { f[0] : f for f in ui.fields }
         for field, label, key, kpos, empty in ( fieldinfo[f] for row in ui.field_rows for f in row ):
-            a, b, c = ui.labelled(label,kpos)
             first = field == next( row for row in ui.field_rows if field in row )[0]
             if first and field != ui.field_rows[0][0]:
                 y, x = y + 1, 1
             x0 = x
-            for part, style in ( (a,'normal'), (b,'key'), (c+': ','normal') ):
+            for part, style in ui.label_segments(label,kpos):
                 s.put(y,x,part,style)
                 x += len(part)
             ed = self.editor if self.editor is not None and self.editor.field == field else None
@@ -378,18 +377,16 @@ class TextViewer(ui.KeyViewer):
                 fw = _box_width( len(self.editor.text), w - x - len(part) - 4, True )
                 s.put(y,x+len(part),'[' + self.editor.text[-fw:].ljust(fw) + ']','reverse')
                 break
-            a, b, c = ui.labelled(label,kpos)
             x0 = x
-            for part, style in ( ('[' + a,'normal'), (b,'key'), (c + ']','normal') ):
+            for part, style in ui.action_button(label,kpos):
                 s.put(y,x,part,style)
                 x += len(part)
             self._regions.append( ( y, x0, x, action ) )
             x += 2
         y += 1
         #Status line: messages, or the shortcut of what is under the mouse:
-        status = self.message or ( ui.shortcut_text(self.hover if isinstance(self.hover,str) else 'views')
-                                   if self.hover is not None else '' )
-        s.put(min(y,h-1),1,status,self.message_style)
+        hover = self.hover if isinstance(self.hover,str) or self.hover is None else 'views'
+        s.put(min(y,h-1),1,self.status_text(hover),self.message_style)
         if popup:
             self._draw_popup(*popup)
         s.refresh()
@@ -399,27 +396,24 @@ class TextViewer(ui.KeyViewer):
         as fit, scrolled to the chosen one)"""
         s, ed = self.s, self.editor
         w = s.size()[1]
-        choices = ed.choices
-        n = len(choices)
-        first, rows = ui.popup_rows(ed,min( y - 3, 15 ))
-        nw = max( len(name) for name, _ in choices )
-        dw = max( len(d or '') for _, d in choices )
+        first, texts, count = ui.popup_lines(ed,min( y - 3, 15 ))
+        rows = len(texts)
+        nw = max( len(name) for name, _ in ed.choices )
+        dw = max( len(d or '') for _, d in ed.choices )
         width = min( nw + 2 + dw, w - 4 )
         x = max( 0, min( x - 1, w - width - 3 ) )
         top = y - rows - 2
         hl, vl, corners = ( ( '-', '|', '++++' ) if self.ascii else
                             ( '\u2500', '\u2502', '\u250c\u2510\u2514\u2518' ) )
-        count = f' {ed.selected+1}/{n} ' if rows < n else ''
+        count = f' {count} ' if count is not None else ''
         s.put(top,x,corners[0] + hl * width + corners[1],'normal')
-        for i in range(rows):
-            k = first + i
-            name, descr = choices[k]
-            text = ( name.ljust(nw) + '  ' + ( descr or '' ) )[:width].ljust(width)
+        for i, text in enumerate(texts):
+            text = text[:width].ljust(width)
             s.put(top+1+i,x,vl,'normal')
-            if k == ed.selected:
+            if first + i == ed.selected:
                 s.put(top+1+i,x+1,text,'reverse')
             else:
-                s.put(top+1+i,x+1,name.ljust(nw)[:width],'bold')
+                s.put(top+1+i,x+1,text[:nw],'bold')
                 s.put(top+1+i,x+1+nw,text[nw:],'dim')
             s.put(top+1+i,x+1+width,vl,'normal')
         bottom = hl * max( 0, width - len(count) ) + count

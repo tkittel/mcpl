@@ -121,8 +121,9 @@ for key, menu in ( ( 'm', tv._actions_menu ), ( 'h', tv._help_choices ) ):
     tv.on_key(key)
     root.update()
     print(f'menu opened by {key}:', bool(menu.winfo_ismapped()))
-    menu.unpost()
+    menu.event_generate(f'<KeyPress-{key}>')
     root.update()
+    print(f'   closed by {key} again:', not menu.winfo_ismapped())
 
 #Tab completes in the X axis field (and stays there), and with several
 #completions shows a list, where Down and Enter choose one:

@@ -165,8 +165,8 @@ class TkViewer(WidgetViewer):
         button.pack(side='left')
         menu = tk.Menu(button,tearoff=0)
         button['menu'] = menu
-        button.configure(underline=button.cget('text').index('M'))
-        self._menu_keys = { 'm' : button }#(the keys opening the menus, see on_key)
+        self._menu_keys = {}#(the keys opening the menus, see on_key)
+        self._menu_key(button,menu,'m')
         menu.add_command(label='Open MCPL file...',underline=0,command=self._ask_open,
                          accelerator=shortcut_name('O',root))
         bind_shortcut(root,'O',self._ask_open)
@@ -315,8 +315,7 @@ class TkViewer(WidgetViewer):
         button.pack(side='left',padx=(8,0))
         menu = tk.Menu(button,tearoff=0)
         button['menu'] = menu
-        button.configure(underline=0)
-        self._menu_keys['h'] = button
+        self._menu_key(button,menu,'h')
         topics = self.help_topics()
         for ( label, title, text ), pos in zip(topics,mnemonics([ t[0] for t in topics ])):
             menu.add_command(label=label,underline=pos,
@@ -490,6 +489,15 @@ class TkViewer(WidgetViewer):
             self.show_check('axes',None)
             self.canvas.get_tk_widget().focus_set()
         return 'break'
+
+    def _menu_key( self, button, menu, key ):
+        """The key (underlined in the label of the button) opens the menu
+        (see on_key), and closes it again when it is open"""
+        button.configure(underline=button.cget('text').lower().index(key))
+        self._menu_keys[key] = button
+        for k in ( key, key.upper() ):
+            menu.bind(f'<KeyPress-{k}>',lambda _e : ( menu.tk.call('tk::MenuUnpost',str(menu)),
+                                                     'break' )[1])
 
     def on_key( self, key ):
         #(m and h open the menu and the help menu, whose other keys are then

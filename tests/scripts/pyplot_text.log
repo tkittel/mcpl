@@ -226,7 +226,7 @@ mcpldev._common.MCPLError: The unicode plotting backend does not work in this te
 mcpltool --hist --backend ascii: 19 lines, first and last:
 (weights per bin)
                                          time/ms
-mcpltool --hist x/cm --backend ascii with 83 columns:
+mcpltool --hist x/cm;display_by=single --backend ascii with 83 columns:
 (weights per bin)
      295 +                                  ##
          |                                  ##

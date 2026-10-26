@@ -50,7 +50,7 @@ def same( a, b ):
     return describe([a]) == describe([b])
 
 #The added plots of test_figures:
-_plots = [ 'ekin/MeV;logx=1;split=pdgcode', 'x/cm : y/cm;bins=10', 'wavelength;logy=1' ]
+_plots = [ 'ekin/MeV;logx=1;display_by=pdgcode', 'x/cm : y/cm;bins=10', 'wavelength;logy=1' ]
 
 def test_figures():
     for skip, limit, pick, edit in ( (0,None,None,None),
@@ -147,7 +147,7 @@ def test_groups():
     #(also when the changed plot is in another group, or among the custom
     #plots, which shows a copy of it, keeping the other settings):
     v.set('collection','default')
-    print('changed to a plot of another group:', v.change_plot('ekin;logx=auto;logy;split=pdgcode','ekin'),
+    print('changed to a plot of another group:', v.change_plot('ekin;logx=auto;logy','ekin'),
           v.current_key, v.plot_info(v.current_key)['group'], v._groups.custom)
     print('again, a setting:', v.change_plot('plot:ekin','ekin;bins=20'), v.current_key, v._groups.custom)
     print('the custom one:', v.change_plot('custom:ekin','ekin;logy'), v.current_key, v._groups.custom,
@@ -619,7 +619,7 @@ def test_plot_changes():
     v = Viewer(ex)
     v.start()
     v.wait()
-    v.select_key('plot:ekin;logx=auto;logy;split=pdgcode')
+    v.select_key('plot:ekin;logx=auto;logy')
     for option in ( 'logx', 'logx', 'logx', 'logy', 'logx' ):
         print(f'toggle {option}:', v.toggle_scale(option), v.current_key)
         v.wait()
@@ -627,8 +627,8 @@ def test_plot_changes():
     v.wait()
     print('after another change:', v.toggle_scale('logx'), v.toggle_scale('logx'), v.current_key)
     #Titles get (??) when the expressions of the plot change (not its options):
-    p = 'wavelength;logx;split=pdgcode'
-    for new in ( 'wavelength;split=pdgcode', 'wavelength/nm;split=pdgcode', 'ekin/MeV;split=pdgcode' ):
+    p = 'wavelength;logx'
+    for new in ( 'wavelength', 'wavelength/nm', 'ekin/MeV' ):
         v.change_plot(p,new)
         print(f'title after {new!r}:', v.plot_info(f'plot:{new}')['title'])
         p = new

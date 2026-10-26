@@ -57,13 +57,14 @@ class PlotGroups:
         if key == custom_key:
             return Overview(custom_title,self.custom,'user added plots',add_cell = add_cell)
         title, descr, items, opts = _groups[key]
-        from ._particles import _particle_condition
-        only = _particle_condition(self.setting(key,'particle'))
+        from ._particles import _particle_display_only
+        only = _particle_display_only(self.setting(key,'display_only'))
         if 'variables' in opts:
-            return Overview(title,description = descr,layout = 'correlation',only = only,
+            return Overview(title,description = descr,layout = 'correlation',display_only = only,
                             variables = self.setting(key,'variables'))
         plots = [ _plot_item(i)[0] for i in ( *items, *self._extra.get(key,()) ) ]
-        return Overview(title,plots,descr,only = only)
+        return Overview(title,plots,descr,display_only = only,
+                        display_by = self.setting(key,'display_by'))
 
     def _items( self, key ):
         """The plots (histogram strings) of the group, with their titles, as a
@@ -83,23 +84,28 @@ class PlotGroups:
     #The settings of the standard groups:
 
     def setting_names( self, key ):
-        """The names of the settings of the group: the particle type, and the
-        variables of correlation plots"""
+        """The names of the settings of the group: the particle type shown, and
+        what the plots show a curve of each value of (not in correlation plots,
+        which have the variables instead)"""
         if key == custom_key:
             return []
-        return [ 'particle' ] + ( [ 'variables' ] if 'variables' in _groups[key][3] else [] )
+        correlation_plot = 'variables' in _groups[key][3]
+        return [ 'display_only', 'variables' if correlation_plot else 'display_by' ]
 
     def setting( self, key, name ):
         """The value of a setting of the group: as chosen, or its default. The
-        particle type is a PDG code, or None for all particles (by default
-        the most common type for correlation plots of several types), and the
-        variables are expressions (by default those of fields with more than
-        one value)"""
+        particle type (display_only) is a PDG code, or None for all particles
+        (by default the most common type for correlation plots of several types),
+        display_by is pdgcode (a curve of each type, by default) or single,
+        and the variables are expressions (by default those of fields with
+        more than one value)"""
         chosen = self.settings.get(key,{})
         if name in chosen:
             return chosen[name]
         opts = _groups[key][3]
-        if name == 'particle':
+        if name == 'display_by':
+            return 'pdgcode'
+        if name == 'display_only':
             types = self.found['types']
             return types[0][0] if 'variables' in opts and len(types) > 1 else None
         varying = [ v for v in opts['variables'] if not self._constant(v) ]
@@ -117,9 +123,12 @@ class PlotGroups:
 
     def setting_choices( self, key, name ):
         """The possible values of a setting: the particle types found (and None
-        for all), or the variables which correlation plots can have"""
-        if name == 'particle':
+        for all), pdgcode or single, or the variables which correlation plots can
+        have"""
+        if name == 'display_only':
             return [ None ] + [ pdg for pdg, _ in self.found['types'] ]
+        if name == 'display_by':
+            return [ 'pdgcode', 'single' ]
         return list(_groups[key][3]['variables'])
 
     def coefficients( self, key ):
@@ -128,7 +137,7 @@ class PlotGroups:
         known (see Moments.coefficients)"""
         if key == custom_key or 'variables' not in _groups[key][3]:
             return {}
-        return self.found['correlations'].get(self.setting(key,'particle'),{})
+        return self.found['correlations'].get(self.setting(key,'display_only'),{})
 
     def most_correlated( self, key, n = 4 ):
         """The n variables of the correlation plot of the group with the strongest

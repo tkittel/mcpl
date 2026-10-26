@@ -497,9 +497,10 @@ def test_canonical():
         except mcpl.MCPLError as e:
             print(f'{bad}: {e}')
     for h in ( 'ekin/MeV;logx=1;bins=50', 'ekin / MeV ; bins=50 ;logx=1', '(ekin)/MeV;bins=50;logx=1',
-               'x/cm : y/cm;xrange=-1:1', 'x/cm:y/cm;xrange=-1.0:1', 'ekin/MeV;split=pdgcode==22',
+               'x/cm : y/cm;xrange=-1:1', 'x/cm:y/cm;xrange=-1.0:1', 'ekin/MeV;display_by=pdgcode==22',
                'ekin;logy', 'ekin;logy=1', 'ekin;logy=0', 'pdgcode;bar', 'pdgcode;bar=auto',
-               'x;lethargy;unweighted', 'x;bins', 'x;split', 'x;groups' ):
+               'x;lethargy;unweighted', 'x;bins', 'x;display_by', 'x;groups',
+               'x;display_by=single', 'x : y;display_by=1' ):
         try:
             print(f'histogram {h!r}: {_hist_key(h)!r}')
         except mcpl.MCPLError as e:
@@ -599,7 +600,7 @@ def test_pick_statements():
     pick = 'r = hypot(x,y); r > 2cm'
     with mcpl.MCPLFile(example_file,pick = pick) as f:
         n = sum( len(blk) for blk in f.particle_blocks )
-    h = mcpl.histogram(str(example_file),'x;bins=5',pick = pick)
+    h = mcpl.histogram(str(example_file),'x;bins=5;display_by=single',pick = pick)
     from mcpldev._viewer_code import _c_condition, _CTranslator
     print(f'file and histogram with {pick!r}: {n} {int(sum(h.contents[None]))},'
           f' C condition: {_c_condition(pick,_CTranslator("c","p","c"))}')

@@ -74,8 +74,8 @@ def _beam( axis, a, b ):
              _item(f'{div_a} : {div_b}','Divergences'),
              _item(f'{a} : {div_a}',f'Phase space {a}'),
              _item(f'{b} : {div_b}',f'Phase space {b}'),
-             'ekin;logx=auto;logy;split=pdgcode',
-             'wavelength;logx=auto;logy=auto;split=pdgcode',
+             'ekin;logx=auto;logy',
+             'wavelength;logx=auto;logy=auto',
              _item(f'hypot({a},{b})','Distance to axis'),
              _item(f'angle(dir,({vector}))/deg;logy',f'Angle to {axis} axis'),
              'time;logx=auto;logy',
@@ -98,9 +98,9 @@ _field_titles = { 'ekin' : 'Energy', 'x' : 'Position x', 'y' : 'Position y',
 #the correlations, which have many plots of other groups, come last):
 _groups = {
     'overview' : ( 'Overview', 'the main plots of the particles', (
-        'ekin;logx=auto;logy;split=pdgcode',
-        'wavelength;logx;split=pdgcode',
-        _item('angle(dir,(0,0,1))/deg;logy;split=pdgcode','Angle to z axis'),
+        'ekin;logx=auto;logy',
+        'wavelength;logx',
+        _item('angle(dir,(0,0,1))/deg;logy','Angle to z axis'),
         _item('x : y','Position x-y'),
         'time;logx=auto;logy',
         'pdgcode;bar;logy=auto' ), {} ),
@@ -118,16 +118,16 @@ _groups = {
     'shielding' : ( 'Shielding', 'spectra, directions and weights of all particle types', (
         'pdgcode;bar;logy=auto',
         #(the energy spectra per unit lethargy, as usual in shielding):
-        'ekin;lethargy;logy;split=pdgcode',
-        _item('angle(dir,(0,0,1))/deg;logy;split=pdgcode','Angle to z axis'),
-        'time;logx=auto;logy;split=pdgcode',
-        'weight;logx=auto;logy;unweighted;split=pdgcode',
+        'ekin;lethargy;logy',
+        _item('angle(dir,(0,0,1))/deg;logy','Angle to z axis'),
+        'time;logx=auto;logy',
+        'weight;logx=auto;logy;unweighted',
         _item('x : y','Position x-y'),
-        _item('hypot(x,y);logy;split=pdgcode','Distance to z axis'),
-        'wavelength;logx;split=pdgcode' ), {} ),
+        _item('hypot(x,y);logy','Distance to z axis'),
+        'wavelength;logx' ), {} ),
     '3d' : ( '3D', 'the positions and directions in 3D, of a sample of the particles', (
-        _item('x : y : z;split=pdgcode','Positions in 3D'),
-        _item('ux : uy : uz;split=pdgcode','Directions in 3D') ), {} ),
+        _item('x : y : z','Positions in 3D'),
+        _item('ux : uy : uz','Directions in 3D') ), {} ),
     'correlations' : ( 'Correlations', ( 'the correlations of the positions, directions,'
                                          ' energy and weight, as a correlation plot' ), (),
                        { 'variables' : ( 'x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin', 'time',

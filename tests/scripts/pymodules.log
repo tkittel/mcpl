@@ -22,7 +22,7 @@ Modules of the mcpl package and their imports from the package:
   layer   4 : _exprplot            <- _common, _exprcore, _expressions, _exprsyntax, _numpy
   layer   4 : _reader              <- _blocks, _common, _expressions, _messages, _numpy, _scipp, _statsum, _userdata
   layer   4 : _records             <- _blocks, _common, _numpy, _particles, _physics
-  layer   5 : _histstring          <- _common, _exprcore, _expressions, _exprplot
+  layer   5 : _histstring          <- _common, _exprcore, _expressions, _exprplot, _particles
   layer   5 : _writer              <- _blocks, _common, _expressions, _messages, _numpy, _reader, _records, _statsum, _userdata
   layer   6 : _examples            <- _common, _messages, _numpy, _writer
   layer   6 : _extract             <- _messages, _reader, _writer

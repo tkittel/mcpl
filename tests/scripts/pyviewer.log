@@ -245,15 +245,15 @@ highlighted command: option[-e] option[-s5] option[-p] string["pdgcode == neutro
 highlighted python: keyword[import] string['example.mcpl'] number[5] string['pdgcode == neutron'] keyword[with] string['out.mcpl'] keyword[as] comment[# copy the header] keyword[for] keyword[in]
 highlighted cpp: preprocessor[#include] string["mcplcpp.h"] keyword[int] string["example.mcpl"] string["out.mcpl"] comment[// copy the header] number[5] keyword[for] keyword[auto] comment[// the pick: "pdgcode == neutron"] keyword[if] number[2112] keyword[continue]
 highlighted c: preprocessor[#include] string["mcpl.h"] keyword[int] keyword[void] string["example.mcpl"] string["out.mcpl"] comment[/* copy the header */] number[5] keyword[const] keyword[while] comment[/* the pick: "pdgcode == neutron" */] keyword[if] number[2112] keyword[continue] keyword[return] number[0]
-toggle logx: (True, 'linear x (was auto)') custom:ekin;logy;split=pdgcode
-toggle logx: (True, 'x axis as before') plot:ekin;logx=auto;logy;split=pdgcode
-toggle logx: (True, 'linear x (was auto)') custom:ekin;logy;split=pdgcode
-toggle logy: (True, 'linear y') custom:ekin;split=pdgcode
-toggle logx: (True, 'log x') custom:ekin;split=pdgcode;logx
+toggle logx: (True, 'linear x (was auto)') custom:ekin;logy
+toggle logx: (True, 'x axis as before') plot:ekin;logx=auto;logy
+toggle logx: (True, 'linear x (was auto)') custom:ekin;logy
+toggle logy: (True, 'linear y') custom:ekin
+toggle logx: (True, 'log x') custom:ekin;logx
 after another change: (True, 'linear x (was auto)') (True, 'x axis as before') custom:ekin;logx=auto
-title after 'wavelength;split=pdgcode': None
-title after 'wavelength/nm;split=pdgcode': None
-title after 'ekin/MeV;split=pdgcode': None
+title after 'wavelength': None
+title after 'wavelength/nm': None
+title after 'ekin/MeV': None
 without a title: None Position y
 absent: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
 limit 1e9: read again: False
@@ -275,7 +275,7 @@ without userdata: (False, 'There are no userdata fields in this file, in "userda
 for example.mcpl (particles True): pick '', edit '', skip '', 65 views, message 'Not kept for this file: the pick and edit (There are no userdata fields in this file, in "userdata.nscat > 0")'
 for ud_viewer.mcpl (particles True): pick 'userdata.nscat > 0', edit 'z += 1m', skip '', 70 views, message ''
 for ud_viewer.mcpl (particles False): pick '', edit '', skip '', 70 views, message ''
-views: plot:ekin;logx=auto;logy;split=pdgcode, plot:wavelength;logx;split=pdgcode, plot:angle(dir,(0,0,1))/deg;logy;split=pdgcode, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz, plot:userflags;bar;logy=auto, plot:x;logx=auto, plot:x : y;logx=auto;logy=auto, plot:x : z;logx=auto;logy=auto, plot:x : ux;logx=auto;logy=auto, plot:x : uy;logx=auto;logy=auto, plot:x : uz;logx=auto;logy=auto, plot:x : ekin;logx=auto;logy=auto, plot:x : time;logx=auto;logy=auto, plot:x : weight;logx=auto;logy=auto, plot:y;logx=auto, plot:y : z;logx=auto;logy=auto, plot:y : ux;logx=auto;logy=auto, plot:y : uy;logx=auto;logy=auto, plot:y : uz;logx=auto;logy=auto, plot:y : ekin;logx=auto;logy=auto, plot:y : time;logx=auto;logy=auto, plot:y : weight;logx=auto;logy=auto, plot:z;logx=auto, plot:z : ux;logx=auto;logy=auto, plot:z : uy;logx=auto;logy=auto, plot:z : uz;logx=auto;logy=auto, plot:z : ekin;logx=auto;logy=auto, plot:z : time;logx=auto;logy=auto, plot:z : weight;logx=auto;logy=auto, plot:ux;logx=auto, plot:ux : uy;logx=auto;logy=auto, plot:ux : uz;logx=auto;logy=auto, plot:ux : ekin;logx=auto;logy=auto, plot:ux : time;logx=auto;logy=auto, plot:ux : weight;logx=auto;logy=auto, plot:uy;logx=auto, plot:uy : uz;logx=auto;logy=auto, plot:uy : ekin;logx=auto;logy=auto, plot:uy : time;logx=auto;logy=auto, plot:uy : weight;logx=auto;logy=auto, plot:uz;logx=auto, plot:uz : ekin;logx=auto;logy=auto, plot:uz : time;logx=auto;logy=auto, plot:uz : weight;logx=auto;logy=auto, plot:ekin;logx=auto, plot:ekin : time;logx=auto;logy=auto, plot:ekin : weight;logx=auto;logy=auto, plot:time;logx=auto, plot:time : weight;logx=auto;logy=auto, plot:weight;logx=auto
+views: plot:ekin;logx=auto;logy, plot:wavelength;logx, plot:angle(dir,(0,0,1))/deg;logy, plot:x : y, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:ekin, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:time, plot:weight;unweighted, plot:polx, plot:poly, plot:polz, plot:userflags;bar;logy=auto, plot:x;logx=auto;display_by=single, plot:x : y;logx=auto;logy=auto, plot:x : z;logx=auto;logy=auto, plot:x : ux;logx=auto;logy=auto, plot:x : uy;logx=auto;logy=auto, plot:x : uz;logx=auto;logy=auto, plot:x : ekin;logx=auto;logy=auto, plot:x : time;logx=auto;logy=auto, plot:x : weight;logx=auto;logy=auto, plot:y;logx=auto;display_by=single, plot:y : z;logx=auto;logy=auto, plot:y : ux;logx=auto;logy=auto, plot:y : uy;logx=auto;logy=auto, plot:y : uz;logx=auto;logy=auto, plot:y : ekin;logx=auto;logy=auto, plot:y : time;logx=auto;logy=auto, plot:y : weight;logx=auto;logy=auto, plot:z;logx=auto;display_by=single, plot:z : ux;logx=auto;logy=auto, plot:z : uy;logx=auto;logy=auto, plot:z : uz;logx=auto;logy=auto, plot:z : ekin;logx=auto;logy=auto, plot:z : time;logx=auto;logy=auto, plot:z : weight;logx=auto;logy=auto, plot:ux;logx=auto;display_by=single, plot:ux : uy;logx=auto;logy=auto, plot:ux : uz;logx=auto;logy=auto, plot:ux : ekin;logx=auto;logy=auto, plot:ux : time;logx=auto;logy=auto, plot:ux : weight;logx=auto;logy=auto, plot:uy;logx=auto;display_by=single, plot:uy : uz;logx=auto;logy=auto, plot:uy : ekin;logx=auto;logy=auto, plot:uy : time;logx=auto;logy=auto, plot:uy : weight;logx=auto;logy=auto, plot:uz;logx=auto;display_by=single, plot:uz : ekin;logx=auto;logy=auto, plot:uz : time;logx=auto;logy=auto, plot:uz : weight;logx=auto;logy=auto, plot:ekin;logx=auto;display_by=single, plot:ekin : time;logx=auto;logy=auto, plot:ekin : weight;logx=auto;logy=auto, plot:time;logx=auto;display_by=single, plot:time : weight;logx=auto;logy=auto, plot:weight;logx=auto;display_by=single
 check('skip','10'): (True, '')
 check('skip','x'): (False, 'Skip must be a number of particles')
 check('limit','all'): (True, '')
@@ -333,14 +333,14 @@ command extract: mcpltool -e example.mcpl example_selected.mcpl.gz
 commands of the overview: {'view': 'mcpltool --view="{\'custom\':[\'time/ms;logx=1\',\'ekin/MeV\']}" example.mcpl', 'extract': 'mcpltool -e example.mcpl example_selected.mcpl.gz'}
 same pick, written differently: (True, '') restarted: False 'pdgcode==neutron'
 limit 1e3 then 1000: (True, '') (True, '') restarts: 1
-same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x;logx=auto', 'x : y;logx=auto;logy=auto', 'x : z;logx=auto;logy=auto', 'x : ux;logx=auto;logy=auto', 'x : uy;logx=auto;logy=auto', 'x : uz;logx=auto;logy=auto', 'x : ekin;logx=auto;logy=auto', 'x : time;logx=auto;logy=auto', 'x : weight;logx=auto;logy=auto', 'y;logx=auto', 'y : z;logx=auto;logy=auto', 'y : ux;logx=auto;logy=auto', 'y : uy;logx=auto;logy=auto', 'y : uz;logx=auto;logy=auto', 'y : ekin;logx=auto;logy=auto', 'y : time;logx=auto;logy=auto', 'y : weight;logx=auto;logy=auto', 'z;logx=auto', 'z : ux;logx=auto;logy=auto', 'z : uy;logx=auto;logy=auto', 'z : uz;logx=auto;logy=auto', 'z : ekin;logx=auto;logy=auto', 'z : time;logx=auto;logy=auto', 'z : weight;logx=auto;logy=auto', 'ux;logx=auto', 'ux : uy;logx=auto;logy=auto', 'ux : uz;logx=auto;logy=auto', 'ux : ekin;logx=auto;logy=auto', 'ux : time;logx=auto;logy=auto', 'ux : weight;logx=auto;logy=auto', 'uy;logx=auto', 'uy : uz;logx=auto;logy=auto', 'uy : ekin;logx=auto;logy=auto', 'uy : time;logx=auto;logy=auto', 'uy : weight;logx=auto;logy=auto', 'uz;logx=auto', 'uz : ekin;logx=auto;logy=auto', 'uz : time;logx=auto;logy=auto', 'uz : weight;logx=auto;logy=auto', 'ekin;logx=auto', 'ekin : time;logx=auto;logy=auto', 'ekin : weight;logx=auto;logy=auto', 'time;logx=auto', 'time : weight;logx=auto;logy=auto', 'weight;logx=auto', 'ekin/MeV;logx=1;bins=50'] current: custom:ekin/MeV;logx=1;bins=50
-changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x;logx=auto', 'x : y;logx=auto;logy=auto', 'x : z;logx=auto;logy=auto', 'x : ux;logx=auto;logy=auto', 'x : uy;logx=auto;logy=auto', 'x : uz;logx=auto;logy=auto', 'x : ekin;logx=auto;logy=auto', 'x : time;logx=auto;logy=auto', 'x : weight;logx=auto;logy=auto', 'y;logx=auto', 'y : z;logx=auto;logy=auto', 'y : ux;logx=auto;logy=auto', 'y : uy;logx=auto;logy=auto', 'y : uz;logx=auto;logy=auto', 'y : ekin;logx=auto;logy=auto', 'y : time;logx=auto;logy=auto', 'y : weight;logx=auto;logy=auto', 'z;logx=auto', 'z : ux;logx=auto;logy=auto', 'z : uy;logx=auto;logy=auto', 'z : uz;logx=auto;logy=auto', 'z : ekin;logx=auto;logy=auto', 'z : time;logx=auto;logy=auto', 'z : weight;logx=auto;logy=auto', 'ux;logx=auto', 'ux : uy;logx=auto;logy=auto', 'ux : uz;logx=auto;logy=auto', 'ux : ekin;logx=auto;logy=auto', 'ux : time;logx=auto;logy=auto', 'ux : weight;logx=auto;logy=auto', 'uy;logx=auto', 'uy : uz;logx=auto;logy=auto', 'uy : ekin;logx=auto;logy=auto', 'uy : time;logx=auto;logy=auto', 'uy : weight;logx=auto;logy=auto', 'uz;logx=auto', 'uz : ekin;logx=auto;logy=auto', 'uz : time;logx=auto;logy=auto', 'uz : weight;logx=auto;logy=auto', 'ekin;logx=auto', 'ekin : time;logx=auto;logy=auto', 'ekin : weight;logx=auto;logy=auto', 'time;logx=auto', 'time : weight;logx=auto;logy=auto', 'weight;logx=auto', 'ekin/MeV;logx=1;bins=50']
+same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy', 'wavelength;logx', 'angle(dir,(0,0,1))/deg;logy', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x;logx=auto;display_by=single', 'x : y;logx=auto;logy=auto', 'x : z;logx=auto;logy=auto', 'x : ux;logx=auto;logy=auto', 'x : uy;logx=auto;logy=auto', 'x : uz;logx=auto;logy=auto', 'x : ekin;logx=auto;logy=auto', 'x : time;logx=auto;logy=auto', 'x : weight;logx=auto;logy=auto', 'y;logx=auto;display_by=single', 'y : z;logx=auto;logy=auto', 'y : ux;logx=auto;logy=auto', 'y : uy;logx=auto;logy=auto', 'y : uz;logx=auto;logy=auto', 'y : ekin;logx=auto;logy=auto', 'y : time;logx=auto;logy=auto', 'y : weight;logx=auto;logy=auto', 'z;logx=auto;display_by=single', 'z : ux;logx=auto;logy=auto', 'z : uy;logx=auto;logy=auto', 'z : uz;logx=auto;logy=auto', 'z : ekin;logx=auto;logy=auto', 'z : time;logx=auto;logy=auto', 'z : weight;logx=auto;logy=auto', 'ux;logx=auto;display_by=single', 'ux : uy;logx=auto;logy=auto', 'ux : uz;logx=auto;logy=auto', 'ux : ekin;logx=auto;logy=auto', 'ux : time;logx=auto;logy=auto', 'ux : weight;logx=auto;logy=auto', 'uy;logx=auto;display_by=single', 'uy : uz;logx=auto;logy=auto', 'uy : ekin;logx=auto;logy=auto', 'uy : time;logx=auto;logy=auto', 'uy : weight;logx=auto;logy=auto', 'uz;logx=auto;display_by=single', 'uz : ekin;logx=auto;logy=auto', 'uz : time;logx=auto;logy=auto', 'uz : weight;logx=auto;logy=auto', 'ekin;logx=auto;display_by=single', 'ekin : time;logx=auto;logy=auto', 'ekin : weight;logx=auto;logy=auto', 'time;logx=auto;display_by=single', 'time : weight;logx=auto;logy=auto', 'weight;logx=auto;display_by=single', 'ekin/MeV;logx=1;bins=50'] current: custom:ekin/MeV;logx=1;bins=50
+changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy', 'wavelength;logx', 'angle(dir,(0,0,1))/deg;logy', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'x;logx=auto;display_by=single', 'x : y;logx=auto;logy=auto', 'x : z;logx=auto;logy=auto', 'x : ux;logx=auto;logy=auto', 'x : uy;logx=auto;logy=auto', 'x : uz;logx=auto;logy=auto', 'x : ekin;logx=auto;logy=auto', 'x : time;logx=auto;logy=auto', 'x : weight;logx=auto;logy=auto', 'y;logx=auto;display_by=single', 'y : z;logx=auto;logy=auto', 'y : ux;logx=auto;logy=auto', 'y : uy;logx=auto;logy=auto', 'y : uz;logx=auto;logy=auto', 'y : ekin;logx=auto;logy=auto', 'y : time;logx=auto;logy=auto', 'y : weight;logx=auto;logy=auto', 'z;logx=auto;display_by=single', 'z : ux;logx=auto;logy=auto', 'z : uy;logx=auto;logy=auto', 'z : uz;logx=auto;logy=auto', 'z : ekin;logx=auto;logy=auto', 'z : time;logx=auto;logy=auto', 'z : weight;logx=auto;logy=auto', 'ux;logx=auto;display_by=single', 'ux : uy;logx=auto;logy=auto', 'ux : uz;logx=auto;logy=auto', 'ux : ekin;logx=auto;logy=auto', 'ux : time;logx=auto;logy=auto', 'ux : weight;logx=auto;logy=auto', 'uy;logx=auto;display_by=single', 'uy : uz;logx=auto;logy=auto', 'uy : ekin;logx=auto;logy=auto', 'uy : time;logx=auto;logy=auto', 'uy : weight;logx=auto;logy=auto', 'uz;logx=auto;display_by=single', 'uz : ekin;logx=auto;logy=auto', 'uz : time;logx=auto;logy=auto', 'uz : weight;logx=auto;logy=auto', 'ekin;logx=auto;display_by=single', 'ekin : time;logx=auto;logy=auto', 'ekin : weight;logx=auto;logy=auto', 'time;logx=auto;display_by=single', 'time : weight;logx=auto;logy=auto', 'weight;logx=auto;display_by=single', 'ekin/MeV;logx=1;bins=50']
 unchanged: (True, '') ['custom:time/ms;logx=1', 'custom:ekin/MeV'] current: custom:ekin/MeV
 change to keV: (True, '') ['custom:time/ms;logx=1', 'custom:ekin/keV'] current: custom:ekin/keV
-change to an existing plot: (True, '') ['plot:time;logx=auto;only=pdgcode == neutron', 'custom:time/ms;logx=1']
+change to an existing plot: (True, '') ['plot:time;logx=auto;display_by=single;display_only=neutron', 'custom:time/ms;logx=1']
 invalid change: (False, 'Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)')
 unknown plot: (False, 'No plot "nope"')
-remove: (True, '') ['plot:time;logx=auto;only=pdgcode == neutron'] current: plot:time;logx=auto;only=pdgcode == neutron
+remove: (True, '') ['plot:time;logx=auto;display_by=single;display_only=neutron'] current: plot:time;logx=auto;display_by=single;display_only=neutron
 group overview: Overview: the main plots of the particles, 6 plots in 2x3
 group fields: Fields: a plot of each particle field, 13 plots in 3x5
 group beamz: Beam along z: profiles and divergences of a beam along z, 12 plots in 3x5
@@ -386,10 +386,10 @@ state at the start: {} | command: mcpltool -w example.mcpl
 move up: True again: False down: True | current: custom:uz;bins=20 ['hypot(x,y)/cm', 'uz;bins=20']
 move the overview: False
 move a standard plot: False
-state: {'limit': 500, 'pick': 'pdgcode != gamma', 'custom': ['uz;bins=20', 'ekin/keV;logy=1'], 'view': 'weight;logx=auto'}
-state without the options: {'custom': ['uz;bins=20', 'ekin/keV;logy=1'], 'view': 'weight;logx=auto'}
-command: mcpltool --view="{'custom':['uz;bins=20','ekin/keV;logy=1'],'view':'weight;logx=auto'}" -l500 -p "pdgcode != gamma" example.mcpl
-opened with the command: same state: True | current: plot:weight;logx=auto
+state: {'limit': 500, 'pick': 'pdgcode != gamma', 'custom': ['uz;bins=20', 'ekin/keV;logy=1'], 'view': 'weight;logx=auto;display_by=single'}
+state without the options: {'custom': ['uz;bins=20', 'ekin/keV;logy=1'], 'view': 'weight;logx=auto;display_by=single'}
+command: mcpltool --view="{'custom':['uz;bins=20','ekin/keV;logy=1'],'view':'weight;logx=auto;display_by=single'}" -l500 -p "pdgcode != gamma" example.mcpl
+opened with the command: same state: True | current: plot:weight;logx=auto;display_by=single
 suggested state file: example_viewer.json
 save: (True, 'Saved the viewer state in example_viewer.json')
 save again: (False, 'The file example_viewer.json already exists')
@@ -427,8 +427,8 @@ To open the viewer like this again:
   mcpltool -w -l100 example.mcpl
 ==> keys ['WAIT', 'p', 'p', 'd', 'g', 'c', 'o', 'd', 'e', ' ', '=', '=', ' ', 'n', 'e', 'u', 'Tab', 'Enter', 'WAIT', 'Down', 'Down', 'Down', 'WAIT']:
    |                             example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   |   ekin;logx=auto;logy;spli
-   |   wavelength;logx;split=pd                               pick: pdgcode == neutron
+   |   ekin;logx=auto;logy
+   |   wavelength;logx                                        pick: pdgcode == neutron
    |   angle(dir,(0,0,1))/deg;l  (y: y [cm])
    | ▸ x : y                           60 ┤       ▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   time;logx=auto;logy                │       ▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀
@@ -446,20 +446,20 @@ To open the viewer like this again:
    |   poly (all 0)                       │▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄▄▄▄▄▄▄
    |   polz (all 0)                       │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   userflags;bar;logy=auto            │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   |   x;logx=auto                        │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   |   x;logx=auto;display_by=s           │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   x : y;logx=auto;logy=aut           │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   x : ux;logx=auto;logy=au           │              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   x : uy;logx=auto;logy=au           │                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   x : uz;logx=auto;logy=au           │                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   x : ekin;logx=auto;logy=           │                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
    |   x : time;logx=auto;logy=           │                     ▀▀▀▀▀▀▀              ▀▀▀▀▀▀▀
-   |   y;logx=auto                        │                     ▀▀▀▀▀▀▀              ▀▀▀▀▀▀▀
+   |   y;logx=auto;display_by=s           │                     ▀▀▀▀▀▀▀              ▀▀▀▀▀▀▀
    |   y : ux;logx=auto;logy=au           │                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀
    |   y : uy;logx=auto;logy=au           │                            ▀▀▀▀▀▀▀
    |   y : uz;logx=auto;logy=au       -65 ┤                            ▀▀▀▀▀▀▀
    |   y : ekin;logx=auto;logy=           └┬────────────────────────────────────────────────────────────────────┬
    |   y : time;logx=auto;logy=           -65                               2.5                                70
-   |   ux;logx=auto                                                        x [cm]
+   |   ux;logx=auto;display_by=                                            x [cm]
    |   ux : uy;logx=auto;logy=a  per cell: 0.2 ██████████ 5.745 ██████████ 165 (log scale)
    |  Skip: [0]  Limit: [all]  Plot groups: [default]
    |  Pick: [pdgcode == neutron]
@@ -469,8 +469,8 @@ To open the viewer like this again:
    |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]  [GUI viewer]
 ==> keys ['WAIT', 'e', 'x', ' ', '=', ' ', '2', 'WAIT']:
    |                             example.mcpl: 1,006 particles, Σw = 1,006
-   | ▸ ekin;logx=auto;logy;spli
-   |   wavelength;logx;split=pd  (weights per bin)
+   | ▸ ekin;logx=auto;logy
+   |   wavelength;logx           (weights per bin)
    |   angle(dir,(0,0,1))/deg;l       106 ┤                       ⢠⠤⠴⠒⠒⠋⠉⢧
    |   x : y                              │                   ⣀⣀⡖⠒⠋      ⢸
    |   time;logx=auto;logy                │                  ⢀⡇          ⠘⠒⢲
@@ -488,20 +488,20 @@ To open the viewer like this again:
    |   poly (all 0)                       │         ⢸             ⡇                  ⡇          ⢸
    |   polz (all 0)                       │         ⣸             ⡇                  ⡇          ⠘⡆
    |   userflags;bar;logy=auto            │         ⡇             ⡇         ⡤⠤⡄      ⡇           ⠧⠤⡄    ⡤⠤     ⡤⠤
-   |   x;logx=auto;only=pdgcode           │         ⡇             ⡇        ⢰⠃ ⡇      ⡇             ⡇   ⢰⠃      ⡇
+   |   x;logx=auto;display_by=s           │         ⡇             ⡇        ⢰⠃ ⡇      ⡇             ⡇   ⢰⠃      ⡇
    |   x : y;logx=auto;logy=aut           │⠤⠤⡄    ⠤⠤⠇             ⡇  ⡤⠤  ⢠⠤⠼⡤⠤⠧⠤⡤⠤⢤  ⠧⠤⠤⠤⠤⠤⠤     ⡤⠤⠧⠤⣤⠤⠼      ⠠⠇
    |   x : ux;logx=auto;logy=au           │  ⡇                    ⡇  ⡇   ⢸ ⢰⠃   ⢳ ⢸              ⡇   ⢻
    |   x : uy;logx=auto;logy=au           │  ⠇                    ⡇ ⠠⠇   ⢸ ⢸    ⢸ ⠸⡄            ⠠⠇   ⢸
    |   x : uz;logx=auto;logy=au           │                ⢀⣀⣀  ⣀⣀⡇      ⢸⣀⣸    ⢸⣀⣀⣇⣀⣀⣀⡀  ⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣸⣀⣀⣀⣀⣀⣀⡀
    |   x : ekin;logx=auto;logy=           │                ⢸ ⢸    ⡇      ⢸             ⡇  ⡇   ⣿ ⢸⡇   ⣿      ⡇
    |   x : time;logx=auto;logy=           │                ⢸ ⢸    ⡇      ⣸             ⡇ ⢀⡇   ⣿ ⢸⡇   ⣿      ⡇
-   |   y;logx=auto;only=pdgcode           │                ⢸ ⢸           ⢸                    ⢸ ⢸
+   |   y;logx=auto;display_by=s           │                ⢸ ⢸           ⢸                    ⢸ ⢸
    |   y : ux;logx=auto;logy=au           │                ⢸ ⢸           ⢸                    ⢸ ⢸
    |   y : uy;logx=auto;logy=au    0.3333 ┤                ⣸ ⢸           ⣸                    ⣸ ⢸
    |   y : uz;logx=auto;logy=au           └┬────────────────────────────────────────────────────────────────────┬
    |   y : ekin;logx=auto;logy=           1393                           3.681e+06                      9.725e+09
    |   y : time;logx=auto;logy=                                          ekin [eV]
-   |   ux;logx=auto;only=pdgcod  ━━ n (2112)    ━━ γ (22)      ━━ e⁻ (11)     ━━ p (2212)    ━━ e⁺ (-11)
+   |   ux;logx=auto;display_by=  ━━ n (2112)    ━━ γ (22)      ━━ e⁻ (11)     ━━ p (2212)    ━━ e⁺ (-11)
    |   ux : uy;logx=auto;logy=a  ━━ π⁺ (211)    ━━ π⁻ (-211)   ━━ νμ (14)
    |  Skip: [0]  Limit: [all]  Plot groups: [default]
    |  Pick: [all particles]
@@ -527,18 +527,18 @@ Figure 1 (1x1): None
    Enter twice keeps the plot: custom:ekin/MeV current: custom:ekin/MeV
    Enter on an added plot, editing: 'ekin/MeV' | hint line when emptied: ('Enter: remove this plot   Esc: cancel', 'dim') True
 ==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Enter', 'WAIT']:
-   removed with an empty text: plot:time;logx=auto;only=pdgcode == neutron current: plot:time;logx=auto;only=pdgcode == neutron
+   removed with an empty text: plot:time;logx=auto;display_by=single;display_only=neutron current: plot:time;logx=auto;display_by=single;display_only=neutron
    Enter on another view, editing: True
 ==> keys ['WAIT', 'h']:
 ==> keys ['WAIT', 'Down', 'Down', 'MoveUp', 'WAIT']:
-   moved up: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle(dir,(0,0,1))/deg;logy;split=pdgcode'] current: plot:angle(dir,(0,0,1))/deg;logy;split=pdgcode
+   moved up: ['ekin;logx=auto;logy', 'wavelength;logx', 'angle(dir,(0,0,1))/deg;logy'] current: plot:angle(dir,(0,0,1))/deg;logy
 ==> keys ['WAIT', 'Down', 'o', 'g', 'WAIT']:
-   o shows the plot in a window: gui_plot wavelength [m] (n/γ only) | the plot shown: plot:wavelength;logx;split=pdgcode
+   o shows the plot in a window: gui_plot wavelength [m] (n/γ only) | the plot shown: plot:wavelength;logx
    g opens the viewer in a window: gui_viewer True | messages: ['The viewer is opened in a GUI window']
 ==> keys ['WAIT', 'O']:
    without a display: Not shown: The matplotlib plotting backend can not show plots here
 ==> keys ['WAIT', 'l', 'WAIT', 'k', 'Down', 'WAIT', 'K', 'WAIT']:
-   l and k: ['plot:ekin;logx=auto;logy;split=pdgcode', 'plot:wavelength;logx;split=pdgcode', 'plot:angle(dir,(0,0,1))/deg;logy;split=pdgcode']
+   l and k: ['plot:ekin;logx=auto;logy', 'plot:wavelength;logx', 'plot:angle(dir,(0,0,1))/deg;logy']
    the figure: logx
 ==> keys ['WAIT', 'hold', 'l', 'k', 'unhold', 'WAIT']:
    k before the changed plot is drawn: The plot is not drawn yet (try again when it is)
@@ -554,7 +554,7 @@ Figure 1 (1x1): None
 ==> keys ['WAIT', 's', '1', '2', 'Esc', 'i', '5', '0', 'Enter', 'WAIT', 'p', 'Up', 'Esc']:
    skip, limit: '' '50' example.mcpl: 50 particles, Σw = 50
 ==> keys ['WAIT', ('Mouse', 2, 3, True), 'WAIT']:
-   view after clicking on line 3: plot:angle(dir,(0,0,1))/deg;logy;split=pdgcode
+   view after clicking on line 3: plot:angle(dir,(0,0,1))/deg;logy
 ==> keys ['WAIT', 'p', 'x', 'Ctrl-C', 'p', 'y']:
    Ctrl-C quits like q, while editing a field: '' running: False
 ==> keys ['WAIT', 'a', 'e', 'Tab', 'Down']:

@@ -1,16 +1,16 @@
 views: 67
 status: <b>example.mcpl: 1,006 particles, Σw = 1,006</b><br><span style="color:#555"></span>
 overview as a grid: True plots: True
-buttons: ['ekin;logx=auto;logy;split=pdgcode', 'wavelength;logx;split=pdgcode', 'angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto']
-view after the button of wavelength: plot:wavelength;logx;split=pdgcode selected in the list: True single image: True
+buttons: ['ekin;logx=auto;logy', 'wavelength;logx', 'angle(dir,(0,0,1))/deg;logy', 'x : y', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto']
+view after the button of wavelength: plot:wavelength;logx selected in the list: True single image: True
 plot changed by the edit: True polling thread alive: True
 status after the pick: <b>example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)</b><br><span style="color:#555"></span>
 message for an invalid edit: <span style="color:#c00">Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression &quot;x = 2&quot;</span>
 view: ekin/MeV;logx=1 field emptied: True
 This plot box shown: True 'ekin/MeV;logx=1'
 changed in the box: custom:ekin/keV;logx=1 current: custom:ekin/keV;logx=1 message: ''
-emptied, plot removed: plot:time;logx=auto box shown: True
-view selected: plot:angle(dir,(0,0,1))/deg;logy;split=pdgcode
+emptied, plot removed: plot:time;logx=auto;display_by=single box shown: True
+view selected: plot:angle(dir,(0,0,1))/deg;logy
 suggested name: example_selected.mcpl.gz
 written: MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz
 next name: example_selected2.mcpl.gz

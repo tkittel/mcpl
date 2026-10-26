@@ -58,7 +58,7 @@ def test_plots():
             if not mf.nparticles:
                 continue
         pdf = f'plots_{i}.pdf'
-        figs = [ mcpl.histogram(f,p).figure() for p in ( 'ekin;logy;split=pdgcode',
+        figs = [ mcpl.histogram(f,p).figure() for p in ( 'ekin;logy;display_by=pdgcode',
                                                          'x : y', 'pdgcode;bar' ) ]
         mcpl.plotting.save(figs, pdf, backend='matplotlib', matplotlib_backend='agg')
         assert pathlib.Path(pdf).stat().st_size > 1000

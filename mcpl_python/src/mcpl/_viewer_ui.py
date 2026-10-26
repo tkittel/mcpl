@@ -131,18 +131,20 @@ def shortcut_text( name ):
 _scale = ( ( 'linear', None ), ( 'log', True ), ( 'auto', 'auto' ) )
 _count = ( 'unweighted', 'Count', ( ( 'weights', None ), ( 'particles', True ) ) )
 #(the particle types of the file, see WidgetViewer.type_choices):
-_only = ( 'only', 'Particles', 'types' )
+_only = ( 'display_only', 'Display only', 'types' )
+#(a curve of each particle type by default, see _histstring._display_by, or
+#of each value of an expression written in the menu):
+display_by_choices = ( ( 'particle type', None ), ( 'single', 'single' ) )
+_by = ( 'display_by', 'Display by', display_by_choices )
 plot_controls = {
-    '1d' : ( ( 'logx', 'X scale', _scale ), ( 'logy', 'Y scale', _scale ),
-             ( 'split', 'Split by', ( ( 'none', None ), ( 'particle type', 'pdgcode' ) ) ),
+    '1d' : ( ( 'logx', 'X scale', _scale ), ( 'logy', 'Y scale', _scale ), _by,
              _count, ( 'bins', 'Bins', None ), ( 'range', 'Range', None ), _only ),
     'bar' : ( ( 'logy', 'Scale', _scale ), _count, ( 'bar', 'Bars', None ), _only ),
     '2d' : ( ( 'logz', 'Colour scale', ( ( 'log', None ), ( 'linear', '0' ) ) ),
              ( 'equal', 'Aspect', ( ( 'auto', None ), ( 'equal', True ) ) ), _count,
              ( 'bins', 'Bins', None ), ( 'xrange', 'X range', None ),
              ( 'yrange', 'Y range', None ), _only ),
-    '3d' : ( ( 'split', 'Split by', ( ( 'none', None ), ( 'particle type', 'pdgcode' ) ) ),
-             ( 'unweighted', 'Sample by', ( ( 'weights', None ), ( 'particles', True ) ) ),
+    '3d' : ( _by, ( 'unweighted', 'Sample by', ( ( 'weights', None ), ( 'particles', True ) ) ),
              ( 'points', 'Points', None ), _only ),
 }
 
@@ -578,7 +580,8 @@ cache_blocks = (
 
 #The settings of the overviews of the standard groups (see
 #WidgetViewer.overview_controls), as name -> label:
-overview_controls = { 'particle' : 'Particle type', 'variables' : 'Variables' }
+overview_controls = { 'display_only' : 'Display only', 'display_by' : 'Display by',
+                      'variables' : 'Variables' }
 
 #The button of the settings of correlation plots choosing the variables with the
 #strongest correlations, and then all of them again (see

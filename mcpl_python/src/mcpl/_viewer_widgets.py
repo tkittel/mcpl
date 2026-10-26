@@ -453,10 +453,10 @@ class WidgetViewer:
     def _choices( self, choices ):
         """The choices of a setting of plots (see _viewer_ui.plot_controls), as
         (shown text, value), with those of the particle types"""
-        from ._particles import _particle_condition
+        from ._particles import _particle_display_only
         if choices != 'types':
             return choices
-        return [ ( t, _particle_condition(pdg) ) for t, pdg in self.type_choices() ]
+        return [ ( t, _particle_display_only(pdg) ) for t, pdg in self.type_choices() ]
 
     def type_choices( self ):
         """The choices of particle types (see Viewer.found), as (shown text,
@@ -480,10 +480,13 @@ class WidgetViewer:
         found = self.v.found
         res = []
         for name, value, choices in self.v.group_settings(key):
-            if name == 'particle':
+            if name == 'display_only':
                 types = { pdg : t for t, pdg in self.type_choices() }
                 texts = [ types.get(c,str(c)) for c in choices ]
                 shown = types.get(value,str(value))
+            elif name == 'display_by':
+                by = { v or 'pdgcode' : t for t, v in ui.display_by_choices }
+                texts, shown = [ by[c] for c in choices ], by[value]
             else:
                 texts = [ ui.variable_text(c,found['constants'].get(c)) for c in choices ]
                 shown = [ t for t, c in zip(texts,choices) if c in value ]
@@ -520,7 +523,7 @@ class WidgetViewer:
         controls = { n : ( texts, now ) for n, _, texts, now in self.overview_controls() }
         texts, now = controls[name]
         choices = { n : c for n, _, c in self.v.group_settings(key) }[name]
-        if name == 'particle':
+        if name in ( 'display_only', 'display_by' ):
             value = choices[texts.index(shown)]
         else:
             on = set(now) ^ { shown }

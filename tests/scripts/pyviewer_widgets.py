@@ -183,8 +183,8 @@ t.on_key('MoveUp')
 t.shown()
 print('   state:', v.state(full = False))
 step('the settings of the shown plot')
-for name, shown in ( ('logy','linear'), ('split','particle type'), ('bins','40'),
-                     ('range','0:90'), ('split','none'), ('logx','nonsense') ):
+for name, shown in ( ('logy','linear'), ('display_by','particle type'), ('bins','40'),
+                     ('range','0:90'), ('display_by','single'), ('logx','nonsense') ):
     print(f'  {name} set to {shown!r}:')
     t.on_control(name,shown)
 t.shown()
@@ -313,7 +313,7 @@ ov = dict(v.overviews())['overview:correlations']
 print('   variables:', ov.variables, f'{ov.nrows}x{ov.ncols}', ov.cells[:2], ov.kinds[:2])
 for var in ( 'x', 'y', 'z: all 20 cm', 'ux', 'uy', 'uz' ):#(until fewer than two are left)
     t.on_overview_control('variables',var)
-t.on_overview_control('particle','gamma (24%)')
+t.on_overview_control('display_only','gamma (24%)')
 v.wait()
 fig = v.figure(key='overview:correlations')
 print('   title:', fig.title)
@@ -334,12 +334,21 @@ print('   all again:', v.group_setting('correlations','variables'),
 #(the particle type of a group is the setting Particles of its plots, also
 #when they are copied into the custom group):
 t.on_select_key('overview:overview')
-t.on_overview_control('particle','gamma (24%)')
+t.on_overview_control('display_only','gamma (24%)')
 v.wait()
 t.on_select_key(next( c.key for c in t.cards() if c.group == 'Overview' and 'wavelength' in c.key ))
 print('   Particles of a plot of the overview:', t.plot_controls()[1][-1][2:4])
-t.on_control('only','all')
+t.on_control('display_only','all')
 print('   after choosing all:', t.shown_key)
+#(the curves by particle type of a group, or single: the plots which can show
+#several curves get display_by=single, the others, like 2D histograms, not):
+t.on_select_key('overview:fields')
+t.on_overview_control('display_by','single')
+ov = dict(v.overviews())['overview:fields']
+print('   fields with single curves:', [ s for n, _, _, s in t.overview_controls() ],
+      ov.cells[:2], ov.cells[-1])
+t.on_overview_control('display_by','particle type')
+print('   and by particle type again:', dict(v.overviews())['overview:fields'].cells[:2])
 #(the coefficients, from sums over blocks of particles: of values on a line,
 #either way, with weights, by particle type and for all, on a logarithmic
 #axis for values spanning more than two decades, and none for one value):

@@ -249,8 +249,8 @@ v2.2.9  (work in progress)
         the C API), also for files which store numbers in single precision
         (before, they were single precision numpy values for such files).
       * Histogram strings (of mcpltool -H and mcpl.histogram) with three
-        expressions, like "x : y : z;split=pdgcode", give 3D plots of a sample
-        of the particles (in windows).
+        expressions, like "x : y : z", give 3D plots of a sample of the
+        particles (in windows).
       * Vectors in expressions: pos, dir and pol (x is pos.x, or pos.at(0)),
         and vectors like (0,0,1m), with dot, cross, abs and a precise angle
         (e.g. "angle(dir,(0,0,1)) < 1deg"). Edits can rotate with
@@ -428,7 +428,7 @@ v2.2.9  (work in progress)
       * New histogram API: histograms of values given by expressions, e.g.
         mcpl.histogram(FILE,"ekin/eV",lethargy=True).plot(), with options for
         picking particles, logarithmic axes, separate curves for each particle type
-        (split="pdgcode") or file, 2D histograms (mcpl.histogram2d), and
+        (by default, see display_by) or file, 2D histograms (mcpl.histogram2d), and
         printing the contents as text. mcpl.plot_histograms shows or saves
         several histograms, also on top of each other in one plot with
         overlay=True (e.g. to compare simulations).

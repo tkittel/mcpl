@@ -33,9 +33,9 @@ from ._exprplot import _range_value
 #kinds of their values (bool: 1 or 0, auto: also auto):
 _hist_options = { 'bins' : 'bins', 'range' : 'range', 'xrange' : 'range',
                   'yrange' : 'range', 'logx' : 'auto', 'logy' : 'auto', 'logz' : 'bool',
-                  'lethargy' : 'bool', 'split' : 'expr', 'groups' : 'count',
+                  'lethargy' : 'bool', 'display_by' : 'expr', 'groups' : 'count',
                   'bar' : 'count', 'unweighted' : 'bool', 'print' : 'bool',
-                  'points' : 'count', 'equal' : 'bool', 'only' : 'pick' }
+                  'points' : 'count', 'equal' : 'bool', 'display_only' : 'pick' }
 #The values of the options given without a value (as "logy" or "bar"):
 _hist_implied = { 'logx' : '1', 'logy' : '1', 'logz' : '1', 'lethargy' : '1', 'unweighted' : '1',
                   'print' : '1', 'bar' : 'auto', 'equal' : '1' }
@@ -73,8 +73,8 @@ def _hist_defaults( exprs ):
     histograms, or three for 3D plots) when none are given"""
     return { 'exprs' : list(exprs), 'bins' : None, 'range' : None, 'xrange' : None,
              'yrange' : None, 'logx' : False, 'logy' : None, 'logz' : None, 'lethargy' : False,
-             'split' : None, 'unweighted' : False, 'print' : False, 'groups' : None,
-             'bar' : False, 'points' : None, 'equal' : False, 'only' : None }
+             'display_by' : None, 'unweighted' : False, 'print' : False, 'groups' : None,
+             'bar' : False, 'points' : None, 'equal' : False, 'display_only' : None }
 
 def _parse_hist( text ):
     """Parse a histogram string: an expression (or two separated by ":" for 2D
@@ -131,23 +131,44 @@ def _parse_hist( text ):
                                 f' {"2D" if len(exprs) == 1 else "1D"} histograms'
                                 f' (use {use}), in "{text}"')
             res[name] = _as_range(value,name,text)
-        elif name == 'only':
-            res['only'] = _only_pick(value,text)
+        elif name == 'display_only':
+            _display_only_condition(value,text)
+            res['display_only'] = value
         else:
-            res['split'] = value
+            res['display_by'] = value
     _check_hist_options(res,text)
     return res
 
-def _only_pick( value, text ):
-    """The pick of the option only (a single condition, as in picks, without
-    variables, since the options are separated by ";"), checked"""
+#The values of display_by for one curve of all particles (1 has one value):
+_single = ( 'single', '1' )
+
+def _display_by( o ):
+    """The expression whose values get a curve each, of a histogram with the
+    options o (see _parse_hist): that of display_by, or by default pdgcode
+    (a curve of each particle type) if the histogram can have several curves
+    (not 2D histograms or bar charts), or None for one curve"""
+    value = o['display_by']
+    if value in _single:
+        return None
+    if value is not None:
+        return value
+    return 'pdgcode' if len(o['exprs']) != 2 and o['bar'] is False else None
+
+def _display_only_condition( value, text = None ):
+    """The condition of the option display_only (a single condition, as in
+    picks, without variables, since the options are separated by ";", or the
+    name of a particle type, like neutron for pdgcode == neutron), checked"""
     from ._expressions import ParticleFilter
+    from ._particles import _particle_names
+    cond = f'pdgcode == {value}' if value in _particle_names else value
     try:
-        ParticleFilter(value)
+        ParticleFilter(cond)
     except MCPLError as e:
-        raise MCPLError(f'Histogram option "only" must be a condition as in picks (like'
-                        f' only=pdgcode == neutron), in "{text}": {e}') from None
-    return value
+        where = f', in "{text}"' if text else ''
+        raise MCPLError(f'Histogram option "display_only" must be a condition as in picks'
+                        f' or a particle type (like display_only=ekin > 1MeV or'
+                        f' display_only=neutron){where}: {e}') from None
+    return cond
 
 def _auto_logx( lo, hi ):
     """Whether values from lo to hi get a logarithmic axis with logx='auto':
@@ -159,8 +180,8 @@ def _check_hist_options( o, text ):
     """Check that the options o (see _parse_hist) of the histogram text can be
     used together"""
     if len(o['exprs']) == 2:
-        for name in ('lethargy','split','bar'):
-            if o[name]:
+        for name in ('lethargy','display_by','bar'):
+            if o[name] and o[name] not in _single:
                 raise MCPLError(f'Histogram option "{name}" can not be used'
                                 f' for 2D histograms, in "{text}"')
         if o['equal'] and ( o['logx'] or o['logy'] ):
@@ -175,8 +196,8 @@ def _check_hist_options( o, text ):
         raise MCPLError(f'Histogram option "points" can only be used for 3D plots'
                         f' (of three expressions), in "{text}"')
     if o['bar'] is not False:
-        for name in ('bins','range','logx','lethargy','split'):
-            if o[name]:
+        for name in ('bins','range','logx','lethargy','display_by'):
+            if o[name] and o[name] not in _single:
                 hint = ' (logy=1 gives a logarithmic scale of the bars)' if name == 'logx' else ''
                 raise MCPLError(f'Histogram option "{name}" can not be used for bar'
                                 f' charts{hint}, in "{text}"')
@@ -186,8 +207,9 @@ def _check_hist_options( o, text ):
     if o['logz'] is not None and len(o['exprs']) != 2:
         raise MCPLError(f'Histogram option "logz" (the colour scale) can only be used'
                         f' for 2D histograms, in "{text}"')
-    if o['groups'] is not None and o['split'] is None:
-        raise MCPLError(f'Histogram option "groups" can only be used with split, in "{text}"')
+    if o['groups'] is not None and _display_by(o) is None:
+        raise MCPLError(f'Histogram option "groups" can only be used with several curves'
+                        f' (see display_by), in "{text}"')
 
 class _Range:
     """Range of an axis of a histogram: lo and hi in the units of MCPL, with
@@ -238,8 +260,15 @@ def _hist_key( text ):
     from ._expressions import _expr_canonical
     o = _parse_hist(text)
     parts = [ ':'.join( _expr_canonical(e) for e in o['exprs'] ) ]
+    #(display_by and display_only as they are used: display_by only if it is
+    #not the default, as single if that is not, and display_only as a
+    #condition, also for a particle type):
+    by, default_by = _display_by(o), _display_by(dict(o,display_by = None))
+    resolved = { 'display_by' : None if by == default_by else by or 'single',
+                 'display_only' : None if o['display_only'] is None
+                 else _display_only_condition(o['display_only']) }
     for name in _hist_options:
-        v = o[name]
+        v = resolved.get(name,o[name])
         if name == 'logz':
             #(on by default, so only logz=0 makes another histogram):
             if v is False:
@@ -251,8 +280,8 @@ def _hist_key( text ):
             parts.append(name)#(the implied value, see _hist_implied)
         elif v == 'auto':
             parts.append(f'{name}=auto')
-        elif name in ( 'split', 'only' ):
-            parts.append(f'{name}={_expr_canonical(v)}')
+        elif name in resolved:
+            parts.append(f'{name}={v if v == "single" else _expr_canonical(v)}')
         elif isinstance(v,_Range):
             #(the values, in the units of MCPL):
             parts.append(f'{name}={v.lo!r}:{v.hi!r}')
@@ -307,6 +336,8 @@ def _hist_with_args( expression, given ):
             what = 'True or a number' if name == 'bar' else 'a number'
             raise MCPLError(f'The histogram argument {name} must be {what} of at least 2'
                             f' (not {v!r})')
+        if name == 'display_only':
+            _display_only_condition(v)
         o[name] = _as_range(v) if name == 'range' else v
     _check_hist_options(o,expression)
     return o

@@ -97,7 +97,7 @@ def test_default():
             continue
         mcpl.plotting.show(fig)
         mcpl.plotting.show(fig, backend='test')#explicit backend wins
-        mcpl.histogram(example_file, 'ekin/MeV', bins=5).plot()
+        mcpl.histogram(example_file, 'ekin/MeV', bins=5, display_by='single').plot()
         print(f'   formats: {mcpl.plotting.formats()}')
     obj = PrintingBackend()
     expect_error('Backend object with options',
@@ -128,11 +128,11 @@ def test_tool_backends():
         sys.stdout.flush()
         #(with UTF-8 output, also on Windows, so the plots in the terminal are
         #drawn with the unicode backend):
-        rv = subprocess.run([sys.executable, '-m', 'mcpldev', '-H', 'ekin/MeV;bins=3',
+        rv = subprocess.run([sys.executable, '-m', 'mcpldev', '-H', 'ekin/MeV;bins=3;display_by=single',
                              *args, str(example_file)],
                             capture_output=True, encoding='utf-8', check=False,
                             env=dict(os.environ, PYTHONIOENCODING='utf-8'))
-        print(f'==> mcpltool -H ekin/MeV;bins=3 {" ".join(args)}:'
+        print(f'==> mcpltool -H ekin/MeV;bins=3;display_by=single {" ".join(args)}:'
               f' exit code {rv.returncode}')
         for line in rv.stdout.splitlines()[:4]:
             print(f'   | {line}')

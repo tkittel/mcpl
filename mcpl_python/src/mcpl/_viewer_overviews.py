@@ -27,6 +27,7 @@ coefficients of the pairs above it)."""
 
 __all__ = []
 
+import copy
 import math
 
 #The layouts of overviews (see Overview):
@@ -39,14 +40,16 @@ class Overview:
     for the correlation coefficient of the 2D histogram of the plot, or 'new'
     for the place of a new plot, after the plots with add_cell).
     With the layout 'grid', the cells are the plots, and with 'correlation', they
-    are made from the variables (expressions, see correlation_cells). With only (a
-    condition), the plots use only those particles (the option only of
-    histogram strings)."""
+    are made from the variables (expressions, see correlation_cells). With
+    display_only and display_by, the plots get those options (of histogram
+    strings): display_only for all, and display_by for those which can show
+    several curves and do not have it."""
     def __init__( self, title, plots = (), description = None, layout = 'grid',
-                  variables = (), only = None, add_cell = False ):
+                  variables = (), display_only = None, display_by = None,
+                  add_cell = False ):
         assert layout in layouts
         self.title, self.description, self.layout = title, description, layout
-        self.variables, self.only = list(variables), only
+        self.variables, self.display_only = list(variables), display_only
         if layout == 'correlation':
             self.cells, self.kinds = correlation_cells(self.variables)
             self.ncols = max( 1, len(self.variables) )
@@ -56,10 +59,8 @@ class Overview:
                 self.cells.append(None)
                 self.kinds.append('new')
             self.ncols = grid_columns(len(self.cells))
-        if only:
-            from ._histstring import _hist_set_option
-            self.cells = [ None if c is None else _hist_set_option(c,'only',only)
-                           for c in self.cells ]
+        self.cells = [ None if c is None else _with_display(c,display_only,display_by)
+                       for c in self.cells ]
         self.nrows = max( 1, math.ceil( len(self.cells) / self.ncols ) )
 
     @property
@@ -71,6 +72,19 @@ class Overview:
     def plots( self ):
         """The plots of the overview, in the order of its cells (each once)"""
         return list(dict.fromkeys( p for p in self.cells if p is not None ))
+
+def _with_display( plot, display_only, display_by ):
+    """The plot (histogram string) with the options display_only (if given)
+    and display_by (if given, and the plot does not have it, and can show
+    several curves, unless it is their default, see _histstring._display_by)"""
+    from ._histstring import _display_by, _hist_set_option, _parse_hist
+    if display_only:
+        plot = _hist_set_option(plot,'display_only',display_only)
+    if display_by:
+        o = _parse_hist(plot)
+        if o['display_by'] is None and _display_by(o) not in ( None, display_by ):
+            plot = _hist_set_option(plot,'display_by',display_by)
+    return plot
 
 def grid_columns( n ):
     """Columns of a grid of n plots: 3 for 6 plots (in 2 rows), and more for
@@ -88,7 +102,9 @@ def correlation_cells( exprs ):
     for i in range(n):
         for j in range(n):
             a, b = ( j, i ) if j <= i else ( i, j )
-            cells.append( f'{exprs[i]};logx=auto' if i == j
+            #(the histograms on the diagonal with one curve, as the plots are
+            #small, without legends):
+            cells.append( f'{exprs[i]};logx=auto;display_by=single' if i == j
                           else f'{exprs[a]} : {exprs[b]};logx=auto;logy=auto' )
             kinds.append( 'plot' if j <= i else 'r' )
     return cells, kinds
@@ -168,6 +184,14 @@ class Moments:
                                                              else float(np.clip(c,-1.0,1.0)) )
         return res
 
+def _without_label( item ):
+    """The item of a panel without its label (a copy, if it has one)"""
+    if getattr(item,'label',None) is None:
+        return item
+    item = copy.copy(item)
+    item.label = None
+    return item
+
 def overview_figure( figures, overview, coefficients = None ):
     """The figure of the overview, from the figures of its plots (as far as they
     are available, with empty panels for the others, and None for empty
@@ -175,7 +199,6 @@ def overview_figure( figures, overview, coefficients = None ):
     field) : r}, see Moments), or None if no plot is available. The title says what the plots are
     (as "Fields plots: the fields of the particles"), followed by that of the
     plots, if any."""
-    import copy
 
     from .plotting import Correlation, Figure, NewPlot, Panel, Text
     figs = { p : figures.get(f'plot:{p}') for p in overview.plots }#(see _viewer_reading)
@@ -200,12 +223,15 @@ def overview_figure( figures, overview, coefficients = None ):
         panel.title = None#(the title of the plots is that of the overview)
         if len(overview.cells) > 6 and not overview.correlation_plot:
             panel.ylabel = None#(as "weights per bin" of each plot meets its neighbours)
+            #(and without legends, which would cover the small plots, as the
+            #colours of the particle types are the same in all of them):
+            panel.items = [ _without_label(it) for it in panel.items ]
         panels.append(panel)
     title = next( ( f.title for f in figs.values() if f is not None ), None )
     if overview.description:
         what = f'{overview.title} plots: {overview.description}'
-        if overview.only:
-            what += f' (only: {overview.only})'
+        if overview.display_only:
+            what += f' (only: {overview.display_only})'
         title = what if not title else f'{what} ({title})'
     fig = Figure( title = title, nrows = overview.nrows, ncols = overview.ncols,
                   panels = panels )

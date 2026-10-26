@@ -571,8 +571,9 @@ class Viewer(_Reading):
             badges.append( 'log' if logx and logy else 'log x' if logx else 'log y' )
         if o['lethargy']:
             badges.append('lethargy')
-        if o['split']:
-            badges.append( 'by particle' if o['split'] == 'pdgcode' else f'by {o["split"]}' )
+        #(curves by particle type by default, so only other values are noted):
+        if o['display_by'] not in ( None, 'pdgcode', 'single', '1' ):
+            badges.append(f'by {o["display_by"]}')
         if o['unweighted']:
             badges.append('counts')
         if o['range'] or o['xrange'] or o['yrange']:
@@ -1114,10 +1115,11 @@ def _as_state( view ):
           f' groups of plots ({", ".join(_groups)})')
     settings = state.get('settings',{})
     check(isinstance(settings,dict) and all( k in _groups and isinstance(v,dict)
-                                             and set(v) <= { 'particle', 'variables' }
+                                             and set(v) <= { 'display_only', 'display_by',
+                                                             'variables' }
                                              for k, v in settings.items() ),
-          'settings must give the settings of groups, like {"correlations": {"particle":'
-          ' 2112}}')
+          'settings must give the settings of groups, like {"correlations":'
+          ' {"display_only": 2112}}')
     custom = state.get('custom',[])
     check(isinstance(custom,list),'custom must be a list of plots')
     for item in custom:

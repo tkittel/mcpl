@@ -11,42 +11,42 @@ axes drawn: True
 after clicking the card 'Overview': overview:overview | 14 cards shown
 after clicking the card 'Overview': overview:overview | 8 cards shown
 after clicking the card 'Overview': overview:overview | 14 cards shown
-after clicking the card 'Energy': plot:ekin;logx=auto;logy;split=pdgcode | 14 cards shown
+after clicking the card 'Energy': plot:ekin;logx=auto;logy | 14 cards shown
 help menu: ['The viewer', 'Picks (filtering particles)', 'Edits (modifying particles)', 'Plot expressions', 'About data caching']
 X axis after typing 'ek' and <Tab>: 'ekin', focus kept: True
    completions of 'po' : ['polx', 'poly', 'polz', 'pos', 'pol', 'positron']
 X axis after typing 'po' and <Tab> <Down> <Return>: 'poly', focus kept: True
 apply of the axes: True
-after typing an axis: False | shown: plot:ekin;logx=auto;logy;split=pdgcode
-after clicking Apply: True | shown: custom:x;logx=auto;logy;split=pdgcode
+after typing an axis: False | shown: plot:ekin;logx=auto;logy
+after clicking Apply: True | shown: custom:x;logx=auto;logy
 focus in the open list of the Y axis: True
 3D plot shown: ['3d']
 mouse events after the 3D plot handled
 shown parts of the plot: {'axes': True, 'settings': True, 'expression': False}
-after clicking Advanced (on: True): {'axes': False, 'settings': False, 'expression': True}, expression 'ekin;logx=auto;logy;split=pdgcode'
-after clicking Advanced (on: False): {'axes': True, 'settings': True, 'expression': False}, expression 'ekin;logx=auto;logy;split=pdgcode'
+after clicking Advanced (on: True): {'axes': False, 'settings': False, 'expression': True}, expression 'ekin;logx=auto;logy'
+after clicking Advanced (on: False): {'axes': True, 'settings': True, 'expression': False}, expression 'ekin;logx=auto;logy'
 after the pick:
    status: example.mcpl: 1,006 particles
    counts: 544/1,006 particles (54.1%), Σw = 544 (54.1%)
    cache button: cached: 44 kB CacheAll.Compact.TMenubutton
    write button: New MCPL file (544 particles)...
-   shown: plot:ekin;logx=auto;logy;split=pdgcode
+   shown: plot:ekin;logx=auto;logy
 cache menu: ['Memory for the particles used by the plots (counted before the pick):', 'Max 5 MB: all 1,006 particles', 'Max 20 MB: all 1,006 particles', 'Max 100 MB: all 1,006 particles', 'Max 500 MB: all 1,006 particles', 'Max 2 GB: all 1,006 particles', 'Max 5 GB: all 1,006 particles', 'Max 10 GB: all 1,006 particles', 'No memory cache (refreshing plots from file on each change)', 'About caching']
 with a small cache:
    status: example.mcpl: 1,006 particles
    counts: ≈647/1,006 particles (64.3%), Σw ≈ 647 (64.3%)
    cache button: cached: 13 kB CacheCut.Compact.TMenubutton
    write button: New MCPL file (≈647 particles)...
-   shown: plot:ekin;logx=auto;logy;split=pdgcode
+   shown: plot:ekin;logx=auto;logy
 with 500 MB:
    status: example.mcpl: 1,006 particles
    counts: 544/1,006 particles (54.1%), Σw = 544 (54.1%)
    cache button: cached: 44 kB CacheAll.Compact.TMenubutton
    write button: New MCPL file (544 particles)...
-   shown: plot:ekin;logx=auto;logy;split=pdgcode
+   shown: plot:ekin;logx=auto;logy
 after clicking the inactive group 'Beam along z' : overview:beamz | folded: ['3D', 'Correlations', 'Fields', 'Overview']
-settings of the correlations: {'shown': True, 'plot fields shown': False, 'particle': 'neutron (86%)', 'variables': ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time'], 'most': 'Most correlated'}
-after turning ux off and choosing all: {'shown': True, 'plot fields shown': False, 'particle': 'all', 'variables': ['x', 'y', 'uy', 'uz', 'ekin', 'time'], 'most': 'Most correlated'} None
+settings of the correlations: {'shown': True, 'plot fields shown': False, 'display_only': 'neutron (86%)', 'variables': ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time'], 'most': 'Most correlated'}
+after turning ux off and choosing all: {'shown': True, 'plot fields shown': False, 'display_only': 'all', 'variables': ['x', 'y', 'uy', 'uz', 'ekin', 'time'], 'most': 'Most correlated'} None
 after clicking 'Most correlated': ['x', 'ux', 'ekin', 'time'] | button now: All variables
 after clicking 'All variables': ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time'] | button now: Most correlated
 with a plot shown: False True

@@ -147,7 +147,7 @@ print('after typing an axis:', 'disabled' in apply.state(), '| shown:', v.curren
 apply.invoke()
 pump()
 print('after clicking Apply:', 'disabled' in apply.state(), '| shown:', v.current_key)
-tv.on_select_key('plot:ekin;logx=auto;logy;split=pdgcode')
+tv.on_select_key('plot:ekin;logx=auto;logy')
 pump()
 
 #With the list of a combobox open, the focus can be in it (which tkinter
@@ -168,10 +168,10 @@ pump()
 from matplotlib.backend_bases import MouseEvent
 
 v.show_group('3d')
-tv.on_select_key('plot:x : y : z;split=pdgcode')
+tv.on_select_key('plot:x : y : z')
 pump(1)
 print('3D plot shown:', [ a.name for a in tv.canvas.figure.axes ])
-tv.on_select_key('plot:ekin;logx=auto;logy;split=pdgcode')
+tv.on_select_key('plot:ekin;logx=auto;logy')
 pump(1)
 for name in ( 'button_press_event', 'button_release_event', 'motion_notify_event' ):
     MouseEvent(name,tv.canvas,100,100,1)._process()
@@ -245,7 +245,7 @@ print('settings of the correlations:', overview_settings())
 toggles = [ c for c in tv._overview_controls._body.winfo_children()
             if str(c.cget('style')) == 'Choice.Toolbutton' ]
 next( c for c in toggles if text(c) == 'ux' ).invoke()
-menu = tv._overview_controls._widgets['particle']
+menu = tv._overview_controls._widgets['display_only']
 menu.set(menu.cget('values')[0])
 menu.event_generate('<<ComboboxSelected>>')
 wait()

@@ -82,9 +82,14 @@ def _particle_name( pdgcode ):
     (or the code, if it has no name)"""
     return next( ( n for n, p in _particle_names.items() if p == pdgcode ), str(pdgcode) )
 
-def _particle_condition( pdgcode ):
-    """The condition for the particles of a type (a PDG code), or None for all"""
-    return None if pdgcode is None else f'pdgcode == {_particle_name(pdgcode)}'
+def _particle_display_only( pdgcode ):
+    """The value of the histogram option display_only for the particles of a
+    type (a PDG code): its name if it has one (like neutron), else the
+    condition, or None for all"""
+    if pdgcode is None:
+        return None
+    name = _particle_name(pdgcode)
+    return name if name in _particle_names else f'pdgcode == {name}'
 
 def _particle_text( pdgcode ):
     """The name of a particle type (a PDG code) in texts: its name in

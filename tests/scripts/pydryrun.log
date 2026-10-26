@@ -183,7 +183,7 @@ mcpltool --dry-run --stats a1.mcpl: exit code 0, real run did not change files
    | userflags    :           0 (0x00000000)        247.5 (100.00%)
    |                      [ values ]             [ weighted counts ]
    | ------------------------------------------------------------------------------
-mcpltool --dry-run --hist ekin/MeV;print=1 a1.mcpl: exit code 0, real run did not change files
+mcpltool --dry-run --hist ekin/MeV;print=1;display_by=single a1.mcpl: exit code 0, real run did not change files
    | # histogram of: ekin/MeV
    | # values: weights per bin
    | # lower edge | upper edge | value

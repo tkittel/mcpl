@@ -36,6 +36,8 @@ from ._histstring import (
     _as_range,
     _auto_logx,
     _check_range,
+    _display_by,
+    _display_only_condition,
     _hist_defaults,
     _hist_with_args,
 )
@@ -183,9 +185,12 @@ class Histogram(_Plot):
         return _with_unit(self.expression,self.unit,self.note)
 
     def values( self, label = None ):
-        """Values to plot: the contents, or for lethargy plots the contents
+        """Values to plot: the contents (of the curve with the label, or of all
+        curves together without a label), or for lethargy plots the contents
         divided by the bin widths in lethargy (ln(E2/E1))."""
-        c = self.contents[label]
+        c = self.contents[label] if label in self.contents else (
+            sum(self.contents.values()) if label is None and self.contents
+            else self.contents[label] )
         if self.lethargy:
             return c / np.log(self.edges[1:]/self.edges[:-1])
         return c
@@ -548,8 +553,9 @@ def _neff( sumw, sumw2 ):
 _range = range#(the name range is shadowed by arguments below)
 
 def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
-               logx = False, unweighted = False, split = None, lethargy = False,
-               max_curves = 8, bar = False, _maxbins = None ):
+               logx = False, unweighted = False, display_by = None,
+               display_only = None, lethargy = False, max_curves = 8, bar = False,
+               _maxbins = None ):
     """Histogram of the values of an expression (see ParticleValue) for the
     particles in one or more files (picked with pick, see ParticleFilter),
     for instance:
@@ -568,10 +574,13 @@ def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
     by the bin widths in lethargy, ln(E2/E1). The contents are sums of
     weights, or numbers of particles if unweighted is True.
 
-    With split, there is a curve for each value of that expression (for at
-    most max_curves values, the others are combined into one), e.g.
-    split="pdgcode" or split="x > 0cm", and with several files, a curve for
-    each file. With bar (True, or the number of bars), the result is a bar
+    There is a curve for each value of the expression display_by (for at
+    most max_curves values, the others are combined into one), by default
+    pdgcode (a curve for each particle type), e.g. display_by="x > 0cm", or
+    "single" for one curve. With several files, there is a curve for each
+    file (and of each value of display_by in each file, if it is given).
+    With display_only (a condition, or a particle type like "neutron"), only
+    those of the picked particles are used. With bar (True, or the number of bars), the result is a bar
     chart of the values (whole numbers, as of pdgcode), see BarHistogram.
 
     The options can also be given in the expression, as in the histogram
@@ -580,7 +589,8 @@ def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
     expressions for a 2D histogram (see histogram2d()).
     """
     given = { 'bins' : None if bins == 'auto' else bins, 'range' : range,
-              'logx' : logx, 'unweighted' : unweighted, 'split' : split,
+              'logx' : logx, 'unweighted' : unweighted, 'display_by' : display_by,
+              'display_only' : display_only,
               'lethargy' : lethargy, 'groups' : None if max_curves == 8 else max_curves,
               'bar' : bar }
     o = _hist_with_args(expression,given)
@@ -636,26 +646,31 @@ def _filler_for( o, pick = None, labels = ( None, ), _maxbins = None ):
     (picked) particles of the files with the labels are given to it as in
     _histogram, and its result() is the histogram of the blocks so far."""
     bins = o['bins'] or 'auto'
+    #(with several files, there is a curve for each file, unless display_by is
+    #given, instead of one for each particle type in each file):
+    split = None if len(labels) > 1 and o['display_by'] is None else _display_by(o)
+    only = ( _display_only_condition(o['display_only']) if o['display_only'] is not None
+             else None )
     if len(o['exprs']) == 3:
         return _Points3DFiller(o['exprs'],pick = pick,points = o['points'],
-                               unweighted = o['unweighted'],split = o['split'],
-                               max_curves = o['groups'] or 8,only = o['only'])
+                               unweighted = o['unweighted'],split = split,
+                               max_curves = o['groups'] or 8,only = only)
     if len(o['exprs']) == 2:
         return _Hist2DFiller(o['exprs'][0],o['exprs'][1],pick = pick,bins = bins,
                              xrange = o['xrange'],yrange = o['yrange'],
                              unweighted = o['unweighted'],_maxbins = _maxbins,
                              logz = o['logz'] is not False,equal = o['equal'],
-                             only = o['only'],logx = o['logx'],logy = o['logy'] or False)
+                             only = only,logx = o['logx'],logy = o['logy'] or False)
     if o['bar'] is not False:
         return _BarFiller(o['exprs'][0],pick = pick,
                           limit = 10 if o['bar'] is True else o['bar'],
                           unweighted = o['unweighted'],logy = o['logy'],labels = labels,
-                          only = o['only'])
+                          only = only)
     return _Hist1DFiller(o['exprs'][0],pick = pick,bins = bins,range = o['range'],
-                         logx = o['logx'],unweighted = o['unweighted'],split = o['split'],
+                         logx = o['logx'],unweighted = o['unweighted'],split = split,
                          lethargy = o['lethargy'],max_curves = o['groups'] or 8,
                          logy = o['logy'] or False,labels = labels,_maxbins = _maxbins,
-                         only = o['only'])
+                         only = only)
 
 class _Filler:
     """Common basis of the fillers, which make histograms from blocks of (picked)
@@ -1073,7 +1088,9 @@ def plot_histograms( histograms, filename = None, backend = None, logy = None,
     for i,h in enumerate(histograms):
         name = labels[i] if labels is not None else ( h.title or h.expression )
         for curve in h.contents:
-            label = name if curve is None else f'{name}: {curve}'
+            #(the curve of a histogram with one curve, e.g. of one particle
+            #type, is named as the histogram):
+            label = name if curve is None or len(h.contents) == 1 else f'{name}: {curve}'
             p.add(StepHist(h.edges,h.values(curve),label = label,color = color))
             color += 1
     return _show_or_save([Figure(panels = [p])],filename,backend,options)

@@ -974,14 +974,21 @@ def _tint( part, name ):
         elif isinstance(w,ttk.Label) and not w.cget('style'):
             w.configure(style=f'{name}.TLabel')
 
+#(the choices of the menus of _Controls for writing in them, and their hints):
+_written = {
+    'display_by' : ( 'an expression...', ( 'Type what to show a curve of each value of,'
+                                           ' e.g. x > 0cm or userflags, and press Enter' ) ),
+    'display_only' : ( 'a condition...', ( 'Type which particles to show, e.g.'
+                                           ' ekin > 1MeV, and press Enter' ) ) }
+
 class _Controls:
     """The settings of a plot (see WidgetViewer.plot_controls): a menu or a
     text field for each, in a row, which call on_change(option, shown text)
     when changed (with Enter, for the text fields). The row is made again
-    when the kind of plot changes. The menu of split has a choice for writing
-    an expression, which on_hint (if given) explains."""
-    #(the choice of the menu of split for writing an expression in it):
-    expression_choice = 'an expression...'
+    when the kind of plot changes. The menus of display_by and display_only
+    have a choice for writing an expression or a condition in them, which
+    on_hint (if given) explains."""
+    written = _written
 
     def __init__( self, parent, on_change, on_hint = None, style = None ):
         _, ttk = tk_modules()
@@ -1011,19 +1018,19 @@ class _Controls:
                 items.append(item)
                 ttk.Label(item,text=label,**self._styles).pack(side='left',padx=(0,3))
                 if choices is not None:
-                    #(split also takes an expression, the others only the choices):
-                    if name == 'split':
-                        choices = [ *choices, self.expression_choice ]
+                    #(some also take what is written, the others only the choices):
+                    if name in self.written:
+                        choices = [ *choices, self.written[name][0] ]
                     w = ttk.Combobox(item,values=choices,
-                                     width=14 if name in ( 'split', 'only' ) else 7,
-                                     state='normal' if name == 'split' else 'readonly')
+                                     width=14 if name in self.written else 7,
+                                     state='normal' if name in self.written else 'readonly')
                     w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._chosen(n,w))
                 else:
                     w = ttk.Entry(item,width=12 if 'range' in name else 7)
                     #(the greyed text is removed while it is edited):
                     w.bind('<FocusIn>',lambda _e, w=w : self._show_used(w,None),'+')
                     w.bind('<FocusOut>',lambda _e, w=w : self._show_used(w,self._used.get(w)),'+')
-                if name == 'split' or choices is None:
+                if name in self.written or choices is None:
                     w.bind('<Return>',lambda _e, n=name, w=w : self._on_change(n,self._text(w)))
                 w.pack(side='left')
                 self._widgets[name] = w
@@ -1064,15 +1071,15 @@ class _Controls:
         return '' if w in self._greyed else w.get()
 
     def _chosen( self, name, w ):
-        if w.get() != self.expression_choice:
+        choice, hint = self.written.get(name,( None, None ))
+        if w.get() != choice:
             self._on_change(name,w.get())
             return
-        #(an expression is written in the field, and applied with Enter):
+        #(it is written in the field, and applied with Enter):
         w.set('')
         w.focus_set()
         if self._on_hint is not None:
-            self._on_hint('Type what to split the plot by, e.g. x > 0cm or abs(pdgcode),'
-                          ' and press Enter')
+            self._on_hint(hint)
 
     def values( self ):
         """The shown texts of the settings, as (option, text)"""

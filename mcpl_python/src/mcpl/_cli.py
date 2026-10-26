@@ -63,7 +63,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
-  PROGNAME -H "ekin/MeV;logx;split=pdgcode" file.mcpl.gz
+  PROGNAME -H "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
   PROGNAME -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   PROGNAME -S file.mcpl.gz
 
@@ -124,9 +124,9 @@ Viewer (-w, --view):
   --color=WHEN     Colours in the terminal: auto, always or never (as for -H).
 
 Histogram (-H, --hist HIST):
-  HIST is an expression with options, e.g. "ekin/MeV;logx;split=pdgcode" (see
-  -H help). With more files, there is a curve for each file. -H can be given
-  more than once, for several plots.
+  HIST is an expression with options, e.g.
+  "ekin/MeV;logx;display_only=neutron" (see -H help). With more files, there
+  is a curve for each file. -H can be given more than once, for several plots.
   -t, --term       Show the plots in the terminal.
   -o, --output FILE
                    Save the plots in FILE, in the format given by the

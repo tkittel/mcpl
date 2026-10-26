@@ -91,7 +91,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/cm;logy', None, ('hypot(x,y)/cm', '', ''))
-   settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': '', 'only': 'all'})
+   settings: ('1d', {'logx': 'linear', 'logy': 'log', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_only': 'all'})
    bins used: 27
    plot: 1 axes
 ==> changing the shown plot, and removing it (empty text)
@@ -106,42 +106,42 @@
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/mm;logy', None, ('hypot(x,y)/mm', '', ''))
-   settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': '', 'only': 'all'})
+   settings: ('1d', {'logx': 'linear', 'logy': 'log', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_only': 'all'})
    bins used: 27
    plot: 1 axes
    check of shown_plot: None
    line (normal): 
-   views: 56 views, shown: 'Time' (time;logx=auto, group Correlations, badges ['log x'])
+   views: 56 views, shown: 'Time' (time;logx=auto;display_by=single, group Correlations, badges ['log x'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('time;logx=auto', None, ('time', '', ''))
-   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': '', 'only': 'all'})
+   shown plot field: ('time;logx=auto;display_by=single', None, ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'display_by': 'single', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_only': 'all'})
    bins used: 27
    plot: 1 axes
 ==> keys outside the fields
   key Down:
-   views: 56 views, shown: 'Time' (time;logx=auto, group Correlations, badges ['log x'])
+   views: 56 views, shown: 'Time' (time;logx=auto;display_by=single, group Correlations, badges ['log x'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('time;logx=auto', None, ('time', '', ''))
-   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': '', 'only': 'all'})
+   shown plot field: ('time;logx=auto;display_by=single', None, ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'display_by': 'single', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_only': 'all'})
    bins used: 27
    plot: 1 axes
   key MoveDown:
-   views: 56 views, shown: 'Time' (time;logx=auto, group Correlations, badges ['log x'])
+   views: 56 views, shown: 'Time' (time;logx=auto;display_by=single, group Correlations, badges ['log x'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('time;logx=auto', None, ('time', '', ''))
-   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': '', 'only': 'all'})
+   shown plot field: ('time;logx=auto;display_by=single', None, ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'display_by': 'single', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_only': 'all'})
    bins used: 27
    plot: 1 axes
   key Up:
@@ -152,7 +152,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('ekin : time;logx=auto;logy=auto', 'ekin : time', ('ekin', 'time', ''))
-   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'only': 'all'})
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'display_only': 'all'})
    bins used: 10,10
    plot: 2 axes
   key P:
@@ -164,7 +164,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('ekin : time;logx=auto;logy=auto', 'ekin : time', ('ekin', 'time', ''))
-   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'only': 'all'})
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'display_only': 'all'})
    bins used: 10,10
    plot: 2 axes
   key Enter:
@@ -176,7 +176,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('ekin : time;logx=auto;logy=auto', 'ekin : time', ('ekin', 'time', ''))
-   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'only': 'all'})
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'display_only': 'all'})
    bins used: 10,10
    plot: 2 axes
   key w:
@@ -188,7 +188,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('ekin : time;logx=auto;logy=auto', 'ekin : time', ('ekin', 'time', ''))
-   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'only': 'all'})
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'display_only': 'all'})
    bins used: 10,10
    plot: 2 axes
   key v:
@@ -200,7 +200,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('ekin : time;logx=auto;logy=auto', 'ekin : time', ('ekin', 'time', ''))
-   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'only': 'all'})
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'display_only': 'all'})
    bins used: 10,10
    plot: 2 axes
   key ?:
@@ -212,7 +212,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('ekin : time;logx=auto;logy=auto', 'ekin : time', ('ekin', 'time', ''))
-   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'only': 'all'})
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'display_only': 'all'})
    bins used: 10,10
    plot: 2 axes
 ==> the file names (the suggested one is written, the same again is refused)
@@ -230,14 +230,14 @@
    settings: None
    bins used: None
    plot: 7 axes
-   views: 56 views, shown: 'Angle to z axis' (angle(dir,(0,0,1))/deg;logy;split=pdgcode, group Overview, badges ['log y', 'by particle'])
+   views: 56 views, shown: 'Angle to z axis' (angle(dir,(0,0,1))/deg;logy, group Overview, badges ['log y'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 43
    kinds of cards: ['--rg', 's--g', 's-rg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('angle(dir,(0,0,1))/deg;logy;split=pdgcode', 'Angle to z axis', ('angle(dir,(0,0,1))/deg', '', ''))
-   settings: ('1d', {'logx': 'linear', 'logy': 'log', 'split': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'only': 'all'})
+   shown plot field: ('angle(dir,(0,0,1))/deg;logy', 'Angle to z axis', ('angle(dir,(0,0,1))/deg', '', ''))
+   settings: ('1d', {'logx': 'linear', 'logy': 'log', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_only': 'all'})
    bins used: 27
    plot: 1 axes
 ==> the title of the shown plot (not of standard plots), and dragging custom plots
@@ -253,31 +253,31 @@
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('x', None, ('x', '', ''))
-   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': '', 'only': 'all'})
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_only': 'all'})
    bins used: 27
    plot: 1 axes
    state: {'custom': ['uz;bins=10', {'title': 'Radius', 'plot': 'hypot(x,y)/cm'}], 'view': 'x'}
 ==> the settings of the shown plot
   logy set to 'linear':
    line (normal): 
-  split set to 'particle type':
+  display_by set to 'particle type':
    line (normal): 
   bins set to '40':
    line (normal): 
   range set to '0:90':
    line (error): The range of "x" must be given with units, as it has units (length), e.g. range=0cm:10cm
-  split set to 'none':
+  display_by set to 'single':
    line (normal): 
   logx set to 'nonsense':
-   line (error): Histogram option "logx" must be 1, 0 or auto (not "nonsense"), in "x;bins=40;logx=nonsense"
-   views: 60 views, shown: 'Position x' (x;bins=40, group Custom, badges [])
+   line (error): Histogram option "logx" must be 1, 0 or auto (not "nonsense"), in "x;bins=40;display_by=single;logx=nonsense"
+   views: 60 views, shown: 'Position x' (x;bins=40;display_by=single, group Custom, badges [])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 47
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('x;bins=40', None, ('x', '', ''))
-   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '40', 'range': '', 'only': 'all'})
+   shown plot field: ('x;bins=40;display_by=single', None, ('x', '', ''))
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'display_by': 'single', 'unweighted': 'weights', 'bins': '40', 'range': '', 'display_only': 'all'})
    bins used: 40
    plot: 1 axes
 ==> the colour bar of 2D histograms has a menu of the colour scales
@@ -319,7 +319,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('time;logx=auto', 'Arrival time', ('time', '', ''))
-   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': '', 'only': 'all'})
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_only': 'all'})
    bins used: 27
    plot: 1 axes
    line (normal): 
@@ -331,7 +331,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('time;logx=auto', 'Arrival time', ('time', '', ''))
-   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': '', 'only': 'all'})
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_only': 'all'})
    bins used: 27
    plot: 1 axes
 ==> changing the axes of the shown plot (keeping the options which can be kept)
@@ -366,7 +366,7 @@
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('x', 'Arrival time (??)', ('x', '', ''))
-   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': '', 'only': 'all'})
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_only': 'all'})
    bins used: 27
    plot: 1 axes
 ==> a new plot: shown as a card until its axes are chosen, or given up
@@ -393,15 +393,15 @@
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    shown plot field: ('hypot(x,y)/cm', 'Radius', ('hypot(x,y)/cm', '', ''))
-   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': '', 'only': 'all'})
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_only': 'all'})
    bins used: 27
    plot: 1 axes
    focus: x_axis
    line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
-   given up when another view is shown: plot:ekin;logx=auto;logy;split=pdgcode 62
+   given up when another view is shown: plot:ekin;logx=auto;logy 62
    focus: x_axis
    line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
-   given up when removed: plot:ekin;logx=auto;logy;split=pdgcode 62
+   given up when removed: plot:ekin;logx=auto;logy 62
    focus: x_axis
    line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
    line (normal): 
@@ -409,7 +409,7 @@
    added with a plot expression: True custom:uz;bins=20
 ==> the command of the shown plot, and of the plots of the overview
    mcpltool -p "pdgcode == neutron" -H "uz;bins=20" example.mcpl
-   mcpltool -p "pdgcode == neutron" -H "ekin;logx=auto;logy;split=pdgcode" -H "wavelength;logx;split=pdgcode" -H "angle(dir,(0,0,1))/deg;logy;split=pdgcode" -H "x : y" -H "time;logx=auto;logy" -H "pdgcode;bar;logy=auto" example.mcpl
+   mcpltool -p "pdgcode == neutron" -H "ekin;logx=auto;logy" -H "wavelength;logx" -H "angle(dir,(0,0,1))/deg;logy" -H "x : y" -H "time;logx=auto;logy" -H "pdgcode;bar;logy=auto" example.mcpl
 ==> writing needs a pick, an edit or a range of particles
    check of pick: None
    field pick: ''
@@ -464,25 +464,25 @@
 ==> removing plots, with Delete (only custom ones)
    line (error): The plots of the standard groups are not removed (the groups are shown or hidden as a whole, see the groups of plots)
    line (normal): Removed the plot "Direction z"
-   views: 62 views, shown: 'Time' (time;logx=auto, group Correlations, badges ['log x'])
+   views: 62 views, shown: 'Time' (time;logx=auto;display_by=single, group Correlations, badges ['log x'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: not in this file', 'Polarisation y: not in this file', 'Polarisation z: not in this file', 'User flags: not in this file', 'Userdata: not in this file', 'Beam along z: click to activate', 'Beam along x: click to activate', 'Beam along y: click to activate', 'Shielding: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 49
    kinds of cards: ['--rg', 's--g', 's-rg', 'sdrg']
    status: other.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
-   shown plot field: ('time;logx=auto', None, ('time', '', ''))
-   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'split': 'none', 'unweighted': 'weights', 'bins': '', 'range': '', 'only': 'all'})
+   shown plot field: ('time;logx=auto;display_by=single', None, ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'display_by': 'single', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_only': 'all'})
    bins used: 27
    plot: 1 axes
 ==> the groups: an overview of each, which hides it with Delete, and shown again
    [('overview:overview', 'Overview', 6, '2x3'), ('overview:fields', 'Fields', 13, '3x5'), ('overview:correlations', 'Correlations', 28, '7x7'), ('overview:custom', 'Custom', 5, '2x3')]
-   folded: ['Fields', 'Overview'] | shown: plot:time;logx=auto
+   folded: ['Fields', 'Overview'] | shown: plot:time;logx=auto;display_by=single
    after clicking the header of Correlations: overview:correlations ['Fields', 'Overview']
    with a plot of Fields shown: ['Correlations', 'Overview']
    inactive groups: [('info:group:beamz', 'Beam along z', 'click to activate'), ('info:group:beamx', 'Beam along x', 'click to activate'), ('info:group:beamy', 'Beam along y', 'click to activate'), ('info:group:shielding', 'Shielding', 'click to activate'), ('info:group:3d', '3D', 'click to activate')]
    code of the shown overview: 49 plots
    line (normal): Deactivated: the group Correlations
-   after Delete: ['overview', 'fields'] overview:overview | state: {'groups': ['overview', 'fields'], 'custom': [{'title': 'Radius', 'plot': 'hypot(x,y)/cm'}, 'x;bins=40', {'title': 'Position x-y', 'plot': 'x : y'}, {'title': 'Arrival time (??)', 'plot': 'x'}, 'uz;bins=20']}
+   after Delete: ['overview', 'fields'] overview:overview | state: {'groups': ['overview', 'fields'], 'custom': [{'title': 'Radius', 'plot': 'hypot(x,y)/cm'}, 'x;bins=40;display_by=single', {'title': 'Position x-y', 'plot': 'x : y'}, {'title': 'Arrival time (??)', 'plot': 'x'}, 'uz;bins=20']}
    line (normal): Activated: the group Correlations
    shown again: ['overview', 'fields', 'correlations'] overview:correlations
    line (normal): Activated: the group 3D
@@ -500,14 +500,14 @@
    check of pick: None
    field pick: ''
    line (normal): 
-   of the overview: [('particle', 'Particle type', ['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)'], 'all')]
-   of the correlations: [('particle', 'Particle type', ['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)'], 'neutron (72%)'), ('variables', 'Variables', ['x', 'y', 'z: all 20 cm', 'ux', 'uy', 'uz', 'ekin', 'time', 'weight: all 1'], ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time']), ('most', None, ['Most correlated'], 'Most correlated')]
-   variables: ['x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin'] 7x7 ['x;logx=auto;only=pdgcode == neutron', 'x : y;logx=auto;logy=auto;only=pdgcode == neutron'] ['plot', 'r']
+   of the overview: [('display_only', 'Display only', ['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)'], 'all'), ('display_by', 'Display by', ['particle type', 'single'], 'particle type')]
+   of the correlations: [('display_only', 'Display only', ['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)'], 'neutron (72%)'), ('variables', 'Variables', ['x', 'y', 'z: all 20 cm', 'ux', 'uy', 'uz', 'ekin', 'time', 'weight: all 1'], ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time']), ('most', None, ['Most correlated'], 'Most correlated')]
+   variables: ['x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin'] 7x7 ['x;logx=auto;display_by=single;display_only=neutron', 'x : y;logx=auto;logy=auto;display_only=neutron'] ['plot', 'r']
    line (error): The correlations plot needs at least two variables
-   title: Correlations plots: the correlations of the positions, directions, energy and weight, as a correlation plot (only: pdgcode == gamma)
+   title: Correlations plots: the correlations of the positions, directions, energy and weight, as a correlation plot (only: gamma)
    cells: ['StepHist', 'Correlation', 'Hist2D', 'StepHist'] ['+0.20']
-   state: {'correlations': {'variables': ['uz', 'ekin'], 'particle': 22}}
-   restored: [('particle', 22, [None]), ('variables', ['uz', 'ekin'], ['x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin', 'time', 'weight'])]
+   state: {'correlations': {'variables': ['uz', 'ekin'], 'display_only': 22}}
+   restored: [('display_only', 22, [None]), ('variables', ['uz', 'ekin'], ['x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin', 'time', 'weight'])]
    back to the default variables: True ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time']
    line (normal): Variables: x, y, uy, time
    most correlated: ['x', 'y', 'uy', 'time'] | button: All variables
@@ -515,7 +515,9 @@
    all again: ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time'] | button: Most correlated
    Particles of a plot of the overview: (['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)'], 'gamma (24%)')
    line (normal): 
-   after choosing all: custom:wavelength;logx;split=pdgcode
+   after choosing all: custom:wavelength;logx
+   fields with single curves: ['all', 'single'] ['ekin;display_by=single', 'x;display_by=single'] userflags;bar;logy=auto
+   and by particle type again: ['ekin', 'x']
    coefficients of 22 : {'x:y': 1.0, 'x:ekin': 1.0, 'x:z': None, 'y:ekin': 1.0, 'y:z': None, 'ekin:z': None}
    coefficients of 2112 : {'x:y': 1.0, 'x:ekin': 1.0, 'x:z': None, 'y:ekin': 1.0, 'y:z': None, 'ekin:z': None}
    coefficients of None : {'x:y': 0.9929, 'x:ekin': 1.0, 'x:z': None, 'y:ekin': 0.9929, 'y:z': None, 'ekin:z': None}

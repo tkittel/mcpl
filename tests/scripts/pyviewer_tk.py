@@ -116,6 +116,13 @@ for _ in range(3):
 click_card('Energy')
 print('help menu:', [ tv._help_choices.entrycget(i,'label')
                       for i in range(tv._help_choices.index('end') + 1) ])
+#(m and h, outside the text fields, open the menu and the help menu):
+for key, menu in ( ( 'm', tv._actions_menu ), ( 'h', tv._help_choices ) ):
+    tv.on_key(key)
+    root.update()
+    print(f'menu opened by {key}:', bool(menu.winfo_ismapped()))
+    menu.unpost()
+    root.update()
 
 #Tab completes in the X axis field (and stays there), and with several
 #completions shows a list, where Down and Enter choose one:

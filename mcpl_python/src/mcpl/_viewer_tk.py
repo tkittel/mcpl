@@ -30,12 +30,13 @@ from . import _viewer_ui as ui
 from ._viewer_tkbase import (
     GreyText,
     bind_enter,
-    bind_menu_key,
+    bind_shortcut,
     command_keys,
     focus_of,
     mnemonics,
     on_paste,
     repaint_after_resize,
+    shortcut_name,
     tk_modules,
     windowing_system,
 )
@@ -164,13 +165,11 @@ class TkViewer(WidgetViewer):
         button.pack(side='left')
         menu = tk.Menu(button,tearoff=0)
         button['menu'] = menu
-        bind_menu_key(root,button,'M')
-        #(Ctrl+O opens a file, Cmd+O on macOS):
-        ctrl = 'Command' if self.system == 'aqua' else 'Control'
+        button.configure(underline=button.cget('text').index('M'))
+        self._menu_keys = { 'm' : button }#(the keys opening the menus, see on_key)
         menu.add_command(label='Open MCPL file...',underline=0,command=self._ask_open,
-                         accelerator=f'{"Cmd" if self.system == "aqua" else "Ctrl"}+O')
-        for key in ( 'o', 'O' ):
-            root.bind(f'<{ctrl}-Key-{key}>',lambda _e : ( self._ask_open(), 'break' )[1])
+                         accelerator=shortcut_name('O',root))
+        bind_shortcut(root,'O',self._ask_open)
         self._actions_menu, self._actions = menu, {}#(action -> index of its entry)
         for action, label, keys, kpos in ui.actions:
             if action not in ( 'write', 'help' ):#(help has its own menu)
@@ -316,7 +315,8 @@ class TkViewer(WidgetViewer):
         button.pack(side='left',padx=(8,0))
         menu = tk.Menu(button,tearoff=0)
         button['menu'] = menu
-        bind_menu_key(self.root,button,'H')
+        button.configure(underline=0)
+        self._menu_keys['h'] = button
         topics = self.help_topics()
         for ( label, title, text ), pos in zip(topics,mnemonics([ t[0] for t in topics ])):
             menu.add_command(label=label,underline=pos,
@@ -490,6 +490,14 @@ class TkViewer(WidgetViewer):
             self.show_check('axes',None)
             self.canvas.get_tk_widget().focus_set()
         return 'break'
+
+    def on_key( self, key ):
+        #(m and h open the menu and the help menu, whose other keys are then
+        #those of their underlined letters):
+        if key.lower() in self._menu_keys:
+            self._menu_keys[key.lower()].event_generate('<<Invoke>>')
+            return
+        super().on_key(key)
 
     #Implementation of WidgetViewer:
 

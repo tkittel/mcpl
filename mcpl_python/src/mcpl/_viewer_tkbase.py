@@ -119,13 +119,21 @@ def mnemonics( labels ):
         res.append(i)
     return res
 
-def bind_menu_key( root, button, letter ):
-    """Open the menu of the button with Alt and the letter (Option on macOS),
-    which is underlined in its label"""
-    button.configure(underline=button.cget('text').index(letter))
-    mod = 'Option' if windowing_system(root) == 'aqua' else 'Alt'
-    for key in ( letter.lower(), letter.upper() ):
-        root.bind(f'<{mod}-Key-{key}>',lambda _e : ( button.event_generate('<<Invoke>>'), 'break' )[1])
+def shortcut_name( letter, root ):
+    """The name of the shortcut of the letter (see bind_shortcut), as shown"""
+    return f'{"Cmd" if windowing_system(root) == "aqua" else "Ctrl"}+{letter.upper()}'
+
+def bind_shortcut( root, letter, fct ):
+    """Call fct() for Ctrl and the letter, or Alt and the letter (both work
+    the same, also Cmd and Option on macOS), anywhere in the window root"""
+    tk, _ = tk_modules()
+    mods = ( 'Control', 'Alt' ) + ( ( 'Command', 'Option' ) if windowing_system(root) == 'aqua' else () )
+    for mod in mods:
+        for key in ( letter.lower(), letter.upper() ):
+            try:
+                root.bind(f'<{mod}-Key-{key}>',lambda _e : ( fct(), 'break' )[1])
+            except tk.TclError:#(a modifier which this Tk does not have)
+                pass
 
 def bind_enter( widget, fct ):
     """Call fct() when Enter (also that of the keypad) is pressed in the widget"""

@@ -21,7 +21,7 @@
 
 """The standard groups of plots of the viewer.
 
-Each group has a key, a title, a description, its plots (fixed: changing
+Each group has a key, a title, its plots (fixed: changing
 one copies it into the custom group of the viewer, see _viewer_groups), and
 its overview: a grid of all its plots, or for groups of variables, a
 correlation plot (the histograms of the expressions on the diagonal, and the
@@ -93,11 +93,11 @@ _field_titles = { 'ekin' : 'Energy', 'x' : 'Position x', 'y' : 'Position y',
 #The key and title of the group of the plots added by users:
 custom_key, custom_title = 'custom', 'Custom'
 
-#The standard groups, as key -> (title, description, plot items, options),
+#The standard groups, as key -> (title, plot items, options),
 #with the option variables (the expressions which a correlation plot can have, see
 #_viewer_groups):
 _groups = {
-    'spectra' : ( 'Spectra', 'the energy, wavelength and time spectra, and the particle types', (
+    'spectra' : ( 'Spectra', (
         'ekin;logx=auto;logy',
         #(as usual in shielding studies):
         'ekin;lethargy;logy',
@@ -106,21 +106,20 @@ _groups = {
         'pdgcode;bar;logy=auto' ), {} ),
     #(the fields in the order of mcpltool, and those of the userdata, see
     #_viewer_groups):
-    'fields' : ( 'Fields', 'a plot of each particle field', (
+    'fields' : ( 'Fields', (
         'ekin;logx=auto;logy', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time;logx=auto;logy',
         'weight;logx=auto;logy;unweighted',
         'polx', 'poly', 'polz', 'userflags;bar;logy=auto' ), {} ),
-    'beamz' : ( 'Z beam profile', 'profiles and divergences of a beam along z',
+    'beamz' : ( 'Z beam profile',
                 _beam('z','x','y'), {} ),
-    'beamx' : ( 'X beam profile', 'profiles and divergences of a beam along x',
+    'beamx' : ( 'X beam profile',
                 _beam('x','y','z'), {} ),
-    'beamy' : ( 'Y beam profile', 'profiles and divergences of a beam along y',
+    'beamy' : ( 'Y beam profile',
                 _beam('y','z','x'), {} ),
-    '3d' : ( '3D', 'the positions and directions in 3D, of a sample of the particles', (
+    '3d' : ( '3D', (
         _item('x : y : z','Positions in 3D'),
         _item('ux : uy : uz','Directions in 3D') ), {} ),
-    'correlations' : ( 'Correlations', ( 'the correlations of the positions, directions,'
-                                         ' energy and weight, as a correlation plot' ), (),
+    'correlations' : ( 'Correlations', (),
                        { 'variables' : ( 'x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin', 'time',
                                          'weight' ) } ),
 }

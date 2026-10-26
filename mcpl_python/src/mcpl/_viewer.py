@@ -539,8 +539,8 @@ class Viewer(_Output,_Reading):
         return list(self._groups.shown)
 
     def group_list( self ):
-        """The standard groups, as (key, title, description, whether shown)"""
-        return [ ( k, g[0], g[1], k in self._groups.shown ) for k, g in _groups.items() ]
+        """The standard groups, as (key, title, whether shown)"""
+        return [ ( k, g[0], k in self._groups.shown ) for k, g in _groups.items() ]
 
     def is_custom( self, plot ):
         """Whether the plot (histogram string) is one of the custom plots"""

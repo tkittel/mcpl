@@ -293,7 +293,7 @@ class WidgetViewer:
         on_select_key; the custom plots are never folded)"""
         shown = ( self.shown_group(self.cards() if cards is None else cards)
                   if self.shown_key and self._expanded else None )
-        return { t for k, t, _, active in self.v.group_list() if active and t != shown }
+        return { t for k, t, active in self.v.group_list() if active and t != shown }
 
     def shown_group( self, cards ):
         """The title of the group whose card of the shown view is selected (of
@@ -358,7 +358,7 @@ class WidgetViewer:
         """Show (or hide) the standard group of plots with the key (see
         Viewer.show_group)"""
         if self.v.show_group(key,shown):
-            title = { k : t for k, t, _, _ in self.v.group_list() }[key]
+            title = { k : t for k, t, _ in self.v.group_list() }[key]
             self.show_line(f'{"Activated" if shown else "Deactivated"}: the group {title}','normal')
             if shown:
                 self._expanded = True#(the group shown is expanded, see folded_groups)
@@ -367,7 +367,7 @@ class WidgetViewer:
 
     def group_key( self, title ):
         """The key of the standard group with the title, or None"""
-        return next( ( k for k, t, _, _ in self.v.group_list() if t == title ), None )
+        return next( ( k for k, t, _ in self.v.group_list() if t == title ), None )
 
     def on_drop( self, key, target ):
         """A card was dragged onto the card of the view with the key target
@@ -733,7 +733,7 @@ class WidgetViewer:
         #on_select_key):
         #(each before the cards of the groups after it, and of the custom one):
         later = { custom_title }
-        for key, title, _, active in reversed(self.v.group_list()):
+        for key, title, active in reversed(self.v.group_list()):
             if not active:
                 i = next( ( i for i, c in enumerate(res) if c.group in later ), len(res) )
                 res.insert(i,Card(f'info:group:{key}',title,group=title,status='click to activate',

@@ -34,7 +34,7 @@ import math
 layouts = ( 'grid', 'correlation' )
 
 class Overview:
-    """An overview: its title (and the description of its plots, if any), and
+    """An overview: its title, and
     its cells in a grid of nrows x ncols, row by row: the plots (histogram
     strings, None for empty cells), and how each is shown (kinds: 'plot', 'r'
     for the correlation coefficient of the 2D histogram of the plot, or 'new'
@@ -44,11 +44,11 @@ class Overview:
     display_only and display_by, the plots get those options (of histogram
     strings): display_only for all, and display_by for those which can show
     several curves and do not have it."""
-    def __init__( self, title, plots = (), description = None, layout = 'grid',
+    def __init__( self, title, plots = (), layout = 'grid',
                   variables = (), display_only = None, display_by = None,
                   add_cell = False ):
         assert layout in layouts
-        self.title, self.description, self.layout = title, description, layout
+        self.title, self.layout = title, layout
         self.variables, self.display_only = list(variables), display_only
         if layout == 'correlation':
             self.cells, self.kinds = correlation_cells(self.variables)
@@ -196,9 +196,9 @@ def overview_figure( figures, overview, coefficients = None ):
     """The figure of the overview, from the figures of its plots (as far as they
     are available, with empty panels for the others, and None for empty
     cells), with the correlation coefficients of correlation plots (as {(field,
-    field) : r}, see Moments), or None if no plot is available. The title
-    says what the plots are (as "Fields plots: a plot of each particle field"),
-    followed by the title of the plots in parentheses, if any."""
+    field) : r}, see Moments), or None if no plot is available. The title is
+    that of the group (with the particles of display_only, if any), followed
+    by the title of the plots in parentheses, if any."""
 
     from .plotting import Correlation, Figure, NewPlot, Panel, Text
     figs = { p : figures.get(f'plot:{p}') for p in overview.plots }#(see _viewer_reading)
@@ -228,11 +228,8 @@ def overview_figure( figures, overview, coefficients = None ):
             panel.items = [ _without_label(it) for it in panel.items ]
         panels.append(panel)
     title = next( ( f.title for f in figs.values() if f is not None ), None )
-    if overview.description:
-        what = f'{overview.title} plots: {overview.description}'
-        if overview.display_only:
-            what += f' (only: {overview.display_only})'
-        title = what if not title else f'{what} ({title})'
+    what = overview.title + ( f' (only: {overview.display_only})' if overview.display_only else '' )
+    title = what if not title else f'{what} ({title})'
     fig = Figure( title = title, nrows = overview.nrows, ncols = overview.ncols,
                   panels = panels )
     fig._correlation_plot = overview.correlation_plot#(drawn with shared axes, see _plotbackend_mpl)

@@ -504,7 +504,7 @@
    of the correlations: [('display_only', 'Display only', ['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)'], 'neutron (72%)'), ('variables', 'Variables', ['x', 'y', 'z: all 20 cm', 'ux', 'uy', 'uz', 'ekin', 'time', 'weight: all 1'], ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time']), ('most', None, ['Most correlated'], 'Most correlated')]
    variables: ['x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin'] 7x7 ['x;logx=auto;display_by=single;display_only=neutron', 'x : y;logx=auto;logy=auto;display_only=neutron'] ['plot', 'r']
    line (error): The correlation plot needs at least two variables
-   title: Correlations plots: the correlations of the positions, directions, energy and weight, as a correlation plot (only: gamma)
+   title: Correlations (only: gamma)
    cells: ['StepHist', 'Correlation', 'Hist2D', 'StepHist'] ['+0.20']
    state: {'correlations': {'variables': ['uz', 'ekin'], 'display_only': 22}}
    restored: [('display_only', 22, [None]), ('variables', ['uz', 'ekin'], ['x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin', 'time', 'weight'])]

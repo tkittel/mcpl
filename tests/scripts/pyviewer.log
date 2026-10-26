@@ -341,13 +341,13 @@ change to an existing plot: (True, '') ['plot:userflags;bar;logy=auto', 'custom:
 invalid change: (False, 'Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)')
 unknown plot: (False, 'No plot "nope"')
 remove: (True, '') ['plot:userflags;bar;logy=auto'] current: plot:userflags;bar;logy=auto
-group spectra: Spectra: the energy, wavelength and time spectra, and the particle types, 5 plots in 2x3
-group fields: Fields: a plot of each particle field, 13 plots in 3x5
-group beamz: Z beam profile: profiles and divergences of a beam along z, 7 plots in 2x4
-group beamx: X beam profile: profiles and divergences of a beam along x, 7 plots in 2x4
-group beamy: Y beam profile: profiles and divergences of a beam along y, 7 plots in 2x4
-group 3d: 3D: the positions and directions in 3D, of a sample of the particles, 2 plots in 1x2
-group correlations: Correlations: the correlations of the positions, directions, energy and weight, as a correlation plot, 45 plots in 9x9 (correlation plot)
+group spectra: Spectra, 5 plots in 2x3
+group fields: Fields, 13 plots in 3x5
+group beamz: Z beam profile, 7 plots in 2x4
+group beamx: X beam profile, 7 plots in 2x4
+group beamy: Y beam profile, 7 plots in 2x4
+group 3d: 3D, 2 plots in 1x2
+group correlations: Correlations, 45 plots in 9x9 (correlation plot)
 default groups: spectra, fields
 -wbeamz: beamz ['beamz'] ['overview:beamz', 'plot:x : y'] | state: {'groups': ['beamz'], 'custom': ['x;bins=5']} | command: mcpltool --view="{'groups':['beamz'],'custom':['x;bins=5']}" example.mcpl
 changed: (True, '') custom:x/mm : y/mm Beam profile (??) Custom | still there: True | state: {'groups': ['beamz'], 'custom': ['x;bins=5', {'title': 'Beam profile (??)', 'plot': 'x/mm : y/mm'}], 'view': 'x/mm : y/mm'}
@@ -357,7 +357,7 @@ changed to a plot of another group: (True, '') custom:ekin Custom ['x;bins=5', '
 again, a setting: (True, '') custom:x;bins=20 ['x;bins=5', 'ekin', 'x;bins=20']
 the custom one: (True, '') custom:ekin;logy ['x;bins=5', 'ekin;logy', 'x;bins=20'] | state: {'custom': ['x;bins=5', 'ekin;logy', 'x;bins=20'], 'view': 'ekin;logy'}
 check: (False, 'Unknown groups of plots "beam" (give groups separated by commas: spectra, fields, beamz, beamx, beamy, 3d, correlations)') (True, '') (True, '') (True, '')
-completions: (0, [('beamz', 'Z beam profile: profiles and divergences of a beam along z'), ('beamx', 'X beam profile: profiles and divergences of a beam along x'), ('beamy', 'Y beam profile: profiles and divergences of a beam along y')]) (8, [('beamz', 'Z beam profile: profiles and divergences of a beam along z'), ('beamx', 'X beam profile: profiles and divergences of a beam along x'), ('beamy', 'Y beam profile: profiles and divergences of a beam along y')]) | hint: beamx  X beam profile: profiles and divergences of a beam along x beamx  X beam profile: profiles and divergences of a beam along x
+completions: (0, [('beamz', 'Z beam profile'), ('beamx', 'X beam profile'), ('beamy', 'Y beam profile')]) (8, [('beamz', 'Z beam profile'), ('beamx', 'X beam profile'), ('beamy', 'Y beam profile')]) | hint: beamx  X beam profile beamx  X beam profile
 switched: (True, '') ['beamx', 'correlations'] ['overview:beamx', 'plot:y : z'] custom plot kept: x;bins=20 | state: {'groups': ['beamx', 'correlations'], 'custom': ['x;bins=5', 'ekin;logy', 'x;bins=20']}
 group shown: True ['beamx', '3d', 'correlations'] again: False | hidden: True ['3d', 'correlations'] | state: {'groups': ['3d', 'correlations'], 'custom': ['x;bins=5', 'ekin;logy', 'x;bins=20']}
 opened with the command: same state: True
@@ -538,7 +538,7 @@ Figure 1 (1x1): None
    k before the changed plot is drawn: The plot is not drawn yet (try again when it is)
    c shows the collections: ['spectra', 'fields', 'beamz', 'beamx', 'beamy', '3d', 'correlations'] chosen: beamz | key hint: Up/Down: choose   Enter: apply   Esc: cancel
 ==> keys ['WAIT', 'C', 'Down', 'Down', 'WAIT']:
-   the menu on the screen: ['│beamy         Y beam profile: profiles and divergences of a beam along y                                  │', 'Up/Down: choose   Enter: apply   Esc: cancel']
+   the menu on the screen: ['13│beamy         Y beam profile│.681e+06                      9.725e+09', 'Up/Down: choose   Enter: apply   Esc: cancel']
 ==> keys ['WAIT', 'c', 'Down', 'Down', 'Enter', 'WAIT']:
    c changes the collection: beamz plot:x : y
 ==> keys ['WAIT', 'c', 'Down', 'Esc', 'WAIT']:

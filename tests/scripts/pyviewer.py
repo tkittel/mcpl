@@ -118,7 +118,7 @@ def test_groups():
     #expressions, see _viewer._auto_title):
     g = PlotGroups()
     g.use(list(_groups))
-    for key, ( title, descr, items, opts ) in _groups.items():
+    for key, ( title, items, opts ) in _groups.items():
         plots = [ _plot_item(i) for i in items ]
         assert len({ p for p, _ in plots }) == len(plots)
         for p, t in plots:
@@ -128,7 +128,7 @@ def test_groups():
         for p in ov.plots:
             assert Viewer(ex).check('plot',p)[0], p
             mcpl.histogram(ex,p)
-        print(f'group {key}: {title}: {descr}, {len(ov.plots)} plots in {ov.nrows}x{ov.ncols}'
+        print(f'group {key}: {title}, {len(ov.plots)} plots in {ov.nrows}x{ov.ncols}'
               f'{" (correlation plot)" if ov.correlation_plot else ""}{" (folded)" if opts.get("folded") else ""}')
     print('default groups:', ', '.join(_default_groups))
     v = Viewer(ex,view='beamz',plots=['x;bins=5'])

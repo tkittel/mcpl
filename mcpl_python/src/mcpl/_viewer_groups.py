@@ -60,15 +60,15 @@ class PlotGroups:
         """The Overview of the group (with its settings, and for the custom
         group with add_cell, the place of a new plot after its plots)"""
         if key == custom_key:
-            return Overview(custom_title,self.custom,'user added plots',add_cell = add_cell)
-        title, descr, items, opts = _groups[key]
+            return Overview(custom_title,self.custom,add_cell = add_cell)
+        title, items, opts = _groups[key]
         from ._particles import _particle_display_only
         only = _particle_display_only(self.setting(key,'display_only'))
         if 'variables' in opts:
-            return Overview(title,description = descr,layout = 'correlation',display_only = only,
+            return Overview(title,layout = 'correlation',display_only = only,
                             variables = self.setting(key,'variables'))
         plots = [ _plot_item(i)[0] for i in ( *items, *self._extra.get(key,()) ) ]
-        return Overview(title,plots,descr,display_only = only,
+        return Overview(title,plots,display_only = only,
                         display_by = self.setting(key,'display_by'))
 
     def items( self, key ):
@@ -76,7 +76,7 @@ class PlotGroups:
         list of (plot, title)"""
         if key == custom_key:
             return [ ( p, self.titles.get(p) ) for p in self.custom ]
-        _, _, items, _ = _groups[key]
+        _, items, _ = _groups[key]
         ov = self.overview(key)
         if ov.correlation_plot:
             #(the 2D histograms are titled by their expressions, without the
@@ -95,7 +95,7 @@ class PlotGroups:
         which have the variables instead)"""
         if key == custom_key:
             return []
-        correlation_plot = 'variables' in _groups[key][3]
+        correlation_plot = 'variables' in _groups[key][2]
         return [ 'display_only', 'variables' if correlation_plot else 'display_by' ]
 
     def setting( self, key, name ):
@@ -108,7 +108,7 @@ class PlotGroups:
         chosen = self.settings.get(key,{})
         if name in chosen:
             return chosen[name]
-        opts = _groups[key][3]
+        opts = _groups[key][2]
         if name == 'display_by':
             return 'pdgcode'
         if name == 'display_only':
@@ -135,13 +135,13 @@ class PlotGroups:
             return [ None ] + [ pdg for pdg, _ in self.found['types'] ]
         if name == 'display_by':
             return [ 'pdgcode', 'single' ]
-        return list(_groups[key][3]['variables'])
+        return list(_groups[key][2]['variables'])
 
     def coefficients( self, key ):
         """The correlation coefficients of the fields of the correlation plot of the
         group (for its particle type), as {(field, field) : r}, as far as
         known (see Moments.coefficients)"""
-        if key == custom_key or 'variables' not in _groups[key][3]:
+        if key == custom_key or 'variables' not in _groups[key][2]:
             return {}
         return self.found['correlations'].get(self.setting(key,'display_only'),{})
 
@@ -253,9 +253,8 @@ def title_of( key ):
     return custom_title if key == custom_key else _groups[key][0]
 
 def group_names():
-    """The keys of the standard groups, with their titles and descriptions, as
-    (key, description)"""
-    return [ ( k, f'{_groups[k][0]}: {_groups[k][1]}' ) for k in _groups ]
+    """The keys of the standard groups, with their titles, as (key, title)"""
+    return [ ( k, _groups[k][0] ) for k in _groups ]
 
 def parse_groups( text ):
     """The keys of the groups in the text (separated by commas), or None if

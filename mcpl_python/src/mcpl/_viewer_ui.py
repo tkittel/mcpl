@@ -200,7 +200,7 @@ quantity_choices = tuple( ( f'{name}:  {p.split(";")[0]}', p.split(';')[0] )
                           for name, p in quantities )
 
 #(where the groups of plots are chosen, in the viewers with windows):
-groups_hint = ( 'The groups of plots are in the list of plots: the inactive ones at the end'
+groups_hint = ( 'The groups of plots are in the list of plots: the inactive ones (in grey)'
                 ' are activated with a click' )
 
 #The titles of the examples of expressions (see _exprhelp.examples), and the

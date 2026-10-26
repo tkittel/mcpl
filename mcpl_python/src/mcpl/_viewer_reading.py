@@ -391,7 +391,7 @@ class _Computation:
         from ._stdviews import _groups
         from ._viewer_overviews import Moments
         self._moments = Moments(dict.fromkeys( v for g in _groups.values()
-                                               for v in g[3].get('variables',()) ))
+                                               for v in g[2].get('variables',()) ))
 
     def _guard( self, p, fct, *args ):
         """fct(*args), or None if the plot p failed (noting the problem)"""

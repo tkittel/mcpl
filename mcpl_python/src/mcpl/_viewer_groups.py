@@ -248,6 +248,17 @@ class PlotGroups:
             res['settings'] = { k : dict(v) for k, v in self.settings.items() if v }
         return res
 
+#The settings of groups whose values depend on the file (see setting), which
+#another file gets from its own reading:
+file_settings = ( 'display_only', 'variables' )
+
+def settings_without_file( settings ):
+    """The settings of groups (as in the state, see PlotGroups.state) without
+    those which depend on the file"""
+    res = { k : { n : v for n, v in s.items() if n not in file_settings }
+            for k, s in settings.items() }
+    return { k : s for k, s in res.items() if s }
+
 def title_of( key ):
     """The title of the group with the key"""
     return custom_title if key == custom_key else _groups[key][0]

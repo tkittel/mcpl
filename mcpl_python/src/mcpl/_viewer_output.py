@@ -28,6 +28,7 @@ import pathlib
 
 from ._common import MCPLError
 from ._stdviews import _groups, _plot_item
+from ._viewer_groups import settings_without_file
 from ._viewer_ui import plot_of
 
 
@@ -168,13 +169,17 @@ class _Output:
 
     def for_file( self, filename, particles = True ):
         """A viewer of another file, in the same state, but without skip and
-        limit (which are of this file), and without the pick and edit unless
+        limit and the settings of groups which depend on the file (which are of
+        this file, see _viewer_groups.file_settings), and without the pick and
+        edit unless
         particles is set (not for a file written with them): (viewer, message),
         with the message saying what could not be kept (e.g. a pick with fields
         of the userdata which the other file does not have), or empty"""
         drop = ( 'skip', 'limit' ) + ( () if particles else ( 'pick', 'edit' ) )
         kw = self.arguments()
         state = { k : v for k, v in kw.pop('view').items() if k not in drop }
+        if 'settings' in state:
+            state['settings'] = settings_without_file(state['settings'])
         del kw['filename']
         try:
             return type(self)(filename,view=state,**kw), ''

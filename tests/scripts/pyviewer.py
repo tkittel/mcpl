@@ -670,6 +670,12 @@ def test_range_and_userdata():
     #does not work for the other file):
     v = Viewer(fn,pick='userdata.nscat > 0',edit='z += 1m',skip=1)
     v.set('plot','ekin;bins=20')
+    #(and without the settings of groups which depend on the file):
+    for name, value in ( ( 'display_only', 2112 ), ( 'variables', [ 'x', 'y' ] ),
+                         ( 'display_by', 'single' ) ):
+        v.set_group_setting('correlations' if name == 'variables' else 'fields',name,value)
+    print('settings:', v.state()['settings'], '| for another file:',
+          v.for_file(ex)[0].state().get('settings'))
     for other, particles in ( ( ex, True ), ( fn, True ), ( fn, False ) ):
         w, msg = v.for_file(other,particles)
         print(f'for {other} (particles {particles}): pick {w.field_text("pick")!r}, edit'

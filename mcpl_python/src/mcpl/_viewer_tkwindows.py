@@ -65,7 +65,8 @@ class HelpWindow:
 def _format_help( text, blocks ):
     """Insert the help blocks (see _helptext) in the Text widget, formatted:
     sections as headings, the names and keys in bold in a column, code in a
-    fixed font, and paragraphs flowing with the width of the window"""
+    fixed font, paragraphs flowing with the width of the window, and web
+    addresses which open in a browser when clicked"""
     #(the fonts, from the default one, as (family, size, style); negative
     #sizes are in pixels):
     call = text.tk.call
@@ -107,6 +108,22 @@ def _format_help( text, blocks ):
                 else:
                     text.insert('end',c + '\n',( 'row', 'code' ),what + '\n','below')
             text.insert('end','\n')
+    _links(text)
+
+def _links( text ):
+    """Make the web addresses in the Text widget open in a browser when
+    clicked"""
+    import re
+    import webbrowser
+    text.tag_configure('link',foreground=card_colors['accent'],underline=True)
+    text.tag_bind('link','<Enter>',lambda _e : text.configure(cursor='hand2'))
+    text.tag_bind('link','<Leave>',lambda _e : text.configure(cursor=''))
+    for i, line in enumerate(text.get('1.0','end').split('\n')):
+        for m in re.finditer(r'https://[^\s]*[^\s.,)]',line):
+            tag, url = f'link{i}_{m.start()}', m.group(0)
+            for t in ( 'link', tag ):
+                text.tag_add(t,f'{i+1}.{m.start()}',f'{i+1}.{m.end()}')
+            text.tag_bind(tag,'<Button-1>',lambda _e, u=url : webbrowser.open(u))
 
 class Examples:
     """A window with examples of expressions (of _exprhelp.examples), with what

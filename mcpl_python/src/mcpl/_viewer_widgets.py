@@ -214,13 +214,14 @@ class WidgetViewer:
     def help_topics( self ):
         """The topics of the help menu of the viewers with windows, as (label,
         title, blocks, see _helptext): the viewer, the expressions of picks, edits and plots (as
-        mcpltool -p help, -E help and -H help), and the cache"""
+        mcpltool -p help, -E help and -H help), the cache, and MCPL itself"""
         from ._exprhelp import _help_blocks
         return [ ( 'The viewer', 'The viewer', ui.help_blocks ),
                  ( 'Picks (filtering particles)', 'Picks', _help_blocks('pick') ),
                  ( 'Edits (modifying particles)', 'Edits', _help_blocks('edit') ),
                  ( 'Plot expressions', 'Plot expressions', _help_blocks('hist') ),
-                 ( 'About data caching', 'Data caching', ui.cache_blocks ) ]
+                 ( 'About data caching', 'Data caching', ui.cache_blocks ),
+                 ( 'About MCPL', 'About MCPL', ui.about_blocks() ) ]
 
     def close_window( self ):
         """Close the window (on_close is then called)"""

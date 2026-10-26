@@ -28,7 +28,8 @@ __all__ = []
 
 from . import _viewer_ui as ui
 
-#Matplotlib key names, as names of _viewer_ui:
+#The colours of the styles of the texts (those of _viewer_ui, and of keys and
+#bold texts):
 _colors = { **ui.colors, 'key' : 'tab:blue', 'bold' : 'black' }
 
 class MplViewer(ui.KeyViewer):

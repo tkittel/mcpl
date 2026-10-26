@@ -117,8 +117,9 @@ class JupyterViewer:
             if field == row[-1]:
                 rows.append( t if len(row) == 1 else
                              w.HBox([ self._fields[f] for f in row ],layout=w.Layout(width='100%')) )
-        #(the text of the shown added plot, which can be changed, or emptied to
-        #remove it; shown only for added plots):
+        #(the text of the shown plot, which can be changed (a plot of a standard
+        #group is then copied into the custom group), or emptied to remove a
+        #custom plot; shown only for plots):
         self._change = w.Text(placeholder='empty: remove the plot',continuous_update=False,
                               description='This plot:',style={'description_width':'70px'},
                               layout=w.Layout(width='95%',display='none'))

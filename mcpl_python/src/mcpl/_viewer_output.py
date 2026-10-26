@@ -42,7 +42,8 @@ class _Output:
         """The state of the viewer, as a dict with what differs from the start:
         skip, limit, pick and edit (unless full is False), the groups of plots
         shown (a preset or a list of the keys of groups, if not the default
-        ones), the custom plots (plot items, see _stdviews), and the view shown
+        ones), the custom plots (plot items, see _stdviews), the settings of
+        groups which were chosen (see PlotGroups.setting), and the view shown
         (if not the first). It is given as the view argument to open the viewer
         in the same state."""
         res = {}

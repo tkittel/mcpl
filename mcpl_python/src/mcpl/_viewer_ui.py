@@ -65,8 +65,7 @@ actions = ( ( 'write', 'Write file...', ( 'w', ), 0 ),
 terminal_actions = ( ( 'gui_plot', 'Open plot in GUI', ( 'o', ), 0 ),
                      ( 'gui_viewer', 'GUI viewer', ( 'g', ), 0 ) )
 
-#The keys of the terminal for log scales of the shown plot (in windows, the
-#keys of matplotlib do this):
+#The keys for log scales of the shown plot (as the keys of matplotlib):
 scale_keys = { 'l' : 'logy', 'k' : 'logx' }
 
 #The actions asking for a file name, with the label of its field:

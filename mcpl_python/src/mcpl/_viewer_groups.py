@@ -45,9 +45,9 @@ class PlotGroups:
     of _stdviews), and the custom plots (histogram strings) with their titles.
     The extra plot items of groups are added to their plots (e.g. those of
     the fields of the userdata to the fields). The standard groups have
-    settings (see setting): the particle type of their plots, and the
-    variables of correlation plots, with defaults from what the reading of the file
-    found (see found)."""
+    settings (see setting): the particle type of their plots, what they show
+    a curve of each value of, and the variables of correlation plots, with
+    defaults from what the reading of the file found (see found)."""
     def __init__( self, extra = None ):
         self.shown = list(_presets[_default_preset][1])
         self.custom = []
@@ -241,8 +241,9 @@ class PlotGroups:
     #The state (see _viewer.Viewer.state):
 
     def state( self ):
-        """The groups shown (if not those of the default preset), and the custom
-        plots (plot items, see _stdviews)"""
+        """The groups shown (if not those of the default preset), the custom
+        plots (plot items, see _stdviews), and the settings of groups which
+        were chosen"""
         from ._stdviews import _item
         res = {}
         if set(self.shown) != set(_presets[_default_preset][1]):

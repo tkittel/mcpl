@@ -179,7 +179,7 @@ class TkViewer(WidgetViewer):
         for i, label in enumerate(self._status):
             label.grid(row=i,column=0,sticky='w')
         #(the button of the cache at the right of the name of the file, away
-        #from the pick and edit, see cache_menu):
+        #from the pick and edit, see ui.cache_menu):
         self._cache = ttk.Menubutton(main,takefocus=0,style='CacheAll.Compact.TMenubutton')
         self._cache.grid(row=0,column=0,sticky='e')
         #(the menu is kept, as the option of the button only has its name):
@@ -235,8 +235,8 @@ class TkViewer(WidgetViewer):
         self._counts.pack(side='right')
         part.master.grid(row=0,column=0,sticky='ew',pady=(2,0))
         info = { f[0] : f for f in ui.fields }
-        #(plots are added with "+ New plot", and the collection is chosen
-        #above the cards; the expressions get the width of the rows):
+        #(plots are added with "+ New plot", and groups are activated in the
+        #list of plots; the expressions get the width of the rows):
         rows = ( ( 'pick', 'skip', 'limit' ), ( 'edit', ) )
         assert sorted( f for row in rows for f in row ) == sorted(
             f for row in ui.field_rows for f in row if f not in ( 'plot', *ui.menu_fields ) )
@@ -294,7 +294,7 @@ class TkViewer(WidgetViewer):
         root.minsize(min( left.winfo_reqwidth() + self._axes[0].master.winfo_reqwidth() + 40,
                           root.winfo_screenwidth() - 40 ),
                      min( 600, root.winfo_screenheight() - 120 ))
-        self._popup = None#(the list of completions: (field, start, Toplevel, Listbox))
+        self._popup = None#(the list of completions: (field, start, Toplevel, Listbox, choices))
         root.bind('<Key>',self._on_root_key)
         root.protocol('WM_DELETE_WINDOW',self.close_window)
 

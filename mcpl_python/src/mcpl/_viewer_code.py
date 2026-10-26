@@ -127,9 +127,9 @@ _prec_or, _prec_and, _prec_bitor, _prec_bitand, _prec_cmp, _prec_add, _prec_mul,
 
 class _CTranslator:
     """Translates parsed expressions to C or C++ (lang 'c' or 'cpp'), with the
-    particle named particle, which is a pointer to mcpl_particle_t (pointer
-    'c'), the struct (pointer 'struct'), or an mcpl::Particle (pointer
-    'cpp', with its methods). Notes the headers needed (in headers)."""
+    particle named particle, which is a pointer to mcpl_particle_t (kind
+    'c'), the struct (kind 'struct'), or an mcpl::Particle (kind 'cpp', with
+    its methods). Notes the headers needed (in headers)."""
     def __init__( self, lang, particle, kind ):
         self.lang, self.particle, self.kind = lang, particle, kind
         self.headers = set()

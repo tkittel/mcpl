@@ -223,7 +223,7 @@ def _draw_panel( fig, ax, panel, compact = False, several = False ):
                                           if item.logz else None ))
                 if not compact:
                     bar = fig.colorbar(im,ax=ax)
-                    bar.ax._mcpl_colour_bar = True#(see Pane.on_colour_bar)
+                    bar.ax._mcpl_colour_bar = True#(see FigurePane.on_colour_bar)
                     if several and item.logz and _has_decade(im.norm.vmin,im.norm.vmax):
                         #(only the powers of 10 are labelled, as on the
                         #axes, see _draw_axes, since the labels of the

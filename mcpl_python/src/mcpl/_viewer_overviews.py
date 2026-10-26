@@ -196,9 +196,9 @@ def overview_figure( figures, overview, coefficients = None ):
     """The figure of the overview, from the figures of its plots (as far as they
     are available, with empty panels for the others, and None for empty
     cells), with the correlation coefficients of correlation plots (as {(field,
-    field) : r}, see Moments), or None if no plot is available. The title says what the plots are
-    (as "Fields plots: the fields of the particles"), followed by that of the
-    plots, if any."""
+    field) : r}, see Moments), or None if no plot is available. The title
+    says what the plots are (as "Fields plots: a plot of each particle field"),
+    followed by the title of the plots in parentheses, if any."""
 
     from .plotting import Correlation, Figure, NewPlot, Panel, Text
     figs = { p : figures.get(f'plot:{p}') for p in overview.plots }#(see _viewer_reading)

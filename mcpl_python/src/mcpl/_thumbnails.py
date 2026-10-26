@@ -190,7 +190,8 @@ def _correlation( img, it ):
     img[:,:] = ( ( 1 - a ) * 255 + a * tint ).round().astype(img.dtype)
 
 def _bars( img, panel, it, cycle ):
-    """A bar chart (horizontal bars with their scale on the x axis)"""
+    """A bar chart (horizontal bars with their scale on the x axis, or
+    vertical bars)"""
     from .plotting import _line_style
     h, w = img.shape[:2]
     n = len(it.values)

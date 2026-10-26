@@ -48,8 +48,8 @@ inactive_groups_title = 'Inactive plot groups'
 class Card:
     """A card of the list of views of the viewers with windows (see
     WidgetViewer.cards), which the front ends show as far as they can: the
-    name, the group (if grouped, else it is not in a group, as the
-    overview), the badges of the options of the plot, a short status for
+    name, the group (if grouped, else it is shown without a group header),
+    the badges of the options of the plot, a short status for
     compact cards (e.g. "all 0" for fields with one value, or "not in this
     file"), the problem of a plot which failed, and whether it has an image
     (see WidgetViewer.thumbnail), can be selected (shown), dragged (moved)
@@ -313,7 +313,7 @@ class WidgetViewer:
     #_viewer_ui):
 
     def on_cache_limit( self, limit ):
-        """Set the cache limit (bytes, or None for no cache, see cache_menu)"""
+        """Set the cache limit (bytes, or None for no cache, see ui.cache_menu)"""
         self.v.set_cache_limit(limit)
         self.show_line(ui.cache_line(self.v.cache_info()),'normal')
         self.refresh(plot = False)
@@ -452,7 +452,8 @@ class WidgetViewer:
     def overview_controls( self ):
         """The settings of the shown overview, if it is that of a standard group
         (else None), as a list of (name, label, choices, shown): for a menu
-        (the particle type), the texts of its choices and the chosen one, for
+        (the particle type, and what the plots show a curve of each value
+        of), the texts of its choices and the chosen one, for
         toggles (the variables of correlation plots), the texts of the toggles and
         those which are on, and for the button choosing the most correlated
         variables (or all again, if they are shown), its text"""
@@ -480,8 +481,8 @@ class WidgetViewer:
         return res
 
     def on_overview_control( self, name, shown ):
-        """A setting of the shown overview was changed: the particle type (to
-        the shown text of the menu), or a variable (the text of its toggle) was
+        """A setting of the shown overview was changed: a menu (to its shown
+        text), or a variable (the text of its toggle) was
         turned on or off, or the button (name most) choosing the variables
         with the strongest correlations, or all again, was clicked"""
         key = self._shown_group()
@@ -644,11 +645,11 @@ class WidgetViewer:
         return self.v.code(plots)
 
     def cards( self ):
-        """The views as cards (see Card), in their order, and in the default
-        collection, for files without userdata, a card for it after the other
-        fields (which is not a view), as a reminder that MCPL files can have
-        userdata, and the card of a new plot while it is made (see
-        on_new_plot)"""
+        """The views as cards (see Card), in their order, and for files without
+        userdata, a card for it after the fields (which is not a view), as a
+        reminder that MCPL files can have userdata, the card of a new plot
+        while it is made (see on_new_plot), and the inactive groups at the
+        end"""
         from .plotting import Text
         res = []
         for key, _ in self.v.views:
@@ -875,7 +876,9 @@ class WidgetViewer:
         return True
 
     def on_remove( self, key = None ):
-        """Remove the plot (the view with the key, default the shown one)"""
+        """Remove the plot (the view with the key, default the shown one), the
+        card (for cards which are not views), or for the overview of a
+        standard group, deactivate the group"""
         key = key or self.shown_key
         if key == 'info:new':
             self._new_plot = None#(given up, see on_new_plot)

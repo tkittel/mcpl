@@ -20,8 +20,8 @@
 ################################################################################
 
 """The reading of the file of the viewer (see _viewer.Viewer) in a background
-thread, computing the figures of its plots, and the fields where all particles
-have the same value."""
+thread, computing the figures of its plots, and what it finds in the file
+(see _Computation.found)."""
 
 __all__ = []
 

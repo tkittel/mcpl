@@ -23,11 +23,12 @@
 
 Each group has a key, a title, a description, its plots (fixed: changing
 one copies it into the custom group of the viewer, see _viewer_groups), and
-its overview: a grid of all its plots, or for groups of variables, a correlation plot
-(the histograms of the expressions on the diagonal, and the 2D histograms of
-each pair below it, see _viewer_overviews.correlation_cells). The presets are sets
-of groups, chosen with -wNAME (or in the viewer); the state of the viewer is
-saved as the groups which are shown and the custom plots.
+its overview: a grid of all its plots, or for groups of variables, a
+correlation plot (the histograms of the expressions on the diagonal, and the
+2D histograms of each pair below it, see
+_viewer_overviews.correlation_cells). The presets are sets of groups, chosen
+with -wNAME (or in the viewer); the state of the viewer is saved as the
+groups which are shown, their settings and the custom plots.
 
 The plots are plot items, as in the state of the viewer: a histogram string
 (as for -H), or a dict with it as "plot" and a "title" (shown instead of the

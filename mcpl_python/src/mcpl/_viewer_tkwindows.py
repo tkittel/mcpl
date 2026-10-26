@@ -155,10 +155,10 @@ class Examples:
         text.tag_bind(tag,'<Leave>',lambda _e : text.tag_remove('hover','1.0','end'))
 
 class CodeWindow:
-    """A window with the command of mcpltool, and tabs with the code (in
-    Python, C++ and C) doing the same as the viewer (see Viewer.code), each
-    with a button copying it, and optionally widgets above them (made by
-    top(frame))"""
+    """A window with the command of mcpltool, and the code (in Python, C++ or
+    C, chosen with buttons) doing the same as the viewer (see Viewer.code),
+    each with a button copying it, and optionally widgets above them (made
+    by top(frame))"""
     max_width = 130#(characters)
 
     def __init__( self, tv, title, code, top = None ):
@@ -245,7 +245,8 @@ class CodeWindow:
 
 class WriteWindow:
     """The window for writing the picked and edited particles to a new file:
-    its name, with the command and Python code doing the same"""
+    its name, with the command and the code (Python, C++ or C) doing the
+    same"""
     def __init__( self, tv ):
         self.tv = tv
         self._code = CodeWindow(tv,'Write file',tv.v.code(),top = self._top)

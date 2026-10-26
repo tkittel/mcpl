@@ -21,8 +21,9 @@
 
 """The core of the viewer of mcpltool -w (and mcpl.view), shared by all its
 front ends: the settings (Skip, Limit, Pick, Edit and the plots) with
-checking, history and completion, the views (the overview with the first
-plots, and each plot) and their figures, which are computed by reading the
+checking, history and completion, the views (each plot, and for the front
+ends which show several plots at once, the overview of each group of plots)
+and their figures, which are computed by reading the
 file in a background thread, the state of the viewer (see state()), the
 equivalent commands, and writing the picked and edited particles to a new
 file."""
@@ -162,9 +163,11 @@ class Viewer(_Output,_Reading):
 
     @property
     def found( self ):
-        """What the last reading found: the fields where all particles have the
-        same value (with the value as a text, see constants), and the particle
-        types, as (pdgcode, sum of weights), the largest first"""
+        """What the last reading found (see _viewer_reading._Computation.found):
+        the fields where all particles have the same value ('constants'), the
+        particle types as (pdgcode, sum of weights), the largest first
+        ('types'), and the correlation coefficients of the fields of
+        correlation plots ('correlations')"""
         return self._groups.found
 
     def group_setting( self, key, name ):
@@ -184,11 +187,13 @@ class Viewer(_Output,_Reading):
         return self._groups.most_correlated(key)
 
     def set_group_setting( self, key, name, value ):
-        """Set the setting of the standard group with the key (the particle type
-        as a PDG code or None for all, or the variables of a correlation plot as a
-        list of expressions, or None for the default): whether it changed"""
+        """Set the setting of the standard group with the key (see
+        PlotGroups.setting: the particle type as a PDG code or None for all,
+        display_by as pdgcode or single, or the variables of a correlation plot
+        as a list of expressions, or None for the default): whether it
+        changed"""
         if name == 'variables' and value is not None and len(value) < 2:
-            raise MCPLError('The correlations plot needs at least two variables')
+            raise MCPLError('The correlation plot needs at least two variables')
         with self._lock:
             changed = self._groups.set_setting(key,name,value)
             if changed:
@@ -882,7 +887,6 @@ def _parsed_plot( text ):
     return _parse_hist(text)
 
 @functools.lru_cache(maxsize = 4096)
-@functools.lru_cache(maxsize = 4096)
 def _plot_field( text ):
     """The field if the plot (a histogram string) is of exactly one field
     (e.g. "z" or "weight;unweighted"), else None"""
@@ -918,12 +922,11 @@ def view( filename, *, pick = None, edit = None, skip = 0, limit = None,
     file (after skipping skip particles, at most limit particles), picked with
     pick and then edited with edit (expressions, or ParticleFilter and
     ParticleEdit objects), which can all be changed in the viewer. view is the
-    name of a collection of plots to start from (e.g. 'beamz', see mcpltool
-    --full-help), the view shown first ('overview', or a plot, e.g. 'ekin'),
-    or a state of the viewer (as saved in the viewer, a .json file, or a
-    dict). In Jupyter, the viewer is a panel of ipywidgets
-    (which is returned), and otherwise it is shown in a window with
-    matplotlib, or in the terminal (always with terminal=True, or with the
+    name of a preset of groups of plots, or of a group, to start from (e.g.
+    'beamz', see mcpltool --full-help), the view shown first ('overview', or
+    a plot, e.g. 'ekin'), or a state of the viewer (as saved in the viewer, a
+    .json file, or a dict). In Jupyter, the viewer is shown as a panel of
+    widgets, and otherwise it is shown in a window with matplotlib, or in the terminal (always with terminal=True, or with the
     given plotting backend), until it is closed."""
     from ._plotbackend import _create, _viewer_backend
     def text( e ):

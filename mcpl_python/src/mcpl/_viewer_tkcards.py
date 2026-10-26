@@ -294,7 +294,7 @@ class CardList:
 
     def _on_menu( self, event ):
         """A menu for the card: show or remove it (as far as it allows it), or
-        for the header of a group: show it as an overview"""
+        for the header of a standard group: deactivate the group"""
         tk, _ = tk_modules()
         s = self._slot(event)
         key = self.tv.group_key(s[3]) if s is not None and s[2] == 'header' else None

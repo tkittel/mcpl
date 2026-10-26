@@ -341,12 +341,23 @@ def test_layouts():
                     'x:', ':int8', 'X:int8', 'x-y:int8', 'x:int9', 'x:int8,',
                     'x:int8,x:int16', 'x:int8[0]', 'x:int8[03]', 'x:int8[3',
                     'x:uint8[65536]', 'x:uint8[65535],y:int8', 'x :int8',
-                    'a'*65+':int8', 'x:float64[8192]' ]:
+                    'a'*65+':int8', 'x:float64[8192]',
+                    #(units, as in the test of the C API, app_errstate):
+                    'a:float32:cm', 'a:float64:MeV,b:float32:ms,c:float32:K,d:float32:deg',
+                    'a:float32[3]:cm', 'a:float64:cm^2.MeV', 'a:float64:MeV^-1',
+                    'a:float64:cm.ms^-1', 'a:float64:cm^-9.MeV^9.ms.K^2.deg^-1', 'a:int32:K',
+                    'a:float32:', 'a:float32:m', 'a:float32:CM', 'a:float32:cm.cm',
+                    'a:float32:MeV.cm', 'a:float32:cm^1', 'a:float32:cm^0', 'a:float32:cm^-0',
+                    'a:float32:cm^10', 'a:float32:cm^', 'a:float32:cm^-', 'a:float32:cm.',
+                    'a:float32:.cm', 'a:float32:cm..MeV', 'a:float32:cm*MeV', 'a:float32:cm/ms',
+                    'a:float32:cm:MeV', 'a:float32[3:cm', 'a:float32:cm[3]' ]:
         try:
             dt = userdata_dtype(layout)
             print(f'{layout!r}: size {dt.itemsize}')
         except mcpl.MCPLError as e:
             print(f'{layout!r}: MCPLError: {e}')
+    from mcpldev._userdata import userdata_units
+    print('units:', userdata_units('temp:float32:K,n:int32,dir:float32[3]:cm,q:float64:cm^-1'))
 
 def main():
     make_inputs()

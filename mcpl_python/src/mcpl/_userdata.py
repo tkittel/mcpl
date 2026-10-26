@@ -20,8 +20,9 @@
 ################################################################################
 
 """Per-particle userdata (MCPL format version 4): parsing of layouts like
-"temp:float32,origin:int32,tags:uint8[3]" (with the same rules and error
-messages as the C library), and the corresponding numpy dtypes."""
+"temp:float32:K,origin:int32,tags:uint8[3]" (with the same rules and error
+messages as the C library), the corresponding numpy dtypes, and the units of
+the fields."""
 
 __all__ = []
 
@@ -34,6 +35,34 @@ _types = { 'int8' : 'i1', 'uint8' : 'u1', 'int16' : 'i2', 'uint16' : 'u2',
            'int32' : 'i4', 'uint32' : 'u4', 'int64' : 'i8', 'uint64' : 'u8',
            'float32' : 'f4', 'float64' : 'f8' }
 _cache = {}
+#The units of fields (in this order, each at most once, separated by dots,
+#with powers like cm^2 or MeV^-1):
+_units = ( 'cm', 'MeV', 'ms', 'K', 'deg' )
+_unit_list = 'the units are cm, MeV, ms, K and deg, like cm^2.MeV'
+_power_error = ( 'invalid power (powers are single digits from 2 to 9 or -1 to'
+                 ' -9, like cm^2 or MeV^-1)' )
+
+def _unit_error( unit ):
+    """Reason for a unit of a field being invalid (or None if it is valid)"""
+    last = -1
+    for factor in unit.split('.'):
+        name, caret, power = factor.partition('^')
+        if not name:
+            return f'empty unit ({_unit_list})'
+        if name not in _units:
+            return f'unknown unit ({_unit_list})'
+        i = _units.index(name)
+        if i == last:
+            return 'each unit can appear only once'
+        if i < last:
+            return f'the units must be in the order {", ".join(_units)}'
+        last = i
+        if caret:
+            digit = power.removeprefix('-')
+            if ( len(digit) != 1 or not '1' <= digit <= '9'
+                 or ( digit == '1' and not power.startswith('-') ) ):
+                return _power_error
+    return None
 
 def _parse_error( layout ):
     """Reason for a layout being invalid (or None if it is valid)"""
@@ -57,6 +86,7 @@ def _parse_error( layout ):
                     for c in name[1:] ):
             return ( 'field names must only contain lowercase letters,'
                      ' digits and underscores' )
+        typespec, colon2, unit = typespec.partition(':')
         tname, bracket, arr = typespec.partition('[')
         if tname not in _types:
             return ( 'unknown type (must be one of int8, uint8, int16, uint16,'
@@ -70,6 +100,10 @@ def _parse_error( layout ):
             count = int(digits)
             if count > _maxsize:
                 return 'too large userdata (at most 65535 bytes are allowed)'
+        if colon2:
+            err = _unit_error(unit)
+            if err:
+                return err
         if name in names:
             return 'duplicate field name'
         names.add(name)
@@ -84,7 +118,7 @@ def userdata_fields( layout ):
     res = []
     for fld in layout.split(','):
         name, _, typespec = fld.partition(':')
-        tname, bracket, arr = typespec.partition('[')
+        tname, bracket, arr = typespec.partition(':')[0].partition('[')
         res.append( ( name, tname, int(arr[:-1]) if bracket else None ) )
     return res
 
@@ -103,6 +137,16 @@ def userdata_dtype( layout ):
                                          ( name, _types[t], ( n, ) )
                                          for name, t, n in userdata_fields(layout) ])
     return dt
+
+def userdata_units( layout ):
+    """The units of the fields of the layout, as {name : unit}, with None for
+    fields without a unit (e.g. {'temp': 'K', 'n': None})"""
+    userdata_dtype(layout)#(checks the layout)
+    res = {}
+    for fld in layout.split(','):
+        name, _, typespec = fld.partition(':')
+        res[name] = typespec.partition(':')[2] or None
+    return res
 
 def userdata_array( value, layout, what = 'userdata' ):
     """Convert userdata given as a dict of field values (e.g. {'temp':temps})

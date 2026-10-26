@@ -118,16 +118,21 @@ def test_options_of_file():
 
 def test_userdata():
     with mcpl.MCPLOutFile('ud.mcpl') as o:
-        o.enable_userdata('temp:float32,tags:uint8[3],big:uint64,id:int16,x:float64')
+        o.enable_userdata('temp:float32:K,tags:uint8[3],big:uint64,id:int16,x:float64:cm,'
+                          'dir:float32[2]:deg,q:float64:cm^-1.MeV')
         for i in range(5):
             o.add_particle( pdgcode = 2112, ekin = 1e-9*(i+1),
                             position = (i,0,0), direction = (0,0,1),
                             userdata = { 'temp' : 300+i, 'tags' : [i,i+1,i+2],
                                          'big' : 2**40+i, 'id' : -i,
-                                         'x' : 0.5*i } )
+                                         'x' : 0.5*i, 'dir' : [i,-i], 'q' : 2.0*i } )
     da = mcpl.MCPLFile('ud.mcpl').to_scipp()
     c = da.coords
-    assert c['temp'].dtype == sc.DType.float32 and c['temp'].unit is None
+    #(with the units of the fields, if any):
+    assert c['temp'].dtype == sc.DType.float32 and c['temp'].unit == sc.Unit('K')
+    assert c['tags_0'].unit is None and c['userdata_x'].unit == sc.Unit('cm')
+    assert c['dir_1'].unit == sc.Unit('deg') and list(c['dir_1'].values) == [ -i for i in range(5) ]
+    assert c['q'].unit == sc.Unit('MeV') / sc.Unit('cm')
     assert list(c['temp'].values) == [300,301,302,303,304]
     for j in range(3):
         assert list(c[f'tags_{j}'].values) == [ i+j for i in range(5) ]

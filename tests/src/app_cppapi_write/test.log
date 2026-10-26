@@ -71,10 +71,11 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
     2          22           3           0           0           0           0           0           1           0
 
 ==> Userdata with add_userdata_field:
-layout before adding particles: "a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32,k:float64,dir:float32[3],tags:uint8[4],ids:int64[2]"
+layout before adding particles: "a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32:K,k:float64,dir:float32[3]:cm,tags:uint8[4],ids:int64[2]"
 offsets: 0 1 2 4 6 10 14 22 30 34 42 54 58
-userdata_field<double>("j") -> mcpl::Error: mcpl_userdata_offset("a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32,k:float64,dir:float32[3],tags:uint8[4],ids:int64[2]","j","float64"): field has a different type in the userdata layout
-after new_particle(): userdata_size()=74 layout="a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32,k:float64,dir:float32[3],tags:uint8[4],ids:int64[2]"
+userdata_field<double>("j") -> mcpl::Error: mcpl_userdata_offset("a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32:K,k:float64,dir:float32[3]:cm,tags:uint8[4],ids:int64[2]","j","float64"): field has a different type in the userdata layout
+add_userdata_field<float>("x","m") -> mcpl::Error: Invalid userdata layout "a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32:K,k:float64,dir:float32[3]:cm,tags:uint8[4],ids:int64[2],x:float32:m": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+after new_particle(): userdata_size()=74 layout="a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32:K,k:float64,dir:float32[3]:cm,tags:uint8[4],ids:int64[2]"
 dir set element 3 -> std::out_of_range: userdata array index out of range
 dir(p,3) -> std::out_of_range: userdata array index out of range
 Opened MCPL file ud1.mcpl:
@@ -82,7 +83,7 @@ Opened MCPL file ud1.mcpl:
   Basic info
     Format             : MCPL-4
     No. of particles   : 3
-    Header storage     : 190 bytes
+    Header storage     : 195 bytes
     Data storage       : 330 bytes
 
   Custom meta data
@@ -93,7 +94,7 @@ Opened MCPL file ud1.mcpl:
   Particle data format
     User flags         : no
     Polarisation info  : no
-    User data          : 74 bytes (layout "a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32,k:float64,dir:float32[3],tags:uint8[4],ids:int64[2]")
+    User data          : 74 bytes (layout "a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32:K,k:float64,dir:float32[3]:cm,tags:uint8[4],ids:int64[2]")
     Fixed part. type   : no
     Fixed part. weight : no
     FP precision       : single

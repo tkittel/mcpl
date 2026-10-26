@@ -673,6 +673,15 @@ static void test_layouts(void)
     "a:float64[8192]", "a:uint8[99999999999999999999]",
     "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcd:int8",
     "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcde:int8",
+    /* units: */
+    "a:float32:cm", "a:float64:MeV,b:float32:ms,c:float32:K,d:float32:deg",
+    "a:float32[3]:cm", "a:float64:cm^2.MeV", "a:float64:MeV^-1",
+    "a:float64:cm.ms^-1", "a:float64:cm^-9.MeV^9.ms.K^2.deg^-1", "a:int32:K",
+    "a:float32:", "a:float32:m", "a:float32:CM", "a:float32:cm.cm",
+    "a:float32:MeV.cm", "a:float32:cm^1", "a:float32:cm^0", "a:float32:cm^-0",
+    "a:float32:cm^10", "a:float32:cm^", "a:float32:cm^-", "a:float32:cm.",
+    "a:float32:.cm", "a:float32:cm..MeV", "a:float32:cm*MeV", "a:float32:cm/ms",
+    "a:float32:cm:MeV", "a:float32[3:cm", "a:float32:cm[3]",
   };
   for ( size_t i = 0; i < sizeof(layouts)/sizeof(layouts[0]); ++i )
     check_layout(layouts[i]);
@@ -688,6 +697,10 @@ static void test_layouts(void)
   check_offset(l,NULL,"float32");
   check_offset(l,"temp",NULL);
   check_offset("a:int9","a","int9");
+  /* the types of fields with units are without the units: */
+  check_offset("temp:float32:K,dir:float32[3]:cm","temp","float32");
+  check_offset("temp:float32:K,dir:float32[3]:cm","dir","float32[3]");
+  check_offset("temp:float32:K,dir:float32[3]:cm","temp","float32:K");
   check_offset(NULL,"a","int8");
 }
 

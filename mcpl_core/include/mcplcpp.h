@@ -1636,22 +1636,25 @@ namespace mcpl {
     /**
      * @brief Add a field to the userdata.
      *
-     * For example `add_userdata_field<float>("temp")` for a field `temp:float32`, or `add_userdata_field<float,3>("dir")` for `dir:float32[3]`. Fields are added one at a time, and the layout is fixed when the first particle is added (or new_particle() is called), after which no fields can be added.
+     * For example `add_userdata_field<float>("temp","K")` for a field `temp:float32:K`, or `add_userdata_field<float,3>("dir")` for `dir:float32[3]`. Fields are added one at a time, and the layout is fixed when the first particle is added (or new_particle() is called), after which no fields can be added.
      *
      * @tparam T Type of the values of the field.
      * @tparam N Number of values of array fields (0 for single values).
      * @param name Name of the field.
+     * @param unit Unit of the values (e.g. `"cm"` or `"MeV^-1"`), or empty for none.
      * @return The field object for setting the values.
-     * @throws mcpl::Error for invalid names, or after the layout is fixed.
+     * @throws mcpl::Error for invalid names or units, or after the layout is fixed.
      */
     template<class T, std::size_t N = 0>
-    UserdataField<T,N> add_userdata_field( std::string_view name )
+    UserdataField<T,N> add_userdata_field( std::string_view name, std::string_view unit = {} )
     {
       h();
       if ( m_layout_locked || mcpl_outfile_userdata_layout( m_f ) )
         detail::throw_runtime( "userdata fields can not be added after the"
                                " userdata layout is fixed" );
       std::string field = std::string(name) + ":" + detail::ud_type_str<T,N>();
+      if ( !unit.empty() )
+        field += ":" + std::string(unit);
       std::string layout = m_pending_layout.empty()
         ? field : m_pending_layout + "," + field;
       detail::ErrState es;
@@ -1669,7 +1672,7 @@ namespace mcpl {
     /**
      * @brief Give the whole userdata layout at once (instead of add_userdata_field).
      *
-     * @param layout The layout, like `"temp:float32,dir:float32[3]"`.
+     * @param layout The layout, like `"temp:float32:K,dir:float32[3]"`.
      */
     void enable_userdata( std::string_view layout )
     {

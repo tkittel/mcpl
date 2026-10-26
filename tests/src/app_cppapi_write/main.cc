@@ -180,9 +180,9 @@ namespace {
       auto g = f.add_userdata_field<std::uint32_t>("g");
       auto h = f.add_userdata_field<std::int64_t>("h");
       auto i = f.add_userdata_field<std::uint64_t>("i");
-      auto j = f.add_userdata_field<float>("j");
+      auto j = f.add_userdata_field<float>("j","K");
       auto k = f.add_userdata_field<double>("k");
-      auto dir = f.add_userdata_field<float,3>("dir");
+      auto dir = f.add_userdata_field<float,3>("dir","cm");
       auto tags = f.add_userdata_field<std::uint8_t,4>("tags");
       auto ids = f.add_userdata_field<std::int64_t,2>("ids");
       std::cout << "layout before adding particles: \"" << f.userdata_layout()
@@ -197,6 +197,8 @@ namespace {
       require( j2.offset() == j.offset(), "lookup of field" );
       expect_throw( "userdata_field<double>(\"j\")",
                     [&]{ f.userdata_field<double>("j"); } );
+      expect_throw( "add_userdata_field<float>(\"x\",\"m\")",
+                    [&]{ f.add_userdata_field<float>("x","m"); } );
       auto p = f.new_particle();
       std::cout << "after new_particle(): userdata_size()="
                 << p.userdata_size() << " layout=\"" << f.userdata_layout()

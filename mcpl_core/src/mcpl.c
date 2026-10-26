@@ -419,8 +419,9 @@ typedef struct MCPL_LOCAL {
   uint64_t writtenpos;
 } mcpl_internal_statsuminfo_t;
 
-//Parsing of userdata layouts like "temp:float32,origin:int32,tags:uint8[3]"
-//(names are required, to avoid mixing up data with the same types):
+//Parsing of userdata layouts like "temp:float32:K,origin:int32,tags:uint8[3]"
+//(names are required, to avoid mixing up data with the same types, and the
+//units are optional):
 
 #define MCPLIMP_USERDATA_MAXSIZE 65535
 #define MCPLIMP_USERDATA_MAXNAMELENGTH 64
@@ -430,6 +431,8 @@ typedef struct {
   size_t lname;
   const char * typespec;//e.g. "float32[3]", not null-terminated
   size_t ltypespec;
+  const char * unit;//e.g. "MeV.cm^2", not null-terminated (NULL if none)
+  size_t lunit;
   unsigned typesize;
   uint32_t offset;
 } mcpl_internal_udfield_t;
@@ -444,6 +447,52 @@ MCPL_LOCAL unsigned mcpl_internal_udtype_size( const char * t, size_t n )
     if ( strlen(names[i]) == n && strncmp( names[i], t, n ) == 0 )
       return sizes[i];
   return 0;
+}
+
+//Checks the unit of a field (n characters at u): base units in the order
+//cm, MeV, ms, K, deg, each at most once, separated by dots, each with an
+//optional power of a single non-zero digit (not 1), possibly negative (e.g.
+//"MeV.cm^2" is not valid, but "cm^2.MeV" and "MeV^-1" are). Returns an error
+//message, or NULL if the unit is valid:
+MCPL_LOCAL const char * mcpl_internal_udunit_problem( const char * u, size_t n )
+{
+  static const char * names[5] = { "cm", "MeV", "ms", "K", "deg" };
+  const char * end = u + n;
+  int last = -1;
+  while ( 1 ) {
+    const char * q = u;
+    while ( q < end && *q != '.' && *q != '^' )
+      ++q;
+    if ( q == u )
+      return "empty unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)";
+    int idx = -1;
+    for ( int i = 0; i < 5; ++i )
+      if ( strlen(names[i]) == (size_t)(q-u) && strncmp( names[i], u, (size_t)(q-u) ) == 0 )
+        idx = i;
+    if ( idx < 0 )
+      return "unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)";
+    if ( idx == last )
+      return "each unit can appear only once";
+    if ( idx < last )
+      return "the units must be in the order cm, MeV, ms, K, deg";
+    last = idx;
+    if ( q < end && *q == '^' ) {
+      ++q;
+      int neg = ( q < end && *q == '-' );
+      if ( neg )
+        ++q;
+      if ( q >= end || *q < '1' || *q > '9' || ( *q == '1' && !neg ) )
+        return ( "invalid power (powers are single digits from 2 to 9"
+                 " or -1 to -9, like cm^2 or MeV^-1)" );
+      ++q;
+    }
+    if ( q == end )
+      return NULL;
+    if ( *q != '.' )
+      return ( "invalid power (powers are single digits from 2 to 9"
+               " or -1 to -9, like cm^2 or MeV^-1)" );
+    u = q + 1;
+  }
 }
 
 //Parses the layout, returning an error message (or NULL if valid). If fields
@@ -474,6 +523,13 @@ MCPL_LOCAL const char * mcpl_internal_udlayout_parse( const char * layout,
     fld.lname = (size_t)(colon-c);
     fld.typespec = colon + 1;
     fld.ltypespec = (size_t)(fend - fld.typespec);
+    //optional unit, after a second colon:
+    const char * colon2 = (const char*)memchr( fld.typespec, ':', fld.ltypespec );
+    fld.unit = colon2 ? colon2 + 1 : NULL;
+    fld.lunit = colon2 ? (size_t)(fend - fld.unit) : 0;
+    if ( colon2 )
+      fld.ltypespec = (size_t)(colon2 - fld.typespec);
+    const char * tend = fld.typespec + fld.ltypespec;
     if ( fld.lname == 0 )
       return "empty field name";
     if ( fld.lname > MCPLIMP_USERDATA_MAXNAMELENGTH )
@@ -497,16 +553,21 @@ MCPL_LOCAL const char * mcpl_internal_udlayout_parse( const char * layout,
     uint64_t count = 1;
     if ( bracket ) {
       const char * d = bracket + 1;
-      if ( d >= fend || *d < '1' || *d > '9' || fend[-1] != ']' )
+      if ( d >= tend || *d < '1' || *d > '9' || tend[-1] != ']' )
         return "invalid array size (must be like [3])";
       count = 0;
-      for ( ; d < fend - 1; ++d ) {
+      for ( ; d < tend - 1; ++d ) {
         if ( *d < '0' || *d > '9' )
           return "invalid array size (must be like [3])";
         count = count * 10 + (uint64_t)(*d - '0');
         if ( count > MCPLIMP_USERDATA_MAXSIZE )
           return "too large userdata (at most 65535 bytes are allowed)";
       }
+    }
+    if ( fld.unit ) {
+      const char * uerr = mcpl_internal_udunit_problem( fld.unit, fld.lunit );
+      if ( uerr )
+        return uerr;
     }
     //unique names:
     if ( fields ) {

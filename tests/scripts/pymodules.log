@@ -11,13 +11,13 @@ Modules of the mcpl package and their imports from the package:
   layer   1 : _exprrotation        <- _numpy
   layer   1 : _exprsyntax          <- _common
   layer   1 : _physics             <- _common, _numpy, _particles, constants
-  layer   1 : _scipp               <- _common, _messages, _numpy
   layer   1 : _statsum             <- _common
   layer   1 : _termcolor           <- _common
   layer   1 : _userdata            <- _common, _numpy
   layer   1 : _viewer_ui           <- _common, _helptext, _stdviews
   layer   2 : _blocks              <- _common, _numpy, _physics
   layer   2 : _exprcore            <- _common, _exprsyntax, _numpy, _particles, _physics
+  layer   2 : _scipp               <- _common, _messages, _numpy, _userdata
   layer   3 : _expressions         <- _common, _exprcore, _exprrotation, _exprsyntax, _numpy, _particles, _physics
   layer   4 : _exprplot            <- _common, _exprcore, _expressions, _exprsyntax, _numpy
   layer   4 : _reader              <- _blocks, _common, _expressions, _messages, _numpy, _scipp, _statsum, _userdata

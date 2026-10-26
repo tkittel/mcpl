@@ -61,6 +61,10 @@ def _int_coord_values( a, name ):
         return a.astype(np.int32)
     return a
 
+def _scipp_unit( sc, unit ):
+    """The scipp unit of a unit of a userdata field (e.g. "cm^2.MeV"), or None"""
+    return None if unit is None else sc.Unit(unit.replace('.','*').replace('^','**'))
+
 def _unit_of_dim( sc, d ):
     """scipp unit of a quantity with dimension d (powers of length, energy and
     time, in which the values are in the units of MCPL: cm, MeV and ms)."""
@@ -85,6 +89,7 @@ class _Columns:
         self._vectors, self._variances, self._dim = vectors, variances, dim
         self._cols = {}
         self._dims = {}
+        self._udunits = {}#(the units of the userdata fields, see userdata_units)
 
     def add_block( self, b ):
         cols = self._cols
@@ -111,6 +116,9 @@ class _Columns:
         if self._hasuf(b):
             add('userflags',b.userflags)
         ud = b.userdata
+        if ud is not None and not self._udunits:
+            from ._userdata import userdata_units
+            self._udunits = userdata_units(b._udinfo[0])
         if ud is not None:
             for field in ud.dtype.names:
                 v = ud[field]
@@ -162,9 +170,10 @@ class _Columns:
                     name = newname
                 if v.dtype.kind in 'iub':
                     v = _int_coord_values(v,name)
-                #(the units of userdata are not known):
+                #(with the unit of the field in the layout, if any):
+                unit = self._udunits.get(parts[1])
                 addcoord( name, sc.array( dims = [dim], values = v,
-                                          unit = None ) )
+                                          unit = _scipp_unit(sc,unit) ) )
             elif k.startswith('expr:'):
                 name = k[5:]
                 addcoord( name, sc.array( dims = [dim], values = v,

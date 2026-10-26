@@ -54,7 +54,7 @@ layers = {
     '_physics' : 1,
     '_statsum' : 1,
     '_userdata' : 1,
-    '_scipp' : 1,
+    '_scipp' : 2,
     '_termcolor' : 1,
     '_blocks' : 2,
     '_exprsyntax' : 1,

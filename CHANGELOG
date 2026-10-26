@@ -96,6 +96,12 @@ v2.2.9  (work in progress)
         files with other values are refused by the C and Python readers, as
         are files with null characters in strings (now also refused by the
         Python reader and writer).
+      * Fields of userdata layouts can have units, as in "temp:float32:K" or
+        "q:float64:cm^-1.MeV": cm, MeV, ms, K and deg, in this order, each at
+        most once, separated by dots, with powers like cm^2 or MeV^-1. Other
+        units make the layout invalid. mcpl-python gives the units to scipp
+        (MCPLFile.to_scipp), and C++ fields get them with
+        add_userdata_field<float>("temp","K").
       * Userdata is optional in MCPL format version 4, signalled by 0x2 in the
         userflags field of the header (which also holds 0x1 if userflags are
         enabled). Only with userdata does the header contain the userdata

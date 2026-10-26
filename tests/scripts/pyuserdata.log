@@ -1324,3 +1324,31 @@ pyexample.mcpl: format version 4, userdata layout "temp:float32,nscat:uint32,vol
 'x :int8': MCPLError: Invalid userdata layout "x :int8": field names must only contain lowercase letters, digits and underscores
 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:int8': MCPLError: Invalid userdata layout "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:int8": too long field name
 'x:float64[8192]': MCPLError: Invalid userdata layout "x:float64[8192]": too large userdata (at most 65535 bytes are allowed)
+'a:float32:cm': size 4
+'a:float64:MeV,b:float32:ms,c:float32:K,d:float32:deg': size 20
+'a:float32[3]:cm': size 12
+'a:float64:cm^2.MeV': size 8
+'a:float64:MeV^-1': size 8
+'a:float64:cm.ms^-1': size 8
+'a:float64:cm^-9.MeV^9.ms.K^2.deg^-1': size 8
+'a:int32:K': size 4
+'a:float32:': MCPLError: Invalid userdata layout "a:float32:": empty unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+'a:float32:m': MCPLError: Invalid userdata layout "a:float32:m": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+'a:float32:CM': MCPLError: Invalid userdata layout "a:float32:CM": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+'a:float32:cm.cm': MCPLError: Invalid userdata layout "a:float32:cm.cm": each unit can appear only once
+'a:float32:MeV.cm': MCPLError: Invalid userdata layout "a:float32:MeV.cm": the units must be in the order cm, MeV, ms, K, deg
+'a:float32:cm^1': MCPLError: Invalid userdata layout "a:float32:cm^1": invalid power (powers are single digits from 2 to 9 or -1 to -9, like cm^2 or MeV^-1)
+'a:float32:cm^0': MCPLError: Invalid userdata layout "a:float32:cm^0": invalid power (powers are single digits from 2 to 9 or -1 to -9, like cm^2 or MeV^-1)
+'a:float32:cm^-0': MCPLError: Invalid userdata layout "a:float32:cm^-0": invalid power (powers are single digits from 2 to 9 or -1 to -9, like cm^2 or MeV^-1)
+'a:float32:cm^10': MCPLError: Invalid userdata layout "a:float32:cm^10": invalid power (powers are single digits from 2 to 9 or -1 to -9, like cm^2 or MeV^-1)
+'a:float32:cm^': MCPLError: Invalid userdata layout "a:float32:cm^": invalid power (powers are single digits from 2 to 9 or -1 to -9, like cm^2 or MeV^-1)
+'a:float32:cm^-': MCPLError: Invalid userdata layout "a:float32:cm^-": invalid power (powers are single digits from 2 to 9 or -1 to -9, like cm^2 or MeV^-1)
+'a:float32:cm.': MCPLError: Invalid userdata layout "a:float32:cm.": empty unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+'a:float32:.cm': MCPLError: Invalid userdata layout "a:float32:.cm": empty unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+'a:float32:cm..MeV': MCPLError: Invalid userdata layout "a:float32:cm..MeV": empty unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+'a:float32:cm*MeV': MCPLError: Invalid userdata layout "a:float32:cm*MeV": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+'a:float32:cm/ms': MCPLError: Invalid userdata layout "a:float32:cm/ms": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+'a:float32:cm:MeV': MCPLError: Invalid userdata layout "a:float32:cm:MeV": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+'a:float32[3:cm': MCPLError: Invalid userdata layout "a:float32[3:cm": invalid array size (must be like [3])
+'a:float32:cm[3]': MCPLError: Invalid userdata layout "a:float32:cm[3]": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+units: {'temp': 'K', 'n': None, 'dir': 'cm', 'q': 'cm^-1'}

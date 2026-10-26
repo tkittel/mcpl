@@ -566,7 +566,7 @@ Figure 1 (1x1): None
    | │exp(      exponential (a without unit)│
    | └──────────────────────────────────────┘
 ==> keys ['WAIT', 'p', 'p', 'd', 'g', 'c', 'o', 'd', 'e', ' ', '=', '=', ' ', 'n', 'e', 'u', 'WAIT']:
-   ascii backend, only ASCII characters: True | selected view: ['> pdgcode;bar;logy=auto        p (2212) (0.99%) |# 10']
+   ascii backend, only ASCII characters: True | selected view: ['> pdgcode;bar;logy=auto        p (2212) (0.99%) |################### 10']
 ANSI segments: [('ab', None, None), ('cd', 1, None), ('e', None, None), ('f', 2, 1)]
 mcpltool -w -S: exit code 1
    | ERROR: -w and -S can not be used together.

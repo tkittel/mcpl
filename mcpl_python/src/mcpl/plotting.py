@@ -68,6 +68,11 @@ def _line_style( color ):
     StepHist): 10 colours with solid lines, then dashed, then dotted"""
     return color % 10, ( 'solid', 'dashed', 'dotted' )[ ( color // 10 ) % 3 ]
 
+def _item_color( item, k ):
+    """The colour index of the item (a curve, points or bars) which is the k-th
+    of its panel: its color, by default k"""
+    return item.color if item.color is not None else k
+
 class StepHist:
     """1D histogram drawn as a step line. The bin edges have one more entry
     than the values. The color is an index into the colour cycle of the
@@ -172,6 +177,9 @@ class Figure:
         self.title = title
         self.panels = list(panels or [])
         self.nrows, self.ncols = nrows, ncols
+        #(internal: whether it is a correlation plot of the viewer, whose
+        #panels share their axes, see _viewer_overviews.overview_figure):
+        self._correlation_plot = False
     def add( self, panel ):
         """Add a panel to the figure, and return it"""
         self.panels.append(panel)

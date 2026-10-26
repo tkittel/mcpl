@@ -28,7 +28,7 @@ from typing import ClassVar
 
 from ._numpy import np
 from ._plotbackend import PlotBackend
-from .plotting import Bars, Hist2D, Scatter3D, StepHist, Text
+from .plotting import Bars, Correlation, Hist2D, NewPlot, Scatter3D, StepHist, Text
 
 
 def _fmt( x ):
@@ -55,6 +55,10 @@ def _describe_item( item ):
         return ( f'Scatter3D label={item.label!r} color={item.color} points={len(item.x)}'
                  + ''.join( f' {n}=[{_fmt(min(v))},{_fmt(max(v))}]' for n, v in
                             ( ('x',item.x), ('y',item.y), ('z',item.z) ) if len(v) ) )
+    if isinstance(item,Correlation):
+        return f'Correlation {item.value!r}'
+    if isinstance(item,NewPlot):
+        return f'NewPlot {item.text!r}'
     assert isinstance(item,Text)
     return f'Text {item.text!r}'
 

@@ -355,15 +355,10 @@ class JupyterViewer:
             self._right.children = ( self._right.children[0], shown )
 
 def _png( figure ):
-    """The figure drawn with matplotlib, as PNG data"""
-    import io
-
-    from ._plotbackend_mpl import Backend
-    bk = Backend.__new__(Backend)#(no pyplot needed for drawing figures to files)
-    f = bk._draw(figure,saving=True,logo=False)#(the logo is above the views)
-    out = io.BytesIO()
-    f.savefig(out,format='png',dpi=80)
-    return out.getvalue()
+    """The figure drawn with matplotlib, as PNG data (without the logo, which is
+    above the views)"""
+    from ._plotbackend_mpl import figure_png
+    return figure_png(figure)
 
 def run_viewer( viewer, backend = None ):
     """Show the viewer in Jupyter (returns the JupyterViewer)"""

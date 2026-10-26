@@ -88,13 +88,14 @@ _plot_wl_range = ( 0.5e-3, 5e3 )
 def _plot_unit( dim, lo, hi, log = False, wavelength = False ):
     """The unit for showing values with the dimension dim from lo to hi (in the
     units of MCPL), as (text, scale), where scale is the size of the unit in the
-    units of MCPL (values are divided by it), or None for values without units.
+    units of MCPL (values are divided by it), or (None, 1.0) for values without
+    units.
     For a single base dimension (with a power, as for x^2 or sqrt(ekin)):
     wavelengths from 0.5e-3 to 5e3 Aa are in Aa, logarithmic axes are in m, eV
     or s, and linear axes in the largest unit in which the largest absolute
     value is at least 1. Other dimensions are in the units of MCPL."""
     if dim is None:
-        return None
+        return None, 1.0
     powers = [ ( i, e ) for i, e in enumerate(dim) if e ]
     def text( units ):
         return '*'.join( units[i] + ( '' if e == 1 else f'^{e!r}' ) for i, e in powers )

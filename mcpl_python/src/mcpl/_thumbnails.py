@@ -88,6 +88,7 @@ def _panel( img, panel ):
         NewPlot,
         Scatter3D,
         StepHist,
+        _item_color,
         _line_style,
     )
     cycle, lut = _colors()
@@ -114,7 +115,7 @@ def _panel( img, panel ):
             y = np.where(inside,_scaled(top,panel.logy,ylo,yhi),np.nan)
             rows = np.where(np.isfinite(y),np.clip(( h - 2 ) * ( 1 - y ),0,h - 1),h - 1).round().astype(int)
             rows[~inside] = -1
-            color = cycle[_line_style(it.color if it.color is not None else i)[0]]
+            color = cycle[_line_style(_item_color(it,i))[0]]
             prev = None
             for x, row in enumerate(rows):
                 if row < 0:
@@ -139,7 +140,7 @@ def _panel( img, panel ):
             cols = np.clip(( u * ( w - 1 ) ).round(),0,w - 1).astype(int)
             rows = np.clip(( ( 1 - v ) * ( h - 1 ) ).round(),0,h - 1).astype(int)
             ok = np.isfinite(u) & np.isfinite(v)
-            img[rows[ok],cols[ok]] = cycle[_line_style(it.color if it.color is not None else i)[0]]
+            img[rows[ok],cols[ok]] = cycle[_line_style(_item_color(it,i))[0]]
     for it in panel.items:
         if isinstance(it,Hist2D):
             v = np.asarray(it.values,dtype=float)

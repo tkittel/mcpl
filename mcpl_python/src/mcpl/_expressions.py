@@ -121,8 +121,10 @@ class ParticleFilter:
     (and, or, not), bitwise &, | and ~ on integers (e.g. on userflags, as in
     "userflags & 0x10", where integers which are not 0 are true), functions
     (sqrt, abs, floor, ceil, exp, log, log10, sin, cos, tan, asin, acos,
-    atan, atan2, hypot, min, max, clamp, and mod(a,b) for the remainder of the
-    division of integers), vectors (pos, dir and pol for the position,
+    atan, atan2, hypot, min, max, clamp, round, and mod(a,b) for the remainder
+    of the division of integers), the fields of the userdata of particles
+    (userdata.NAME, and userdata.NAME.at(INDEX) for the values of arrays),
+    vectors (pos, dir and pol for the position,
     direction and polarisation, of which x is an alias of pos.x or pos.at(0),
     or written as (0,0,1m), with +, -, * and / by numbers, abs(v) for their
     lengths, v^2, dot(v,w), cross(v,w), and angle(v,w) for the angle between
@@ -591,7 +593,6 @@ class ParticleEdit:
         into those of another. The angle between v and u must be that
         between vout and uout, and v and u must not be parallel.
     """
-    _assignable = _assignable_fields()
     def __init__( self, expression ):
         self._statements_of = _Statements(expression)
         self._expr = self._statements_of.text
@@ -653,12 +654,13 @@ def _quantity_functions( coords ):
         res[name] = fct
     return res
 
+def _as_expression( cls, expr ):
+    """The expression as an object of the class (ParticleFilter, ParticleEdit
+    or ParticleValue) if it is a text, else as given (e.g. None)"""
+    return cls(expr) if isinstance(expr,str) else expr
+
 def _as_filter(pick):
-    if isinstance(pick,str):
-        return ParticleFilter(pick)
-    return pick
+    return _as_expression(ParticleFilter,pick)
 
 def _as_edit(edit):
-    if isinstance(edit,str):
-        return ParticleEdit(edit)
-    return edit
+    return _as_expression(ParticleEdit,edit)

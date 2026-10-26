@@ -358,14 +358,7 @@ class _ExprParser:
                 index = _vector_parts.index(name)
             elif kind == 'name' and name == 'at':
                 self._i += 1
-                self._expect('op','(')
-                kind, index = self._peek()
-                if kind != 'number' or not index.isdigit():
-                    raise self._error('the index of a value of a vector must be a whole'
-                                      ' number (counting from 0)')
-                self._i += 1
-                self._expect('op',')')
-                index = int(index)
+                index = self._at_index('a value of a vector')
             else:
                 raise self._error('the values of vectors are written as .x, .y, .z or'
                                   ' .at(INDEX) (as in pos.x or pos.at(0))')
@@ -387,14 +380,18 @@ class _ExprParser:
         if not self._accept('name','at'):
             raise self._error('values of arrays in the userdata are written as'
                               ' userdata.NAME.at(INDEX)')
+        index = self._at_index('a value in an array')
+        return ast.Name( id = f'userdata.{field}.at({index})', ctx = ast.Load() )
+
+    def _at_index( self, what ):
+        """The index of .at(INDEX) (after "at"), of what (for errors)"""
         self._expect('op','(')
         kind, index = self._peek()
         if kind != 'number' or not index.isdigit():
-            raise self._error('the index of a value in an array must be a whole number'
-                              ' (counting from 0)')
+            raise self._error(f'the index of {what} must be a whole number (counting from 0)')
         self._i += 1
         self._expect('op',')')
-        return ast.Name( id = f'userdata.{field}.at({int(index)})', ctx = ast.Load() )
+        return int(index)
 
     def _number( self, s ):
         v = ast.literal_eval(s)

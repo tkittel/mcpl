@@ -30,7 +30,7 @@ import os
 
 from ._common import MCPLError
 from ._exprcore import _dimstr
-from ._expressions import ParticleFilter, ParticleValue
+from ._expressions import ParticleFilter, ParticleValue, _as_expression
 from ._exprplot import _plot_unit, _PlotValue
 from ._histstring import (
     _as_range,
@@ -72,15 +72,10 @@ def _blocks( source, flt ):
     for b in source.particle_blocks:
         yield b[flt(b)] if flt is not None else b
 
-def _as( cls, expr ):
-    if expr is None or isinstance(expr,cls):
-        return expr
-    return cls(expr)
-
 class _SplitValue:
     """Values used to split particles into separate curves"""
     def __init__( self, expr ):
-        self._v = _as(ParticleValue,expr)
+        self._v = _as_expression(ParticleValue,expr)
         self.expression = self._v.expression
         self.field = self._v._e.field
         self._is_bool = None
@@ -93,7 +88,7 @@ class _SplitValue:
             self._is_bool = bool(np.all((values==0)|(values==1)))
         keys, index = np.unique(values,return_inverse=True)
         if len(keys) > 1000:
-            raise MCPLError(f'Split expression "{self.expression}" has too many'
+            raise MCPLError(f'The expression "{self.expression}" of display_by has too many'
                             ' different values (more than 1000)')
         return keys, index.ravel()
 
@@ -127,6 +122,14 @@ class _Plot:
     def _plot_label( self, label ):
         return self._plot_labels.get(label,label)
 
+    def _add_label( self, label, plot_label, color = None ):
+        """Note the label of a curve or bar in plots (if it differs) and its
+        colour (if any, see the colors of the subclasses)"""
+        if plot_label != label:
+            self._plot_labels[label] = plot_label
+        if color is not None:
+            self.colors[label] = color
+
     @property
     def _what( self ):
         return 'weights' if self.weighted else 'particles'
@@ -156,9 +159,9 @@ class Histogram(_Plot):
     function. The bin edges are in edges (in the unit, a text like "cm", for
     expressions with units), and the contents (sums of weights, or numbers of
     particles if unweighted) in the dictionary contents, with one entry per
-    curve (keyed by label, None for a single curve). The sums of squared
-    weights are in sumw2, and the sums of weights below and above the edges
-    are in underflow and overflow (with the same keys).
+    curve (keyed by label, None for a single curve, see display_by). The sums
+    of squared weights are in sumw2, and the sums of weights below and above
+    the edges are in underflow and overflow (with the same keys).
 
     Objects of this class are made by histogram(), and the class itself is not part
     of the public API (it is not made directly)."""
@@ -208,18 +211,12 @@ class Histogram(_Plot):
         labels = list(self.contents)
         values = [ self.values(lbl) for lbl in labels ]
         logy = self.logy if logy is None else logy
-        p = Panel( title = self.title,
-                   xlabel = _with_unit(self.expression,self.unit,self._plot_notes.get('x',self.note)),
-                   ylabel = self.ylabel,
-                   logx = self.logx, logy = _auto_log(values) if logy == 'auto' else bool(logy),
+        p = Panel( title = self.title, xlabel = _xlabel([ self ]), ylabel = self.ylabel,
+                   logx = self.logx, logy = _log_scale(logy,values),
                    xlim = ( self.edges[0], self.edges[-1] ) )
         for i, ( label, v ) in enumerate(zip(labels,values)):
             p.add(StepHist(self.edges,v,label = self._plot_label(label) if len(labels) > 1 else None,
                            color = self.colors.get(label,i)))
-        outside = sum(self.underflow.values()) + sum(self.overflow.values())
-        total = outside + sum( c.sum() for c in self.contents.values() )
-        if outside and total:
-            p.xlabel += f'\n({100.0*outside/total:.3g}% of {self._what} outside plot range)'
         return p
 
     def to_text( self ):
@@ -339,7 +336,7 @@ class Points3D(_Plot):
     """3D plot of the values of three expressions for a sample of the particles
     (as many as points, chosen at random with their weights, unless
     unweighted, so they are distributed as the particles), in groups (label
-    -> array of shape (n,3), with the label None without split). For
+    -> array of shape (n,3), with the label None for one group, see display_by). For
     expressions with units, the values are in the units (texts like "cm",
     else None). The sample is the same for the same particles.
 
@@ -381,6 +378,20 @@ class Points3D(_Plot):
                        for pt in pts ]
         return '\n'.join(lines)
 
+def _xlabel( histograms ):
+    """The label of the x axis of a plot of the (1D) histograms: their
+    expression with its unit and note (see _DomainNote), or those of each
+    one if they differ, and the part of the weights (or particles) outside
+    the plot range, if any"""
+    labels = dict.fromkeys( _with_unit(h.expression,h.unit,h._plot_notes.get('x',h.note))
+                            for h in histograms )
+    label = ', '.join(labels)
+    outside = sum( sum(h.underflow.values()) + sum(h.overflow.values()) for h in histograms )
+    total = outside + sum( c.sum() for h in histograms for c in h.contents.values() )
+    if outside and total:
+        label += f'\n({100.0*outside/total:.3g}% of {histograms[0]._what} outside plot range)'
+    return label
+
 def _with_unit( expression, unit, note = None ):
     """Axis label of an expression, with its unit and note (see _DomainNote)"""
     label = f'{expression} [{unit}]' if unit else expression
@@ -418,9 +429,12 @@ def _top_keys( sums, limit ):
         return keys, []
     return keys[:limit-1], keys[limit-1:]
 
-def _auto_log( arrays ):
-    """Whether values get a logarithmic scale with logy='auto': if their
-    positive values span more than two decades"""
+def _log_scale( flag, arrays ):
+    """Whether values (the arrays) get a logarithmic scale with the flag (of
+    the option logy): if it is on, or with 'auto', if their positive values
+    span more than two decades"""
+    if flag != 'auto':
+        return bool(flag)
     v = np.concatenate([ np.ravel(a) for a in arrays ]) if len(arrays) else np.zeros(0)
     v = v[v>0]
     return bool(len(v)) and _auto_logx(v.min(),v.max())
@@ -434,7 +448,7 @@ def _bars_panel( labels, values, colors, logy, title = None, xlabel = None, ylab
     if total > 0:
         labels = [ f'{lab} ({100.0*v/total:.2f}%)' for lab, v in zip(labels,values) ]
     p = Panel( title = title, xlabel = xlabel, ylabel = ylabel,
-               logx = _auto_log([ values ]) if logy == 'auto' else bool(logy) )
+               logx = _log_scale(logy,[ values ]) )
     p.add(Bars(labels,list(values),horizontal = True,colors = colors))
     return p
 
@@ -554,7 +568,7 @@ _range = range#(the name range is shadowed by arguments below)
 
 def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
                logx = False, unweighted = False, display_by = None,
-               display_only = None, lethargy = False, max_curves = 8, bar = False,
+               display_only = None, lethargy = False, max_curves = None, bar = False,
                _maxbins = None ):
     """Histogram of the values of an expression (see ParticleValue) for the
     particles in one or more files (picked with pick, see ParticleFilter),
@@ -574,11 +588,12 @@ def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
     by the bin widths in lethargy, ln(E2/E1). The contents are sums of
     weights, or numbers of particles if unweighted is True.
 
-    There is a curve for each value of the expression display_by (for at
-    most max_curves values, the others are combined into one), by default
+    There is a curve for each value of the expression display_by, by default
     pdgcode (a curve for each particle type), e.g. display_by="x > 0cm", or
-    "single" for one curve. With several files, there is a curve for each
-    file (and of each value of display_by in each file, if it is given).
+    "single" for one curve, for at most max_curves values (by default 8),
+    the others are combined into one. With several files, there is a curve for each
+    file (and of each value of display_by in each file, if it is given), and
+    the 2D histograms and 3D plots of histogram strings combine the files.
     With display_only (a condition, or a particle type like "neutron"), only
     those of the picked particles are used. With bar (True, or the number of bars), the result is a bar
     chart of the values (whole numbers, as of pdgcode), see BarHistogram.
@@ -591,7 +606,7 @@ def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
     given = { 'bins' : None if bins == 'auto' else bins, 'range' : range,
               'logx' : logx, 'unweighted' : unweighted, 'display_by' : display_by,
               'display_only' : display_only,
-              'lethargy' : lethargy, 'groups' : None if max_curves == 8 else max_curves,
+              'lethargy' : lethargy, 'groups' : max_curves,
               'bar' : bar }
     o = _hist_with_args(expression,given)
     if o['print']:
@@ -656,9 +671,11 @@ def _filler_for( o, pick = None, labels = ( None, ), _maxbins = None ):
     (picked) particles of the files with the labels are given to it as in
     _histogram, and its result() is the histogram of the blocks so far."""
     bins = o['bins'] or 'auto'
-    #(with several files, there is a curve for each file, unless display_by is
-    #given, instead of one for each particle type in each file):
-    split = None if len(labels) > 1 and o['display_by'] is None else _display_by(o)
+    #(with several files, 1D histograms have a curve for each file, unless
+    #display_by is given, instead of one for each particle type in each file,
+    #while 2D histograms and 3D plots combine the files):
+    by_file = len(labels) > 1 and o['display_by'] is None and len(o['exprs']) == 1
+    split = None if by_file else _display_by(o)
     only = ( _display_only_condition(o['display_only']) if o['display_only'] is not None
              else None )
     if len(o['exprs']) == 3:
@@ -688,12 +705,12 @@ class _Filler:
     add_range (to find the ranges of the values), and then, after start_fill,
     to add. The labels are those of the files, and result() is the histogram
     of the blocks given to add so far. With only (a pick, see ParticleFilter,
-    the option only of histogram strings), only those particles of the blocks
+    the option display_only of histogram strings), only those particles of the blocks
     are used."""
     needs_range = False
     def __init__( self, expressions, pick, unweighted, labels, only = None ):
-        self.pick = _as(ParticleFilter,pick)
-        self._only = _as(ParticleFilter,only)
+        self.pick = _as_expression(ParticleFilter,pick)
+        self._only = _as_expression(ParticleFilter,only)
         self._vals = [ _PlotValue(e) for e in expressions ]
         self._notes = [ _DomainNote(v) for v in self._vals ]
         self._weighted = not unweighted
@@ -711,6 +728,30 @@ class _Filler:
         pick, edit = self._selection
         return _selection_title(pick or ( self.pick and self.pick.expression ),edit,
                                 self._only and self._only.expression)
+
+    def _curves( self, sums, limit, field, name, flabel = None ):
+        """The curves (or bars) of the values with the sums (a dict by key):
+        those of the limit largest sums, and one of the others (if any), as
+        (keys, label, plot label, colour index or None), with labels from
+        name(key, unicode) (see _Plot._plot_labels), or 'other', and the
+        colours of the values of the field (if any), or with the label flabel
+        of the file before the labels (of several files, without colours)"""
+        shown, rest = _top_keys(sums,limit)
+        entries = [ ( [ k ], k ) for k in shown ] + ( [ ( rest, 'other' ) ] if rest else [] )
+        colors = ( {} if field is None or flabel is not None
+                   else _value_colors(field,[ k for _, k in entries ]) )
+        res = []
+        for keys, k in entries:
+            lbl, plbl = ( 'other' if k == 'other' else name(k,u) for u in ( False, True ) )
+            if flabel is not None:
+                lbl, plbl = ( flabel if x is None else f'{flabel}: {x}' for x in ( lbl, plbl ) )
+            res.append( ( keys, lbl, plbl, colors.get(k) ) )
+        return res
+
+    def _split_values( self, spl, b, defined ):
+        """The values of the split expression (see _SplitValue) of the particles
+        of the block b with defined values (see _values)"""
+        return np.asarray(spl(b),dtype=float)[defined]
 
     def _used( self, b ):
         """The mask of the particles of the block which are used (see only), or
@@ -750,7 +791,8 @@ class _Filler:
         _nice_range)"""
         lo, hi = self._lims[i]
         if not lo <= hi:
-            only = f', or none with only={self._only.expression}' if self._only is not None else ''
+            only = ( f', or none with display_only={self._only.expression}'
+                     if self._only is not None else '' )
             raise MCPLError(f'No values to histogram (no particles picked{only}?)')
         if lo == hi:
             return ( lo/2, lo*2 ) if log else ( lo - 1.0, hi + 1.0 )
@@ -802,7 +844,7 @@ class _Hist1DFiller(_Filler):
         n = len(edges) - 1
         ( v, ), w, defined = self._values(b)
         if spl is not None:
-            keys, kidx = spl.keys(np.asarray(spl(b),dtype=float)[defined])
+            keys, kidx = spl.keys(self._split_values(spl,b,defined))
         else:
             keys, kidx = [ None ], np.zeros(len(v),dtype=np.intp)
         #(all curves at once: the sums by curve and bin, below and above):
@@ -835,7 +877,7 @@ class _Hist1DFiller(_Filler):
                 for a in acc.values():
                     a[0] = a[0].reshape(-1,k).sum(axis=1)
                     a[1] = a[1].reshape(-1,k).sum(axis=1)
-        unit, scale = self._unit or ( None, 1.0 )
+        unit, scale = self._unit
         h = Histogram(self._vals[0].expression,edges/scale,logx=self._logx,
                       weighted=self._weighted,lethargy=self._lethargy,title=self._title,
                       unit=unit)
@@ -847,23 +889,15 @@ class _Hist1DFiller(_Filler):
         empty = [ np.zeros(len(edges)-1), np.zeros(len(edges)-1), 0.0, 0.0 ]
         for flabel in self._labels:
             sums = { k : a[0].sum() for (fl,k), a in acc.items() if fl == flabel }
-            shown, rest = _top_keys(sums or { None : 0.0 },self._max_curves)
-            curves = [ ( k, acc.get((flabel,k),empty) ) for k in shown ]
-            if rest:
-                parts = [ acc[(flabel,r)] for r in rest ]
-                curves.append( ( 'other', [ sum( p[i] for p in parts ) for i in range(4) ] ) )
-            colors = _value_colors(spl.field,[ k for k,_ in curves ]) if spl and not multifile else {}
-            for k, a in curves:
-                lbl, plbl = ( 'other' if k == 'other' else _split_label(spl,k,u)
-                              for u in ( False, True ) )
-                if multifile:
-                    lbl, plbl = ( flabel if x is None else f'{flabel}: {x}' for x in ( lbl, plbl ) )
-                if plbl != lbl:
-                    h._plot_labels[lbl] = plbl
+            for keys, lbl, plbl, color in self._curves(sums or { None : 0.0 },self._max_curves,
+                                                       spl and spl.field,
+                                                       lambda k, u : _split_label(spl,k,u),
+                                                       flabel if multifile else None):
+                parts = [ acc.get((flabel,k),empty) for k in keys ]
+                a = [ sum( p[i] for p in parts ) for i in range(4) ]
                 h.contents[lbl], h.sumw2[lbl] = a[0], a[1]
                 h.underflow[lbl], h.overflow[lbl] = a[2], a[3]
-                if k in colors:
-                    h.colors[lbl] = colors[k]
+                h._add_label(lbl,plbl,color)
         return h
 
 class _BarFiller(_Filler):
@@ -901,20 +935,11 @@ class _BarFiller(_Filler):
         h.note, h._plot_notes['x'] = ( self._notes[0].note(u) for u in ( False, True ) )
         multifile = len(self._labels) > 1
         for flabel, sums in self._sums.items():
-            shown, rest = _top_keys(sums,self._limit)
-            bars = [ ( k, sums[k] ) for k in shown ]
-            bars += [ ( 'other', sum( sums[k] for k in rest ) ) ] if rest else []
-            colors = {} if multifile else _value_colors(e._e.field,[ k for k,_ in bars ])
-            for k, v in bars:
-                lbl, plbl = ( 'other' if k == 'other' else ( e._e.value_label(k,u) or str(k) )
-                              for u in ( False, True ) )
-                if multifile:
-                    lbl, plbl = f'{flabel}: {lbl}', f'{flabel}: {plbl}'
-                if plbl != lbl:
-                    h._plot_labels[lbl] = plbl
-                h.contents[lbl] = v
-                if k in colors:
-                    h.colors[lbl] = colors[k]
+            for keys, lbl, plbl, color in self._curves(sums,self._limit,e._e.field,
+                                                       lambda k, u : e._e.value_label(k,u) or str(k),
+                                                       flabel if multifile else None):
+                h.contents[lbl] = sum( sums[k] for k in keys )
+                h._add_label(lbl,plbl,color)
         return h
 
 class _Hist2DFiller(_Filler):
@@ -963,7 +988,7 @@ class _Hist2DFiller(_Filler):
         self._xe, self._ye = ( _make_edges(r,n,lg) for r, n, lg in
                                zip(self._ranges,(bx,by),self._log) )
         #(the units of the axes, for expressions with units):
-        self._units = [ _plot_unit(v.dim,*r,lg,v.wavelength) or ( None, 1.0 )
+        self._units = [ _plot_unit(v.dim,*r,lg,v.wavelength)
                         for v, r, lg in zip(self._vals,self._ranges,self._log) ]
         self._contents = np.zeros((bx,by))
         self._sumw, self._sumw2 = 0.0, 0.0
@@ -1021,7 +1046,7 @@ class _Points3DFiller(_Filler):
     def add( self, flabel, b ):
         vals, w, defined = self._values(b)
         pts = np.column_stack(vals)
-        sv = ( np.asarray(self._spl(b),dtype=float)[defined] if self._spl is not None
+        sv = ( self._split_values(self._spl,b,defined) if self._spl is not None
                else np.zeros(len(pts)) )
         ok = np.isfinite(pts).all(axis=1) & ( w > 0 )
         pts, w, sv = pts[ok], w[ok], sv[ok]
@@ -1040,7 +1065,7 @@ class _Points3DFiller(_Filler):
         units = []
         for i, v in enumerate(self._vals):
             lo, hi = ( pts[:,i].min(), pts[:,i].max() ) if len(pts) else ( 0.0, 1.0 )
-            units.append(_plot_unit(v.dim,lo,hi,False,v.wavelength) or ( None, 1.0 ))
+            units.append(_plot_unit(v.dim,lo,hi,False,v.wavelength))
         res = Points3D([ v.expression for v in self._vals ],weighted = self._weighted,
                        title = self._title,units = [ u for u, _ in units ],
                        nparticles = self._n)
@@ -1050,19 +1075,11 @@ class _Points3DFiller(_Filler):
             res.groups[None] = scaled
             return res
         counts = { k : int(( self._sv == k ).sum()) for k in np.unique(self._sv) }
-        shown, rest = _top_keys(counts or { None : 0 },self._max_curves)
-        colors = _value_colors(spl.field,[ *shown, *( [ 'other' ] if rest else [] ) ])
-        for k in shown:
-            label, plabel = ( _split_label(spl,k,u) for u in ( False, True ) )
-            if plabel != label:
-                res._plot_labels[label] = plabel
-            res.groups[label] = scaled[self._sv == k]
-            if k in colors:
-                res.colors[label] = colors[k]
-        if rest:
-            res.groups['other'] = scaled[np.isin(self._sv,rest)]
-            if 'other' in colors:
-                res.colors['other'] = colors['other']
+        for keys, lbl, plbl, color in self._curves(counts or { None : 0 },self._max_curves,
+                                                   spl.field,
+                                                   lambda k, u : _split_label(spl,k,u)):
+            res.groups[lbl] = scaled[np.isin(self._sv,keys)]
+            res._add_label(lbl,plbl,color)
         return res
 
 def plot_histograms( histograms, filename = None, backend = None, logy = None,
@@ -1089,21 +1106,21 @@ def plot_histograms( histograms, filename = None, backend = None, logy = None,
     if labels is not None and len(labels) != len(histograms):
         raise MCPLError('The number of labels must be the number of histograms')
     first = histograms[0]
-    exprs = sorted({ h.expression for h in histograms })
     logy = first.logy if logy is None else logy
-    if logy == 'auto':
-        logy = _auto_log([ h.values(c) for h in histograms for c in h.contents ])
-    p = Panel( xlabel = ', '.join(exprs), ylabel = first.ylabel,
-               logx = first.logx, logy = bool(logy),
+    p = Panel( xlabel = _xlabel(histograms), ylabel = first.ylabel, logx = first.logx,
+               logy = _log_scale(logy,[ h.values(c) for h in histograms for c in h.contents ]),
                xlim = ( min( h.edges[0] for h in histograms ),
                         max( h.edges[-1] for h in histograms ) ) )
+    #(all curves with their own colour, as those of several histograms can be
+    #of the same particle type):
     color = 0
     for i,h in enumerate(histograms):
         name = labels[i] if labels is not None else ( h.title or h.expression )
         for curve in h.contents:
             #(the curve of a histogram with one curve, e.g. of one particle
             #type, is named as the histogram):
-            label = name if curve is None or len(h.contents) == 1 else f'{name}: {curve}'
+            label = ( name if curve is None or len(h.contents) == 1
+                      else f'{name}: {h._plot_label(curve)}' )
             p.add(StepHist(h.edges,h.values(curve),label = label,color = color))
             color += 1
     return _show_or_save([Figure(panels = [p])],filename,backend,options)

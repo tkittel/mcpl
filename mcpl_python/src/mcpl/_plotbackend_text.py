@@ -47,6 +47,7 @@ from .plotting import (
     Scatter3D,
     StepHist,
     Text,
+    _item_color,
     _line_style,
     _map_texts,
 )
@@ -165,12 +166,12 @@ class _TextBackend(PlotBackend):
         return _paint(text,self._nc,fg,bg)
 
     def _curve_color( self, item, k ):
-        return _curve_rgb( item.color if item.color is not None else k )
+        return _curve_rgb(_item_color(item,k))
 
     @staticmethod
     def _curve_style( item, k ):
         """Line style of a curve (see _line_style)"""
-        return _line_style( item.color if item.color is not None else k )[1]
+        return _line_style(_item_color(item,k))[1]
 
     def resolution( self ):
         return ( self._width - _ylw - 3, self._height )
@@ -232,7 +233,7 @@ class _TextBackend(PlotBackend):
             elif isinstance(item,Bars):
                 if panel.ylabel:
                     out.append(f'({panel.ylabel})')
-                out += self._draw_bars(item)
+                out += self._draw_bars(panel,item)
             elif isinstance(item,Text):
                 out += [ _center(line,self._width) for line in item.text.split('\n') ]
             elif isinstance(item,Correlation):
@@ -482,7 +483,10 @@ class _TextBackend(PlotBackend):
         m = self._chars.markers
         return m[ k % len(m) ]
 
-    def _draw_bars( self, item ):
+    def _draw_bars( self, panel, item ):
+        """Horizontal bars, with lengths on a logarithmic scale if the panel
+        has one (logx, as the bars are horizontal), from the decade below the
+        smallest value"""
         c = self._chars
         labels = [ ' '.join(str(lab).split()) for lab in item.labels ]
         values = [ float(v) for v in item.values ]
@@ -490,12 +494,19 @@ class _TextBackend(PlotBackend):
         vtexts = [ _fmt(v) for v in values ]
         vw = max( ( len(t) for t in vtexts ), default = 0 )
         nmax = max( 1, self._width - lw - vw - 4 )
-        vmax = max( [ v for v in values if v > 0 ], default = 1.0 )
+        positive = [ v for v in values if v > 0 ]
+        vmax = max( positive, default = 1.0 )
+        if panel.logx and positive:
+            vlow = 10.0 ** math.floor( math.log10(min(positive)) )
+            span = math.log10( vmax / vlow ) or 1.0
+            fraction = lambda v : math.log10( v / vlow ) / span if v > 0 else 0.0
+        else:
+            fraction = lambda v : max( 0.0, v ) / vmax
         nlev = len(c.hfill) - 1
         out = []
         colors = item.colors or [ 0 ] * len(values)
         for lab, v, t, col in zip(labels,values,vtexts,colors):
-            units = round( max(0.0,v) / vmax * nmax * nlev )
+            units = round( fraction(v) * nmax * nlev )
             if v > 0:
                 units = max( 1, units )#non-zero values are always visible
             bar = c.hfill[-1] * ( units // nlev ) + ( c.hfill[units % nlev] if units % nlev else '' )

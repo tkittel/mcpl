@@ -60,7 +60,7 @@ unit of 1/x: ('cm^-1', 1.0)
 unit of wavelength, 1.8Aa: ('Aa', 1e-08)
 unit of wavelength, log axis 1e-3 to 100Aa: ('Aa', 1e-08)
 unit of wavelength, up to 1mm: ('mm', 0.1)
-unit of no units: None
+unit of no units: (None, 1.0)
 histogram('x'): label 'x [cm]', edges from -65 to 70
 histogram('ekin;logx=auto'): label 'ekin [eV]', edges from 1393 to 9.725e+09
 histogram('wavelength'): label 'wavelength [Aa]', edges from 0 to 0.008
@@ -272,7 +272,7 @@ Figure 1 (1x1): None
     StepHist label='g' color=1 bins=10 edges=[0.249474,182.253] sum=239 max=61 nonzero_bins=10
 plot_histograms without overlay created ['hists.txt']
 Figure 1 (1x1): None
-  Panel None xlabel='ekin/MeV, x/cm' ylabel='weights per bin' xlim=[-20,2409.78]
+  Panel None xlabel='x/cm, ekin/MeV\n(5.41% of weights outside plot range)' ylabel='weights per bin' xlim=[-20,2409.78]
     StepHist label='x/cm: example.mcpl' color=0 bins=4 edges=[-20,20] sum=912 max=384 nonzero_bins=4
     StepHist label='x/cm: reffile_1.mcpl' color=1 bins=4 edges=[-20,20] sum=5 max=5 nonzero_bins=1
     StepHist label='pick: pdgcode == neutron' color=2 bins=10 edges=[0.00139345,2409.78] sum=726 max=258 nonzero_bins=10
@@ -746,7 +746,7 @@ mcpltool --edit=help: exit code 0, 190 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    | 
    | Changing values:
-mcpltool -H help example.mcpl: exit code 0, 81 lines, starting with:
+mcpltool -H help example.mcpl: exit code 0, 82 lines, starting with:
    | HIST: what to plot, an expression of the particles (written as for -p),
    | or two separated by ":" for a 2D histogram (or three for a 3D plot of a
    | sample of the particles, in windows), followed by options separated by ";".

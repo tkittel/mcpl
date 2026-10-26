@@ -272,7 +272,7 @@ _hints = (
       'divide by the bin widths in lethargy, so 1/E spectra are flat (implies logx=1)' ),
     ( 'histoptions', 'display_by=EXPR|single',
       'one curve per value of EXPR',
-      'one curve for each value of the expression EXPR (default: pdgcode, a curve for each particle type), or one curve with single (e.g. display_by=x > 0cm, or display_by=single; not for 2D histograms and bar charts, which have one)' ),
+      'one curve for each value of the expression EXPR (default: pdgcode, a curve for each particle type, or with several files a curve for each file), or one curve with single (e.g. display_by=x > 0cm, or display_by=single; not for 2D histograms and bar charts, which have one)' ),
     ( 'histoptions', 'display_only=COND',
       'only the particles of a condition',
       'only show the particles for which the condition is true, of those picked (a condition as in picks, but only one, without variables, or a particle type: e.g. display_only=ekin > 1MeV, or display_only=neutron)' ),
@@ -301,8 +301,6 @@ _group_titles = { 'histoptions' : 'Options',
                   'functions' : 'Functions',
                   'statements' : 'Statements' }
 
-#Examples of the expressions (picks, edits and histogram strings), from simple
-#to advanced, with what they do, for the help texts and the viewers:
 #The examples of expressions, by topic, in groups of (title, the sentence
 #before them or None, and the examples as (expression, what it does)):
 examples = {

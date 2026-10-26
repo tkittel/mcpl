@@ -294,10 +294,7 @@ class _ExprEvaluator:
             self._check_wavelength()
             q = self._wavelength()
             v = np.asarray(q.v)
-            bad = ~np.isfinite(v)
-            if self.active is not None:
-                bad = bad & self.active
-            if np.any(bad):
+            if self._any_active(~np.isfinite(v)):
                 self.error('The wavelength is infinite for particles with zero'
                            ' kinetic energy')
             return q
@@ -359,22 +356,19 @@ class _ExprEvaluator:
                 self.finite(c,what)
             return q
         v = np.asarray(q.v)
-        if v.dtype.kind in 'fc':
-            bad = ~np.isfinite(v)
-            if self.active is not None:
-                bad = bad & self.active
-            if np.any(bad):
-                self.error(f'{what} NaN or infinite values')
+        if v.dtype.kind in 'fc' and self._any_active(~np.isfinite(v)):
+            self.error(f'{what} NaN or infinite values')
         return q
     def _check_wavelength( self ):
         pdg = np.asarray(self.name('pdgcode').v)
-        bad = ~np.isin(pdg,_wavelength_pdgcodes)
-        if self.active is not None:
-            bad &= self.active
-        if np.any(bad):
+        if self._any_active(~np.isin(pdg,_wavelength_pdgcodes)):
             raise MCPLError('The wavelength is only defined for neutrons and gammas,'
                             ' so pick those before using it, e.g. "pdgcode =='
                             f' neutron and wavelength > 1.8Aa" (in expression "{self._expr}")')
+    def _any_active( self, mask ):
+        """Whether the mask is true for any of the active particles (see
+        _with_active)"""
+        return bool(np.any( mask if self.active is None else mask & self.active ))
     def _with_active( self, mask, node ):
         """Evaluate node, for the particles where mask is true (and which are
         currently active)"""
@@ -538,9 +532,7 @@ class _ExprEvaluator:
                 if v.dtype.kind in 'iub':
                     return _Q(v)
                 big = ~( np.abs(v) < 2.0**62 )
-                if self.active is not None:
-                    big &= self.active
-                if np.any(big):
+                if self._any_active(big):
                     self.error(f'{fname}(..) of values too large for integers')
                 return _Q(np.where(big,0,v).astype(np.int64))
             if fname == 'sqrt':
@@ -570,10 +562,14 @@ class _ExprEvaluator:
             if fname == 'hypot':
                 if len(args) < 2:
                     self.error('hypot(..) takes two or more arguments')
-                d = args[0].d
+                #(all with the units of the first one which has units, as a
+                #plain 0 matches any units):
+                ref = args[0]
                 for q in args[1:]:
-                    self.same(args[0],q,'hypot(..)')
-                return _Q(np.sqrt(sum( np.square(q.v) for q in args )),d)
+                    self.same(ref,q,'hypot(..)')
+                    if ref.d is None:
+                        ref = q
+                return _Q(np.sqrt(sum( np.square(q.v) for q in args )),ref.d)
             if len(args) == 1 and fname == 'abs':
                 return _Q(fct(args[0].v),args[0].d)
             if fname == 'clamp':

@@ -170,12 +170,12 @@ print('SIGINT while the window is shown: viewer stopped:',
       signal.getsignal(signal.SIGINT) is signal.default_int_handler)
 #Log scales of plots without positive values (e.g. bar charts without bars,
 #when no particles are picked) are not used, as matplotlib can not draw them:
-from mcpldev._plotbackend_mpl import Backend
+from mcpldev._plotbackend_mpl import draw_in
 from mcpldev.plotting import Bars, Panel, StepHist
 from mcpldev.plotting import Figure as PlotFigure
 
 fig = plt.figure()
-axes = Backend().draw_in(fig,fig.add_gridspec(1,1)[0],PlotFigure(nrows=1,ncols=2,panels=[
+axes = draw_in(fig,fig.add_gridspec(1,1)[0],PlotFigure(nrows=1,ncols=2,panels=[
     Panel(logx=True,items=[Bars([],[],horizontal=True)]),
     Panel(logy=True,items=[StepHist([0,1,2],[0,0])]) ]))
 fig.canvas.draw()

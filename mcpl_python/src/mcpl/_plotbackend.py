@@ -318,6 +318,10 @@ def _format_priority( cls, ext ):
     f = cls.formats
     return f.get(ext,0) if isinstance(f,dict) else 0
 
+def _option_names( cls ):
+    """The names of the options of a backend class"""
+    return set(inspect.signature(cls).parameters)
+
 def _create( b, **options ):
     """Backend object from class (or object) b, with the options."""
     if isinstance(b,PlotBackend):
@@ -326,7 +330,7 @@ def _create( b, **options ):
                             + ', '.join(sorted(options)) + ') can not be used'
                             ' together with a mcpl.plotting.Backend object')
         return b
-    unsupported = set(options) - set(inspect.signature(b).parameters)
+    unsupported = set(options) - _option_names(b)
     if unsupported:
         raise MCPLError(f'Unsupported option(s) for the {b.name} plotting'
                         ' backend: ' + ', '.join(sorted(unsupported)))

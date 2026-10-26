@@ -81,7 +81,7 @@ def _parse_hist( text ):
     histograms, or three for 3D plots of a sample of the particles), followed
     by options NAME=VALUE separated by ";", like
     "ekin/MeV;logx;bins=50" or "x/cm : y/cm;xrange=-10:10". Returns a
-    dict with the expressions (a list of one or two), and the options (with
+    dict with the expressions (a list of one, two or three), and the options (with
     defaults for those not given)."""
     from ._exprcore import _check_chars
     _check_chars(text,'histogram')
@@ -172,8 +172,8 @@ def _display_only_condition( value, text = None ):
 
 def _auto_logx( lo, hi ):
     """Whether values from lo to hi get a logarithmic axis with logx='auto':
-    if they are positive and span more than two decades (as in the overview
-    of collect_stats)"""
+    if they are positive and span more than two decades (also for the axes
+    of correlation plots, see _viewer_overviews.Moments)"""
     return bool( lo > 0 and hi > 100 * lo )
 
 def _check_hist_options( o, text ):
@@ -327,6 +327,9 @@ def _hist_with_args( expression, given ):
     for name, v in given.items():
         if v is None or v is False:
             continue
+        #(the arguments of mcpl.histogram which have other names than their
+        #options):
+        arg = { 'groups' : 'max_curves' }.get(name,name)
         if o[name] not in ( None, False ):
             raise MCPLError(f'The histogram option {name} can not be given'
                             ' both as an argument and in the expression'
@@ -334,7 +337,7 @@ def _hist_with_args( expression, given ):
         if name in ( 'bar', 'groups' ) and not ( ( v is True and name == 'bar' ) or
                                                  ( type(v) is int and v >= 2 ) ):
             what = 'True or a number' if name == 'bar' else 'a number'
-            raise MCPLError(f'The histogram argument {name} must be {what} of at least 2'
+            raise MCPLError(f'The histogram argument {arg} must be {what} of at least 2'
                             f' (not {v!r})')
         if name == 'display_only':
             _display_only_condition(v)

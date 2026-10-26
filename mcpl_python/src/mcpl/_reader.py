@@ -988,6 +988,10 @@ class _FileView:
         self._n = None if pick is not None else self._end - self._skip
     def __getattr__(self, name):
         return getattr(self._f, name)
+    def __enter__(self):
+        return self
+    def __exit__(self, ttype, value, traceback):
+        self._f.__exit__(ttype,value,traceback)
     @property
     def nparticles(self):
         if self._n is None:

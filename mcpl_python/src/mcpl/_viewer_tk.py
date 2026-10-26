@@ -33,6 +33,7 @@ from ._viewer_tkbase import (
     command_keys,
     focus_of,
     on_paste,
+    repaint_after_resize,
     tk_modules,
     windowing_system,
 )
@@ -297,6 +298,7 @@ class TkViewer(WidgetViewer):
         self._popup = None#(the list of completions: (field, start, Toplevel, Listbox, choices))
         root.bind('<Key>',self._on_root_key)
         root.protocol('WM_DELETE_WINDOW',self.close_window)
+        repaint_after_resize(root)
 
     def _help_menu( self, parent ):
         """The help menu (at the left of the row parent), with the topics of

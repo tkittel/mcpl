@@ -81,6 +81,30 @@ def windowing_system( widget ):
     """The windowing system of Tk (x11, win32 or aqua for macOS)"""
     return widget.tk.call('tk','windowingsystem')
 
+def repaint_after_resize( root, delay = 150 ):
+    """Repaint all widgets of the window root once its size has stopped
+    changing (for delay milliseconds). With compositing (e.g. under Wayland),
+    parts of widgets which Tk did not redraw while the window was resized
+    (e.g. maximised while busy) could otherwise keep old pixels, also when
+    other windows are moved over them."""
+    pending, size = [ None ], [ None ]
+    def repaint():
+        pending[0] = None
+        todo = [ root ]
+        while todo:
+            w = todo.pop()
+            todo += w.winfo_children()
+            if w.winfo_ismapped():
+                w.event_generate('<Expose>')
+    def on_configure( event ):
+        if event.widget is not root or ( event.width, event.height ) == size[0]:
+            return
+        size[0] = ( event.width, event.height )
+        if pending[0] is not None:
+            root.after_cancel(pending[0])
+        pending[0] = root.after(delay,repaint)
+    root.bind('<Configure>',on_configure,'+')
+
 def bind_enter( widget, fct ):
     """Call fct() when Enter (also that of the keypad) is pressed in the widget"""
     for key in ( '<Return>', '<KP_Enter>' ):

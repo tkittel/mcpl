@@ -25,10 +25,10 @@ have the same value."""
 
 __all__ = []
 
-import copy
 import threading
 
 from ._common import MCPLError
+from ._viewer_ui import default_cache_limit, used_particles
 
 #Numbers of particles read after which the figures are updated (and then every
 #further _update_step particles):
@@ -188,7 +188,7 @@ class _Reading:
         first, end = self._range(self._s.skip,self._s.limit)
         n = end - first
         fits = limit is None or n * size <= limit
-        nused = n if fits else max( 1, int( limit // size ) )
+        nused = used_particles(n,size,limit)
         return { 'nrange' : n, 'size' : size, 'needed' : n * size, 'limit' : limit,
                  'fits' : fits, 'nused' : nused,
                  'cached' : 0 if limit is None else nused * size }
@@ -300,7 +300,7 @@ class _Cancelled(Exception):
 
 #The cache limit (in bytes) unless changed (see _Reading.set_cache_limit, and
 #the limits offered by the viewers in _viewer_ui.cache_presets):
-_cache_limit = 500e6
+_cache_limit = default_cache_limit
 
 def _block_nbytes( b ):
     """The memory used by a particle block"""
@@ -354,14 +354,19 @@ class _Cache:
                 self._nbytes += nb
             yield b
 
-def _make_filler( text, pick ):
-    """Histogram filler of a plot (a histogram string)"""
+def _make_filler( text, settings = None ):
+    """Histogram filler of a plot (a histogram string), of the particles picked
+    and edited with the settings (if given, for the title)"""
     from ._histogram import _filler_for
     from ._histstring import _parse_hist
     o = _parse_hist(text)
     if o['print']:
         raise MCPLError('The histogram option print can not be used in the viewer')
-    return _filler_for(o,pick = pick)
+    h = _filler_for(o)
+    if settings is not None:
+        h._selection = tuple( None if e is None else e.expression
+                              for e in ( settings.pick, settings.edit ) )
+    return h
 
 #Fields for which it is noted when all particles have the same value:
 _const_fields = ( 'pdgcode', 'userflags', 'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz',
@@ -377,7 +382,7 @@ class _Computation:
         self._errors = {}#(plot -> the problem)
         self._plots = []
         for p in settings.plots:
-            h = self._guard(p,_make_filler,p,None)
+            h = self._guard(p,_make_filler,p,settings)
             self._plots.append( ( p, h ) )
         self._lims = { f : [ None, None ] for f in _const_fields }
         self._types = {}#(pdgcode -> sum of weights)
@@ -447,11 +452,12 @@ class _Computation:
 
     def figures( self ):
         """The figures of the plots (with the pick and edit expressions as
-        titles, as for mcpltool -H)"""
+        titles, as for mcpltool -H, see _histogram._selection_title)"""
+        from ._histogram import _selection_title
         from .plotting import Figure, Panel, Text
         s = self._settings
-        title = '\n'.join( f'{what}: {e.expression}' for what, e in
-                           (('pick',s.pick),('edit',s.edit)) if e is not None ) or None
+        title = _selection_title(*( None if e is None else e.expression
+                                    for e in ( s.pick, s.edit ) ))
         res = {}
         for p, h in self._plots:
             hist = self._guard(p,h.result) if h is not None else None
@@ -459,8 +465,6 @@ class _Computation:
                 res[f'plot:{p}'] = Figure( title = title, panels = [ Panel( xlabel = p,
                                            items = [ Text(self._errors[p]) ] ) ] )
                 continue
-            hist = copy.deepcopy(hist)
-            hist.title = title
             res[f'plot:{p}'] = hist.figure()
         return res
 
@@ -472,24 +476,17 @@ def _range_blocks( f, settings, progress = None, counts = None, cancelled = None
     particles in the range and the sum of their weights, and cancelled (if
     given) tells when to stop (with _Cancelled)."""
     from ._blocks import _EditedParticleBlock
-    n = f.nparticles
-    skip = min( settings.skip or 0, n )
-    end = n if not settings.limit else min( n, skip + settings.limit )
+    from ._reader import _blocks_in_range, _particle_range
+    skip, end = _particle_range(f.nparticles,settings.skip,settings.limit or None)
     if counts is not None:
         counts[:] = [ end - skip, 0.0 ]
-    for b in ( f.particle_blocks if blocks is None else blocks ):
+    for b in _blocks_in_range(f.particle_blocks if blocks is None else blocks,skip,end):
         if cancelled is not None and cancelled():
             raise _Cancelled()
-        off = b.file_offset
-        if off + len(b) <= skip:
-            continue
-        if off >= end:
-            break
-        b = b[max(0,skip-off):min(len(b),end-off)]
         if counts is not None:
             counts[1] += float(b.weight.sum())
         if progress is not None:
-            progress( ( max(off,skip) + len(b) - skip ) / max( 1, end - skip ) )
+            progress( ( b.file_offset + len(b) - skip ) / max( 1, end - skip ) )
         if settings.pick is not None:
             b = b[settings.pick(b)]
         if not len(b):

@@ -625,11 +625,21 @@ def histogram2d( files, xexpression, yexpression, *, pick = None, bins = 'auto',
               logx = logx, logy = logy )
     return _histogram(files,o,pick = pick,_maxbins = _maxbins)
 
-def _histogram( files, o, pick = None, _maxbins = None ):
+def _selection_title( pick = None, edit = None, only = None ):
+    """The title of a plot of the particles picked and edited with these
+    expressions (as texts, or None), and of those shown (display_only): one
+    line each, or None"""
+    return '\n'.join( f'{what}: {e}' for what, e in ( ('pick',pick), ('edit',edit),
+                                                      ('only',only) )
+                      if e is not None ) or None
+
+def _histogram( files, o, pick = None, _maxbins = None, selection = ( None, None ) ):
     """The histogram of the particles in the files, with the options o (see
-    _parse_hist)"""
+    _parse_hist), with the selection (the expressions of the pick and edit
+    applied to the particles of the files, for the title)"""
     files = _as_files(files)
     filler = _filler_for(o,pick = pick,labels = [ fl for fl,_ in files ],_maxbins = _maxbins)
+    filler._selection = selection
     flt = filler.pick
     if filler.needs_range:
         for flabel,src in files:
@@ -692,12 +702,15 @@ class _Filler:
         self._lims = [ [ np.inf, -np.inf ] for _ in expressions ]
         self._positive = [ False for _ in expressions ]
 
+    #(the pick and edit applied to the particles before they are given to the
+    #filler, as expressions, for the title, see _selection_title):
+    _selection = ( None, None )
+
     @property
     def _title( self ):
-        picks = [ f'{what}: {p.expression}' for what, p in ( ( 'pick', self.pick ),
-                                                             ( 'only', self._only ) )
-                  if p is not None ]
-        return ', '.join(picks) or None
+        pick, edit = self._selection
+        return _selection_title(pick or ( self.pick and self.pick.expression ),edit,
+                                self._only and self._only.expression)
 
     def _used( self, b ):
         """The mask of the particles of the block which are used (see only), or

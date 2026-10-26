@@ -68,12 +68,8 @@ class Viewer(_Reading):
             self._ntotal = f.nparticles
             #(the userdata fields, as (name, type, number of values or None for
             #fields of one value), for completions and checks):
-            self._ud_fields = []
-            for e in ( f.userdata_layout or '' ).split(','):
-                if ':' in e:
-                    name, kind = e.split(':',1)
-                    kind, _, n = kind.partition('[')
-                    self._ud_fields.append( ( name, kind, int(n[:-1]) if n else None ) )
+            from ._userdata import userdata_fields
+            self._ud_fields = userdata_fields(f.userdata_layout) if f.userdata_layout else []
             #(the fields which the file does not have, which are 0):
             self._absent = ( set() if f.opt_userflags else { 'userflags' } ) | (
                 set() if f.opt_polarisation else { 'polx', 'poly', 'polz' } )
@@ -286,7 +282,7 @@ class Viewer(_Reading):
         if field == 'plot':
             if not text:
                 raise MCPLError('Give an expression to plot, e.g. ekin/MeV')
-            _make_filler(text,None)#(checks the expressions and options)
+            _make_filler(text)#(checks the expressions and options)
             return text
         if field == 'collection':
             text = text or 'default'
@@ -364,9 +360,8 @@ class Viewer(_Reading):
 
     def _range( self, skip, limit ):
         """The range of particles of the file (first, end) for skip and limit"""
-        n = self._ntotal
-        first = min( skip or 0, n )
-        return first, n if not limit else min( n, first + limit )
+        from ._reader import _particle_range
+        return _particle_range(self._ntotal,skip,limit or None)
 
     def toggle_scale( self, option, key = None ):
         """Toggle the option logx or logy of a plot (the view with the key,
@@ -898,17 +893,10 @@ class Viewer(_Reading):
     #Commands:
 
     def _options( self ):
+        from ._extract import _range_options
         s = self._s
-        from ._extract import _shell_arg
-        opts = []
-        if s.skip:
-            opts.append(f'-s{s.skip}')
-        if s.limit:
-            opts.append(f'-l{s.limit}')
-        for opt, e in ( ('-p',s.pick), ('-E',s.edit) ):
-            if e is not None:
-                opts += [ opt, _shell_arg(e.expression) ]
-        return opts
+        return _range_options(s.skip,s.limit,*( None if e is None else e.expression
+                                               for e in ( s.pick, s.edit ) ))
 
     def commands( self ):
         """Commands doing the same as the viewer: 'view' (opening the viewer in
@@ -916,8 +904,8 @@ class Viewer(_Reading):
         particles to a new file)"""
         import json
 
-        from ._extract import _shell_arg
-        prog, fn = self._progname, _shell_arg(self.filename) if ' ' in self.filename else self.filename
+        from ._extract import _shell_path
+        prog, fn = self._progname, _shell_path(self.filename)
         opts = self._options()
         #The state beyond the options, as --view=VIEW, or as JSON with the
         #strings in single quotes (see _as_state), in double quotes (which
@@ -928,8 +916,8 @@ class Viewer(_Reading):
             view = '-w'
         elif list(state) == [ 'view' ]:
             view = f'--view="{state["view"]}"'
-        elif list(state) == [ 'collection' ]:
-            view = f'-w{state["collection"]}'
+        elif list(state) == [ 'groups' ] and isinstance(state['groups'],str):
+            view = f'-w{state["groups"]}'
         else:
             text = json.dumps(state,separators=(',',':')).replace('"',"'")
             view = f'--view="{text}"'
@@ -947,15 +935,11 @@ class Viewer(_Reading):
         expr = lambda e : None if e is None else e.expression
         mark, userdata = False, False
         if plots is None:
-            n = self._ntotal
+            from ._extract import _statsum_marking
             with MCPLFile(self.filename) as f:
-                has_statsums = any( v is not None for v in f.stat_sum.values() )
+                #(as by mcpltool -e):
+                mark = _statsum_marking(f,s.skip,s.limit,s.pick,s.edit) is not None
                 userdata = f.userdata_layout is not None
-            #(stat:sum entries are marked as not available as by mcpltool -e,
-            #see _mcpltool_extract):
-            mark = has_statsums and bool( s.skip or 0 < ( s.limit or 0 ) < n
-                         or ( s.pick is not None and s.pick._uses_fileidx )
-                         or ( s.edit is not None and 'weight' in s.edit.modified_fields ) )
         job = _Job(self.filename,s.skip,s.limit,expr(s.pick),expr(s.edit),plots,
                    filename or self.suggested_filename(),mark,userdata)
         return code(job,self._progname)

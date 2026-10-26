@@ -233,8 +233,8 @@ def hint_line( editor, popup = False ):
 #The help of the viewer, as blocks (see _helptext), and as plain text:
 help_blocks = (
     ( 'text', '''The viewer shows the particles of an MCPL file in groups of plots (in windows
-with an overview of each group: its plots together, or a correlation plot of the
-correlations of the fields). The plots are histograms of expressions (as for
+with an overview of each group: its plots together, or a correlation plot of
+the fields). The plots are histograms of expressions (as for
 -H). New plots are added to the custom group, where they can be changed,
 removed and reordered (changing a plot of the other groups copies it there).
 Plots are updated while the file is read, and are complete when the reading
@@ -529,6 +529,17 @@ def cache_text( info ):
 #The cache limits offered (in bytes, None for no cache):
 cache_presets = ( 5e6, 20e6, 100e6, 500e6, 2e9, 5e9, 10e9, None )
 
+#The cache limit (in bytes) unless one is chosen:
+default_cache_limit = 500e6
+
+def used_particles( n, size, limit ):
+    """The number of particles the plots use, of the n particles of the range
+    (of size bytes each), with the cache limit (in bytes, or None for no
+    cache): all if they fit, else those which fit (at least one)"""
+    if limit is None or n * size <= limit:
+        return n
+    return max( 1, int( limit // size ) )
+
 #The title of the menu of the cache (see cache_menu):
 cache_menu_title = 'Memory for the particles used by the plots (counted before the pick):'
 
@@ -542,8 +553,8 @@ def cache_menu( info ):
             label = 'No memory cache (refreshing plots from file on each change)'
             fits = True
         else:
-            used = n if info['size'] * n <= limit else max( 1, int( limit // info['size'] ) )
-            fits = used >= n
+            used = used_particles(n,info['size'],limit)
+            fits = n * info['size'] <= limit
             label = f'Max {_bytes(limit)}: {_used_text(used,n)}'
             if not fits:
                 label += f' ({100.0*used/max(1,n):.2g}%)'
@@ -565,8 +576,8 @@ cache_blocks = (
     ( 'gap', ),
     ( 'section', 'The memory limit' ),
     ( 'text', ( 'The button at the top right shows the memory used, and its menu sets the'
-      ' limit (500 MB unless chosen). The memory is counted for the particles before the'
-      ' pick.' ) ),
+      f' limit ({_bytes(default_cache_limit)} unless chosen). The memory is counted for the'
+      ' particles before the pick.' ) ),
     ( 'key', 'Green', 'All particles fit: the plots use all of them.' ),
     ( 'key', 'Red', ( 'Not all particles fit: the plots use only the first ones, those which'
       ' fit, and the others are not read, so the viewer stays fast. The numbers of'

@@ -36,6 +36,8 @@ import threading
 
 import mcpldev as mcpl
 from mcpldev import _viewer_ui as ui
+from mcpldev._histogram import _histogram
+from mcpldev._histstring import _parse_hist
 from mcpldev._plotbackend_test import describe
 from mcpldev._plotbackend_text import AsciiBackend
 from mcpldev._plotbackend_text_gui import TextViewer, _ansi_segments
@@ -66,7 +68,6 @@ def test_figures():
         figs = { k : v.figure(i) for i, k in enumerate(keys) }
         #Each plot is as with mcpltool -H (with the pick and edit expressions
         #as titles), and the overviews have the plots of their groups:
-        title = '\n'.join( f'{w}: {e}' for w, e in (('pick',pick),('edit',edit)) if e )
         src = _FileView(MCPLFile(ex),skip,limit,
                         mcpl.ParticleFilter(pick) if pick else None,
                         mcpl.ParticleEdit(edit) if edit else None)
@@ -75,12 +76,11 @@ def test_figures():
         #of the correlations, see PlotGroups.setting):
         for p in dict.fromkeys( [ p for p, _, _ in v._groups.cards() ] + _plots ):
             try:
-                h = mcpl.histogram(src,p)
+                h = _histogram(src,_parse_hist(p),selection=( pick or None, edit or None ))
             except mcpl.MCPLError as e:
                 failed.append( ( p, str(e) ) )
                 ok &= str(e) in str(describe([figs[v._view_key(p)]]))
                 continue
-            h.title = title or None
             ok &= same(figs[v._view_key(p)],h.figure())
         ov = figs['overview:overview']
         ok &= [ describe([mcpl.plotting.Figure(panels=[pn])]).split('\n',1)[1]

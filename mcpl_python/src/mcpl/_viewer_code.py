@@ -36,6 +36,11 @@ def _shell( text ):
     from ._extract import _shell_arg
     return _shell_arg(text)
 
+def _options( job ):
+    """The options of mcpltool for the range, pick and edit of the job"""
+    from ._extract import _range_options
+    return _range_options(job.skip,job.limit,job.pick,job.edit)
+
 def _c_string( text ):
     """The text as a string of C and C++ (the texts are ASCII)"""
     return '"' + text.replace('\\','\\\\').replace('"','\\"') + '"'
@@ -63,17 +68,14 @@ def code( job, progname ):
     return res
 
 def _command( job, prog ):
-    fn = _shell(job.filename) if ' ' in job.filename else job.filename
-    opts = ( [ f'-s{job.skip}' ] if job.skip else [] ) + ( [ f'-l{job.limit}' ] if job.limit else [] )
-    for opt, e in ( ('-p',job.pick), ('-E',job.edit) ):
-        if e is not None:
-            opts += [ opt, _shell(e) ]
+    from ._extract import _shell_path
+    fn, opts = _shell_path(job.filename), _options(job)
     if job.plots is not None:
         hists = []
         for p in job.plots:
             hists += [ '-H', _shell(p) ]
         return ' '.join( [ prog ] + opts + hists + [ fn ] )
-    out = _shell(job.out) if ' ' in job.out else job.out
+    out = _shell_path(job.out)
     return ' '.join( [ prog, '-e' ] + opts + [ fn, out ] )
 
 def _python( job ):

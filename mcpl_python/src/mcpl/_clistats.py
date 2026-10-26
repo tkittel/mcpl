@@ -99,9 +99,7 @@ def mcpltool_hist(filelist,hists,skip,limit,pick,edit,outfn,backend,terminal,bad
             bad("The histogram option print can not be used together with -o, -B,"
                 " -t or --color.")
     sources = [ _view(fn,skip,limit,pick,edit) for fn in filelist ]
-    title = '\n'.join( f'{what}: {e.expression}' for what, e in (('pick',pick),
-                                                                ('edit',edit))
-                       if e is not None ) or None
+    selection = tuple( None if e is None else e.expression for e in ( pick, edit ) )
     figures = []#(plotted together at the end, in a file or in windows, with the
                 #numbers of bins to fit the plot to, see below)
     bk = None
@@ -119,11 +117,9 @@ def mcpltool_hist(filelist,hists,skip,limit,pick,edit,outfn,backend,terminal,bad
             if res is not None:
                 maxbins = tuple(res) if len(o['exprs']) == 2 else res[0]
         try:
-            h = _histogram(sources,o,_maxbins=maxbins)
+            h = _histogram(sources,o,_maxbins=maxbins,selection=selection)
         except MCPLError as e:
             bad(str(e))
-        if title:
-            h.title = title
         if o['print']:
             print(h.to_text())
         elif outfn or not hasattr(bk,'_fit_resolution'):

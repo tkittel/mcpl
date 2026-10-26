@@ -132,12 +132,12 @@ The command and code of plots, and of writing files:
           c |   return 0;
           c | }
   same figures: True, same particles: True
-  mcpltool -s100 -l300 -p "ekin > 1MeV" -H "ekin;logx" example.mcpl  (code: command, python)
+  mcpltool -l300 -s100 -p "ekin > 1MeV" -H "ekin;logx" example.mcpl  (code: command, python)
      python | import mcpl
      python | f = mcpl.MCPLFile( 'example.mcpl', skip = 100, limit = 300, pick = 'ekin > 1MeV' )
      python | h = mcpl.histogram( f, 'ekin;logx' )
      python | h.plot()
-  mcpltool -s100 -l300 -p "ekin > 1MeV" -H "x" -H "y : z;bins=10" example.mcpl  (code: command, python)
+  mcpltool -l300 -s100 -p "ekin > 1MeV" -H "x" -H "y : z;bins=10" example.mcpl  (code: command, python)
      python | import mcpl
      python | f = mcpl.MCPLFile( 'example.mcpl', skip = 100, limit = 300, pick = 'ekin > 1MeV' )
      python | hs = [ mcpl.histogram( f, p ) for p in (
@@ -145,12 +145,12 @@ The command and code of plots, and of writing files:
      python |     'y : z;bins=10',
      python | ) ]
      python | mcpl.plot_histograms( hs )
-  mcpltool -s100 -l300 -p "ekin > 1MeV" -H "ekin;logx" example.mcpl  (code: command, python)
+  mcpltool -l300 -s100 -p "ekin > 1MeV" -H "ekin;logx" example.mcpl  (code: command, python)
      python | import mcpl
      python | f = mcpl.MCPLFile( 'example.mcpl', skip = 100, limit = 300, pick = 'ekin > 1MeV' )
      python | h = mcpl.histogram( f, 'ekin;logx' )
      python | h.plot()
-  mcpltool -e -s100 -l300 -p "ekin > 1MeV" example.mcpl by_python.mcpl  (code: command, python, cpp, c)
+  mcpltool -e -l300 -s100 -p "ekin > 1MeV" example.mcpl by_python.mcpl  (code: command, python, cpp, c)
      python | import mcpl
      python | fin = mcpl.MCPLFile( 'example.mcpl', skip = 100, limit = 300, pick = 'ekin > 1MeV' )
      python | with mcpl.MCPLOutFile( 'by_python.mcpl' ) as fout:

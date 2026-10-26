@@ -40,10 +40,10 @@ Modules of the mcpl package and their imports from the package:
   layer  10 : _plotbackend_text_gui <- _common, _plotbackend, _plotbackend_text, _termcolor, _viewer_ui
   layer  10 : _viewer_groups       <- _exprcore, _histstring, _particles, _stdviews, _viewer_overviews
   layer  10 : _viewer_jupyter      <- _common, _exprhelp, _logo, _plotbackend_mpl, _viewer_ui
-  layer  10 : _viewer_reading      <- _blocks, _common, _exprcore, _histogram, _histstring, _numpy, _reader, _stdviews, _viewer_overviews, plotting
+  layer  10 : _viewer_reading      <- _blocks, _common, _exprcore, _histogram, _histstring, _numpy, _reader, _stdviews, _viewer_overviews, _viewer_ui, plotting
   layer  10 : _viewer_widgets      <- _common, _exprhelp, _histstring, _particles, _plotbackend_mpl, _thumbnails, _viewer_ui, plotting
   layer  11 : _clistats            <- _common, _histogram, _histstring, _plotbackend, _reader, _stats, plotting
-  layer  11 : _viewer              <- _common, _exprcore, _expressions, _exprhelp, _exprsyntax, _extract, _histstring, _plotbackend, _reader, _stdviews, _viewer_code, _viewer_groups, _viewer_jupyter, _viewer_overviews, _viewer_reading, _viewer_ui
+  layer  11 : _viewer              <- _common, _exprcore, _expressions, _exprhelp, _exprsyntax, _extract, _histstring, _plotbackend, _reader, _stdviews, _userdata, _viewer_code, _viewer_groups, _viewer_jupyter, _viewer_overviews, _viewer_reading, _viewer_ui
   layer  11 : _viewer_tkbase       <- -
   layer  12 : _cli                 <- _clistats, _common, _examples, _expressions, _exprhelp, _extract, _fileops, _histogram, _histstring, _messages, _particles, _plotbackend, _reader, _stdviews, _viewer, _viewer_ui
   layer  12 : _viewer_tkcards      <- _viewer_tkbase, _viewer_widgets

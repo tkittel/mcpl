@@ -1,7 +1,7 @@
 ekin/MeV;bins=20;display_only=ekin < 1MeV (pick None): as picking them: True | title 'only: ekin < 1MeV'
 x/cm : y/cm;bins=8;display_only=pdgcode == neutron (pick None): as picking them: True | title 'only: pdgcode == neutron'
 pdgcode;bar;display_only=ekin > 1MeV (pick None): as picking them: True | title 'only: ekin > 1MeV'
-ekin/MeV;bins=20;display_by=pdgcode;display_only=ekin < 1MeV (pick x > 0): as picking them: True | title 'pick: x > 0, only: ekin < 1MeV'
+ekin/MeV;bins=20;display_by=pdgcode;display_only=ekin < 1MeV (pick x > 0): as picking them: True | title 'pick: x > 0\nonly: ekin < 1MeV'
 x : y : z;points=50;display_only=ekin < 1MeV (pick None): as picking them: True | title 'only: ekin < 1MeV'
 canonical: x;bins=5;display_only=pdgcode==neutron
 'x;display_only': Histogram option "display_only" needs a value, like display_only=..., in "x;display_only"

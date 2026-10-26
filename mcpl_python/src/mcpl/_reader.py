@@ -340,8 +340,7 @@ class MCPLFile:
     def _picked_blocks(self):
         """Blocks of picked and edited particles (in the range of skip and
         limit), merging small picks"""
-        start = min( self._skip, self.nparticles )
-        end = self.nparticles if self._limit is None else min( self.nparticles, start + self._limit )
+        start, end = _particle_range(self.nparticles,self._skip,self._limit)
         #(the blocks before the range are not read):
         first = start // self._blocklength
         if first and self._iblock == 0:
@@ -956,6 +955,25 @@ def _picked_particles(mcplfile,pick,skip=0):
 
 
 
+def _particle_range( n, skip, limit ):
+    """The range of particles (first, end) of a file of n particles, without
+    the first skip of them and with at most limit (all if limit is None; the
+    -l option of mcpltool, where 0 means all, is given as limit or None)"""
+    first = min( skip or 0, n )
+    return first, n if limit is None else min( n, first + limit )
+
+def _blocks_in_range( blocks, first, end ):
+    """The parts of the blocks (of a file, in their order) with the particles
+    from first to end (see _particle_range), as new blocks, since the blocks of
+    files are reused by the next read"""
+    for b in blocks:
+        off = b.file_offset
+        if off + len(b) <= first:
+            continue
+        if off >= end:
+            break
+        yield b[max(0,first-off):min(len(b),end-off)]
+
 class _FileView:
     """Read-only view of the particles of an MCPLFile, for the -s, -l, -p and
     -E options of mcpltool: in a range of the file (without the first skip
@@ -965,9 +983,7 @@ class _FileView:
     def __init__(self, mcplfile, skip = 0, limit = None, pick = None,
                  edit = None):
         self._f = mcplfile
-        n = mcplfile.nparticles
-        self._skip = min( skip or 0, n )
-        self._end = n if not limit else min( n, self._skip + limit )
+        self._skip, self._end = _particle_range(mcplfile.nparticles,skip,limit or None)
         self.pick, self.edit = pick, edit
         self._n = None if pick is not None else self._end - self._skip
     def __getattr__(self, name):
@@ -979,13 +995,7 @@ class _FileView:
         return self._n
     @property
     def particle_blocks(self):
-        for b in self._f.particle_blocks:
-            off = b.file_offset
-            if off + len(b) <= self._skip:
-                continue
-            if off >= self._end:
-                break
-            b = b[max(0,self._skip-off):min(len(b),self._end-off)]
+        for b in _blocks_in_range(self._f.particle_blocks,self._skip,self._end):
             if self.pick is not None:
                 b = b[self.pick(b)]
             if self.edit is not None:

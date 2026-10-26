@@ -317,7 +317,9 @@ class TkViewer(WidgetViewer):
         button['menu'] = menu
         self._menu_key(button,menu,'h')
         topics = self.help_topics()
-        for ( label, title, text ), pos in zip(topics,mnemonics([ t[0] for t in topics ])):
+        #(w for the viewer, as for mcpltool -w):
+        for ( label, title, text ), pos in zip(topics,mnemonics([ t[0] for t in topics ],
+                                                                { 'The viewer' : 'w' })):
             menu.add_command(label=label,underline=pos,
                              command=lambda t=title, x=text : self.show_text(t,x))
         self._help_choices = menu

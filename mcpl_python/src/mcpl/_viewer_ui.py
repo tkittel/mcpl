@@ -717,16 +717,17 @@ def cache_line( info ):
 #The help about the cache (see cache_menu), as blocks (see _helptext):
 def about_blocks():
     """The help blocks (see _helptext) about MCPL: its version, website and
-    where to get support"""
+    how to help its development"""
     from ._common import __version__
     repo = 'https://github.com/mctools/mcpl'
     return (
         ( 'text', f'MCPL (Monte Carlo Particle Lists), version {__version__}.' ),
         ( 'text', 'The documentation is on the website: https://mctools.github.io/mcpl/' ),
-        ( 'section', 'Support' ),
-        ( 'text', f'Questions and ideas are welcome in the discussions: {repo}/discussions' ),
-        ( 'text', f'Problems and bugs can be reported as issues: {repo}/issues' ),
-        ( 'text', f'If MCPL is useful to you, please give it a star on GitHub: {repo}' ) )
+        ( 'text', 'To help MCPL developments you can:' ),
+        ( 'bullet', f'Post ideas and questions on {repo}/discussions' ),
+        ( 'bullet', f'Submit issues or feature requests on {repo}/issues' ),
+        ( 'bullet', 'Add MCPL support to your favourite Monte Carlo' ),
+        ( 'bullet', f'Give it a star on GitHub: {repo}' ) )
 
 cache_blocks = (
     ( 'text', ( 'The viewer keeps the particles it reads in memory (the cache), so it does'

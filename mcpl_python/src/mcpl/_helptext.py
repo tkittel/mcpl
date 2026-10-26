@@ -28,6 +28,7 @@ kind and its texts:
   ('section', TITLE)        the title of a section
   ('subsection', TITLE)     the title of a part of a section (e.g. of examples)
   ('note', TEXT)            a paragraph at the start of a section
+  ('bullet', TEXT)          a point of a list
   ('item', NAME, TEXT)      the description of a name (e.g. a function)
   ('key', KEYS, TEXT)       the description of keys
   ('examples', ROWS)        examples, as rows of (code, what it does)"""
@@ -57,6 +58,8 @@ def plain_text( blocks, width = 79 ):
             lines.append(f'{args[0]}:')
         elif kind == 'note':
             wrap(args[0],'  ','  ')
+        elif kind == 'bullet':
+            wrap(args[0],'  - ','    ')
         elif kind == 'item':
             wrap(args[1],f'  {args[0]}: ','      ')
         elif kind == 'key':

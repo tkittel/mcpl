@@ -81,6 +81,7 @@ def _format_help( text, blocks ):
     text.tag_configure('subsection',font=bold,spacing1=10,spacing3=2)
     text.tag_configure('para',spacing1=6,spacing3=6)
     text.tag_configure('note',lmargin1=12,lmargin2=12,spacing3=6)
+    text.tag_configure('bullet',lmargin1=12,lmargin2=26,spacing3=3)
     text.tag_configure('item',lmargin1=12,lmargin2=36,spacing1=3)
     text.tag_configure('row',lmargin1=12,lmargin2=column,tabs=(column,),spacing1=3)
     #(the descriptions of codes too wide for the column, on the next line):
@@ -97,6 +98,8 @@ def _format_help( text, blocks ):
                             'para' if kind == 'text' else 'note')
         elif kind in ( 'section', 'subsection' ):
             text.insert('end',args[0] + '\n',kind)
+        elif kind == 'bullet':
+            text.insert('end','\u2022  ' + args[0] + '\n','bullet')
         elif kind == 'item':
             text.insert('end',args[0],( 'item', 'code' ),': ' + args[1] + '\n','item')
         elif kind == 'key':

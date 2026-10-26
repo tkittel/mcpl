@@ -105,12 +105,18 @@ def repaint_after_resize( root, delay = 150 ):
         pending[0] = root.after(delay,repaint)
     root.bind('<Configure>',on_configure,'+')
 
-def mnemonics( labels ):
+def mnemonics( labels, preferred = None ):
     """The positions of the letters to underline in the labels of a menu: of
-    a letter which no label before it has, preferring capitals, then the
-    starts of words (or -1)"""
-    used, res = set(), []
+    the preferred letter of the label (in the dict preferred), or else of a
+    letter which no label before it has, preferring capitals, then the starts
+    of words (or -1)"""
+    preferred = preferred or {}
+    used, res = { c.lower() for c in preferred.values() }, []
     for label in labels:
+        if label in preferred:
+            i = label.lower().index(preferred[label].lower())
+            res.append(i)
+            continue
         free = [ i for i, c in enumerate(label) if c.isalpha() and c.lower() not in used ]
         starts = [ i for i in free if i == 0 or not label[i-1].isalpha() ]
         i = next( iter([ i for i in free if label[i].isupper() ] + starts + free), -1 )

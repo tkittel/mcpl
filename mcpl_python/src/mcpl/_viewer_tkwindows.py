@@ -19,8 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
-"""The windows opened by the viewer with Tk (see _viewer_tk): the examples of
-expressions, the code of the plots, and the writing of a new file"""
+"""The windows opened by the viewer with Tk (see _viewer_tk): the help, the
+examples of expressions, the code of the plots, and the writing of a new
+file"""
 
 __all__ = []
 
@@ -28,6 +29,84 @@ from . import _viewer_ui as ui
 from ._viewer_tkbase import on_paste, tk_modules
 from ._viewer_ui import card_colors, code_styles, colors
 
+
+class HelpWindow:
+    """A window with the help (see help_topics), formatted from its blocks
+    (see _helptext), which can be scrolled"""
+    def __init__( self, tv, title, blocks ):
+        tk, ttk = tk_modules()
+        top = tk.Toplevel(tv.root)
+        top.title(f'MCPL viewer: {title}')
+        frame = ttk.Frame(top)
+        frame.pack(fill='both',expand=True)
+        text = tk.Text(frame,width=90,height=40,wrap='word',padx=14,pady=10,
+                       font='TkDefaultFont',relief='flat',spacing1=1,spacing3=1)
+        bar = ttk.Scrollbar(frame,orient='vertical',command=text.yview)
+        text.configure(yscrollcommand=bar.set)
+        bar.pack(side='right',fill='y')
+        text.pack(side='left',fill='both',expand=True)
+        _format_help(text,blocks)
+        text.configure(state='disabled')
+        #(as high as the text needs, up to 40 lines, when it has its width):
+        top.update_idletasks()
+        #(the height is in lines of the font, and the text has larger headings
+        #and spacing, so its height in pixels is used):
+        pixels = text.count('1.0','end','update','ypixels')
+        pixels = pixels[-1] if isinstance(pixels,tuple) else pixels
+        line = int(text.tk.call('font','metrics','TkDefaultFont','-linespace'))
+        if pixels:
+            text.configure(height=min( 40, -( -int(pixels) // line ) + 1 ))
+        ttk.Button(top,text='Close',command=top.destroy).pack(pady=4)
+        for key in ( '<Escape>', '<KeyPress-q>', '<KeyPress-Q>' ):
+            top.bind(key,lambda _e : top.destroy())
+        #(when it is shown, so it gets the keys also on macOS):
+        top.after_idle(top.focus_force)
+
+def _format_help( text, blocks ):
+    """Insert the help blocks (see _helptext) in the Text widget, formatted:
+    sections as headings, the names and keys in bold in a column, code in a
+    fixed font, and paragraphs flowing with the width of the window"""
+    #(the fonts, from the default one, as (family, size, style); negative
+    #sizes are in pixels):
+    call = text.tk.call
+    actual = dict(zip(*[ iter(call('font','actual','TkDefaultFont')) ] * 2))
+    family, size = str(actual['-family']), int(actual['-size'])
+    bold, heading = ( family, size, 'bold' ), ( family, round(1.25*size), 'bold' )
+    code = 'TkFixedFont'
+    #(the column of the descriptions of keys and examples):
+    column = max( int(call('font','measure',bold,'Shift+Up, Shift+Down')),
+                  int(call('font','measure',code,'x'*28)) ) + 30
+    text.tag_configure('section',font=heading,spacing1=14,spacing3=4)
+    text.tag_configure('subsection',font=bold,spacing1=10,spacing3=2)
+    text.tag_configure('para',spacing1=6,spacing3=6)
+    text.tag_configure('note',lmargin1=12,lmargin2=12,spacing3=6)
+    text.tag_configure('item',lmargin1=12,lmargin2=36,spacing1=3)
+    text.tag_configure('row',lmargin1=12,lmargin2=column,tabs=(column,),spacing1=3)
+    #(the descriptions of codes too wide for the column, on the next line):
+    text.tag_configure('below',lmargin1=column,lmargin2=column)
+    text.tag_configure('name',font=bold)
+    text.tag_configure('code',font=code,foreground=card_colors['accent'])
+    for kind, *args in blocks:
+        if kind == 'gap':
+            continue
+        if kind in ( 'text', 'note' ):
+            #(the line breaks of plain text are left out):
+            for para in args[0].split('\n\n'):
+                text.insert('end',' '.join(para.split('\n')) + '\n',
+                            'para' if kind == 'text' else 'note')
+        elif kind in ( 'section', 'subsection' ):
+            text.insert('end',args[0] + '\n',kind)
+        elif kind == 'item':
+            text.insert('end',args[0],( 'item', 'code' ),': ' + args[1] + '\n','item')
+        elif kind == 'key':
+            text.insert('end',args[0],( 'row', 'name' ),'\t' + args[1] + '\n','row')
+        else:#(examples)
+            for c, what in args[0]:
+                if int(call('font','measure',code,c)) + 12 < column - 8:
+                    text.insert('end',c,( 'row', 'code' ),'\t' + what + '\n','row')
+                else:
+                    text.insert('end',c + '\n',( 'row', 'code' ),what + '\n','below')
+            text.insert('end','\n')
 
 class Examples:
     """A window with examples of expressions (of _exprhelp.examples), with what

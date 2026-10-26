@@ -28,7 +28,6 @@ __all__ = []
 
 from . import _viewer_ui as ui
 from ._viewer_tkbase import (
-    Flow,
     GreyText,
     bind_enter,
     command_keys,
@@ -38,7 +37,8 @@ from ._viewer_tkbase import (
     windowing_system,
 )
 from ._viewer_tkcards import CardList
-from ._viewer_tkwindows import CodeWindow, Examples, WriteWindow
+from ._viewer_tkcontrols import Controls, OverviewControls, make_part, row_label, tint
+from ._viewer_tkwindows import CodeWindow, Examples, HelpWindow, WriteWindow
 from ._viewer_ui import card_colors, colors, part_colors
 from ._viewer_widgets import WidgetViewer, run_with_ctrl_c
 
@@ -133,7 +133,7 @@ class TkViewer(WidgetViewer):
         self.small = ( 1 if size > 0 else -1 ) * max( 7, round( 0.8 * abs(size) ) )
         self.small_font = ( bold.cget('family'), self.small )
         self.small_bold = ( *self.small_font, 'bold' )
-        #(the parts below the plot, see _part):
+        #(the parts below the plot, see make_part):
         for name, bg in part_colors.items():
             style.configure(f'{name}.TFrame',background=bg)
             style.configure(f'{name}.TLabel',background=bg)
@@ -189,7 +189,7 @@ class TkViewer(WidgetViewer):
         #(the part of the shown plot, in the colours of its selected card: the
         #plot with its toolbar, and its fields below them, see _plot_part):
         bg = part_colors['Plot']
-        part, head = _part(main,'Plot','Plot','the shown plot',card_colors['accent'])
+        part, head = make_part(main,'Plot','Plot','the shown plot',card_colors['accent'])
         part.master.grid(row=2,column=0,sticky='nsew')
         #(the fields at the bottom, packed first so the plot gets the rest):
         fields = ttk.Frame(part)
@@ -197,7 +197,7 @@ class TkViewer(WidgetViewer):
         self._plot_fields = fields#(not shown for views which are not plots)
         #(the settings of overviews, shown instead of the fields, see
         #show_overview_controls):
-        self._overview_controls = _OverviewControls(part,self.on_overview_control,'Plot')
+        self._overview_controls = OverviewControls(part,self.on_overview_control,'Plot')
         plot = tk.Frame(part,name='plotbox',background=bg)
         self._plotbox = plot
         plot.pack(fill='both',expand=True,pady=(0,4))
@@ -222,13 +222,13 @@ class TkViewer(WidgetViewer):
         self._placeholders = {}#entry -> text shown in grey while it is empty
         self._grey = GreyText()#(of the entries showing their placeholder)
         self._plot_part(fields,head)
-        _tint(part,'Plot')
+        tint(part,'Plot')
         #Below the plot: the part of the particles (for all plots), and the
         #line below it:
         bottom = ttk.Frame(root,padding=(0,4,6,6))
         bottom.grid(row=1,column=1,sticky='ew')
         bottom.columnconfigure(0,weight=1)
-        part, head = _part(bottom,'Particles','Pick & edit','filter or modify particles',
+        part, head = make_part(bottom,'Particles','Pick & edit','filter or modify particles',
                            card_colors['border'])
         #(the numbers of the particles used, at the right of the header):
         self._counts = ttk.Label(head,foreground=colors['dim'],style='Particles.TLabel')
@@ -252,7 +252,7 @@ class TkViewer(WidgetViewer):
                 _, label, _key, kpos, empty = info[field]
                 first = field == row[0]
                 lab = ttk.Label(grid,text=label + ':',underline=kpos,
-                                **( _row_label if first else {} ))
+                                **( row_label if first else {} ))
                 lab.grid(row=r,column=col,sticky='e',padx=(0 if first else 12,4),pady=1)
                 wide = field in ui.example_topics
                 w = ttk.Entry(grid,width=20 if wide else 10)
@@ -281,7 +281,7 @@ class TkViewer(WidgetViewer):
         self._write.grid(row=len(rows)-1,column=cols['skip'],
                          columnspan=cols['limit']+2-cols['skip'],sticky='ew',padx=(12,0))
         self._hover(self._write,'write')
-        _tint(part,'Particles')
+        tint(part,'Particles')
         #(the line of messages, and at its right what is under the mouse):
         self._line = ttk.Label(bottom)
         self._line.grid(row=1,column=0,sticky='w',pady=(2,0))
@@ -351,7 +351,7 @@ class TkViewer(WidgetViewer):
         self._menu = dict(ui.quantity_choices)#(the texts of the quantities -> expressions)
         self._axes = []
         for label in ( 'X axis:', 'Y axis:', 'Z axis:' ):
-            ttk.Label(simple,text=label,**( _row_label if not self._axes else {} )).pack(
+            ttk.Label(simple,text=label,**( row_label if not self._axes else {} )).pack(
                 side='left',padx=(0 if not self._axes else 10,4))
             w = ttk.Combobox(simple,width=18,values=list(self._menu) if not self._axes else [ '', *self._menu ])
             w.pack(side='left')
@@ -391,7 +391,7 @@ class TkViewer(WidgetViewer):
         self._hover(toggle,'advanced')
         expr = ttk.Frame(frame)
         self._expression = expr
-        ttk.Label(expr,text='Expression:',**_row_label).pack(side='left',padx=(0,4))
+        ttk.Label(expr,text='Expression:',**row_label).pack(side='left',padx=(0,4))
         w = ttk.Entry(expr,width=16)
         w.pack(side='left',fill='x',expand=True)
         self._apply_button(expr,'shown_plot').pack(side='left',padx=(2,0))
@@ -405,8 +405,8 @@ class TkViewer(WidgetViewer):
         frame = ttk.Frame(part)
         frame.pack(fill='x',pady=1)
         self._settings_row = frame
-        ttk.Label(frame,text='Settings:',**_row_label).pack(side='left',padx=(0,4))
-        self._controls = _Controls(frame,self.on_control,
+        ttk.Label(frame,text='Settings:',**row_label).pack(side='left',padx=(0,4))
+        self._controls = Controls(frame,self.on_control,
                                    on_hint = lambda text : self.show_line(text,'dim'),
                                    style = 'Plot')
         self._controls.frame.pack(side='left',fill='x',expand=True)
@@ -638,35 +638,7 @@ class TkViewer(WidgetViewer):
         self.show_text('Help',ui.help_blocks)
 
     def show_text( self, title, blocks ):
-        """A window with the help (see help_topics), formatted from its blocks
-        (see _helptext), which can be scrolled"""
-        tk, ttk = tk_modules()
-        top = tk.Toplevel(self.root)
-        top.title(f'MCPL viewer: {title}')
-        frame = ttk.Frame(top)
-        frame.pack(fill='both',expand=True)
-        text = tk.Text(frame,width=90,height=40,wrap='word',padx=14,pady=10,
-                       font='TkDefaultFont',relief='flat',spacing1=1,spacing3=1)
-        bar = ttk.Scrollbar(frame,orient='vertical',command=text.yview)
-        text.configure(yscrollcommand=bar.set)
-        bar.pack(side='right',fill='y')
-        text.pack(side='left',fill='both',expand=True)
-        _format_help(text,blocks)
-        text.configure(state='disabled')
-        #(as high as the text needs, up to 40 lines, when it has its width):
-        top.update_idletasks()
-        #(the height is in lines of the font, and the text has larger headings
-        #and spacing, so its height in pixels is used):
-        pixels = text.count('1.0','end','update','ypixels')
-        pixels = pixels[-1] if isinstance(pixels,tuple) else pixels
-        line = int(text.tk.call('font','metrics','TkDefaultFont','-linespace'))
-        if pixels:
-            text.configure(height=min( 40, -( -int(pixels) // line ) + 1 ))
-        ttk.Button(top,text='Close',command=top.destroy).pack(pady=4)
-        for key in ( '<Escape>', '<KeyPress-q>', '<KeyPress-Q>' ):
-            top.bind(key,lambda _e : top.destroy())
-        #(when it is shown, so it gets the keys also on macOS):
-        top.after_idle(top.focus_force)
+        HelpWindow(self,title,blocks)
 
     def copy_text( self, text ):
         """Copy the text to the clipboard (for Ctrl+V) and to the primary
@@ -924,244 +896,6 @@ class TkViewer(WidgetViewer):
         if self._popup is not None:
             self._popup[2].destroy()
             self._popup = None
-
-#(the labels at the start of the rows of the parts, in a column):
-_row_label = { 'width' : 9, 'anchor' : 'e' }
-
-def _part( parent, name, title, what, border ):
-    """A part below the plot (with the colours of part_colors[name]), with a
-    header with its title and what it is for. Returns the frame for its
-    contents (in a frame with the border, its master), and the frame of the
-    header (e.g. for buttons at its right)."""
-    tk, ttk = tk_modules()
-    box = tk.Frame(parent,background=part_colors[name],highlightthickness=1,
-                   highlightbackground=border,highlightcolor=border)
-    frame = ttk.Frame(box,style=f'{name}.TFrame',padding=(10,4,10,6))
-    frame.pack(fill='both',expand=True)
-    head = ttk.Frame(frame,style=f'{name}.TFrame')
-    head.pack(fill='x',pady=(0,6))
-    ttk.Label(head,text=f'{title.upper()}  \u00b7  {what}',
-              style=f'{name}Head.TLabel').pack(side='left')
-    return frame, head
-
-def _tint( part, name ):
-    """Give the frames and labels in the part (see _part) its colours (those
-    with their own style keep it)"""
-    _, ttk = tk_modules()
-    for w in part.winfo_children():
-        if isinstance(w,ttk.Frame) and not w.cget('style'):
-            w.configure(style=f'{name}.TFrame')
-            _tint(w,name)
-        elif isinstance(w,ttk.Label) and not w.cget('style'):
-            w.configure(style=f'{name}.TLabel')
-
-#(the choices of the menus of _Controls for writing in them, and their hints):
-_written = {
-    'display_by' : ( 'an expression...', ( 'Type what to show a curve of each value of,'
-                                           ' e.g. x > 0cm or userflags, and press Enter' ) ),
-    'display_only' : ( 'a condition...', ( 'Type which particles to show, e.g.'
-                                           ' ekin > 1MeV, and press Enter' ) ) }
-
-class _Controls:
-    """The settings of a plot (see WidgetViewer.plot_controls): a menu or a
-    text field for each, in a row, which call on_change(option, shown text)
-    when changed (with Enter, for the text fields). The row is made again
-    when the kind of plot changes. The menus of display_by and display_only
-    have a choice for writing an expression or a condition in them, which
-    on_hint (if given) explains."""
-    written = _written
-
-    def __init__( self, parent, on_change, on_hint = None, style = None ):
-        _, ttk = tk_modules()
-        #(the style of the labels and the frame, e.g. of a part, see _part):
-        self._styles = { 'style' : f'{style}.TLabel' } if style else {}
-        self._frames = { 'style' : f'{style}.TFrame' } if style else {}
-        self.frame = ttk.Frame(parent,**self._frames)
-        #(each setting in a frame, in rows as wide as the window):
-        self._flow = Flow(self.frame,**self._frames)
-        self._on_change = on_change
-        self._on_hint = on_hint
-        self._kind = None
-        self._widgets, self._used, self._grey = {}, {}, GreyText()
-
-    def show( self, controls ):
-        _, ttk = tk_modules()
-        kind = controls[0] if controls else None
-        if kind != self._kind:
-            for w in self.frame.winfo_children():
-                w.destroy()
-            self._kind, self._widgets = kind, {}
-            self._used = {}#entry -> its greyed text (what is used)
-            self._grey = GreyText()#(of the entries showing it)
-            items = []
-            for name, label, choices, _, _ in ( controls[1] if controls else () ):
-                item = ttk.Frame(self.frame,**self._frames)
-                items.append(item)
-                ttk.Label(item,text=label,**self._styles).pack(side='left',padx=(0,3))
-                if choices is not None:
-                    #(some also take what is written, the others only the choices):
-                    if name in self.written:
-                        choices = [ *choices, self.written[name][0] ]
-                    w = ttk.Combobox(item,values=choices,
-                                     width=14 if name in self.written else 7,
-                                     state='normal' if name in self.written else 'readonly')
-                    w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._chosen(n,w))
-                else:
-                    w = ttk.Entry(item,width=12 if 'range' in name else 7)
-                    #(the greyed text is removed while it is edited):
-                    w.bind('<FocusIn>',lambda _e, w=w : self._show_used(w,None),'+')
-                    w.bind('<FocusOut>',lambda _e, w=w : self._show_used(w,self._used.get(w)),'+')
-                if name in self.written or choices is None:
-                    w.bind('<Return>',lambda _e, n=name, w=w : self._on_change(n,self._text(w)))
-                w.pack(side='left')
-                self._widgets[name] = w
-            self._flow.set(items)
-        if not controls:
-            return
-        focus = focus_of(self.frame)
-        for name, _, choices, shown, used in controls[1]:
-            w = self._widgets[name]
-            if w is focus:
-                continue#(not while it is edited)
-            if choices is not None:
-                w.set(shown)
-            else:
-                self._show_used(w,None)
-                w.delete(0,'end')
-                w.insert(0,shown)
-                if not shown and used:
-                    self._show_used(w,used)
-
-    def _show_used( self, w, used ):
-        """Show the text of what is used greyed in the empty entry w (or remove
-        it, if used is None)"""
-        if used is None:
-            self._grey.remove(w)
-        elif not w.get():
-            self._used[w] = used
-            self._grey.show(w,used)
-
-    def _text( self, w ):
-        """The text of the entry w (empty while it shows a greyed text)"""
-        return self._grey.text(w)
-
-    def _chosen( self, name, w ):
-        choice, hint = self.written.get(name,( None, None ))
-        if w.get() != choice:
-            self._on_change(name,w.get())
-            return
-        #(it is written in the field, and applied with Enter):
-        w.set('')
-        w.focus_set()
-        if self._on_hint is not None:
-            self._on_hint(hint)
-
-def _format_help( text, blocks ):
-    """Insert the help blocks (see _helptext) in the Text widget, formatted:
-    sections as headings, the names and keys in bold in a column, code in a
-    fixed font, and paragraphs flowing with the width of the window"""
-    #(the fonts, from the default one, as (family, size, style); negative
-    #sizes are in pixels):
-    call = text.tk.call
-    actual = dict(zip(*[ iter(call('font','actual','TkDefaultFont')) ] * 2))
-    family, size = str(actual['-family']), int(actual['-size'])
-    bold, heading = ( family, size, 'bold' ), ( family, round(1.25*size), 'bold' )
-    code = 'TkFixedFont'
-    #(the column of the descriptions of keys and examples):
-    column = max( int(call('font','measure',bold,'Shift+Up, Shift+Down')),
-                  int(call('font','measure',code,'x'*28)) ) + 30
-    text.tag_configure('section',font=heading,spacing1=14,spacing3=4)
-    text.tag_configure('subsection',font=bold,spacing1=10,spacing3=2)
-    text.tag_configure('para',spacing1=6,spacing3=6)
-    text.tag_configure('note',lmargin1=12,lmargin2=12,spacing3=6)
-    text.tag_configure('item',lmargin1=12,lmargin2=36,spacing1=3)
-    text.tag_configure('row',lmargin1=12,lmargin2=column,tabs=(column,),spacing1=3)
-    #(the descriptions of codes too wide for the column, on the next line):
-    text.tag_configure('below',lmargin1=column,lmargin2=column)
-    text.tag_configure('name',font=bold)
-    text.tag_configure('code',font=code,foreground=card_colors['accent'])
-    for kind, *args in blocks:
-        if kind == 'gap':
-            continue
-        if kind in ( 'text', 'note' ):
-            #(the line breaks of plain text are left out):
-            for para in args[0].split('\n\n'):
-                text.insert('end',' '.join(para.split('\n')) + '\n',
-                            'para' if kind == 'text' else 'note')
-        elif kind in ( 'section', 'subsection' ):
-            text.insert('end',args[0] + '\n',kind)
-        elif kind == 'item':
-            text.insert('end',args[0],( 'item', 'code' ),': ' + args[1] + '\n','item')
-        elif kind == 'key':
-            text.insert('end',args[0],( 'row', 'name' ),'\t' + args[1] + '\n','row')
-        else:#(examples)
-            for c, what in args[0]:
-                if int(call('font','measure',code,c)) + 12 < column - 8:
-                    text.insert('end',c,( 'row', 'code' ),'\t' + what + '\n','row')
-                else:
-                    text.insert('end',c + '\n',( 'row', 'code' ),what + '\n','below')
-            text.insert('end','\n')
-
-class _OverviewControls:
-    """The settings of an overview (see WidgetViewer.overview_controls): a menu,
-    toggle buttons (for the variables) or a button for each, in rows as wide
-    as the window, which call on_change(name, shown text) when changed (for
-    toggles, the text of the toggle). They are made again when the choices
-    change. The style is that of the labels and the frames (see
-    _Controls)."""
-    def __init__( self, parent, on_change, style ):
-        _, ttk = tk_modules()
-        self._frames = { 'style' : f'{style}.TFrame' }
-        self.frame = ttk.Frame(parent,**self._frames)
-        self._label = { 'style' : f'{style}.TLabel' }
-        ttk.Label(self.frame,text='Settings:',**_row_label,**self._label).pack(side='left',
-                                                                             anchor='n',padx=(0,4))
-        body = ttk.Frame(self.frame,**self._frames)
-        body.pack(side='left',fill='x',expand=True)
-        self._body, self._flow = body, Flow(body,pad = 4,**self._frames)
-        self._on_change = on_change
-        self._made, self._widgets = None, {}
-
-    def show( self, controls ):
-        tk, ttk = tk_modules()
-        made = [ ( name, tuple(texts) ) for name, _, texts, _ in controls ]
-        if made != self._made:
-            for w in self._body.winfo_children():
-                w.destroy()
-            self._made, self._widgets, items = made, {}, []
-            def label( text ):
-                items.append(ttk.Label(self._body,text=text,**self._label))
-            for name, text, texts, _ in controls:
-                if text is None:#(a button, with its text)
-                    w = ttk.Button(self._body,text=texts[0],takefocus=0,style='Small.TButton',
-                                   command=lambda n=name, t=texts[0] : self._on_change(n,t))
-                    items.append(w)
-                    self._widgets[name] = w
-                    continue
-                label(f'{text}:')
-                if name == 'variables':
-                    toggles = {}
-                    for t in texts:
-                        var = tk.BooleanVar(self._body,value=False)
-                        items.append(ttk.Checkbutton(self._body,text=t,variable=var,takefocus=0,
-                                                     style='Choice.Toolbutton',
-                                                     command=lambda n=name, t=t : self._on_change(n,t)))
-                        toggles[t] = var
-                    self._widgets[name] = toggles
-                else:
-                    w = ttk.Combobox(self._body,values=texts,state='readonly',
-                                     width=max( len(t) for t in texts ) + 1)
-                    w.bind('<<ComboboxSelected>>',lambda _e, n=name, w=w : self._on_change(n,w.get()))
-                    items.append(w)
-                    self._widgets[name] = w
-            self._flow.set(items)
-        for name, text, _, shown in controls:
-            w = self._widgets[name]
-            if isinstance(w,dict):#(toggles, on if shown)
-                for t, var in w.items():
-                    var.set(t in shown)
-            elif text is not None:
-                w.set(shown)
 
 def _has_xft( root ):
     """Whether Tk uses Xft for its fonts, or None if not known: as Tk says

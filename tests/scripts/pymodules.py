@@ -83,6 +83,7 @@ layers = {
     '_viewer_widgets' : 10,
     '_viewer_tkbase' : 11,
     '_viewer_tkcards' : 12,
+    '_viewer_tkcontrols' : 12,
     '_viewer_tkwindows' : 12,
     '_viewer_tk' : 13,
     '_viewer_reading' : 10,

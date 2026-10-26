@@ -82,12 +82,12 @@ def test_figures():
                 ok &= str(e) in str(describe([figs[v._view_key(p)]]))
                 continue
             ok &= same(figs[v._view_key(p)],h.figure())
-        ov = figs['overview:overview']
+        ov = figs['overview:spectra']
         ok &= [ describe([mcpl.plotting.Figure(panels=[pn])]).split('\n',1)[1]
                 for pn in ov.panels ] == [
                     describe([mcpl.plotting.Figure(panels=[ figs[k].panels[0] ])]).split('\n',1)[1]
                     .replace(f"Panel {figs[k].panels[0].title!r}","Panel None",1)
-                    for k in v.overview_keys('overview:overview') ]
+                    for k in v.overview_keys('overview:spectra') ]
         print(f'skip={skip} limit={limit} pick={pick!r} edit={edit!r}:')
         print(f'   {v.status_lines()[0]}')
         print(f'   {len(v.views)} views, same figures as mcpltool -H: {ok}')
@@ -99,26 +99,25 @@ def test_figures():
 def test_groups():
     import shlex
 
-    from mcpldev._stdviews import _default_preset, _groups, _plot_item, _presets
+    from mcpldev._stdviews import _default_groups, _groups, _plot_item
     from mcpldev._viewer import _auto_title
     from mcpldev._viewer_groups import PlotGroups
-    assert _default_preset in _presets
-    assert all( k in _groups for _, keys in _presets.values() for k in keys )
-    #The names of the presets and groups can never be views (plots), as they
-    #are not valid expressions or plots (so -wNAME can be either):
-    for name in ( *_presets, *_groups ):
+    assert all( k in _groups for k in _default_groups )
+    #The keys of the groups can never be views (plots), as they are not valid
+    #expressions or plots (so -wGROUPS can be either):
+    for name in _groups:
         for check in ( mcpl.ParticleValue, mcpl.ParticleFilter ):
             try:
                 check(name)
             except mcpl.MCPLError:
                 continue
-            raise AssertionError(f'group or preset name {name!r} is a valid expression')
-        assert not Viewer(ex).check('plot',name)[0], f'group or preset name {name!r} is a valid plot'
+            raise AssertionError(f'group key {name!r} is a valid expression')
+        assert not Viewer(ex).check('plot',name)[0], f'group key {name!r} is a valid plot'
     #All plots of all groups work, and plots whose title follows from their
     #expressions have no title of their own (so it follows changes of the
     #expressions, see _viewer._auto_title):
     g = PlotGroups()
-    g.use_preset('all')
+    g.use(list(_groups))
     for key, ( title, descr, items, opts ) in _groups.items():
         plots = [ _plot_item(i) for i in items ]
         assert len({ p for p, _ in plots }) == len(plots)
@@ -131,8 +130,7 @@ def test_groups():
             mcpl.histogram(ex,p)
         print(f'group {key}: {title}: {descr}, {len(ov.plots)} plots in {ov.nrows}x{ov.ncols}'
               f'{" (correlation plot)" if ov.correlation_plot else ""}{" (folded)" if opts.get("folded") else ""}')
-    for name, ( descr, keys ) in _presets.items():
-        print(f'preset {name}: {descr}: {", ".join(keys)}')
+    print('default groups:', ', '.join(_default_groups))
     v = Viewer(ex,view='beamz',plots=['x;bins=5'])
     v.multi_overview = True
     print('-wbeamz:', v.field_text('collection'), v.groups, [ k for k, _ in v.views ][:2],
@@ -146,18 +144,20 @@ def test_groups():
     print('removing a custom plot:', v.change_plot('x/mm : y/mm',''), v._groups.custom)
     #(also when the changed plot is in another group, or among the custom
     #plots, which shows a copy of it, keeping the other settings):
-    v.set('collection','default')
+    v.set('collection','spectra,fields')
     print('changed to a plot of another group:', v.change_plot('ekin;logx=auto;logy','ekin'),
           v.current_key, v.plot_info(v.current_key)['group'], v._groups.custom)
-    print('again, a setting:', v.change_plot('plot:ekin','ekin;bins=20'), v.current_key, v._groups.custom)
+    print('again, a setting:', v.change_plot('plot:x','x;bins=20'), v.current_key, v._groups.custom)
     print('the custom one:', v.change_plot('custom:ekin','ekin;logy'), v.current_key, v._groups.custom,
           '| state:', v.state(full = False))
-    print('check:', v.check('collection','beam'), v.check('collection',''), v.check('collection','3d'))
-    print('completions:', v.complete('collection','beam'), '| hint:', v.hint('collection','beamx'))
-    print('switched:', v.set('collection','shielding'), v.groups, [ k for k, _ in v.views ][:2],
+    print('check:', v.check('collection','beam'), v.check('collection',''), v.check('collection','3d'),
+          v.check('collection','spectra, 3d'))
+    print('completions:', v.complete('collection','beam'), v.complete('collection','spectra,be'),
+          '| hint:', v.hint('collection','beamx'), v.hint('collection','spectra,beamx'))
+    print('switched:', v.set('collection','beamx,correlations'), v.groups, [ k for k, _ in v.views ][:2],
           'custom plot kept:', v._s.plots[-1], '| state:', v.state(full = False))
     print('group shown:', v.show_group('3d'), v.groups, 'again:', v.show_group('3d'),
-          '| hidden:', v.show_group('shielding',False), v.groups, '| state:', v.state(full = False))
+          '| hidden:', v.show_group('beamx',False), v.groups, '| state:', v.state(full = False))
     arg = shlex.split(v.commands()['view'])[1]
     w = Viewer(ex,view=arg.split('=',1)[1] if arg.startswith('--') else arg[2:])
     print('opened with the command: same state:', w.state() == v.state())
@@ -201,7 +201,7 @@ def test_state():
     print('move the overview:', v.move(1))
     v.select_key('plot:x')
     print('move a standard plot:', v.move(1))
-    v.change_plot('ekin','ekin/keV;logy=1')
+    v.change_plot('ekin;logx=auto;logy','ekin/keV;logy=1')
     v.change_plot('hypot(x,y)/cm','')
     v.set('pick','pdgcode != gamma')
     v.set('limit','500')

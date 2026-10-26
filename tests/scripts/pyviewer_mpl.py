@@ -90,7 +90,7 @@ key('escape')
 def key_at( k, ax ):
     x, y = ax.transAxes.transform((0.5,0.5))
     fig.canvas.callbacks.process('key_press_event',KeyEvent('key_press_event',fig.canvas,k,x,y))
-v.select_key('plot:ekin')
+v.select_key('plot:x')
 v.wait()
 g.refresh()
 ax = g._pane.axes[0]

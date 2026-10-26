@@ -19,16 +19,18 @@
 ##                                                                            ##
 ################################################################################
 
-"""The standard groups of plots of the viewer, and the presets of them.
+"""The standard groups of plots of the viewer.
 
 Each group has a key, a title, a description, its plots (fixed: changing
 one copies it into the custom group of the viewer, see _viewer_groups), and
 its overview: a grid of all its plots, or for groups of variables, a
 correlation plot (the histograms of the expressions on the diagonal, and the
 2D histograms of each pair below it, see
-_viewer_overviews.correlation_cells). The presets are sets of groups, chosen
-with -wNAME (or in the viewer); the state of the viewer is saved as the
-groups which are shown, their settings and the custom plots.
+_viewer_overviews.correlation_cells). Each group adds plots of its own (a
+plot in several groups is the same view), and the groups shown are chosen
+with -wGROUPS (keys separated by commas, or in the viewer); the state of the
+viewer is saved as the groups which are shown, their settings and the custom
+plots.
 
 The plots are plot items, as in the state of the viewer: a histogram string
 (as for -H), or a dict with it as "plot" and a "title" (shown instead of the
@@ -36,8 +38,8 @@ histogram string, in the viewers with windows). Plots whose title follows
 from their expression (e.g. Energy for ekin, see _viewer._auto_title) have
 no title of their own.
 
-The names are not valid expressions (which is tested), so -wNAME can be
-either a preset or a view."""
+The keys are not valid expressions (which is tested), so -wGROUPS can be
+either groups or a view."""
 
 __all__ = []
 
@@ -75,14 +77,9 @@ def _beam( axis, a, b ):
              _item(f'{div_a} : {div_b}','Divergences'),
              _item(f'{a} : {div_a}',f'Phase space {a}'),
              _item(f'{b} : {div_b}',f'Phase space {b}'),
-             'ekin;logx=auto;logy',
-             'wavelength;logx=auto;logy=auto',
              _item(f'hypot({a},{b})','Distance to axis'),
              _item(f'angle(dir,({vector}))/deg;logy',f'Angle to {axis} axis'),
-             'time;logx=auto;logy',
-             'pdgcode;bar;logy=auto',
-             f'{axis}',
-             'weight;unweighted;logy' )
+             f'{axis}' )
 
 #The titles of plots of single fields (also divided by units, as in ekin/MeV),
 #when they have no title of their own (see _viewer._auto_title):
@@ -98,37 +95,27 @@ custom_key, custom_title = 'custom', 'Custom'
 
 #The standard groups, as key -> (title, description, plot items, options),
 #with the option variables (the expressions which a correlation plot can have, see
-#_viewer_groups; the plots are shown in the first group which has them, so
-#the correlations, which have many plots of other groups, come last):
+#_viewer_groups):
 _groups = {
-    'overview' : ( 'Overview', 'the main plots of the particles', (
+    'spectra' : ( 'Spectra', 'the energy, wavelength and time spectra, and the particle types', (
         'ekin;logx=auto;logy',
+        #(as usual in shielding studies):
+        'ekin;lethargy;logy',
         'wavelength;logx',
-        _item('angle(dir,(0,0,1))/deg;logy','Angle to z axis'),
-        _item('x : y','Position x-y'),
         'time;logx=auto;logy',
         'pdgcode;bar;logy=auto' ), {} ),
     #(the fields in the order of mcpltool, and those of the userdata, see
     #_viewer_groups):
     'fields' : ( 'Fields', 'a plot of each particle field', (
-        'ekin', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time', 'weight;unweighted',
-        'polx', 'poly', 'polz', 'userflags;bar;logy=auto' ), {} ),
-    'beamz' : ( 'Beam along z', 'profiles and divergences of a beam along z',
-                _beam('z','x','y'), {} ),
-    'beamx' : ( 'Beam along x', 'profiles and divergences of a beam along x',
-                _beam('x','y','z'), {} ),
-    'beamy' : ( 'Beam along y', 'profiles and divergences of a beam along y',
-                _beam('y','z','x'), {} ),
-    'shielding' : ( 'Shielding', 'spectra, directions and weights of all particle types', (
-        'pdgcode;bar;logy=auto',
-        #(the energy spectra per unit lethargy, as usual in shielding):
-        'ekin;lethargy;logy',
-        _item('angle(dir,(0,0,1))/deg;logy','Angle to z axis'),
-        'time;logx=auto;logy',
+        'ekin;logx=auto;logy', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time;logx=auto;logy',
         'weight;logx=auto;logy;unweighted',
-        _item('x : y','Position x-y'),
-        _item('hypot(x,y);logy','Distance to z axis'),
-        'wavelength;logx' ), {} ),
+        'polx', 'poly', 'polz', 'userflags;bar;logy=auto' ), {} ),
+    'beamz' : ( 'Z beam profile', 'profiles and divergences of a beam along z',
+                _beam('z','x','y'), {} ),
+    'beamx' : ( 'X beam profile', 'profiles and divergences of a beam along x',
+                _beam('x','y','z'), {} ),
+    'beamy' : ( 'Y beam profile', 'profiles and divergences of a beam along y',
+                _beam('y','z','x'), {} ),
     '3d' : ( '3D', 'the positions and directions in 3D, of a sample of the particles', (
         _item('x : y : z','Positions in 3D'),
         _item('ux : uy : uz','Directions in 3D') ), {} ),
@@ -138,19 +125,5 @@ _groups = {
                                          'weight' ) } ),
 }
 
-#The presets of groups, as name -> (description, groups):
-_presets = {
-    'default' : ( 'the overview, the fields and their correlations',
-                  ( 'overview', 'fields', 'correlations' ) ),
-    'beamz' : ( 'a beam along the z axis: profiles, divergences and correlations',
-                ( 'beamz', 'correlations' ) ),
-    'beamx' : ( 'a beam along the x axis: profiles, divergences and correlations',
-                ( 'beamx', 'correlations' ) ),
-    'beamy' : ( 'a beam along the y axis: profiles, divergences and correlations',
-                ( 'beamy', 'correlations' ) ),
-    'shielding' : ( 'spectra, directions and weights of all particle types',
-                    ( 'shielding', ) ),
-    'all' : ( 'all groups', tuple(_groups) ),
-}
-
-_default_preset = 'default'
+#The groups shown by default:
+_default_groups = ( 'spectra', 'fields' )

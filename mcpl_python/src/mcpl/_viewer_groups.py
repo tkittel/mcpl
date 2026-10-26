@@ -23,17 +23,16 @@
 which are shown (see _stdviews), with their fixed plots, and the custom
 group, with the plots which were added (and the copies of standard plots
 which were changed). Each group has its overview (see _viewer_overviews).
-The plots of the standard groups are shown once, in the first group which has
-them, and the custom plots (which are always shown) are the only ones which
+A plot in several standard groups is one view, with a card in each (see
+_viewer_widgets.WidgetViewer.cards), and the custom plots (which are always shown) are the only ones which
 can be reordered, given titles and removed."""
 
 __all__ = []
 
 from ._stdviews import (
-    _default_preset,
+    _default_groups,
     _groups,
     _plot_item,
-    _presets,
     custom_key,
     custom_title,
 )
@@ -49,7 +48,7 @@ class PlotGroups:
     a curve of each value of, and the variables of correlation plots, with
     defaults from what the reading of the file found (see found)."""
     def __init__( self, extra = None ):
-        self.shown = list(_presets[_default_preset][1])
+        self.shown = list(_default_groups)
         self.custom = []
         self.titles = {}#(custom plot -> title)
         self._extra = extra or {}
@@ -194,9 +193,9 @@ class PlotGroups:
     def is_custom( self, plot ):
         return plot in self.custom
 
-    def use_preset( self, name ):
-        """Show the groups of the preset (or of the group, given by its key)"""
-        self.shown = list( _presets[name][1] if name in _presets else ( name, ) )
+    def use( self, keys ):
+        """Show the standard groups with the keys (only those)"""
+        self.shown = [ k for k in _groups if k in keys ]
 
     def show( self, key, shown = True ):
         """Show (or hide) the standard group with the key: whether it changed"""
@@ -204,11 +203,6 @@ class PlotGroups:
             return False
         self.shown = [ k for k in _groups if ( k in self.shown ) != ( k == key ) ]
         return True
-
-    def preset( self ):
-        """The name of the preset of the groups shown, or None"""
-        return next( ( n for n, ( _, keys ) in _presets.items()
-                       if set(keys) == set(self.shown) ), None )
 
     #The custom plots:
 
@@ -241,13 +235,13 @@ class PlotGroups:
     #The state (see _viewer.Viewer.state):
 
     def state( self ):
-        """The groups shown (if not those of the default preset), the custom
+        """The groups shown (if not the default ones), the custom
         plots (plot items, see _stdviews), and the settings of groups which
         were chosen"""
         from ._stdviews import _item
         res = {}
-        if set(self.shown) != set(_presets[_default_preset][1]):
-            res['groups'] = self.preset() or list(self.shown)
+        if set(self.shown) != set(_default_groups):
+            res['groups'] = list(self.shown)
         if self.custom:
             res['custom'] = [ _item(p,self.titles.get(p)) for p in self.custom ]
         if any(self.settings.values()):
@@ -259,8 +253,12 @@ def title_of( key ):
     return custom_title if key == custom_key else _groups[key][0]
 
 def group_names():
-    """The names which can be chosen as the groups: the presets, and the keys
-    of the groups, with their descriptions, as (name, description)"""
-    return ( [ ( n, d ) for n, ( d, _ ) in _presets.items() ]
-             + [ ( k, f'only {_groups[k][0]}: {_groups[k][1]}' ) for k in _groups
-                 if k not in _presets ] )
+    """The keys of the standard groups, with their titles and descriptions, as
+    (key, description)"""
+    return [ ( k, f'{_groups[k][0]}: {_groups[k][1]}' ) for k in _groups ]
+
+def parse_groups( text ):
+    """The keys of the groups in the text (separated by commas), or None if
+    it is not a list of keys of standard groups"""
+    keys = [ k.strip() for k in text.split(',') ]
+    return keys if keys and all( k in _groups for k in keys ) else None

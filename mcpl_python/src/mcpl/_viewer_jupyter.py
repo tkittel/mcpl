@@ -107,9 +107,10 @@ class JupyterViewer:
                        'style' : {'description_width':'70px'},
                        'layout' : w.Layout(width=f'{95 // len(row)}%') }
             if field in ui.menu_fields:
-                t = w.Dropdown(options=[ ( f'{name}: {descr}', name )
-                                         for name, descr in viewer.complete(field,'')[1] ],
-                               **common)
+                #(the keys of the groups of plots shown, see Viewer.complete):
+                t = w.TagsInput(allowed_tags=[ n for n, _ in viewer.complete(field,'')[1] ],
+                                allow_duplicates=False,
+                                **{ **common, 'value' : viewer.field_text(field).split(',') })
             else:
                 t = w.Text(placeholder=empty,continuous_update=False,**common)
             t.observe(lambda change, field=field : self._on_field(field,change),'value')
@@ -217,7 +218,8 @@ class JupyterViewer:
     def _on_field( self, field, change ):
         if self._syncing:
             return
-        ok, msg, _ = ui.apply_text(self.v,field,change['new'])
+        new = change['new']
+        ok, msg, _ = ui.apply_text(self.v,field,','.join(new) if isinstance(new,list) else new)
         self._show_result(ok,msg)
         if ok and field == 'plot':
             self._set_quietly(self._fields['plot'],'')

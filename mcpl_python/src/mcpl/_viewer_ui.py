@@ -32,7 +32,7 @@ from ._stdviews import _field_titles
 #position of the key in the label, text shown when the field is empty):
 fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
            ( 'limit', 'Limit', 'i', 1, 'all' ),
-           ( 'collection', 'Plot groups', 'c', 5, 'default' ),
+           ( 'collection', 'Plot groups', 'c', 5, 'spectra,fields' ),
            ( 'pick', 'Pick', 'p', 0, 'all particles' ),
            ( 'edit', 'Edit', 'e', 0, 'no changes' ),
            ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy' ) )
@@ -42,7 +42,7 @@ field_names = tuple( f[0] for f in fields )
 field_descriptions = {
     'skip' : 'the number of particles at the start of the file which are left out',
     'limit' : 'the largest number of particles to use, after those skipped',
-    'collection' : 'the groups of plots shown, chosen by a preset',
+    'collection' : 'the groups of plots shown, separated by commas',
     'pick' : 'an expression which is true for the particles to use (before they are edited)',
     'edit' : 'statements separated by ";" which change the particles, after they are picked',
     'plot' : 'a histogram string of a new plot',
@@ -300,8 +300,8 @@ is done.''' ),
       ' help). The particles are picked before they are edited.' ) ),
     ( 'key', 'a', ( 'Add a plot of an expression, with options as for -H, e.g.'
       ' hypot(x,y)/cm;logy (see mcpltool -H help).' ) ),
-    ( 'key', 'c', ( 'Choose the groups of plots shown by a preset, e.g. beamz for a beam along'
-      ' the z axis (the custom plots are kept).' ) ),
+    ( 'key', 'c', ( 'Choose the groups of plots shown, separated by commas, e.g.'
+      ' spectra,beamz for a beam along the z axis (the custom plots are kept).' ) ),
     ( 'key', 'Enter', 'Change the shown plot (an empty text removes it).' ),
     ( 'key', 'w', 'Write the picked and edited particles to a new file.' ),
     ( 'key', 'v', ( 'Save the state of the viewer (the settings and plots) in a file, which'

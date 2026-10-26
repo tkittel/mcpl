@@ -27,8 +27,7 @@ __all__ = []
 import pathlib
 
 from ._common import MCPLError
-from ._stdviews import _groups, _plot_item, _presets
-from ._viewer_groups import group_names
+from ._stdviews import _groups, _plot_item
 from ._viewer_ui import plot_of
 
 
@@ -41,8 +40,7 @@ class _Output:
     def state( self, full = True ):
         """The state of the viewer, as a dict with what differs from the start:
         skip, limit, pick and edit (unless full is False), the groups of plots
-        shown (a preset or a list of the keys of groups, if not the default
-        ones), the custom plots (plot items, see _stdviews), the settings of
+        shown (a list of the keys of groups, if not the default ones), the custom plots (plot items, see _stdviews), the settings of
         groups which were chosen (see PlotGroups.setting), and the view shown
         (if not the first). It is given as the view argument to open the viewer
         in the same state."""
@@ -67,11 +65,7 @@ class _Output:
         """Apply the state (from _as_state) to the start (see state())"""
         groups = state.get('groups')
         if groups is not None:
-            self._groups.shown = []
-            if isinstance(groups,str):
-                self._groups.use_preset(groups)
-            for k in ( groups if isinstance(groups,list) else () ):
-                self._groups.show(k)
+            self._groups.use(groups)
         for k in ( 'skip', 'limit', 'pick', 'edit' ):
             if state.get(k):
                 self._set_or_raise(k,str(state[k]))
@@ -131,8 +125,8 @@ class _Output:
             view = '-w'
         elif list(state) == [ 'view' ]:
             view = f'--view="{state["view"]}"'
-        elif list(state) == [ 'groups' ] and isinstance(state['groups'],str):
-            view = f'-w{state["groups"]}'
+        elif list(state) == [ 'groups' ] and state['groups']:
+            view = f'-w{",".join(state["groups"])}'
         else:
             text = json.dumps(state,separators=(',',':')).replace('"',"'")
             view = f'--view="{text}"'
@@ -297,12 +291,9 @@ def _as_state( view ):
         check(isinstance(state.get(k,0),int),f'{k} must be a number')
     for k in ( 'pick', 'edit', 'view' ):
         check(isinstance(state.get(k,''),str),f'{k} must be a text')
-    names = [ n for n, _ in group_names() ]
     groups = state.get('groups',[])
-    check(( isinstance(groups,str) and groups in names )
-          or ( isinstance(groups,list) and all( g in _groups for g in groups ) ),
-          f'groups must be the name of a preset ({", ".join(_presets)}) or a list of the'
-          f' groups of plots ({", ".join(_groups)})')
+    check(isinstance(groups,list) and all( g in _groups for g in groups ),
+          f'groups must be a list of the groups of plots ({", ".join(_groups)})')
     settings = state.get('settings',{})
     check(isinstance(settings,dict) and all( k in _groups and isinstance(v,dict)
                                              and set(v) <= { 'display_only', 'display_by',

@@ -239,6 +239,7 @@ def overview_settings():
              **{ name : ( [ t for t, var in w.items() if var.get() ] if isinstance(w,dict)
                           else text(w) if w.winfo_class() == 'TButton' else w.get() )
                  for name, w in oc._widgets.items() } }
+tv.on_show_group('correlations')
 tv.on_select_key('overview:correlations')
 wait()
 print('settings of the correlations:', overview_settings())

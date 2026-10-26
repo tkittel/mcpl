@@ -37,8 +37,8 @@ import threading
 
 from ._common import MCPLError
 from ._histstring import _display_by_choice
-from ._stdviews import _field_titles, _groups, _presets, custom_key
-from ._viewer_groups import PlotGroups, group_names, title_of
+from ._stdviews import _default_groups, _field_titles, _groups, custom_key
+from ._viewer_groups import PlotGroups, group_names, parse_groups, title_of
 from ._viewer_output import _as_state, _Output
 from ._viewer_overviews import overview_figure
 from ._viewer_reading import _make_filler, _Reading
@@ -120,11 +120,11 @@ class Viewer(_Output,_Reading):
         self.tab_used = False
         self._current = None#(key of the view shown, None for the first)
         self._overviews = {}#view key -> (what its figure was made from, figure)
-        #The view argument is the name of a preset of groups of plots (or of a
-        #group), a view, or a state (see state()), which is applied before the
+        #The view argument is the keys of groups of plots (separated by
+        #commas), a view, or a state (see state()), which is applied before the
         #other arguments (so these can change it):
-        if isinstance(view,str) and ( view in _presets or view in _groups ):
-            view = { 'groups' : view }
+        if isinstance(view,str) and parse_groups(view):
+            view = { 'groups' : parse_groups(view) }
         state = _as_state(view)
         if state is not None:
             self._loading = True
@@ -220,8 +220,9 @@ class Viewer(_Output,_Reading):
     def _view_key( self, view ):
         """The key of a view given as overview (the first), overview:GROUP (the
         overview of a group, by its key), as a plot (histogram string, of a
-        standard group if one has it, else a custom one) or as custom:PLOT (a
-        custom plot)"""
+        standard group if one has it, else a custom one, or only expressions,
+        e.g. ekin, for the first plot of them) or as custom:PLOT (a custom
+        plot)"""
         if view == 'overview':
             return 'overview'
         if view.startswith('overview:') and ( view[9:] in _groups or view[9:] == custom_key ):
@@ -231,7 +232,7 @@ class Viewer(_Output,_Reading):
             if same is not None:
                 return f'custom:{same}'
         try:
-            same = self._same_plot(view)
+            same = self._same_plot(view) or self._plot_of_exprs(view)
         except MCPLError:
             same = None
         if same is None:
@@ -251,7 +252,7 @@ class Viewer(_Output,_Reading):
     def field_text( self, field ):
         """Current text of a field (as last set)"""
         if field == 'collection':
-            return self._groups.preset() or ','.join(self._groups.shown)
+            return ','.join(self._groups.shown)
         return self._texts[field] if field != 'plot' else ''
 
     def check( self, field, text ):
@@ -291,12 +292,11 @@ class Viewer(_Output,_Reading):
             _make_filler(text)#(checks the expressions and options)
             return text
         if field == 'collection':
-            text = text or 'default'
-            names = [ n for n, _ in group_names() ]
-            if text not in names:
-                raise MCPLError(f'Unknown groups of plots "{text}" (the groups are chosen by'
-                                f' these names: {", ".join(names)})')
-            return text
+            keys = parse_groups(text) if text.strip() else list(_default_groups)
+            if keys is None:
+                raise MCPLError(f'Unknown groups of plots "{text}" (give groups separated by'
+                                f' commas: {", ".join(_groups)})')
+            return keys
         raise MCPLError(f'Unknown field "{field}"')
 
     def _check_userdata( self, text ):
@@ -338,7 +338,7 @@ class Viewer(_Output,_Reading):
                 self._sync()
             self._current = f'custom:{same or text}'
         elif field == 'collection':
-            self._groups.use_preset(value)
+            self._groups.use(value)
             self._sync()
             self._current = None
         else:
@@ -604,6 +604,17 @@ class Viewer(_Output,_Reading):
         return next( ( p for p in ( self._s.plots if plots is None else plots )
                        if _hist_key(p) == key ), None )
 
+    def _plot_of_exprs( self, text ):
+        """The first plot of the expressions of the text, if it has no options,
+        or None"""
+        from ._expressions import _expr_canonical
+        from ._histstring import _hist_exprs
+        if ';' in text:
+            return None
+        exprs = [ _expr_canonical(e) for e in _hist_exprs(text) ]
+        return next( ( p for p in self._s.plots
+                       if [ _expr_canonical(e) for e in _hist_exprs(p) ] == exprs ), None )
+
     def history( self, field ):
         """Earlier texts of the field (oldest first)"""
         return list(self._history[field])
@@ -618,8 +629,11 @@ class Viewer(_Output,_Reading):
         start = m.start() if m else cursor
         prefix = m.group(0) if m else ''
         if field == 'collection':
-            return 0, [ ( name, d ) for name, d in group_names()
-                        if name.startswith(text[:cursor].strip()) ]
+            #(the key of a group after the last comma):
+            start = text.rfind(',',0,cursor) + 1
+            start += len(text[start:cursor]) - len(text[start:cursor].lstrip())
+            return start, [ ( name, d ) for name, d in group_names()
+                            if name.startswith(text[start:cursor]) ]
         if field not in ( 'pick', 'edit', 'plot' ):
             return start, []
         options = field == 'plot' and ';' in text[:start]
@@ -658,7 +672,8 @@ class Viewer(_Output,_Reading):
         or None"""
         from ._exprhelp import _short_hint
         if field == 'collection':
-            name = text.strip()
+            cursor = len(text) if cursor is None else cursor
+            name = text[text.rfind(',',0,cursor) + 1:].split(',')[0].strip()
             descr = dict(group_names()).get(name)
             return f'{name}  {descr}' if descr else None
         cursor = len(text) if cursor is None else cursor
@@ -864,8 +879,9 @@ def _doubtful_title( title, old, new ):
 @functools.lru_cache(maxsize = 4096)
 def _auto_title( plot ):
     """The title of a plot (histogram string) from its expression, if it is a
-    single field, maybe divided by a unit (e.g. Energy for ekin/MeV), or a
-    field of the userdata, else None"""
+    single field, maybe divided by a unit (e.g. Energy for ekin/MeV, and Energy
+    per lethargy with the option lethargy), or a field of the userdata, else
+    None"""
     import ast
 
     from ._common import MCPLError
@@ -885,7 +901,12 @@ def _auto_title( plot ):
         return None
     if node.id.startswith('userdata.'):
         return f'Userdata {node.id[9:]}'
-    return _field_titles.get(node.id)
+    title = _field_titles.get(node.id)
+    try:
+        lethargy = _parsed_plot(plot)['lethargy']
+    except MCPLError:
+        lethargy = False
+    return f'{title} per lethargy' if title and lethargy else title
 
 @functools.lru_cache(maxsize = 4096)
 def _plot_name( plot, title ):
@@ -934,8 +955,8 @@ def view( filename, *, pick = None, edit = None, skip = 0, limit = None,
     file (after skipping skip particles, at most limit particles), picked with
     pick and then edited with edit (expressions, or ParticleFilter and
     ParticleEdit objects), which can all be changed in the viewer. view is the
-    name of a preset of groups of plots, or of a group, to start from (e.g.
-    'beamz', see mcpltool --full-help), the view shown first ('overview', or
+    groups of plots to show, separated by commas (e.g. 'spectra,beamz', see
+    mcpltool --full-help), the view shown first ('overview', or
     a plot, e.g. 'ekin'), or a state of the viewer (as saved in the viewer, a
     .json file, or a dict). In Jupyter, the viewer is shown as a panel of
     widgets, and otherwise it is shown in a window with matplotlib, or in the terminal (always with terminal=True, or with the

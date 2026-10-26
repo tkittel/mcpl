@@ -5,13 +5,13 @@ after reading the file:
    counts: 1,006 particles, Σw = 1,006
    cache button: cached: 44 kB CacheAll.Compact.TMenubutton
    write button: New MCPL file...
-   shown: overview:overview
-cards: 8 | first: ['Overview', 'Fields', 'Beam along z', 'Beam along x']
+   shown: overview:spectra
+cards: 7 | first: ['Spectra', 'Fields', 'Z beam profile', 'X beam profile']
 axes drawn: True
-after clicking the card 'Overview': overview:overview | 14 cards shown
-after clicking the card 'Overview': overview:overview | 8 cards shown
-after clicking the card 'Overview': overview:overview | 14 cards shown
-after clicking the card 'Energy': plot:ekin;logx=auto;logy | 14 cards shown
+after clicking the card 'Spectra': overview:spectra | 12 cards shown
+after clicking the card 'Spectra': overview:spectra | 7 cards shown
+after clicking the card 'Spectra': overview:spectra | 12 cards shown
+after clicking the card 'Energy': plot:ekin;logx=auto;logy | 12 cards shown
 help menu: ['The viewer', 'Picks (filtering particles)', 'Edits (modifying particles)', 'Plot expressions', 'About data caching']
 X axis after typing 'ek' and <Tab>: 'ekin', focus kept: True
    completions of 'po' : ['polx', 'poly', 'polz', 'pos', 'pol', 'positron']
@@ -44,7 +44,7 @@ with 500 MB:
    cache button: cached: 44 kB CacheAll.Compact.TMenubutton
    write button: New MCPL file (544 particles)...
    shown: plot:ekin;logx=auto;logy
-after clicking the inactive group 'Beam along z' : overview:beamz | folded: ['3D', 'Correlations', 'Fields', 'Overview']
+after clicking the inactive group 'Z beam profile' : overview:beamz | folded: ['3D', 'Fields', 'Spectra']
 settings of the correlations: {'shown': True, 'plot fields shown': False, 'display_only': 'neutron (86%)', 'variables': ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time'], 'most': 'Most correlated'}
 after turning ux off and choosing all: {'shown': True, 'plot fields shown': False, 'display_only': 'all', 'variables': ['x', 'y', 'uy', 'uz', 'ekin', 'time'], 'most': 'Most correlated'} None
 after clicking 'Most correlated': ['x', 'ux', 'ekin', 'time'] | button now: All variables

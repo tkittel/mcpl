@@ -105,6 +105,28 @@ def repaint_after_resize( root, delay = 150 ):
         pending[0] = root.after(delay,repaint)
     root.bind('<Configure>',on_configure,'+')
 
+def mnemonics( labels ):
+    """The positions of the letters to underline in the labels of a menu: of
+    a letter which no label before it has, preferring capitals, then the
+    starts of words (or -1)"""
+    used, res = set(), []
+    for label in labels:
+        free = [ i for i, c in enumerate(label) if c.isalpha() and c.lower() not in used ]
+        starts = [ i for i in free if i == 0 or not label[i-1].isalpha() ]
+        i = next( iter([ i for i in free if label[i].isupper() ] + starts + free), -1 )
+        if i >= 0:
+            used.add(label[i].lower())
+        res.append(i)
+    return res
+
+def bind_menu_key( root, button, letter ):
+    """Open the menu of the button with Alt and the letter (Option on macOS),
+    which is underlined in its label"""
+    button.configure(underline=button.cget('text').index(letter))
+    mod = 'Option' if windowing_system(root) == 'aqua' else 'Alt'
+    for key in ( letter.lower(), letter.upper() ):
+        root.bind(f'<{mod}-Key-{key}>',lambda _e : ( button.event_generate('<<Invoke>>'), 'break' )[1])
+
 def bind_enter( widget, fct ):
     """Call fct() when Enter (also that of the keypad) is pressed in the widget"""
     for key in ( '<Return>', '<KP_Enter>' ):

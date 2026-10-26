@@ -30,8 +30,10 @@ from . import _viewer_ui as ui
 from ._viewer_tkbase import (
     GreyText,
     bind_enter,
+    bind_menu_key,
     command_keys,
     focus_of,
+    mnemonics,
     on_paste,
     repaint_after_resize,
     tk_modules,
@@ -162,7 +164,13 @@ class TkViewer(WidgetViewer):
         button.pack(side='left')
         menu = tk.Menu(button,tearoff=0)
         button['menu'] = menu
-        menu.add_command(label='Open MCPL file...',command=self._ask_open)
+        bind_menu_key(root,button,'M')
+        #(Ctrl+O opens a file, Cmd+O on macOS):
+        ctrl = 'Command' if self.system == 'aqua' else 'Control'
+        menu.add_command(label='Open MCPL file...',underline=0,command=self._ask_open,
+                         accelerator=f'{"Cmd" if self.system == "aqua" else "Ctrl"}+O')
+        for key in ( 'o', 'O' ):
+            root.bind(f'<{ctrl}-Key-{key}>',lambda _e : ( self._ask_open(), 'break' )[1])
         self._actions_menu, self._actions = menu, {}#(action -> index of its entry)
         for action, label, keys, kpos in ui.actions:
             if action not in ( 'write', 'help' ):#(help has its own menu)
@@ -308,8 +316,11 @@ class TkViewer(WidgetViewer):
         button.pack(side='left',padx=(8,0))
         menu = tk.Menu(button,tearoff=0)
         button['menu'] = menu
-        for label, title, text in self.help_topics():
-            menu.add_command(label=label,command=lambda t=title, x=text : self.show_text(t,x))
+        bind_menu_key(self.root,button,'H')
+        topics = self.help_topics()
+        for ( label, title, text ), pos in zip(topics,mnemonics([ t[0] for t in topics ])):
+            menu.add_command(label=label,underline=pos,
+                             command=lambda t=title, x=text : self.show_text(t,x))
         self._help_choices = menu
 
     def _plot_part( self, part, head ):

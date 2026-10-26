@@ -726,7 +726,7 @@ def about_blocks():
         ( 'text', 'To help MCPL developments you can:' ),
         ( 'bullet', f'Post ideas and questions on {repo}/discussions' ),
         ( 'bullet', f'Submit issues or feature requests on {repo}/issues' ),
-        ( 'bullet', 'Add MCPL support to your favourite Monte Carlo' ),
+        ( 'bullet', 'Help add MCPL support to your favourite Monte Carlo' ),
         ( 'bullet', f'Give it a star on GitHub: {repo}' ) )
 
 cache_blocks = (

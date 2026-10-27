@@ -191,6 +191,9 @@ Comments starting with ``stat:`` are reserved: comments starting with
 ``stat:sum:`` follow the :doc:`stat:sum convention <format_statsum>`, and
 other comments starting with ``stat:`` are reserved for future use.
 
+Implementations may refuse to read or write headers larger than 1.9 GB (1.9·10⁹
+bytes), or those which have a combined number of comments and blobs above 1000000.
+
 .. _format-particles:
 
 The particles

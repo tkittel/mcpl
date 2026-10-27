@@ -415,7 +415,12 @@ followed by ``:unit`` for the unit of the values, for instance
   ``poly``, ``polz``, ``ekin``, ``time``, ``weight``, ``pdgcode``,
   ``userflags``, ``position``, ``direction``, ``polarisation`` and
   ``wavelength`` are reserved, so that userdata is never confused with the
-  other particle data.
+  other particle data. The names ``and``, ``as``, ``assert``, ``async``,
+  ``await``, ``break``, ``class``, ``continue``, ``def``, ``del``, ``elif``,
+  ``else``, ``except``, ``finally``, ``for``, ``from``, ``global``, ``if``,
+  ``import``, ``in``, ``is``, ``lambda``, ``nonlocal``, ``not``, ``or``,
+  ``pass``, ``raise``, ``return``, ``try``, ``while``, ``with`` and ``yield``
+  are also reserved.
 - Array sizes ``n`` are written as decimal numbers without leading zeros, and
   are at least 1.
 - Units are made of the base units ``cm``, ``MeV``, ``ms``, ``K`` and ``deg``,

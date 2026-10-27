@@ -334,7 +334,9 @@ extern "C" {
   /* float32 and float64. Names must start with a lowercase letter followed  */
   /* by lowercase letters, digits or underscores (names are required, also   */
   /* for plain bytes like "data:uint8[27]", to avoid mixing up different     */
-  /* data with the same types when merging files).                           */
+  /* data with the same types when merging files). The names of the fields   */
+  /* of particles (x, ekin, userflags, ...) and position, direction,         */
+  /* polarisation and wavelength can not be used.                            */
   /* Values are packed without any padding, in the byte order of the file    */
   /* (which is the native one of the platform). At most 65535 bytes per      */
   /* particle are allowed. Files with userdata are written in MCPL format    */

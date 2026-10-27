@@ -301,7 +301,9 @@ class MCPLOutFile:
         float32 and float64. Names must start with a lowercase letter followed
         by lowercase letters, digits or underscores (names are required, also
         for plain bytes like "data:uint8[27]", to avoid mixing up different
-        data with the same types when merging files). At most 65535 bytes per
+        data with the same types when merging files). The names of the fields
+        of particles (x, ekin, userflags, ...) and position, direction,
+        polarisation and wavelength can not be used. At most 65535 bytes per
         particle are allowed. The userdata of the particles is given with the
         userdata argument of add_particles and add_particle, which is required
         for files with userdata (userdata = {} gives userdata with all bytes

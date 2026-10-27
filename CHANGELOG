@@ -103,6 +103,9 @@ v2.2.9  (work in progress)
         viewer), such fields have their units, e.g. userdata.temp > 293K,
         mcpl-python gives the units to scipp (MCPLFile.to_scipp), and C++
         fields get them with add_userdata_field<float>("temp","K").
+      * Userdata fields can not be named like the fields of particles (x,
+        ekin, userflags, ...), or position, direction, polarisation or
+        wavelength.
       * Userdata is optional in MCPL format version 4, signalled by 0x2 in the
         userflags field of the header (which also holds 0x1 if userflags are
         enabled). Only with userdata does the header contain the userdata
@@ -119,9 +122,7 @@ v2.2.9  (work in progress)
         (one DataArray per block), giving the particles as a scipp DataArray
         with the weights as data (with variances) and the particle fields as
         coordinates with units (x, y, z [cm], ekin [MeV], time [ms], ...),
-        plus polarisation, userflags and userdata fields where present
-        (userdata fields named like other coordinates get the prefix
-        "userdata_", with a warning).
+        plus polarisation, userflags and userdata fields where present.
         Positions, directions and polarisations can also be given as
         3-vectors, and extra coordinates can be calculated with expressions
         (with units following from the expressions). For files, skip, limit

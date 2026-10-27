@@ -55,8 +55,8 @@ def make_inputs():
     w('raw.mcpl','data:uint8[27]',4,4)#odd particles with zero userdata
     w('raw33.mcpl','data:uint8[33]',2)#same size as the standard layout
     w('none.mcpl','<NONE>',2)
-    w('empty.mcpl','x:int8',0)
-    w('big.mcpl','x:uint8[65535]',2)
+    w('empty.mcpl','p:int8',0)
+    w('big.mcpl','p:uint8[65535]',2)
     #truncated file:
     data = (input_dir/'raw.mcpl').read_bytes()
     (input_dir/'trunc.mcpl').write_bytes(data[:-20])
@@ -172,8 +172,8 @@ def test_python_api():
         print('raw blocks:',[ b.userdata['data'][:,:4].tolist() for b in f.particle_blocks ])
     with mcpl.MCPLFile(d/'big.mcpl') as f:
         b = f.read_block()
-        print('big:',b.userdata['x'].shape,b.userdata['x'][1,:5].tolist(),
-              int(b.userdata['x'][1,-1]))
+        print('big:',b.userdata['p'].shape,b.userdata['p'][1,:5].tolist(),
+              int(b.userdata['p'][1,-1]))
 
     #Writing files from files with userdata (transfer_metadata, and the
     #userdata of the particles):
@@ -338,10 +338,14 @@ def test_layouts():
     print('=== Invalid layouts (same errors as in the C API)')
     from mcpldev._userdata import userdata_dtype
     for layout in [ 'data:uint8[27]', 'a:int8,b:float64[2]', '', 'uint8[27]',
-                    'x:', ':int8', 'X:int8', 'x-y:int8', 'x:int9', 'x:int8,',
-                    'x:int8,x:int16', 'x:int8[0]', 'x:int8[03]', 'x:int8[3',
-                    'x:uint8[65536]', 'x:uint8[65535],y:int8', 'x :int8',
-                    'a'*65+':int8', 'x:float64[8192]',
+                    'p:', ':int8', 'X:int8', 'p-q:int8', 'p:int9', 'p:int8,',
+                    'p:int8,p:int16', 'p:int8[0]', 'p:int8[03]', 'p:int8[3',
+                    'p:uint8[65536]', 'p:uint8[65535],q:int8', 'p :int8',
+                    'a'*65+':int8', 'p:float64[8192]',
+                    #(reserved names, and similar names which are not):
+                    'x:float32', 'a:int8,ekin:float64', 'position:float32[3]',
+                    'wavelength:float32', 'userflags:uint32',
+                    'xx:float32,ekin2:float32,pos:int8',
                     #(units, as in the test of the C API, app_errstate):
                     'a:float32:cm', 'a:float64:MeV,b:float32:ms,c:float32:K,d:float32:deg',
                     'a:float32[3]:cm', 'a:float64:cm^2.MeV', 'a:float64:MeV^-1',

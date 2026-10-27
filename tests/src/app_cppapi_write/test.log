@@ -74,7 +74,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 layout before adding particles: "a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32:K,k:float64,dir:float32[3]:cm,tags:uint8[4],ids:int64[2]"
 offsets: 0 1 2 4 6 10 14 22 30 34 42 54 58
 userdata_field<double>("j") -> mcpl::Error: mcpl_userdata_offset("a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32:K,k:float64,dir:float32[3]:cm,tags:uint8[4],ids:int64[2]","j","float64"): field has a different type in the userdata layout
-add_userdata_field<float>("x","m") -> mcpl::Error: Invalid userdata layout "a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32:K,k:float64,dir:float32[3]:cm,tags:uint8[4],ids:int64[2],x:float32:m": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+add_userdata_field<float>("p","m") -> mcpl::Error: Invalid userdata layout "a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32:K,k:float64,dir:float32[3]:cm,tags:uint8[4],ids:int64[2],p:float32:m": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
 after new_particle(): userdata_size()=74 layout="a:int8,b:uint8,c:int16,d:uint16,e:int32,g:uint32,h:int64,i:uint64,j:float32:K,k:float64,dir:float32[3]:cm,tags:uint8[4],ids:int64[2]"
 dir set element 3 -> std::out_of_range: userdata array index out of range
 dir(p,3) -> std::out_of_range: userdata array index out of range
@@ -110,10 +110,10 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
   read back: dir=0,0.6,2 ids=-1,4398046511104 i=18446744073709551613
 
 ==> Userdata with enable_userdata:
-layout: "x:float64,n:uint16[2]"
+layout: "p:float64,n:uint16[2]"
 add_userdata_field after enable_userdata -> mcpl::Error: userdata fields can not be added after the userdata layout is fixed
-userdata_field<float>("x") -> mcpl::Error: mcpl_userdata_offset("x:float64,n:uint16[2]","x","float32"): field has a different type in the userdata layout
-userdata_field<std::uint16_t>("n") -> mcpl::Error: mcpl_userdata_offset("x:float64,n:uint16[2]","n","uint16"): field has a different type in the userdata layout
+userdata_field<float>("p") -> mcpl::Error: mcpl_userdata_offset("p:float64,n:uint16[2]","p","float32"): field has a different type in the userdata layout
+userdata_field<std::uint16_t>("n") -> mcpl::Error: mcpl_userdata_offset("p:float64,n:uint16[2]","n","uint16"): field has a different type in the userdata layout
 enable_userdata again (other layout) -> mcpl::Error: mcpl_enable_userdata called multiple times with different layouts
 enable_userdata after adding particles -> mcpl::Error: enable_userdata must be called before particles are added (or new_particle is called)
 Opened MCPL file ud2.mcpl:
@@ -132,7 +132,7 @@ Opened MCPL file ud2.mcpl:
   Particle data format
     User flags         : no
     Polarisation info  : no
-    User data          : 12 bytes (layout "x:float64,n:uint16[2]")
+    User data          : 12 bytes (layout "p:float64,n:uint16[2]")
     Fixed part. type   : no
     Fixed part. weight : no
     FP precision       : single
@@ -160,7 +160,7 @@ Opened MCPL file ud3.mcpl:
   Particle data format
     User flags         : no
     Polarisation info  : no
-    User data          : 4 bytes (layout "x:float32")
+    User data          : 4 bytes (layout "p:float32")
     Fixed part. type   : no
     Fixed part. weight : no
     FP precision       : single
@@ -170,12 +170,12 @@ Opened MCPL file ud3.mcpl:
 index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight  userdata
 
 ==> Userdata errors:
-add_userdata_field (duplicate name) -> mcpl::Error: Invalid userdata layout "x:float32,x:float64": duplicate field name
-add_userdata_field (invalid name) -> mcpl::Error: Invalid userdata layout "x:float32,Bad:float64": field names must start with a lowercase letter
-add_userdata_field (empty name) -> mcpl::Error: Invalid userdata layout "x:float32,:float64": empty field name
-add_userdata_field (name with colon) -> mcpl::Error: Invalid userdata layout "x:float32,a:b:float64": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
-add_userdata_field (too large) -> mcpl::Error: Invalid userdata layout "x:float32,big:uint8[70000]": too large userdata (at most 65535 bytes are allowed)
-layout unchanged by these errors: "x:float32"
+add_userdata_field (duplicate name) -> mcpl::Error: Invalid userdata layout "p:float32,p:float64": duplicate field name
+add_userdata_field (invalid name) -> mcpl::Error: Invalid userdata layout "p:float32,Bad:float64": field names must start with a lowercase letter
+add_userdata_field (empty name) -> mcpl::Error: Invalid userdata layout "p:float32,:float64": empty field name
+add_userdata_field (name with colon) -> mcpl::Error: Invalid userdata layout "p:float32,a:b:float64": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
+add_userdata_field (too large) -> mcpl::Error: Invalid userdata layout "p:float32,big:uint8[70000]": too large userdata (at most 65535 bytes are allowed)
+layout unchanged by these errors: "p:float32"
 enable_userdata after add_userdata_field -> mcpl::Error: enable_userdata can not be used after add_userdata_field
 add_userdata_field after new_particle -> mcpl::Error: userdata fields can not be added after the userdata layout is fixed
 Opened MCPL file ud_err.mcpl:
@@ -194,7 +194,7 @@ Opened MCPL file ud_err.mcpl:
   Particle data format
     User flags         : no
     Polarisation info  : no
-    User data          : 8 bytes (layout "x:float32,y:float32")
+    User data          : 8 bytes (layout "p:float32,q:float32")
     Fixed part. type   : no
     Fixed part. weight : no
     FP precision       : single
@@ -203,9 +203,9 @@ Opened MCPL file ud_err.mcpl:
 
 index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight  userdata
     0           0           0           0           0           0           0           0           1           0           0  000000000000803f
-enable_userdata("x:float16") -> mcpl::Error: Invalid userdata layout "x:float16": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
+enable_userdata("p:float16") -> mcpl::Error: Invalid userdata layout "p:float16": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
 enable_userdata("") -> mcpl::Error: Invalid userdata layout "": empty layout
-userdata_field<float>("x") (no userdata) -> mcpl::Error: file has no userdata
+userdata_field<float>("p") (no userdata) -> mcpl::Error: file has no userdata
 set_userdata on particle without userdata -> mcpl::Error: particle has no userdata
 add_userdata_field after new_particle (no userdata) -> mcpl::Error: userdata fields can not be added after the userdata layout is fixed
 
@@ -361,7 +361,7 @@ Opened MCPL file moved.mcpl:
   Particle data format
     User flags         : no
     Polarisation info  : no
-    User data          : 4 bytes (layout "x:float32")
+    User data          : 4 bytes (layout "p:float32")
     Fixed part. type   : no
     Fixed part. weight : no
     FP precision       : single

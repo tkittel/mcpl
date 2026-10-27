@@ -144,7 +144,7 @@ namespace {
       p.set_userdata(id,-1);
       m.add(p);
       expect_throw( "add_userdata_field on merged file",
-                    [&]{ m.add_userdata_field<float>("z"); } );
+                    [&]{ m.add_userdata_field<float>("r"); } );
       m.close();
       show("m6.mcpl");
       mcpl::MCPLFile f("m6.mcpl");

@@ -80,7 +80,7 @@ namespace {
     unsigned n = 0;
     {
       mcpl::MCPLOutFile f("cdf1.mcpl");
-      auto x = f.add_userdata_field<double>("x");
+      auto x = f.add_userdata_field<double>("p");
       auto p = f.new_particle();
       p.set_uz(1.0);
       try {

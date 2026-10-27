@@ -287,30 +287,30 @@ MCPLTEST_CTYPES void mcpltest_ud_misuse( unsigned icase )
   } else if ( icase == 1 ) {
     //enabling after the first particle:
     mcpl_add_particle(f,p);
-    mcpl_enable_userdata(f,"x:int32");
+    mcpl_enable_userdata(f,"p:int32");
   } else if ( icase == 2 ) {
     //enabling twice with different layouts:
-    mcpl_enable_userdata(f,"x:int32");
-    mcpl_enable_userdata(f,"x:float32");
+    mcpl_enable_userdata(f,"p:int32");
+    mcpl_enable_userdata(f,"p:float32");
   } else if ( icase == 3 ) {
     //NULL layout:
     mcpl_enable_userdata(f,NULL);
   } else if ( icase == 4 ) {
     //mcpl_add_particle for a file with userdata:
-    mcpl_enable_userdata(f,"x:int32");
+    mcpl_enable_userdata(f,"p:int32");
     mcpl_add_particle(f,p);
   } else {
     //NULL userdata is allowed (zeros):
-    mcpl_enable_userdata(f,"x:int32");
+    mcpl_enable_userdata(f,"p:int32");
     mcpl_add_particle_with_userdata(f,p,NULL);
     mcpl_close_outfile(f);
     mcpl_file_t fi = mcpl_open_file("misuse.mcpl");
     const uint8_t * rd;
     mcpl_read_with_userdata(fi,&rd);
-    printf("NULL userdata gives x=%li\n",
+    printf("NULL userdata gives p=%li\n",
            (long)mcpl_userdata_get_int32(rd,mcpl_userdata_offset(
                                            mcpl_hdr_userdata_layout(fi),
-                                           "x","int32")));
+                                           "p","int32")));
     fflush(stdout);
     mcpl_close_file(fi);
     return;

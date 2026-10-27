@@ -449,6 +449,22 @@ MCPL_LOCAL unsigned mcpl_internal_udtype_size( const char * t, size_t n )
   return 0;
 }
 
+//Whether the name (n characters) is reserved: the names of the fields of
+//particles in MCPL files, and of their derived properties in the APIs, so
+//userdata fields can never be confused with them:
+MCPL_LOCAL int mcpl_internal_udname_reserved( const char * name, size_t n )
+{
+  static const char * reserved[18] = { "x", "y", "z", "ux", "uy", "uz",
+                                       "polx", "poly", "polz", "ekin", "time",
+                                       "weight", "pdgcode", "userflags",
+                                       "position", "direction",
+                                       "polarisation", "wavelength" };
+  for ( int i = 0; i < 18; ++i )
+    if ( strlen(reserved[i]) == n && strncmp( reserved[i], name, n ) == 0 )
+      return 1;
+  return 0;
+}
+
 //Checks the unit of a field (n characters at u): base units in the order
 //cm, MeV, ms, K, deg, each at most once, separated by dots, each with an
 //optional power of a single non-zero digit (not 1), possibly negative (e.g.
@@ -552,6 +568,9 @@ MCPL_LOCAL const char * mcpl_internal_udlayout_parse( const char * layout,
         return ( "field names must only contain lowercase letters,"
                  " digits and underscores" );
     }
+    if ( mcpl_internal_udname_reserved( fld.name, fld.lname ) )
+      return ( "reserved field name (the names of particle fields, like x, ekin,"
+               " position or wavelength, can not be used)" );
     //type and optional array size:
     const char * bracket = (const char*)memchr( fld.typespec, '[', fld.ltypespec );
     size_t ltype = bracket ? (size_t)(bracket - fld.typespec) : fld.ltypespec;

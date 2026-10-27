@@ -245,7 +245,7 @@ def check_header_rules():
     with mcpl.MCPLFile(fn3, raw_strings=True) as src:
         o = mcpl.MCPLOutFile('pycopiedkeys_ud.mcpl')
         o.transfer_metadata(src)
-        o.enable_userdata('x:int8')
+        o.enable_userdata('p:int8')
         try:
             o.close()
         except mcpl.MCPLError as e:

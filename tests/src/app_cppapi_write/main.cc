@@ -197,8 +197,8 @@ namespace {
       require( j2.offset() == j.offset(), "lookup of field" );
       expect_throw( "userdata_field<double>(\"j\")",
                     [&]{ f.userdata_field<double>("j"); } );
-      expect_throw( "add_userdata_field<float>(\"x\",\"m\")",
-                    [&]{ f.add_userdata_field<float>("x","m"); } );
+      expect_throw( "add_userdata_field<float>(\"p\",\"m\")",
+                    [&]{ f.add_userdata_field<float>("p","m"); } );
       auto p = f.new_particle();
       std::cout << "after new_particle(): userdata_size()="
                 << p.userdata_size() << " layout=\"" << f.userdata_layout()
@@ -264,18 +264,18 @@ namespace {
     std::cout << "\n==> Userdata with enable_userdata:" << std::endl;
     {
       mcpl::MCPLOutFile f("ud2.mcpl");
-      f.enable_userdata("x:float64,n:uint16[2]");
+      f.enable_userdata("p:float64,n:uint16[2]");
       std::cout << "layout: \"" << f.userdata_layout() << "\"" << std::endl;
-      auto x = f.userdata_field<double>("x");
+      auto x = f.userdata_field<double>("p");
       auto n = f.userdata_field<std::uint16_t,2>("n");
       expect_throw( "add_userdata_field after enable_userdata",
-                    [&]{ f.add_userdata_field<float>("y"); } );
-      expect_throw( "userdata_field<float>(\"x\")",
-                    [&]{ f.userdata_field<float>("x"); } );
+                    [&]{ f.add_userdata_field<float>("q"); } );
+      expect_throw( "userdata_field<float>(\"p\")",
+                    [&]{ f.userdata_field<float>("p"); } );
       expect_throw( "userdata_field<std::uint16_t>(\"n\")",
                     [&]{ f.userdata_field<std::uint16_t>("n"); } );
       expect_throw( "enable_userdata again (other layout)",
-                    [&]{ f.enable_userdata("y:float64"); } );
+                    [&]{ f.enable_userdata("q:float64"); } );
       auto p = f.new_particle();
       p.set_userdata(x,3.25);
       p.set_userdata(n,{ std::uint16_t(1), std::uint16_t(2) });
@@ -287,7 +287,7 @@ namespace {
       cp.ekin = 2.0;
       f.add(cp);
       expect_throw( "enable_userdata after adding particles",
-                    [&]{ f.enable_userdata("x:float64,n:uint16[2]"); } );
+                    [&]{ f.enable_userdata("p:float64,n:uint16[2]"); } );
       f.close();
     }
     dump_c("ud2.mcpl");
@@ -296,7 +296,7 @@ namespace {
     std::cout << "\n==> Fields added but no particles:" << std::endl;
     {
       mcpl::MCPLOutFile f("ud3.mcpl");
-      f.add_userdata_field<float>("x");
+      f.add_userdata_field<float>("p");
       f.close();
     }
     dump_c("ud3.mcpl");
@@ -307,9 +307,9 @@ namespace {
   {
     std::cout << "\n==> Userdata errors:" << std::endl;
     mcpl::MCPLOutFile f("ud_err.mcpl");
-    f.add_userdata_field<float>("x");
+    f.add_userdata_field<float>("p");
     expect_throw( "add_userdata_field (duplicate name)",
-                  [&]{ f.add_userdata_field<double>("x"); } );
+                  [&]{ f.add_userdata_field<double>("p"); } );
     expect_throw( "add_userdata_field (invalid name)",
                   [&]{ f.add_userdata_field<double>("Bad"); } );
     expect_throw( "add_userdata_field (empty name)",
@@ -321,11 +321,11 @@ namespace {
     std::cout << "layout unchanged by these errors: \"" << f.userdata_layout()
               << "\"" << std::endl;
     expect_throw( "enable_userdata after add_userdata_field",
-                  [&]{ f.enable_userdata("y:float32"); } );
-    auto y = f.add_userdata_field<float>("y");
+                  [&]{ f.enable_userdata("q:float32"); } );
+    auto y = f.add_userdata_field<float>("q");
     auto p = f.new_particle();
     expect_throw( "add_userdata_field after new_particle",
-                  [&]{ f.add_userdata_field<float>("z"); } );
+                  [&]{ f.add_userdata_field<float>("r"); } );
     p.set_userdata(y,1.0f);
     p.set_uz(1.0);
     f.add(p);
@@ -335,11 +335,11 @@ namespace {
 
     //Invalid layouts given to enable_userdata:
     mcpl::MCPLOutFile g("ud_err2.mcpl");
-    expect_throw( "enable_userdata(\"x:float16\")",
-                  [&]{ g.enable_userdata("x:float16"); } );
+    expect_throw( "enable_userdata(\"p:float16\")",
+                  [&]{ g.enable_userdata("p:float16"); } );
     expect_throw( "enable_userdata(\"\")", [&]{ g.enable_userdata(""); } );
-    expect_throw( "userdata_field<float>(\"x\") (no userdata)",
-                  [&]{ g.userdata_field<float>("x"); } );
+    expect_throw( "userdata_field<float>(\"p\") (no userdata)",
+                  [&]{ g.userdata_field<float>("p"); } );
     //Fields from files with longer userdata:
     mcpl::MCPLOutFile h("ud_err3.mcpl");
     auto big = h.add_userdata_field<double,4>("big");
@@ -347,7 +347,7 @@ namespace {
     expect_throw( "set_userdata on particle without userdata",
                   [&]{ pg.set_userdata(big,0,1.0); } );
     expect_throw( "add_userdata_field after new_particle (no userdata)",
-                  [&]{ g.add_userdata_field<float>("x"); } );
+                  [&]{ g.add_userdata_field<float>("p"); } );
     g.close();
     h.close();
     std::remove("ud_err2.mcpl");
@@ -559,7 +559,7 @@ namespace {
   {
     std::cout << "\n==> Moving output files:" << std::endl;
     mcpl::MCPLOutFile f("moved.mcpl");
-    auto x = f.add_userdata_field<float>("x");
+    auto x = f.add_userdata_field<float>("p");
     auto p = f.new_particle();
     p.set_uz(1.0);
     p.set_ekin(1.0);
@@ -578,7 +578,7 @@ namespace {
     expect_throw( "f.set_srcname (moved from)", [&]{ f.set_srcname("x"); } );
     expect_throw( "f.new_particle() (moved from)", [&]{ f.new_particle(); } );
     expect_throw( "f.add_userdata_field (moved from)",
-                  [&]{ f.add_userdata_field<float>("y"); } );
+                  [&]{ f.add_userdata_field<float>("q"); } );
     expect_throw( "f.userdata_layout() (moved from)",
                   [&]{ f.userdata_layout(); } );
     f.close();//(does nothing)
@@ -687,7 +687,7 @@ namespace {
       //Particles added with the C API write the header before the fields
       //added with add_userdata_field are given to the C library:
       mcpl::MCPLOutFile f("latelayout.mcpl");
-      f.add_userdata_field<float>("x");
+      f.add_userdata_field<float>("p");
       mcpl_particle_t cp;
       std::memset(&cp,0,sizeof(cp));
       cp.direction[2] = 1.0;

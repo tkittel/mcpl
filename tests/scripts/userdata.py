@@ -50,17 +50,20 @@ def fail(fctname,*args):
 def test_layouts():
     print('=== Layouts')
     for layout in [ 'data:uint8[27]', 'a:int8', 'temp:float32,origin:int32',
-                    'x:uint8[65535]', 'v:float64[3]', 'a_1:int16,b2:uint16[2]',
-                    'x:int64,y:uint64,z:float32[1],w:uint32' ]:
+                    'p:uint8[65535]', 'v:float64[3]', 'a_1:int16,b2:uint16[2]',
+                    'p:int64,q:uint64,r:float32[1],w:uint32' ]:
         run('layout',layout)
-    for layout in [ '', 'uint8', 'uint8[27]', 'float64[3]', 'x', 'x:', ':int8', 'X:int8', '1x:int8',
-                    'x-y:int8', 'x:int9', 'x:int8,', ',x:int8',
-                    'x:int8,,y:int8', 'x:int8,x:int16', 'x:int8,uint8',
-                    'uint8,x:int8', 'x:int8[0]', 'x:int8[03]', 'x:int8[]',
-                    'x:int8[3', 'x:int8[a]', 'x:int8[3]y', 'x:uint8[65536]',
-                    'x:uint8[65535],y:int8', 'x:float64[8192]',
-                    'x :int8', 'x:int8, y:int8', 'a'*65 + ':int8' ]:
+    for layout in [ '', 'uint8', 'uint8[27]', 'float64[3]', 'p', 'p:', ':int8', 'X:int8', '1x:int8',
+                    'p-q:int8', 'p:int9', 'p:int8,', ',p:int8',
+                    'p:int8,,q:int8', 'p:int8,p:int16', 'p:int8,uint8',
+                    'uint8,p:int8', 'p:int8[0]', 'p:int8[03]', 'p:int8[]',
+                    'p:int8[3', 'p:int8[a]', 'p:int8[3]q', 'p:uint8[65536]',
+                    'p:uint8[65535],q:int8', 'p:float64[8192]',
+                    'p :int8', 'p:int8, q:int8', 'a'*65 + ':int8',
+                    'x:float32', 'a:int8,ekin:float64', 'position:float32[3]',
+                    'wavelength:float32', 'userflags:uint32' ]:
         fail('layout',layout)
+    run('layout','xx:float32,ekin2:float32,pos:int8')
 
 def test_offsets():
     print('=== Offsets')
@@ -72,8 +75,8 @@ def test_offsets():
     for name,tpe in [('temp','float64'),('tags','uint8'),('tags','uint8[4]'),
                      ('nosuch','int8'),('<NULL>','float32')]:
         fail('offset',lo,name,tpe)
-    fail('offset','data:uint8[27]','x','uint8[27]')
-    fail('offset','x:int9','x','int9')
+    fail('offset','data:uint8[27]','p','uint8[27]')
+    fail('offset','p:int9','p','int9')
 
 def test_write_read():
     print('=== Writing and reading')
@@ -85,9 +88,9 @@ def test_write_read():
     run('read','raw.mcpl')
     run('write','none.mcpl','<NONE>',2,0)
     run('read','none.mcpl')
-    run('write','empty.mcpl','x:int8',0,0)
+    run('write','empty.mcpl','p:int8',0,0)
     run('read','empty.mcpl')
-    run('write','big.mcpl','x:uint8[65535]',2,0)
+    run('write','big.mcpl','p:uint8[65535]',2,0)
     run('read','big.mcpl')
     #Same layouts but particle data written via raw bytes must be identical:
     run('dump','std.mcpl')
@@ -117,20 +120,20 @@ def test_transfer():
     run('read','t4.mcpl')
     #sources without userdata (or with different layouts) are errors for
     #targets with userdata:
-    fail('transfer','none.mcpl','t5.mcpl','x:int16[2]',0)
+    fail('transfer','none.mcpl','t5.mcpl','p:int16[2]',0)
     fail('transfer','std.mcpl','t6.mcpl','data:uint8[27]',0)
     #The header of an MCPL-3 file with blob keys which are not allowed in
     #MCPL-4 can be copied, but not to files with userdata (MCPL-4):
     enc = str(test_data_dir / 'ref' / 'reffile_encodings.mcpl.gz')
     run('transfer',enc,'t7.mcpl','<META>',0)
     print('Copied header with invalid blob keys from MCPL-3 file')
-    run('transfer_meta_with_userdata','none.mcpl','t8.mcpl','x:int8')
-    fail('transfer_meta_with_userdata',enc,'t9.mcpl','x:int8')
+    run('transfer_meta_with_userdata','none.mcpl','t8.mcpl','p:int8')
+    fail('transfer_meta_with_userdata',enc,'t9.mcpl','p:int8')
 
 def test_merge():
     print('=== Merging')
     run('write','std2.mcpl','<STD>',2,0)
-    run('write','raw27.mcpl','x:uint8[27]',2,0)
+    run('write','raw27.mcpl','p:uint8[27]',2,0)
     #(same size as the standard layout):
     run('write','raw33.mcpl','data:uint8[33]',2,0)
     for f1,f2 in [('std.mcpl','std2.mcpl'),('std.mcpl','raw.mcpl'),

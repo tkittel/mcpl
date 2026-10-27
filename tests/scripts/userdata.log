@@ -2,39 +2,45 @@
 layout "data:uint8[27]" has size 27
 layout "a:int8" has size 1
 layout "temp:float32,origin:int32" has size 8
-layout "x:uint8[65535]" has size 65535
+layout "p:uint8[65535]" has size 65535
 layout "v:float64[3]" has size 24
 layout "a_1:int16,b2:uint16[2]" has size 6
-layout "x:int64,y:uint64,z:float32[1],w:uint32" has size 24
+layout "p:int64,q:uint64,r:float32[1],w:uint32" has size 24
 Got expected MCPL ERROR: Invalid userdata layout "": empty layout
 Got expected MCPL ERROR: Invalid userdata layout "uint8": fields must be given as name:type
 Got expected MCPL ERROR: Invalid userdata layout "uint8[27]": fields must be given as name:type
 Got expected MCPL ERROR: Invalid userdata layout "float64[3]": fields must be given as name:type
-Got expected MCPL ERROR: Invalid userdata layout "x": fields must be given as name:type
-Got expected MCPL ERROR: Invalid userdata layout "x:": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
+Got expected MCPL ERROR: Invalid userdata layout "p": fields must be given as name:type
+Got expected MCPL ERROR: Invalid userdata layout "p:": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
 Got expected MCPL ERROR: Invalid userdata layout ":int8": empty field name
 Got expected MCPL ERROR: Invalid userdata layout "X:int8": field names must start with a lowercase letter
 Got expected MCPL ERROR: Invalid userdata layout "1x:int8": field names must start with a lowercase letter
-Got expected MCPL ERROR: Invalid userdata layout "x-y:int8": field names must only contain lowercase letters, digits and underscores
-Got expected MCPL ERROR: Invalid userdata layout "x:int9": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
-Got expected MCPL ERROR: Invalid userdata layout "x:int8,": empty field
-Got expected MCPL ERROR: Invalid userdata layout ",x:int8": empty field
-Got expected MCPL ERROR: Invalid userdata layout "x:int8,,y:int8": empty field
-Got expected MCPL ERROR: Invalid userdata layout "x:int8,x:int16": duplicate field name
-Got expected MCPL ERROR: Invalid userdata layout "x:int8,uint8": fields must be given as name:type
-Got expected MCPL ERROR: Invalid userdata layout "uint8,x:int8": fields must be given as name:type
-Got expected MCPL ERROR: Invalid userdata layout "x:int8[0]": invalid array size (must be like [3])
-Got expected MCPL ERROR: Invalid userdata layout "x:int8[03]": invalid array size (must be like [3])
-Got expected MCPL ERROR: Invalid userdata layout "x:int8[]": invalid array size (must be like [3])
-Got expected MCPL ERROR: Invalid userdata layout "x:int8[3": invalid array size (must be like [3])
-Got expected MCPL ERROR: Invalid userdata layout "x:int8[a]": invalid array size (must be like [3])
-Got expected MCPL ERROR: Invalid userdata layout "x:int8[3]y": invalid array size (must be like [3])
-Got expected MCPL ERROR: Invalid userdata layout "x:uint8[65536]": too large userdata (at most 65535 bytes are allowed)
-Got expected MCPL ERROR: Invalid userdata layout "x:uint8[65535],y:int8": too large userdata (at most 65535 bytes are allowed)
-Got expected MCPL ERROR: Invalid userdata layout "x:float64[8192]": too large userdata (at most 65535 bytes are allowed)
-Got expected MCPL ERROR: Invalid userdata layout "x :int8": field names must only contain lowercase letters, digits and underscores
-Got expected MCPL ERROR: Invalid userdata layout "x:int8, y:int8": field names must start with a lowercase letter
+Got expected MCPL ERROR: Invalid userdata layout "p-q:int8": field names must only contain lowercase letters, digits and underscores
+Got expected MCPL ERROR: Invalid userdata layout "p:int9": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
+Got expected MCPL ERROR: Invalid userdata layout "p:int8,": empty field
+Got expected MCPL ERROR: Invalid userdata layout ",p:int8": empty field
+Got expected MCPL ERROR: Invalid userdata layout "p:int8,,q:int8": empty field
+Got expected MCPL ERROR: Invalid userdata layout "p:int8,p:int16": duplicate field name
+Got expected MCPL ERROR: Invalid userdata layout "p:int8,uint8": fields must be given as name:type
+Got expected MCPL ERROR: Invalid userdata layout "uint8,p:int8": fields must be given as name:type
+Got expected MCPL ERROR: Invalid userdata layout "p:int8[0]": invalid array size (must be like [3])
+Got expected MCPL ERROR: Invalid userdata layout "p:int8[03]": invalid array size (must be like [3])
+Got expected MCPL ERROR: Invalid userdata layout "p:int8[]": invalid array size (must be like [3])
+Got expected MCPL ERROR: Invalid userdata layout "p:int8[3": invalid array size (must be like [3])
+Got expected MCPL ERROR: Invalid userdata layout "p:int8[a]": invalid array size (must be like [3])
+Got expected MCPL ERROR: Invalid userdata layout "p:int8[3]q": invalid array size (must be like [3])
+Got expected MCPL ERROR: Invalid userdata layout "p:uint8[65536]": too large userdata (at most 65535 bytes are allowed)
+Got expected MCPL ERROR: Invalid userdata layout "p:uint8[65535],q:int8": too large userdata (at most 65535 bytes are allowed)
+Got expected MCPL ERROR: Invalid userdata layout "p:float64[8192]": too large userdata (at most 65535 bytes are allowed)
+Got expected MCPL ERROR: Invalid userdata layout "p :int8": field names must only contain lowercase letters, digits and underscores
+Got expected MCPL ERROR: Invalid userdata layout "p:int8, q:int8": field names must start with a lowercase letter
 Got expected MCPL ERROR: Invalid userdata layout "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:int8": too long field name
+Got expected MCPL ERROR: Invalid userdata layout "x:float32": reserved field name (the names of particle fields, like x, ekin, position or wavelength, can not be used)
+Got expected MCPL ERROR: Invalid userdata layout "a:int8,ekin:float64": reserved field name (the names of particle fields, like x, ekin, position or wavelength, can not be used)
+Got expected MCPL ERROR: Invalid userdata layout "position:float32[3]": reserved field name (the names of particle fields, like x, ekin, position or wavelength, can not be used)
+Got expected MCPL ERROR: Invalid userdata layout "wavelength:float32": reserved field name (the names of particle fields, like x, ekin, position or wavelength, can not be used)
+Got expected MCPL ERROR: Invalid userdata layout "userflags:uint32": reserved field name (the names of particle fields, like x, ekin, position or wavelength, can not be used)
+layout "xx:float32,ekin2:float32,pos:int8" has size 9
 === Offsets
 offset of temp (float32) in "temp:float32,origin:int32,tags:uint8[3],big:float64" is 0
 offset of origin (int32) in "temp:float32,origin:int32,tags:uint8[3],big:float64" is 4
@@ -46,8 +52,8 @@ Got expected MCPL ERROR: mcpl_userdata_offset("temp:float32,origin:int32,tags:ui
 Got expected MCPL ERROR: mcpl_userdata_offset("temp:float32,origin:int32,tags:uint8[3],big:float64","tags","uint8[4]"): field has a different type in the userdata layout
 Got expected MCPL ERROR: mcpl_userdata_offset("temp:float32,origin:int32,tags:uint8[3],big:float64","nosuch","int8"): no such field in the userdata layout
 Got expected MCPL ERROR: mcpl_userdata_offset("temp:float32,origin:int32,tags:uint8[3],big:float64","","float32"): no such field in the userdata layout
-Got expected MCPL ERROR: mcpl_userdata_offset("data:uint8[27]","x","uint8[27]"): no such field in the userdata layout
-Got expected MCPL ERROR: Invalid userdata layout "x:int9": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
+Got expected MCPL ERROR: mcpl_userdata_offset("data:uint8[27]","p","uint8[27]"): no such field in the userdata layout
+Got expected MCPL ERROR: Invalid userdata layout "p:int9": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
 === Writing and reading
 std.mcpl: format version 4, userdata layout "temp:float32,origin:int32,tags:uint8[3],big:float64,id:uint64,s:int16", size 29, particle size 65
   particle 0 x=1 ekin=0.5: temp=293.15 origin=0 tags=0,1,2 big=1e+300 id=18446744073709551615 s=-32768
@@ -65,8 +71,8 @@ raw.mcpl: format version 4, userdata layout "data:uint8[27]", size 27, particle 
 none.mcpl: format version 3, userdata layout NULL, size 0, particle size 36
   particle 0 x=1 ekin=0.5: no userdata
   particle 1 x=2 ekin=1: no userdata
-empty.mcpl: format version 4, userdata layout "x:int8", size 1, particle size 37
-big.mcpl: format version 4, userdata layout "x:uint8[65535]", size 65535, particle size 65571
+empty.mcpl: format version 4, userdata layout "p:int8", size 1, particle size 37
+big.mcpl: format version 4, userdata layout "p:uint8[65535]", size 65535, particle size 65571
   particle 0 x=1 ekin=0.5: 000102030405060708090a0b...
   particle 1 x=2 ekin=1: 0708090a0b0c0d0e0f101112...
 Opened MCPL file std.mcpl:
@@ -140,7 +146,7 @@ Opened MCPL file big.mcpl:
   Particle data format
     User flags         : no
     Polarisation info  : no
-    User data          : 65535 bytes (layout "x:uint8[65535]")
+    User data          : 65535 bytes (layout "p:uint8[65535]")
     Fixed part. type   : no
     Fixed part. weight : no
     FP precision       : single
@@ -260,4 +266,4 @@ Got expected MCPL ERROR: mcpl_enable_userdata called too late.
 Got expected MCPL ERROR: mcpl_enable_userdata called multiple times with different layouts
 Got expected MCPL ERROR: Invalid userdata layout "": empty layout
 Got expected MCPL ERROR: mcpl_add_particle called for a file with userdata (use mcpl_add_particle_with_userdata, with NULL for userdata with all bytes zero)
-NULL userdata gives x=0
+NULL userdata gives p=0

@@ -31,6 +31,12 @@ from ._numpy import np
 
 _maxsize = 65535
 _maxnamelength = 64
+#The names of the fields of particles in MCPL files, and of their derived
+#properties in the APIs, which userdata fields can not have (so they can never
+#be confused with them):
+_reserved_names = ( 'x', 'y', 'z', 'ux', 'uy', 'uz', 'polx', 'poly', 'polz',
+                    'ekin', 'time', 'weight', 'pdgcode', 'userflags',
+                    'position', 'direction', 'polarisation', 'wavelength' )
 _types = { 'int8' : 'i1', 'uint8' : 'u1', 'int16' : 'i2', 'uint16' : 'u2',
            'int32' : 'i4', 'uint32' : 'u4', 'int64' : 'i8', 'uint64' : 'u8',
            'float32' : 'f4', 'float64' : 'f8' }
@@ -95,6 +101,9 @@ def _parse_error( layout ):
                     for c in name[1:] ):
             return ( 'field names must only contain lowercase letters,'
                      ' digits and underscores' )
+        if name in _reserved_names:
+            return ( 'reserved field name (the names of particle fields, like x,'
+                     ' ekin, position or wavelength, can not be used)' )
         typespec, colon2, unit = typespec.partition(':')
         tname, bracket, arr = typespec.partition('[')
         if tname not in _types:

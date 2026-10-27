@@ -471,7 +471,7 @@ namespace {
     //Fields from other files with shorter userdata:
     {
       mcpl_outfile_t o = mcpl_create_outfile("short.mcpl");
-      mcpl_enable_userdata(o,"x:float64,y:float64");
+      mcpl_enable_userdata(o,"p:float64,q:float64");
       mcpl_particle_t * pp = mcpl_get_empty_particle(o);
       fill(pp,0);
       mcpl_add_particle_with_userdata(o,pp,nullptr);

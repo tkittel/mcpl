@@ -79,7 +79,7 @@ mcpltool-c -j big.mcpl: exit code 0
    |   Particle data format
    |     User flags         : no
    |     Polarisation info  : no
-   |     User data          : 65535 bytes (layout "x:uint8[65535]")
+   |     User data          : 65535 bytes (layout "p:uint8[65535]")
    |     Fixed part. type   : no
    |     Fixed part. weight : no
    |     FP precision       : single
@@ -103,7 +103,7 @@ mcpltool-c -l1 big.mcpl: exit code 0
    |   Particle data format
    |     User flags         : no
    |     Polarisation info  : no
-   |     User data          : 65535 bytes (layout "x:uint8[65535]")
+   |     User data          : 65535 bytes (layout "p:uint8[65535]")
    |     Fixed part. type   : no
    |     Fixed part. weight : no
    |     FP precision       : single
@@ -129,7 +129,7 @@ mcpltool-c empty.mcpl: exit code 0
    |   Particle data format
    |     User flags         : no
    |     Polarisation info  : no
-   |     User data          : 1 bytes (layout "x:int8")
+   |     User data          : 1 bytes (layout "p:int8")
    |     Fixed part. type   : no
    |     Fixed part. weight : no
    |     FP precision       : single
@@ -1309,21 +1309,27 @@ pyexample.mcpl: format version 4, userdata layout "temp:float32,nscat:uint32,vol
 'a:int8,b:float64[2]': size 17
 '': MCPLError: Invalid userdata layout "": empty layout
 'uint8[27]': MCPLError: Invalid userdata layout "uint8[27]": fields must be given as name:type
-'x:': MCPLError: Invalid userdata layout "x:": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
+'p:': MCPLError: Invalid userdata layout "p:": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
 ':int8': MCPLError: Invalid userdata layout ":int8": empty field name
 'X:int8': MCPLError: Invalid userdata layout "X:int8": field names must start with a lowercase letter
-'x-y:int8': MCPLError: Invalid userdata layout "x-y:int8": field names must only contain lowercase letters, digits and underscores
-'x:int9': MCPLError: Invalid userdata layout "x:int9": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
-'x:int8,': MCPLError: Invalid userdata layout "x:int8,": empty field
-'x:int8,x:int16': MCPLError: Invalid userdata layout "x:int8,x:int16": duplicate field name
-'x:int8[0]': MCPLError: Invalid userdata layout "x:int8[0]": invalid array size (must be like [3])
-'x:int8[03]': MCPLError: Invalid userdata layout "x:int8[03]": invalid array size (must be like [3])
-'x:int8[3': MCPLError: Invalid userdata layout "x:int8[3": invalid array size (must be like [3])
-'x:uint8[65536]': MCPLError: Invalid userdata layout "x:uint8[65536]": too large userdata (at most 65535 bytes are allowed)
-'x:uint8[65535],y:int8': MCPLError: Invalid userdata layout "x:uint8[65535],y:int8": too large userdata (at most 65535 bytes are allowed)
-'x :int8': MCPLError: Invalid userdata layout "x :int8": field names must only contain lowercase letters, digits and underscores
+'p-q:int8': MCPLError: Invalid userdata layout "p-q:int8": field names must only contain lowercase letters, digits and underscores
+'p:int9': MCPLError: Invalid userdata layout "p:int9": unknown type (must be one of int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64)
+'p:int8,': MCPLError: Invalid userdata layout "p:int8,": empty field
+'p:int8,p:int16': MCPLError: Invalid userdata layout "p:int8,p:int16": duplicate field name
+'p:int8[0]': MCPLError: Invalid userdata layout "p:int8[0]": invalid array size (must be like [3])
+'p:int8[03]': MCPLError: Invalid userdata layout "p:int8[03]": invalid array size (must be like [3])
+'p:int8[3': MCPLError: Invalid userdata layout "p:int8[3": invalid array size (must be like [3])
+'p:uint8[65536]': MCPLError: Invalid userdata layout "p:uint8[65536]": too large userdata (at most 65535 bytes are allowed)
+'p:uint8[65535],q:int8': MCPLError: Invalid userdata layout "p:uint8[65535],q:int8": too large userdata (at most 65535 bytes are allowed)
+'p :int8': MCPLError: Invalid userdata layout "p :int8": field names must only contain lowercase letters, digits and underscores
 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:int8': MCPLError: Invalid userdata layout "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:int8": too long field name
-'x:float64[8192]': MCPLError: Invalid userdata layout "x:float64[8192]": too large userdata (at most 65535 bytes are allowed)
+'p:float64[8192]': MCPLError: Invalid userdata layout "p:float64[8192]": too large userdata (at most 65535 bytes are allowed)
+'x:float32': MCPLError: Invalid userdata layout "x:float32": reserved field name (the names of particle fields, like x, ekin, position or wavelength, can not be used)
+'a:int8,ekin:float64': MCPLError: Invalid userdata layout "a:int8,ekin:float64": reserved field name (the names of particle fields, like x, ekin, position or wavelength, can not be used)
+'position:float32[3]': MCPLError: Invalid userdata layout "position:float32[3]": reserved field name (the names of particle fields, like x, ekin, position or wavelength, can not be used)
+'wavelength:float32': MCPLError: Invalid userdata layout "wavelength:float32": reserved field name (the names of particle fields, like x, ekin, position or wavelength, can not be used)
+'userflags:uint32': MCPLError: Invalid userdata layout "userflags:uint32": reserved field name (the names of particle fields, like x, ekin, position or wavelength, can not be used)
+'xx:float32,ekin2:float32,pos:int8': size 9
 'a:float32:cm': size 4
 'a:float64:MeV,b:float32:ms,c:float32:K,d:float32:deg': size 20
 'a:float32[3]:cm': size 12

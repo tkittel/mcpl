@@ -82,11 +82,8 @@ class _Columns:
     the values for a block and their dimension (see
     _expressions._quantity_functions)."""
 
-    def __init__( self, coord_functions, vectors, variances, dim,
-                  warned = None ):
+    def __init__( self, coord_functions, vectors, variances, dim ):
         self._exprs = dict(coord_functions or {})
-        #Names of renamed userdata fields which were already warned about:
-        self._warned = warned if warned is not None else set()
         self._vectors, self._variances, self._dim = vectors, variances, dim
         self._cols = {}
         self._dims = {}
@@ -161,14 +158,6 @@ class _Columns:
             if k.startswith('userdata:'):
                 parts = k.split(':')
                 name = parts[1] if len(parts) == 2 else f'{parts[1]}_{parts[2]}'
-                if name in cols:
-                    newname = f'userdata_{name}'
-                    if name not in self._warned:
-                        self._warned.add(name)
-                        _warning(f'The userdata field "{name}" has the same'
-                                 ' name as a standard coordinate, so it is'
-                                 f' converted to the coordinate "{newname}"')
-                    name = newname
                 if v.dtype.kind in 'iub':
                     v = _int_coord_values(v,name)
                 #(with the unit of the field in the layout, if any):
@@ -197,13 +186,12 @@ def file_scipp_blocks( mcplfile, flt = None, coord_functions = None,
     coord_functions are as for _Columns)."""
     sc = _import_scipp()#(here, so a missing scipp is reported immediately)
     def blocks():
-        warned = set()
         for b in mcplfile.particle_blocks:
             if flt is not None:
                 b = b[flt(b)]
             if not len(b):
                 continue
-            c = _Columns(coord_functions,vectors,variances,dim,warned)
+            c = _Columns(coord_functions,vectors,variances,dim)
             c.add_block(b)
             yield c.data_array(sc)
     return blocks()

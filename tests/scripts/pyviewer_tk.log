@@ -13,10 +13,8 @@ after clicking the card 'Spectra': overview:spectra | 7 cards shown
 after clicking the card 'Spectra': overview:spectra | 12 cards shown
 after clicking the card 'Energy': plot:ekin;logx=auto;logy | 12 cards shown
 help menu: ['The viewer', 'Picks (filtering particles)', 'Edits (modifying particles)', 'Plot expressions', 'About data caching', 'About MCPL']
-menu opened by m: True
-   closed by m again: True
-menu opened by h: True
-   closed by h again: True
+menu opened by m: True | closed by it again: True
+menu opened by h: True | closed by it again: True
 X axis after typing 'ek' and <Tab>: 'ekin', focus kept: True
    completions of 'po' : ['polx', 'poly', 'polz', 'pos', 'pol', 'positron']
 X axis after typing 'po' and <Tab> <Down> <Return>: 'poly', focus kept: True

@@ -132,10 +132,13 @@ cases = [
 def main():
     env = dict(os.environ)
     env['PYTHONPATH'] = os.pathsep.join(p for p in sys.path if p)
+    #(the output, e.g. labels like "\u03b3 (22)" of the test backend, as UTF-8,
+    #also on Windows):
+    env['PYTHONIOENCODING'] = 'utf-8'
     for title, expected, code in cases:
         rv = subprocess.run([sys.executable,'-c',
                              code_template%('        '+code,plot_modules,optional_modules)],
-                            capture_output=True, text=True, env=env, check=False)
+                            capture_output=True, encoding='utf-8', env=env, check=False)
         assert rv.returncode == 0, f'{title} failed:\n{rv.stderr}'
         mods = json.loads(rv.stdout.strip().splitlines()[-1])
         #Plotting packages must not be imported at all, and only the expected

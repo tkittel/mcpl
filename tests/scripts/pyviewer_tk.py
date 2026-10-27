@@ -116,14 +116,17 @@ for _ in range(3):
 click_card('Energy')
 print('help menu:', [ tv._help_choices.entrycget(i,'label')
                       for i in range(tv._help_choices.index('end') + 1) ])
-#(m and h, outside the text fields, open the menu and the help menu):
+#(m and h, outside the text fields, open the menu and the help menu, and
+#close it again; the menus are not really opened here, since menus on macOS
+#are native, and wait until they are closed):
 for key, menu in ( ( 'm', tv._actions_menu ), ( 'h', tv._help_choices ) ):
+    button, events = tv._menu_keys[key], []
+    real = button.event_generate
+    button.event_generate = events.append
     tv.on_key(key)
-    root.update()
-    print(f'menu opened by {key}:', bool(menu.winfo_ismapped()))
-    menu.event_generate(f'<KeyPress-{key}>')
-    root.update()
-    print(f'   closed by {key} again:', not menu.winfo_ismapped())
+    button.event_generate = real
+    print(f'menu opened by {key}:', events == [ '<<Invoke>>' ],
+          '| closed by it again:', bool(menu.bind(f'<KeyPress-{key}>')))
 
 #Tab completes in the X axis field (and stays there), and with several
 #completions shows a list, where Down and Enter choose one:

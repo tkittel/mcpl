@@ -396,8 +396,9 @@ the other. This requires that the ``MCPL-3`` file follows the rules of
 :ref:`format-data-arrays`).
 
 The userdata layout is a comma-separated list of fields written as
-``name:type`` or ``name:type[n]`` for arrays of ``n`` values, for instance
-``temp:float32,origin:int32,tags:uint8[3]``, without any whitespace:
+``name:type`` or ``name:type[n]`` for arrays of ``n`` values, optionally
+followed by ``:unit`` for the unit of the values, for instance
+``temp:float32:K,origin:int32,dir:float32[3]:cm``, without any whitespace:
 
 - The types are ``int8``, ``uint8``, ``int16``, ``uint16``, ``int32``,
   ``uint32``, ``int64``, ``uint64``, ``float32`` and ``float64`` (signed
@@ -410,6 +411,13 @@ The userdata layout is a comma-separated list of fields written as
   merging.
 - Array sizes ``n`` are written as decimal numbers without leading zeros, and
   are at least 1.
+- Units are made of the base units ``cm``, ``MeV``, ``ms``, ``K`` and ``deg``,
+  in this order, each at most once, separated by dots. Each can have a power,
+  written as ``^`` and a single digit from 2 to 9 or from -1 to -9, for
+  instance ``cm^2.MeV`` or ``cm.ms^-1`` (a speed). Other units, division
+  (``/``) and parentheses are not allowed, so that each unit is always written
+  the same way. The unit applies to all values of an array, and fields without
+  a unit have none.
 - The layout has at least one field, and the userdata has at most 65535 bytes
   per particle.
 

@@ -1346,9 +1346,14 @@ pyexample.mcpl: format version 4, userdata layout "temp:float32,nscat:uint32,vol
 'a:float32:cm.': MCPLError: Invalid userdata layout "a:float32:cm.": empty unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
 'a:float32:.cm': MCPLError: Invalid userdata layout "a:float32:.cm": empty unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
 'a:float32:cm..MeV': MCPLError: Invalid userdata layout "a:float32:cm..MeV": empty unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
-'a:float32:cm*MeV': MCPLError: Invalid userdata layout "a:float32:cm*MeV": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
-'a:float32:cm/ms': MCPLError: Invalid userdata layout "a:float32:cm/ms": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+'a:float32:cm*MeV': MCPLError: Invalid userdata layout "a:float32:cm*MeV": units are separated by dots, like cm.MeV for cm*MeV
+'a:float32:cm/ms': MCPLError: Invalid userdata layout "a:float32:cm/ms": division is not allowed in units (use negative powers, like MeV.cm^-1 for MeV/cm)
 'a:float32:cm:MeV': MCPLError: Invalid userdata layout "a:float32:cm:MeV": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
 'a:float32[3:cm': MCPLError: Invalid userdata layout "a:float32[3:cm": invalid array size (must be like [3])
 'a:float32:cm[3]': MCPLError: Invalid userdata layout "a:float32:cm[3]": unknown unit (the units are cm, MeV, ms, K and deg, like cm^2.MeV)
+'a:float32:MeV/cm': MCPLError: Invalid userdata layout "a:float32:MeV/cm": division is not allowed in units (use negative powers, like MeV.cm^-1 for MeV/cm)
+'a:float32:1/cm': MCPLError: Invalid userdata layout "a:float32:1/cm": division is not allowed in units (use negative powers, like MeV.cm^-1 for MeV/cm)
+'a:float32:(cm.MeV)^-1': MCPLError: Invalid userdata layout "a:float32:(cm.MeV)^-1": parentheses are not allowed in units (give each unit its own power, like cm^-2.MeV^-1 for 1/(cm^2*MeV))
+'a:float32:cm^(-1)': MCPLError: Invalid userdata layout "a:float32:cm^(-1)": parentheses are not allowed in units (give each unit its own power, like cm^-2.MeV^-1 for 1/(cm^2*MeV))
+'a:float32:cm^-1/ms': MCPLError: Invalid userdata layout "a:float32:cm^-1/ms": division is not allowed in units (use negative powers, like MeV.cm^-1 for MeV/cm)
 units: {'temp': 'K', 'n': None, 'dir': 'cm', 'q': 'cm^-1'}

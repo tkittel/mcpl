@@ -458,6 +458,15 @@ MCPL_LOCAL const char * mcpl_internal_udunit_problem( const char * u, size_t n )
 {
   static const char * names[5] = { "cm", "MeV", "ms", "K", "deg" };
   const char * end = u + n;
+  //(common ways of writing units, which are not used here):
+  if ( memchr( u, '(', n ) || memchr( u, ')', n ) )
+    return ( "parentheses are not allowed in units (give each unit its own"
+             " power, like cm^-2.MeV^-1 for 1/(cm^2*MeV))" );
+  if ( memchr( u, '/', n ) )
+    return ( "division is not allowed in units (use negative powers, like"
+             " MeV.cm^-1 for MeV/cm)" );
+  if ( memchr( u, '*', n ) )
+    return "units are separated by dots, like cm.MeV for cm*MeV";
   int last = -1;
   while ( 1 ) {
     const char * q = u;

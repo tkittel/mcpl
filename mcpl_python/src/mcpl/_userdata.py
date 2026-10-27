@@ -44,6 +44,15 @@ _power_error = ( 'invalid power (powers are single digits from 2 to 9 or -1 to'
 
 def _unit_error( unit ):
     """Reason for a unit of a field being invalid (or None if it is valid)"""
+    #(common ways of writing units, which are not used here):
+    if '(' in unit or ')' in unit:
+        return ( 'parentheses are not allowed in units (give each unit its own'
+                 ' power, like cm^-2.MeV^-1 for 1/(cm^2*MeV))' )
+    if '/' in unit:
+        return ( 'division is not allowed in units (use negative powers, like'
+                 ' MeV.cm^-1 for MeV/cm)' )
+    if '*' in unit:
+        return 'units are separated by dots, like cm.MeV for cm*MeV'
     last = -1
     for factor in unit.split('.'):
         name, caret, power = factor.partition('^')

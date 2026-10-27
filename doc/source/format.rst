@@ -408,7 +408,11 @@ followed by ``:unit`` for the unit of the values, for instance
   digits or underscores, have at most 64 characters, and be unique within the
   layout. Names are required also for plain bytes (e.g. ``data:uint8[27]``),
   so that files whose userdata merely has the same types are not mixed up when
-  merging.
+  merging. The names ``x``, ``y``, ``z``, ``ux``, ``uy``, ``uz``, ``polx``,
+  ``poly``, ``polz``, ``ekin``, ``time``, ``weight``, ``pdgcode``,
+  ``userflags``, ``position``, ``direction``, ``polarisation`` and
+  ``wavelength`` are reserved, so that userdata is never confused with the
+  other particle data.
 - Array sizes ``n`` are written as decimal numbers without leading zeros, and
   are at least 1.
 - Units are made of the base units ``cm``, ``MeV``, ``ms``, ``K`` and ``deg``,

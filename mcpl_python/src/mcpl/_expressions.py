@@ -52,6 +52,7 @@ from ._exprcore import (
 from ._exprrotation import _rotation_matrix
 from ._exprsyntax import (
     _dim_E,
+    _dim_unknown,
     _expr_parse,
     _expr_units,
     _expr_unparse,
@@ -211,7 +212,7 @@ class ParticleValue:
     def __call__( self, block ):
         """Return array with the values for the particles in the block"""
         q = self._e.evaluate(block)
-        if q.d is not None:
+        if q.d not in ( None, _dim_unknown ):
             u = _expr_unit_hints.get(q.d)
             if u == 'cm' and 'wavelength' in self._expr:
                 u = 'Aa'
@@ -417,7 +418,7 @@ class _Statements:
                     comps = _expr_vectors[name]
                     d = _expr_field_dims.get(comps[0])
                     if not ( isinstance(q,_V) and len(q.c) == 3
-                             and ( q.d == d or all( c.zero for c in q.c ) ) ):
+                             and ( q.d in ( d, _dim_unknown ) or all( c.zero for c in q.c ) ) ):
                         what = q.describe() if isinstance(q,_V) else 'a number'
                         dname = f' of {_dimstr(d)}s' if d else ' without units'
                         raise MCPLError(f'Can not assign {what} to {name}, which is a'
@@ -439,7 +440,7 @@ class _Statements:
             else:
                 fname, angle = st
                 qa = ev.scalar(ev(angle.tree),f'an angle in {fname}(..)')
-                if qa.d is not None:
+                if qa.d not in ( None, _dim_unknown ):
                     ev.error(f'{fname}(..) requires an angle (e.g. 90deg), not'
                              f' {_dimstr(qa.d)}')
                 c, s = np.cos(qa.v), np.sin(qa.v)
@@ -466,7 +467,7 @@ class _Statements:
     def _assign_field( self, ev, name, q, modified ):
         """Assign the value q to the field"""
         d = _expr_field_dims.get(name)
-        if q.d != d and not q.zero:
+        if q.d not in ( d, _dim_unknown ) and not q.zero:
             what = _dimstr(q.d) if q.d is None else f'value with {_dimstr(q.d)}'
             dname = 'unitless' if d is None else f'a {_dimstr(d)}'
             dname = dname.replace('a energy','an energy')
@@ -491,7 +492,7 @@ class _Statements:
         for i, q in enumerate(qs):
             if fname == 'rotate_around' and i == 1:
                 q = ev.scalar(q,f'the angle in {fname}(..)')
-                if q.d is not None:
+                if q.d not in ( None, _dim_unknown ):
                     ev.error(f'{fname}(..) requires an angle (e.g. 90deg) as its last'
                              f' argument, not {_dimstr(q.d)}')
                 values.append(q.v)

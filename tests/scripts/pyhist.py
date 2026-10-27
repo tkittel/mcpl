@@ -251,14 +251,14 @@ def test_units():
     ex = 'example.mcpl'
     #Expressions with units get a unit chosen for their axes (see _plot_unit):
     from mcpldev._exprplot import _plot_unit
-    for what, args in ( ( 'x, 0.3m', ((1,0,0),-30,30) ), ( 'x, 2.5m', ((1,0,0),0,250) ),
-                        ( 'x, 5mm', ((1,0,0),0,0.5) ), ( 'ekin, 9.7GeV', ((0,1,0),0.0014,9725) ),
-                        ( 'ekin, log axis', ((0,1,0),1e-9,10,True) ), ( 'time, log axis', ((0,0,1),1e-6,1e-3,True) ),
+    for what, args in ( ( 'x, 0.3m', ((1,0,0,0),-30,30) ), ( 'x, 2.5m', ((1,0,0,0),0,250) ),
+                        ( 'x, 5mm', ((1,0,0,0),0,0.5) ), ( 'ekin, 9.7GeV', ((0,1,0,0),0.0014,9725) ),
+                        ( 'ekin, log axis', ((0,1,0,0),1e-9,10,True) ), ( 'time, log axis', ((0,0,1,0),1e-6,1e-3,True) ),
                         ( 'x^2', ((2,0,0),0,1e4) ), ( 'sqrt(ekin)', ((0,0.5,0),0,1e-3) ),
                         ( 'x*ekin', ((1,1,0),0,10) ), ( '1/x', ((-1,0,0),0,0.5) ),
-                        ( 'wavelength, 1.8Aa', ((1,0,0),1e-8,1.8e-8,False,True) ),
-                        ( 'wavelength, log axis 1e-3 to 100Aa', ((1,0,0),1e-11,1e-6,True,True) ),
-                        ( 'wavelength, up to 1mm', ((1,0,0),0,0.1,False,True) ), ( 'no units', (None,0,1) ) ):
+                        ( 'wavelength, 1.8Aa', ((1,0,0,0),1e-8,1.8e-8,False,True) ),
+                        ( 'wavelength, log axis 1e-3 to 100Aa', ((1,0,0,0),1e-11,1e-6,True,True) ),
+                        ( 'wavelength, up to 1mm', ((1,0,0,0),0,0.1,False,True) ), ( 'no units', (None,0,1) ) ):
         print(f'unit of {what}: {_plot_unit(*args)}')
     for e, kw in ( ( 'x', {} ), ( 'ekin;logx=auto', {} ), ( 'wavelength', { 'pick' : 'pdgcode == neutron' } ),
                    ( 'x;range=-10cm:10cm;bins=2', {} ), ( 'x;range=0:1m;bins=2', {} ), ( 'x/cm;bins=2', {} ),

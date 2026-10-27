@@ -16,13 +16,13 @@ Modules of the mcpl package and their imports from the package:
   layer   1 : _userdata            <- _common, _numpy
   layer   1 : _viewer_ui           <- _common, _helptext, _stdviews
   layer   2 : _blocks              <- _common, _numpy, _physics
-  layer   2 : _exprcore            <- _common, _exprsyntax, _numpy, _particles, _physics
+  layer   2 : _exprcore            <- _common, _exprsyntax, _numpy, _particles, _physics, _userdata
   layer   2 : _scipp               <- _common, _messages, _numpy, _userdata
   layer   3 : _expressions         <- _common, _exprcore, _exprrotation, _exprsyntax, _numpy, _particles, _physics
   layer   4 : _exprplot            <- _common, _exprcore, _expressions, _exprsyntax, _numpy
   layer   4 : _reader              <- _blocks, _common, _expressions, _messages, _numpy, _scipp, _statsum, _userdata
   layer   4 : _records             <- _blocks, _common, _numpy, _particles, _physics
-  layer   5 : _histstring          <- _common, _exprcore, _expressions, _exprplot, _particles
+  layer   5 : _histstring          <- _common, _exprcore, _expressions, _exprplot, _exprsyntax, _particles
   layer   5 : _writer              <- _blocks, _common, _expressions, _messages, _numpy, _reader, _records, _statsum, _userdata
   layer   6 : _examples            <- _common, _messages, _numpy, _writer
   layer   6 : _extract             <- _messages, _reader, _writer
@@ -31,7 +31,7 @@ Modules of the mcpl package and their imports from the package:
   layer   7 : _stats               <- _common, _expressions, _messages, _numpy, _physics, _reader
   layer   7 : _viewer_code         <- _exprcore, _expressions, _exprrotation, _exprsyntax, _extract
   layer   8 : plotting             <- _plotbackend
-  layer   9 : _histogram           <- _common, _exprcore, _expressions, _exprplot, _histstring, _numpy, _particles, _reader, plotting
+  layer   9 : _histogram           <- _common, _exprcore, _expressions, _exprplot, _exprsyntax, _histstring, _numpy, _particles, _reader, plotting
   layer   9 : _plotbackend_mpl     <- _common, _logo, _numpy, _plotbackend, plotting
   layer   9 : _plotbackend_test    <- _numpy, _plotbackend, plotting
   layer   9 : _plotbackend_text    <- _numpy, _particles, _physics, _plotbackend, _termcolor, plotting

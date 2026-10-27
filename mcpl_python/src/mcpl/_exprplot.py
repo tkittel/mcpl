@@ -26,7 +26,7 @@ __all__ = []
 from ._common import MCPLError
 from ._exprcore import _EmptyBlock, _Expr, _expr_value_names
 from ._expressions import ParticleValue, _values
-from ._exprsyntax import _dim_E, _dim_L, _dim_T, _expr_units
+from ._exprsyntax import _dim_E, _dim_K, _dim_L, _dim_T, _dim_unknown, _expr_units
 from ._numpy import np
 
 
@@ -41,15 +41,23 @@ class _PlotValue:
         self._e = _Expr(expression)
         self.expression = self._e.text
         q = self._e.evaluate(_EmptyBlock())#(also checks the units)
+        #(the dimension, which for fields of the userdata is known from the
+        #first block of particles, see __call__):
         self.dim = q.d
         self.wavelength = 'wavelength' in self._e.fields
     def __call__( self, block ):
         """The values for the particles of the block (NaN where the expression
         is not defined, see _Expr.domains)"""
         if not self._e.domains:
-            return _values(self._e.evaluate(block),block)
-        mask = self._e.domain_mask(block)
-        v = np.array(_values(self._e.evaluate(block,active=mask),block),dtype=float)
+            q = self._e.evaluate(block)
+        else:
+            mask = self._e.domain_mask(block)
+            q = self._e.evaluate(block,active=mask)
+        if self.dim == _dim_unknown:
+            self.dim = q.d
+        if not self._e.domains:
+            return _values(q,block)
+        v = np.array(_values(q,block),dtype=float)
         v[~mask] = np.nan
         return v
 
@@ -79,9 +87,9 @@ def _domain_note( domains, unicode = False ):
 #Units of the base dimensions for plots (see _plot_unit), by increasing size,
 #and the standard ones for logarithmic axes:
 _plot_units = [ [ u for u, ( _, d ) in sorted(_expr_units.items(),key=lambda e : e[1][0])
-                  if d == base ] for base in ( _dim_L, _dim_E, _dim_T ) ]
-_plot_units_log = ( 'm', 'eV', 's' )
-_plot_units_mcpl = ( 'cm', 'MeV', 'ms' )
+                  if d == base ] for base in ( _dim_L, _dim_E, _dim_T, _dim_K ) ]
+_plot_units_log = ( 'm', 'eV', 's', 'K' )
+_plot_units_mcpl = ( 'cm', 'MeV', 'ms', 'K' )
 #Wavelengths in this range (in Aa) are shown in Aa:
 _plot_wl_range = ( 0.5e-3, 5e3 )
 
@@ -94,7 +102,7 @@ def _plot_unit( dim, lo, hi, log = False, wavelength = False ):
     wavelengths from 0.5e-3 to 5e3 Aa are in Aa, logarithmic axes are in m, eV
     or s, and linear axes in the largest unit in which the largest absolute
     value is at least 1. Other dimensions are in the units of MCPL."""
-    if dim is None:
+    if dim is None or dim == _dim_unknown:#(the latter if no particles were read)
         return None, 1.0
     powers = [ ( i, e ) for i, e in enumerate(dim) if e ]
     def text( units ):

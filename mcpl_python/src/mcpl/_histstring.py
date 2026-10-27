@@ -28,6 +28,7 @@ __all__ = []
 from ._common import MCPLError
 from ._exprcore import _dimstr
 from ._exprplot import _range_value
+from ._exprsyntax import _dim_unknown
 
 #Options of histogram strings ("EXPR;logx;bins=50"), as NAME=VALUE, with the
 #kinds of their values (bool: 1 or 0, auto: also auto):
@@ -249,7 +250,7 @@ def _as_range( rng, name = 'range', text = None ):
 
 def _check_range( rng, vals, name ):
     """Check that the range has the units of the expression"""
-    if rng is None or rng.dim == vals.dim:
+    if rng is None or rng.dim == vals.dim or vals.dim == _dim_unknown:
         return
     if rng.dim is None:
         raise MCPLError(f'The {name} of "{vals.expression}" must be given with units, as'

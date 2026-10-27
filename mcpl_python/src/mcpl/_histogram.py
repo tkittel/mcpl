@@ -32,6 +32,7 @@ from ._common import MCPLError
 from ._exprcore import _dimstr
 from ._expressions import ParticleFilter, ParticleValue, _as_expression
 from ._exprplot import _plot_unit, _PlotValue
+from ._exprsyntax import _dim_unknown
 from ._histstring import (
     _as_range,
     _auto_logx,
@@ -712,6 +713,9 @@ class _Filler:
         self.pick = _as_expression(ParticleFilter,pick)
         self._only = _as_expression(ParticleFilter,only)
         self._vals = [ _PlotValue(e) for e in expressions ]
+        #(ranges whose units are checked when the units of the expressions are
+        #known, see _range_of):
+        self._unchecked = []
         self._notes = [ _DomainNote(v) for v in self._vals ]
         self._weighted = not unweighted
         self._labels = list(labels)
@@ -766,6 +770,9 @@ class _Filler:
         for n in self._notes:
             n.add(b if used is None else b[used])
         vals = [ np.asarray(v(b),dtype=float) for v in self._vals ]
+        for rng, i, name in self._unchecked:#(now that the units are known)
+            _check_range(rng,self._vals[i],name)
+        self._unchecked = []
         w = np.broadcast_to(b.weight if self._weighted else 1.0,(len(b),))
         #(values are NaN where the expressions are not defined):
         defined = ~np.any([ np.isnan(v) for v in vals ],axis=0)
@@ -802,6 +809,8 @@ class _Filler:
         """The given range (see _as_range) of expression i, in the units of MCPL"""
         rng = _as_range(rng,name)
         _check_range(rng,self._vals[i],name)
+        if rng is not None and self._vals[i].dim == _dim_unknown:
+            self._unchecked.append( ( rng, i, name ) )#(e.g. of userdata, see _values)
         return ( rng.lo, rng.hi ) if rng is not None else None
 
 class _Hist1DFiller(_Filler):
@@ -834,9 +843,6 @@ class _Hist1DFiller(_Filler):
         self._auto = ( self._bins == 'auto' )
         self._nbins = _nice_nbins(self._maxbins or 1200) if self._auto else int(self._bins)
         self._edges = _make_edges(self._range,self._nbins,self._logx)
-        #(the unit of the axis, for expressions with units):
-        v = self._vals[0]
-        self._unit = _plot_unit(v.dim,*self._range,self._logx,v.wavelength)
         self._acc = {}#(file label,split key) -> [contents,sumw2,underflow,overflow]
 
     def add( self, flabel, b ):
@@ -877,7 +883,10 @@ class _Hist1DFiller(_Filler):
                 for a in acc.values():
                     a[0] = a[0].reshape(-1,k).sum(axis=1)
                     a[1] = a[1].reshape(-1,k).sum(axis=1)
-        unit, scale = self._unit
+        #(the unit of the axis, for expressions with units, which for userdata
+        #are known when particles were read):
+        v = self._vals[0]
+        unit, scale = _plot_unit(v.dim,*self._range,self._logx,v.wavelength)
         h = Histogram(self._vals[0].expression,edges/scale,logx=self._logx,
                       weighted=self._weighted,lethargy=self._lethargy,title=self._title,
                       unit=unit)
@@ -906,7 +915,8 @@ class _BarFiller(_Filler):
     def __init__( self, expression, pick = None, limit = 10, unweighted = False,
                   logy = None, labels = ( None, ), only = None ):
         super().__init__([ expression ],pick,unweighted,labels,only)
-        if self._vals[0].dim is not None:
+        #(the units of fields of the userdata are checked with the values):
+        if self._vals[0].dim not in ( None, _dim_unknown ):
             self._not_whole()
         self._limit, self._logy = limit, logy
         self._sums = { fl : {} for fl in self._labels }
@@ -917,7 +927,7 @@ class _BarFiller(_Filler):
 
     def add( self, flabel, b ):
         ( v, ), w, _ = self._values(b)
-        if not np.all( v == np.floor(v) ):
+        if self._vals[0].dim is not None or not np.all( v == np.floor(v) ):
             self._not_whole()
         keys, idx = np.unique(v,return_inverse=True)
         sums = self._sums[flabel]
@@ -987,9 +997,6 @@ class _Hist2DFiller(_Filler):
         self._bx, self._by = bx, by
         self._xe, self._ye = ( _make_edges(r,n,lg) for r, n, lg in
                                zip(self._ranges,(bx,by),self._log) )
-        #(the units of the axes, for expressions with units):
-        self._units = [ _plot_unit(v.dim,*r,lg,v.wavelength)
-                        for v, r, lg in zip(self._vals,self._ranges,self._log) ]
         self._contents = np.zeros((bx,by))
         self._sumw, self._sumw2 = 0.0, 0.0
 
@@ -1014,7 +1021,9 @@ class _Hist2DFiller(_Filler):
             if kx > 1 or ky > 1:
                 xe, ye = xe[::kx], ye[::ky]
                 contents = contents.reshape(bx//kx,kx,by//ky,ky).sum(axis=(1,3))
-        ( xunit, xscale ), ( yunit, yscale ) = self._units
+        #(the units of the axes, for expressions with units, see Hist1D):
+        ( xunit, xscale ), ( yunit, yscale ) = ( _plot_unit(v.dim,*r,lg,v.wavelength) for v, r, lg
+                                                 in zip(self._vals,self._ranges,self._log) )
         h = Histogram2D(self._vals[0].expression,self._vals[1].expression,xe/xscale,
                         ye/yscale,weighted=self._weighted,title=self._title,xunit=xunit,
                         yunit=yunit,logx=self._log[0],logy=self._log[1])

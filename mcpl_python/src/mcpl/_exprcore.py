@@ -31,9 +31,11 @@ import math
 from ._common import MCPLError
 from ._exprsyntax import (
     _dim_E,
+    _dim_K,
     _dim_L,
     _dim_none,
     _dim_T,
+    _dim_unknown,
     _expr_parse,
     _expr_units,
     _expr_unparse,
@@ -65,7 +67,7 @@ _expr_field_domains = { 'wavelength' : ( 'pdgcode', _wavelength_pdgcodes ) }
 #tables, with symbols for plots if unicode is set, see _pdg_symbols):
 _expr_value_names = { 'pdgcode' : ( _pdg_label, _pdg_name ) }
 #Example units to suggest in error messages:
-_expr_unit_hints = { _dim_L : 'cm', _dim_E : 'MeV', _dim_T : 'ms' }
+_expr_unit_hints = { _dim_L : 'cm', _dim_E : 'MeV', _dim_T : 'ms', _dim_K : 'K' }
 #Functions requiring dimensionless arguments:
 _expr_functions_nodim = { 'exp' : np.exp, 'log' : np.log, 'log10' : np.log10,
                           'sin' : np.sin, 'cos' : np.cos, 'tan' : np.tan,
@@ -264,10 +266,25 @@ def _dimstr( d ):
     if d is None:
         return 'value without units'
     res = []
-    for n, e in zip(('length','energy','time'),d):
+    for n, e in zip(('length','energy','time','temperature'),d):
         if e:
             res.append( n if e == 1 else f'{n}^{e}' )
     return '*'.join(res)
+
+def _userdata_unit( layout, field ):
+    """The size (in the units of expressions) and dimension of the unit of the
+    field of the userdata layout, as (1.0, None) for fields without a unit"""
+    from ._userdata import userdata_units
+    unit = userdata_units(layout).get(field)
+    factor, dim = 1.0, [ 0, 0, 0, 0 ]
+    for part in ( unit.split('.') if unit else () ):
+        name, _, power = part.partition('^')
+        size, d = _expr_units[name]
+        e = int(power) if power else 1
+        factor *= size ** e
+        if d is not None:
+            dim = [ a + b * e for a, b in zip(dim,d) ]
+    return factor, ( tuple(dim) if any(dim) else None )
 
 def _unit_hint( d ):
     u = _expr_unit_hints.get(d)
@@ -309,10 +326,12 @@ class _ExprEvaluator:
             self._cache[n] = self.finite(q,f'The particle field {n} has')
         return self._cache[n]
     def _userdata( self, field, index = None ):
-        """The values of the field of the userdata (without units), or of the
-        value with the index (from 0) of a field with an array of values"""
+        """The values of the field of the userdata (with the unit of the field
+        in the layout, if any), or of the value with the index (from 0) of a
+        field with an array of values"""
         if isinstance(self._block,_EmptyBlock):
-            return _Q(np.zeros(0))#(all fields, when checked without a file)
+            #(all fields, when checked without a file, with unknown units):
+            return _Q(np.zeros(0),_dim_unknown)
         ud = self._block.userdata
         name = f'userdata.{field}' + ( '' if index is None else f'.at({index})' )
         if ud is None:
@@ -333,7 +352,9 @@ class _ExprEvaluator:
                 self.error(f'The index {index} is too large for the userdata field "{field}",'
                            f' which has {n} values per particle (from .at(0) to .at({n-1}))')
             v = v[:,index]
-        return _Q(v.astype(float) if v.dtype.kind in 'iub' else v)
+        v = v.astype(float) if v.dtype.kind in 'iub' else v
+        factor, dim = _userdata_unit(self._block._udinfo[0],field)
+        return _Q(v * factor if factor != 1.0 else v,dim)
 
     def _wavelength( self ):
         #Wavelengths (NaN for particles other than neutrons and gammas, for
@@ -382,6 +403,8 @@ class _ExprEvaluator:
     def same( self, a, b, what ):
         """Check that a and b have the same dimension (for +, -, comparisons,
         etc.) and return their values and the dimension."""
+        if _dim_unknown in ( a.d, b.d ):
+            return a.v, b.v, _dim_unknown
         if a.d != b.d and ( a.zero or b.zero ):
             return a.v, b.v, ( a.d or b.d )
         if a.d != b.d:
@@ -390,7 +413,7 @@ class _ExprEvaluator:
                        f' {_dimstr(b.d)}{hint}')
         return a.v, b.v, a.d
     def nodim( self, q, what ):
-        if q.d is not None:
+        if q.d not in ( None, _dim_unknown ):
             self.error(f'{what} requires a value without units, not {_dimstr(q.d)}')
         return q.v
     def __call__( self, node ):
@@ -485,11 +508,13 @@ class _ExprEvaluator:
                     v, sign = a.v * b.v, 1
                 else:
                     v, sign = np.true_divide(a.v,b.v), -1
+                if _dim_unknown in ( a.d, b.d ):
+                    return _Q(v,_dim_unknown)
                 da, db = a.d or _dim_none, b.d or _dim_none
                 d = tuple( i + sign * j for i,j in zip(da,db) )
                 return _Q(v,d)
             #Power:
-            if b.d is not None:
+            if b.d not in ( None, _dim_unknown ):
                 self.error(f'Exponent with units ({_dimstr(b.d)})')
             if a.d is None:
                 return _Q(np.power(np.asarray(a.v,dtype=float),b.v))
@@ -502,8 +527,8 @@ class _ExprEvaluator:
     def dimpow( self, d, e, what ):
         """The dimension d to the power e, which must give whole or half powers
         of the units (as in sqrt(ekin))"""
-        if d is None:
-            return None
+        if d is None or d == _dim_unknown:
+            return d
         res = []
         for i in d:
             p = i * e
@@ -551,7 +576,8 @@ class _ExprEvaluator:
                 if len(args) != 2:
                     self.error('mod(a,b) takes two arguments')
                 for q in args:
-                    if np.asarray(q.v).dtype.kind not in 'iu' or q.d is not None:
+                    if ( np.asarray(q.v).dtype.kind not in 'iu' and q.d != _dim_unknown
+                         or q.d not in ( None, _dim_unknown ) ):
                         self.error('mod(a,b) requires integers without units'
                                    ' (like userflags or pdgcode)')
                 a, b = ( np.asarray(q.v) for q in args )

@@ -1357,3 +1357,22 @@ pyexample.mcpl: format version 4, userdata layout "temp:float32,nscat:uint32,vol
 'a:float32:cm^(-1)': MCPLError: Invalid userdata layout "a:float32:cm^(-1)": parentheses are not allowed in units (give each unit its own power, like cm^-2.MeV^-1 for 1/(cm^2*MeV))
 'a:float32:cm^-1/ms': MCPLError: Invalid userdata layout "a:float32:cm^-1/ms": division is not allowed in units (use negative powers, like MeV.cm^-1 for MeV/cm)
 units: {'temp': 'K', 'n': None, 'dir': 'cm', 'q': 'cm^-1'}
+=== Units of userdata fields in expressions and plots
+userdata.temp/K: [290.0, 292.0, 294.0, 296.0]
+userdata.theta/deg: [0.0, 30.0, 60.0, 90.0]
+userdata.d/mm: [0.0, 100.0, 200.0, 300.0]
+(userdata.d + x)/cm: [0.0, 11.0, 22.0, 33.0]
+userdata.q*cm: [0.0, 0.5, 1.0, 1.5]
+userdata.n: [0.0, 1.0, 2.0, 3.0]
+userdata.temp > 293K: [False, False, True, True]
+userdata.temp + x: MCPLError: Incompatible units in arithmetic: temperature and length in expression "userdata.temp + x"
+userdata.temp > 293: MCPLError: Incompatible units in comparison: temperature and value without units (add units, e.g. 2K) in expression "userdata.temp > 293"
+userdata.q + userdata.d: MCPLError: Incompatible units in arithmetic: length^-1 and length in expression "userdata.q + userdata.d"
+userdata.temp: MCPLError: Expression "userdata.temp" has units (temperature), so divide it by a unit, e.g. (userdata.temp)/K
+plot userdata.temp: userdata.temp [K] | weights per bin
+plot userdata.d : userdata.temp: userdata.d [cm] | userdata.temp [K]
+plot userdata.d;range=0cm:20cm: userdata.d [cm] | weights per bin
+plot userdata.d;range=0:20: MCPLError: The range of "userdata.d" must be given with units, as it has units (length), e.g. range=0cm:10cm
+plot userdata.temp;range=0cm:2cm: MCPLError: The range of "userdata.temp" (temperature) has other units (length)
+plot userdata.n;bar: weights | userdata.n
+plot userdata.d;bar: MCPLError: Bar charts are of whole numbers without units, like pdgcode or round(x/cm), not of "userdata.d"

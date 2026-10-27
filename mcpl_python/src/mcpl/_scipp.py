@@ -66,11 +66,12 @@ def _scipp_unit( sc, unit ):
     return None if unit is None else sc.Unit(unit.replace('.','*').replace('^','**'))
 
 def _unit_of_dim( sc, d ):
-    """scipp unit of a quantity with dimension d (powers of length, energy and
-    time, in which the values are in the units of MCPL: cm, MeV and ms)."""
+    """scipp unit of a quantity with dimension d (powers of length, energy,
+    time and temperature, in which the values are in the units of MCPL: cm,
+    MeV and ms, and K)."""
     u = sc.Unit('dimensionless')
     if d is not None:
-        for name, e in zip(('cm','MeV','ms'),d):
+        for name, e in zip(('cm','MeV','ms','K'),d):
             if e:
                 u = u * sc.Unit(name)**e
     return u

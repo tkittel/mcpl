@@ -41,9 +41,10 @@ class _Output:
     def state( self, full = True ):
         """The state of the viewer, as a dict with what differs from the start:
         skip, limit, pick and edit (unless full is False), the groups of plots
-        shown (a list of the keys of groups, if not the default ones), the custom plots (plot items, see _stdviews), the settings of
-        groups which were chosen (see PlotGroups.setting), and the view shown
-        (if not the first). It is given as the view argument to open the viewer
+        shown (a list of the keys of groups, if not the default ones), the
+        custom plots (plot items, see _stdviews), the settings of groups which
+        were chosen (see PlotGroups.setting), and the view shown (if not the
+        first). It is given as the view argument to open the viewer
         in the same state."""
         res = {}
         if full:
@@ -117,10 +118,11 @@ class _Output:
         from ._extract import _shell_path
         prog, fn = self._progname, _shell_path(self.filename)
         opts = self._options()
-        #The state beyond the options, as --view=VIEW, or as JSON with the
-        #strings in single quotes (see _as_state), in double quotes (which
-        #work in all shells, as the texts contain none of the characters which
-        #are special in some of them):
+        #The state beyond the options, as --view=VIEW, as -wGROUPS (the groups
+        #of plots shown, if that is all), or as JSON with the strings in single
+        #quotes (see _as_state), in double quotes (which work in all shells, as
+        #the texts contain none of the characters which are special in some of
+        #them):
         state = self.state(full = False)
         if not state:
             view = '-w'
@@ -171,10 +173,10 @@ class _Output:
         """A viewer of another file, in the same state, but without skip and
         limit and the settings of groups which depend on the file (which are of
         this file, see _viewer_groups.file_settings), and without the pick and
-        edit unless
-        particles is set (not for a file written with them): (viewer, message),
-        with the message saying what could not be kept (e.g. a pick with fields
-        of the userdata which the other file does not have), or empty"""
+        edit unless particles is set (not for a file written with them):
+        (viewer, message), with the message saying what could not be kept (e.g.
+        a pick with fields of the userdata which the other file does not
+        have), or empty"""
         drop = ( 'skip', 'limit' ) + ( () if particles else ( 'pick', 'edit' ) )
         kw = self.arguments()
         state = { k : v for k, v in kw.pop('view').items() if k not in drop }
@@ -255,7 +257,7 @@ def _free_filename( filename, suffix, ext, *other_exts ):
             return str(cands[0]) if p.parent != pathlib.Path('.') else cands[0].name
         i += 1
 
-#The entries of the state (see Viewer.state), and of its changes of the plots:
+#The entries of the state (see Viewer.state):
 _state_keys = ( 'skip', 'limit', 'pick', 'edit', 'groups', 'custom', 'settings', 'view' )
 
 def _as_state( view ):

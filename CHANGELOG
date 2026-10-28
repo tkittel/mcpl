@@ -52,10 +52,9 @@ v2.2.9  (work in progress)
         applications using a locale with another one.
       * Plots in the terminal (the unicode and ascii plotting backends) are
         shown in colour: curves with the colours of matplotlib, and 2D maps
-        with the viridis colour map (with the unicode backend, drawn with half
-        blocks, so with twice as many rows). Colours are used when the output
-        is a terminal, unless the NO_COLOR environment variable is set, and
-        always if FORCE_COLOR is set. The new mcpltool option
+        with the viridis colour map. Colours are used when the output is a
+        terminal, unless the NO_COLOR environment variable is set, and always
+        if FORCE_COLOR is set. The new mcpltool option
         --color=auto|always|never (and the unicode_color and ascii_color
         options of the backends) overrides this. Files are always written
         without colours.
@@ -67,10 +66,6 @@ v2.2.9  (work in progress)
         logical operators and, or and not (&&, || and ! give an error saying
         what to write instead), mod(a,b) for remainders of integers, and in
         and not in for lists of values (e.g. pdgcode in (neutron,gamma)), and
-        PDG codes can not be used as conditions (as in "neutron" instead of
-        "pdgcode == neutron").
-        Fields of the userdata can be used as userdata.NAME (and the values of
-        arrays as userdata.NAME.at(INDEX), counting from 0), and
         the position of the particles in the file as fileidx (e.g.
         mcpltool -e -p "mod(fileidx,10) == 0" FILE OUT.mcpl.gz extracts every
         tenth particle, marking stat:sum entries as not available). They
@@ -310,13 +305,8 @@ v2.2.9  (work in progress)
         can assign variables before their condition (e.g. "r = abs(pos); r < 1m").
       * New plotting backends "unicode" and "ascii" in the Python API and
         mcpltool, which draw plots as text: in the terminal (e.g. with
-        mcpltool -H ... -t), or in .txt files. They need
-        no extra Python packages, so plots can always be made. Histograms
-        with more bins than the columns (or cells) of such plots are shown
-        with the average of the bin values over each column, and histograms
-        from mcpltool -H without bins=N are made at the resolution of
-        the plot, with a whole number of columns per bin (the number of
-        columns is given by mcpl.plotting.resolution(..)).
+        mcpltool -H ... -t), or in .txt files. They need no extra Python
+        packages, so plots can always be made.
       * Unless the number of bins is given, mcpl.histogram, mcpl.histogram2d
         and mcpltool -H now choose it from the effective number of
         entries N: sqrt(N) bins (the cube root per axis for 2D histograms),
@@ -461,7 +451,7 @@ v2.2.9  (work in progress)
       * mcpltool can now pick and edit particles with expressions, with the
         new -p (--pick) and -E (--edit) options, e.g. mcpltool -e -p "pdgcode
         == neutron" -E "wavelength = 1.8Aa" FILE OUT.mcpl.gz. They can be used
-        when showing particles, and with -S, -H and -e, as can -l and -s,
+        when showing particles, and with -S, -w, -H and -e, as can -l and -s,
         which choose the range of particles in the file before -p and -E are
         applied. Like with -l and -s, stat:sum entries are marked as not
         available (-1) when -E modifies weights, unless the new
@@ -470,9 +460,10 @@ v2.2.9  (work in progress)
         type, use e.g. -p "pdgcode == neutron" (mcpltool-c still has
         -pPDGCODE).
       * New module mcpl.plotting with a backend-independent description of
-        plots (Figure, Panel, and the items StepHist, Hist2D, Bars and Text),
-        which can be shown or saved with matplotlib (with the show and
-        save functions, and available_backends to list the available ones).
+        plots (Figure, Panel, and the items StepHist, Hist2D, Bars, Scatter3D
+        and Text), which can be shown or saved with matplotlib (with the show
+        and save functions, and available_backends to list the available
+        ones).
       * plot_stats is removed: it gives an error saying what to use instead
         (the viewer, mcpl.view, or mcpl.histogram), and mcpltool -S only
         prints the summary of the particles. The --pdf and --gui options are

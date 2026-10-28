@@ -112,13 +112,14 @@ _c_fields = { 'x' : 'position[0]', 'y' : 'position[1]', 'z' : 'position[2]',
               'polz' : 'polarisation[2]', 'ekin' : 'ekin', 'time' : 'time',
               'weight' : 'weight', 'pdgcode' : 'pdgcode', 'userflags' : 'userflags' }
 _c_int_fields = ( 'pdgcode', 'userflags' )
-#(the fields which edits can change in the code, the direction and
-#polarisation are not, since they are normalised by edits):
-_c_assignable = ( 'x', 'y', 'z', 'ekin', 'time', 'weight', 'pdgcode', 'userflags' )
-#(functions of one or two values, with their names in C, and in C++ in std::):
+#(the fields which edits can change in the code, where non-unit directions
+#give errors when written, like with the edits):
+_c_assignable = ( 'x', 'y', 'z', 'ux', 'uy', 'uz', 'polx', 'poly', 'polz', 'ekin',
+                  'time', 'weight', 'pdgcode', 'userflags' )
+#(functions of one or two values, with their names in C, and in C++ in std::,
+#without floor and ceil, which give integers in the expressions):
 _c_math = { 'sqrt' : 1, 'exp' : 1, 'log' : 1, 'log10' : 1, 'sin' : 1, 'cos' : 1,
-            'tan' : 1, 'asin' : 1, 'acos' : 1, 'atan' : 1, 'floor' : 1, 'ceil' : 1,
-            'atan2' : 2, 'hypot' : 2 }
+            'tan' : 1, 'asin' : 1, 'acos' : 1, 'atan' : 1, 'atan2' : 2, 'hypot' : 2 }
 
 #(the precedences of C and C++, from the lowest; & and | are below the
 #comparisons, unlike in the expressions):
@@ -229,7 +230,7 @@ class _CTranslator:
                     return const(v)
             if op in '*/' and b[3] == 1 and ( b[1] or not a[1] ):
                 return a#(e.g. ekin/MeV)
-            if op == '*' and a[3] == 1:
+            if op == '*' and a[3] == 1 and ( a[1] or not b[1] ):
                 return b#(e.g. 1ms*x)
             #(integers are divided like in C, as in the expressions):
             return ( f'{at(a,prec)} {op} {at(b,prec+1)}', a[1] and b[1], prec, None )
@@ -325,20 +326,22 @@ def _c_rotation( fname, angle, tr, indent ):
     k = round(q)
     lines = []
     if abs( q - k ) <= 8 * 2.220446049250313e-16 * max( 1.0, abs(k) ):
-        #(A,B) -> (-B,A), (-A,-B) or (B,-A), with 0.0 - v for -v (to avoid
-        #negative zeros, as the edits do):
+        #(A,B) -> (A,B), (-B,A), (-A,-B) or (B,-A), with 0.0 - v for -v and
+        #v + 0.0 for v (to avoid negative zeros, as the edits do):
         for pa, pb in _rotation_planes[fname]:
             A, B = tr.field(pa), tr.field(pb)
-            lines += { 0 : [],
-                       1 : _c_block(indent,f'double tmp = {A};',f'{A} = 0.0 - {B};',f'{B} = tmp;'),
+            lines += { 0 : [ f'{indent}{A} += 0.0;', f'{indent}{B} += 0.0;' ],
+                       1 : _c_block(indent,f'double tmp = {A};',f'{A} = 0.0 - {B};',
+                                    f'{B} = tmp + 0.0;'),
                        2 : [ f'{indent}{A} = 0.0 - {A};', f'{indent}{B} = 0.0 - {B};' ],
-                       3 : _c_block(indent,f'double tmp = {A};',f'{A} = {B};',f'{B} = 0.0 - tmp;') }[k % 4]
+                       3 : _c_block(indent,f'double tmp = {A};',f'{A} = {B} + 0.0;',
+                                    f'{B} = 0.0 - tmp;') }[k % 4]
         return lines
     c, s = math.cos(a), math.sin(a)
     for pa, pb in _rotation_planes[fname]:
         A, B = tr.field(pa), tr.field(pb)
-        lines += _c_block(indent,f'double tmp = {A};',f'{A} = {c!r} * tmp - {s!r} * {B};',
-                          f'{B} = {s!r} * tmp + {c!r} * {B};')
+        lines += _c_block(indent,f'double tmp = {A};',f'{A} = {c!r} * tmp - {s!r} * {B} + 0.0;',
+                          f'{B} = {s!r} * tmp + {c!r} * {B} + 0.0;')
     return lines
 
 def _c_rotation_matrix( fname, args, tr, indent ):

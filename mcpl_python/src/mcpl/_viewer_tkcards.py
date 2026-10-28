@@ -24,6 +24,7 @@ WidgetViewer.cards)"""
 
 __all__ = []
 
+from ._stdviews import custom_title
 from ._viewer_tkbase import elided, tk_modules, windowing_system, wrapped
 from ._viewer_ui import card_colors, colors
 
@@ -116,10 +117,9 @@ class CardList:
         self._used.add(png)
         return self._images[png]
 
-    def show( self, cards, current ):
+    def show( self, cards ):
         """Draw the cards (see WidgetViewer.cards), with the one of the shown
-        view selected (if anything changed; current, the index of the shown
-        view, is not needed, since the cards have the keys of the views)"""
+        view selected (if anything changed)"""
         self._used = set()
         folded = self._folded = self.tv.folded_groups(cards)
         target = self.tv.shown_group(cards)#(where the shown view is selected)
@@ -187,7 +187,7 @@ class CardList:
     def _header( self, y, group ):
         mark = '\u25b8' if group in self._folded else '\u25be'
         self.canvas.create_text(8,y+13,anchor='w',fill=card_colors['dim'],
-                                text=f'{mark}  {( group or "More plots" ).upper()}',
+                                text=f'{mark}  {group.upper()}',
                                 font=self.tv.small_bold)
         self._slots.append( ( y, y + _card_heights['header'], 'header', group ) )
 
@@ -349,7 +349,7 @@ class CardList:
             #(onto a card, or onto the header of the custom plots, before them):
             if s[2] == 'card':
                 self.tv.on_drop(drag[0],s[3].key)
-            elif s[2] == 'header':
+            elif s[2] == 'header' and s[3] == custom_title:
                 self.tv.on_drop(drag[0],None)
             return
         if s is None:

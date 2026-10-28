@@ -50,7 +50,7 @@ from ._exprcore import (
     _rotation_planes,
     _unit_hint,
 )
-from ._exprrotation import _rotation_matrix
+from ._exprrotation import _exact_cos_sin, _rotation_matrix
 from ._exprsyntax import (
     _dim_E,
     _dim_unknown,
@@ -151,8 +151,8 @@ class ParticleFilter:
     as in "x > 0"): meV, eV, keV, MeV,
     GeV, TeV (energy), ns, us, ms, s (time), Aa, nm, um, mm, cm, m, km
     (length, also for wavelengths), K (temperature, for userdata fields), as
-    in "ekin < 25meV", "wavelength > 0.18nm" or "x^2 + y^2 < 4cm^2" (a
-    power directly after a unit only
+    in "ekin < 25meV", "pdgcode == neutron and wavelength > 0.18nm" or
+    "x^2 + y^2 < 4cm^2" (a power directly after a unit only
     applies to the unit, and units can also have half powers, as in
     "sqrt(ekin)/sqrt(eV)"). The units deg and rad can be used for
     angles (which are otherwise in radians), as in "acos(uz) < 10deg".
@@ -457,24 +457,14 @@ class _Statements:
                 if qa.d not in ( None, _dim_unknown ):
                     ev.error(f'{fname}(..) requires an angle (e.g. 90deg), not'
                              f' {_dimstr(qa.d)}')
-                c, s = np.cos(qa.v), np.sin(qa.v)
-                #Rotations by multiples of 90 degrees are done exactly, by
-                #swapping and negating values, since the cos and sin of such
-                #angles in radians are not exactly 0 and +-1 (e.g. rotate_z(90deg)
-                #gives exactly (x,y) -> (-y,x)). Adding 0.0 to the results
+                #Rotations by multiples of 90 degrees are exact, with cos and sin
+                #exactly 0 and +-1 (e.g. rotate_z(90deg) gives exactly (x,y) ->
+                #(-y,x), as the values are finite). Adding 0.0 to the results
                 #avoids negative zeros (-0.0 + 0.0 is 0.0):
-                q = np.asarray(qa.v,dtype=float) / ( 0.5 * np.pi )
-                k = np.round(q)
-                quarter = ( np.abs( q - k ) <= 8 * np.finfo(float).eps
-                            * np.maximum( 1.0, np.abs(k) ) )
-                kq = np.mod(k,4).astype(int)
+                c, s = _exact_cos_sin(qa.v)
                 for a, b in _rotation_planes[fname]:
                     va, vb = ev.name(a), ev.name(b)
                     ra, rb = c * va.v - s * vb.v, s * va.v + c * vb.v
-                    if np.any(quarter):
-                        A, B = np.asarray(va.v), np.asarray(vb.v)
-                        ra = np.where(quarter, np.choose(kq,(A,-B,-A,B)), ra)
-                        rb = np.where(quarter, np.choose(kq,(B,A,-B,-A)), rb)
                     state[a] = _Q(ra + 0.0, va.d)
                     state[b] = _Q(rb + 0.0, vb.d)
                     modified.update((a,b))
@@ -595,7 +585,8 @@ class ParticleEdit:
     of the previous ones. The statements are:
 
       * Assignments to fields, like "x = 2m*ux" or "z += 1cm" (also -=, *=,
-        and /=), where the right hand sides use the syntax of ParticleFilter.
+        /=, ^=, and &= and |= for integers), where the right hand sides use
+        the syntax of ParticleFilter.
         The values must have the units of the field (e.g. a length for x).
         Assigning wavelength changes the kinetic energy of neutrons and gammas.
         The vectors pos, dir and pol can be assigned too, as in
@@ -664,9 +655,9 @@ class ParticleEdit:
 def _quantity_functions( coords ):
     """Functions calculating the values of expressions for a block, given as a
     dictionary of names and expressions. Each function returns the values (an
-    array) and their dimension (powers of length, energy and time, in which
-    the values are in the units of MCPL: cm, MeV and ms, or None for values
-    without units)."""
+    array) and their dimension (powers of length, energy, time and
+    temperature, in which the values are in the units of MCPL: cm, MeV, ms
+    and K, or None for values without units)."""
     if isinstance(coords,str) or not hasattr(coords,'items'):
         raise MCPLError('The coords parameter must be a dictionary of'
                         ' coordinate names and expressions')

@@ -39,11 +39,11 @@ class Overview:
     strings, None for empty cells), and how each is shown (kinds: 'plot', 'r'
     for the correlation coefficient of the 2D histogram of the plot, or 'new'
     for the place of a new plot, after the plots with add_cell).
-    With the layout 'grid', the cells are the plots, and with 'correlation', they
-    are made from the variables (expressions, see correlation_cells). With
-    display_only and display_by, the plots get those options (of histogram
-    strings): display_only for all, and display_by for those which can show
-    several curves and do not have it."""
+    With the layout 'grid', the cells are the plots, and with 'correlation',
+    they are made from the variables (expressions, see correlation_cells).
+    With display_only and display_by, the plots get those options (of
+    histogram strings): display_only for all, and display_by for those which
+    can show several curves and do not have it."""
     def __init__( self, title, plots = (), layout = 'grid',
                   variables = (), display_only = None, display_by = None,
                   add_cell = False ):
@@ -92,11 +92,11 @@ def grid_columns( n ):
     return max( 1, min( n, math.ceil( math.sqrt( 1.5 * n ) ) ) )
 
 def correlation_cells( exprs ):
-    """The cells of a correlation plot of the expressions, with the expression of the
-    column on the x axis below the diagonal, and above it the correlation
-    coefficient of the mirrored pair (see Moments), as (cells, kinds), see
-    Overview. The axes are logarithmic if suitable for the values (with
-    logx=auto)."""
+    """The cells of a correlation plot of the expressions, with the expression
+    of the column on the x axis below the diagonal, and above it the
+    correlation coefficient of the mirrored pair (see Moments), as (cells,
+    kinds), see Overview. The axes are logarithmic if suitable for the values
+    (with logx=auto)."""
     n = len(exprs)
     cells, kinds = [], []
     for i in range(n):

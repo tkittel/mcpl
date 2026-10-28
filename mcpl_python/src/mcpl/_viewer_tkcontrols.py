@@ -19,20 +19,20 @@
 ##                                                                            ##
 ################################################################################
 
-"""The parts below the plot of the viewer with Tk (see _viewer_tk), and the
-settings of plots and overviews in them"""
+"""The parts of the window of the viewer with Tk (the shown plot, and the pick
+and edit, see _viewer_tk), and the settings of plots and overviews in them"""
 
 __all__ = []
 
 from . import _viewer_ui as ui
-from ._viewer_tkbase import Flow, GreyText, focus_of, tk_modules
+from ._viewer_tkbase import Flow, GreyText, bind_enter, focus_of, tk_modules
 from ._viewer_ui import part_colors
 
 #(the labels at the start of the rows of the parts, in a column):
 row_label = { 'width' : 9, 'anchor' : 'e' }
 
 def make_part( parent, name, title, what, border ):
-    """A part below the plot (with the colours of part_colors[name]), with a
+    """A part of the window (with the colours of part_colors[name]), with a
     header with its title and what it is for. Returns the frame for its
     contents (in a frame with the border, its master), and the frame of the
     header (e.g. for buttons at its right)."""
@@ -111,7 +111,7 @@ class Controls:
                 if name in self.written:
                     self._bind_written(w,name)
                 elif choices is None:
-                    w.bind('<Return>',lambda _e, n=name, w=w : self._on_change(n,self._text(w)))
+                    bind_enter(w,lambda n=name, w=w : self._on_change(n,self._text(w)))
                 w.pack(side='left')
                 self._widgets[name] = w
             self._flow.set(items)

@@ -31,10 +31,11 @@ files. More details about the Python API and how to use it can be found at the
 https://mctools.github.io/mcpl/usage_python page.
 
 Additionally, the package also provides the command-line tool `mcpltool`,
-which can show the contents, statistics and plots of MCPL files, merge, extract
-or repair files, and select or edit particles with expressions.
+which can show the contents, statistics and plots of MCPL files, view them
+interactively, merge, extract or repair files, and select or edit particles
+with expressions.
 
-Note that it is recommmended for most users to simply install the package named
+Note that it is recommended for most users to simply install the package named
 `mcpl`, rather than referring to the package named `mcpl-python` directly.
 
 

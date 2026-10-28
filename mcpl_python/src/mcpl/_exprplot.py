@@ -33,7 +33,7 @@ from ._numpy import np
 class _PlotValue:
     """Values of an expression for plots, which can have units (the axes of the
     plots show the units, see _plot_unit): the values are in the units of
-    MCPL (cm, MeV and ms, also for wavelengths), with the dimension dim (None
+    MCPL (cm, MeV, ms and K, also for wavelengths), with the dimension dim (None
     for values without units)."""
     def __init__( self, expression ):
         if isinstance(expression,(ParticleValue,_PlotValue)):
@@ -99,8 +99,8 @@ def _plot_unit( dim, lo, hi, log = False, wavelength = False ):
     units of MCPL (values are divided by it), or (None, 1.0) for values without
     units.
     For a single base dimension (with a power, as for x^2 or sqrt(ekin)):
-    wavelengths from 0.5e-3 to 5e3 Aa are in Aa, logarithmic axes are in m, eV
-    or s, and linear axes in the largest unit in which the largest absolute
+    wavelengths from 0.5e-3 to 5e3 Aa are in Aa, logarithmic axes are in m, eV,
+    s or K, and linear axes in the largest unit in which the largest absolute
     value is at least 1. Other dimensions are in the units of MCPL."""
     if dim is None or dim == _dim_unknown:#(the latter if no particles were read)
         return None, 1.0

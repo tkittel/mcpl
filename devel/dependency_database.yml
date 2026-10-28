@@ -7,9 +7,10 @@
 # and can be updated with "mcpldevtool depdb --mode fixreqfiles".
 #
 # Dependencies which can not be installed everywhere have the fields
-# min_python (Python version needed by the package) and unavailable_on (list of
+# min_python (Python version needed by the package), unavailable_on (list of
 # systems, as in platform.system() and CMAKE_SYSTEM_NAME, where the package
-# can not be installed). They become environment markers in requirement
+# can not be installed) and only_on (list of the only systems where it is
+# needed, like Windows for windows-curses). They become environment markers in requirement
 # specifications, and tests needing such dependencies are not added at all
 # where they can not be installed (while missing dependencies are otherwise an
 # error with MCTOOLS_REQUIRE_ALL_TEST_DEPS=ON). The freebsd_pkgname field gives

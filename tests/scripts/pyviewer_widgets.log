@@ -51,9 +51,8 @@
    check of pick: True
    line (dim): Enter: apply   Up/Down: earlier texts   Esc: cancel
 ==> the groups of plots are chosen in a field
-   choices: ['spectra', 'fields', 'beamz', 'beamx', 'beamy', '3d', 'correlations']
    check of groups: True
-   line (dim): Up/Down: choose   Enter: apply   Esc: cancel
+   line (dim): hint: beamz  Z beam profile
    check of groups: None
    field groups: 'beamz'
    line (normal): 
@@ -204,7 +203,7 @@
    bins used: 10,10
    plot: 2 axes
   key ?:
-   help shown: 44 lines
+   help shown: 43 lines
    views: 54 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
@@ -543,6 +542,6 @@
    line (dim): hint: MeV  energy unit
    completed: ekin > 1MeV
 ==> the buttons of the actions, and quit
-   help shown: 44 lines
+   help shown: 43 lines
    window closed
 closed: True

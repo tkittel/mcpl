@@ -92,5 +92,17 @@ print('written:', j._message.value)
 print('next name:', j._filename.value)
 j._on_help(None)
 print('help shown:', j._extra.value.startswith('<pre>The viewer'))
+j._topic.index = 1
+print('help topic:', j._topic.value, j._extra.value[:40].replace('\n',' '))
+j._on_help(None)
+print('help hidden again:', j._extra.value == '', j._topic.layout.display)
 print('command:', j._commands.value)
+#Deactivating the group of the shown view (the overview of beamz):
+j._on_deactivate(None)
+print('deactivated:', v.groups, j._message.value)
+#Nothing to write without picks, edits, skip or limit:
+j._fields['pick'].value = ''
+v.wait()
+j._on_write(None)
+print('write without changes:', j._message.value)
 j.close()

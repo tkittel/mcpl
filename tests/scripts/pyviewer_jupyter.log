@@ -17,4 +17,8 @@ suggested name: example_selected.mcpl.gz
 written: MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz
 next name: example_selected2.mcpl.gz
 help shown: True
+help topic: Picks (filtering particles) <pre>PICK: an expression which is true f
+help hidden again: True none
 command: <code style="color:#555">$ mcpltool -e -p &quot;pdgcode == neutron&quot; example.mcpl example_selected2.mcpl.gz</code>
+deactivated: ['spectra', 'fields'] Deactivated: the group Z beam profile
+write without changes: <span style="color:#d62728">Pick, edit or choose a range of particles first, to write them to a new file</span>

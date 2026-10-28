@@ -101,7 +101,8 @@ class Viewer(_Output,_Reading):
         #which are kept for plots which do not change, see _read):
         self._done = None#(particles key, {view key: figure}, found, counts)
         #(the last change of toggle_scale, which the same key undoes: the
-        #option, the plot after the change, and before):
+        #option, the view key after the change, the plot before, the view key
+        #before, and whether a plot of a standard group was copied):
         self._scale_undo = None
         self._seen = -1
         self._updates = 0
@@ -236,14 +237,15 @@ class Viewer(_Output,_Reading):
         except MCPLError:
             same = None
         if same is None:
-            raise MCPLError(f'Unknown view "{view}" (the views are the overviews and'
-                            ' the plots, given as overview, overview:GROUP or as the'
-                            ' histogram string of a plot, e.g. ekin)')
+            raise MCPLError(f'Unknown groups of plots or view "{view}" (groups:'
+                            f' {", ".join(_groups)}, separated by commas; views: overview,'
+                            ' overview:GROUP or a plot, e.g. ekin)')
         return self._key_of(same)
 
     def _key_of( self, plot, custom = False ):
         """The key of the view of the plot: of the custom plot if custom is set
-        (or if no standard group has it), else of the plot of a standard group"""
+        (or if no standard group has it), else of the plot of a standard
+        group"""
         standard = any( p == plot and g != custom_key for p, _, g in self._groups.cards() )
         return f'custom:{plot}' if custom or not standard else f'plot:{plot}'
 
@@ -319,8 +321,9 @@ class Viewer(_Output,_Reading):
                                 f'{"s" if n else ""} per particle (use {use}), in "{text}"')
 
     def set( self, field, text, restart = True ):
-        """Apply the text of a field (restarting the reading): (ok, message). For
-        the plot field, the plot is added at the end (unless it is there)."""
+        """Apply the text of a field (restarting the reading): (ok, message).
+        For the plot field, the plot is added at the end (unless it is
+        there)."""
         try:
             value = self._parse(field,text)
         except MCPLError as e:
@@ -559,15 +562,16 @@ class Viewer(_Output,_Reading):
         """What the viewers with windows show of the view with the key (see
         views), as a dict: the title (if given), the name shown (the title, or
         else its expressions), the histogram string, the group (or None), the
-        badges (short texts for its options) and the value all particles have
-        (for a plot of a field where they all have the same value, else
-        None)"""
+        badges (short texts for its options), the value all particles have
+        (for a plot of a field where they all have the same value, else None)
+        and whether the field of the plot is absent from the file (see
+        _absent)"""
         if plot_of(key) is None:
             ov = dict(self.overviews()).get(key)
+            n = len(ov.plots) if ov else 0
             return { 'title' : None, 'name' : 'Overview', 'plot' : None,
                      'group' : ov.title if ov else None,
-                     'badges' : [ f'{n} plot{"s" if n != 1 else ""}' for n in
-                                  ( len(ov.plots) if ov else 0, ) ],
+                     'badges' : [ f'{n} plot{"s" if n != 1 else ""}' ],
                      'constant' : None, 'absent' : False }
         p = plot_of(key)
         title, group = self._card_of(key)
@@ -894,7 +898,6 @@ def _auto_title( plot ):
     None"""
     import ast
 
-    from ._common import MCPLError
     from ._exprcore import _Expr
     from ._exprsyntax import _Unit
     from ._histstring import _hist_exprs
@@ -924,8 +927,9 @@ def _plot_name( plot, title ):
     expressions"""
     return title or _auto_title(plot) or ' : '.join(_parsed_plot(plot)['exprs'])
 
+@functools.lru_cache(maxsize = 4096)
 def _parsed_plot( text ):
-    """The parsed plot (see _parse_hist, which must not be changed)"""
+    """The parsed plot (see _parse_hist), cached (so it must not be changed)"""
     from ._histstring import _parse_hist
     return _parse_hist(text)
 
@@ -966,11 +970,11 @@ def view( filename, *, pick = None, edit = None, skip = 0, limit = None,
     pick and then edited with edit (expressions, or ParticleFilter and
     ParticleEdit objects), which can all be changed in the viewer. view is the
     groups of plots to show, separated by commas (e.g. 'spectra,beamz', see
-    mcpltool --full-help), the view shown first ('overview', or
-    a plot, e.g. 'ekin'), or a state of the viewer (as saved in the viewer, a
-    .json file, or a dict). In Jupyter, the viewer is shown as a panel of
-    widgets, and otherwise it is shown in a window with matplotlib, or in the terminal (always with terminal=True, or with the
-    given plotting backend), until it is closed."""
+    mcpltool --full-help), the view shown first ('overview', or a plot, e.g.
+    'ekin'), or a state of the viewer (as saved in the viewer, a .json file,
+    or a dict). In Jupyter the viewer is a panel of widgets, otherwise a
+    window, or the terminal with terminal=True (backend chooses the plotting
+    backend, e.g. unicode for the terminal); it is shown until closed."""
     from ._plotbackend import _create, _viewer_backend
     def text( e ):
         return e if e is None or isinstance(e,str) else e.expression

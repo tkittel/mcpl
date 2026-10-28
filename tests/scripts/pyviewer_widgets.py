@@ -49,7 +49,7 @@ class FakeToolkit(WidgetViewer):
         super().__init__(viewer,fig)
         self.state = {}
 
-    def show_views( self, cards, current ):
+    def show_views( self, cards ):
         c = next( c for c in cards if c.key == self.shown_key )
         self.state['views'] = ( f'{len(cards)} views, shown: {c.name!r} ({c.plot},'
                                 f' group {c.group}, badges {c.badges})' )
@@ -138,7 +138,6 @@ print('  ', t.on_complete('pick','ekin < 1MeV and e',len('ekin < 1MeV and e'))[:
 print('   (not mentioned after it was used)')
 t.on_field_edited('pick','')
 step('the groups of plots are chosen in a field')
-print('   choices:', [ n for n, _ in t.menu_choices('groups') ])
 t.on_field_edited('groups','beamz')
 t.on_field_apply('groups','beamz')
 t.shown()

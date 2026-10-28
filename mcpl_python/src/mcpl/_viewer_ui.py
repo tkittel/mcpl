@@ -26,14 +26,14 @@ status line, the help text, and what is printed when the viewer is closed."""
 __all__ = []
 
 from ._helptext import plain_text
-from ._stdviews import _field_titles
+from ._stdviews import _default_groups, _field_titles
 
 #The fields, in the order they are shown: (field of the Viewer, label, key,
 #position of the key in the label or None if it is not in it, text shown when
 #the field is empty):
 fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
            ( 'limit', 'Limit', 'i', 1, 'all' ),
-           ( 'groups', 'Plot groups', 'c', None, 'spectra,fields' ),
+           ( 'groups', 'Plot groups', 'c', None, ','.join(_default_groups) ),
            ( 'pick', 'Pick', 'p', 0, 'all particles' ),
            ( 'edit', 'Edit', 'e', 0, 'no changes' ),
            ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy' ) )
@@ -43,7 +43,7 @@ field_names = tuple( f[0] for f in fields )
 field_descriptions = {
     'skip' : 'the number of particles at the start of the file which are left out',
     'limit' : 'the largest number of particles to use, after those skipped',
-    'groups' : 'the groups of plots shown, separated by commas',
+    'groups' : 'the groups of plots shown, chosen from a menu',
     'pick' : 'an expression which is true for the particles to use (before they are edited)',
     'edit' : 'statements separated by ";" which change the particles, after they are picked',
     'plot' : 'a histogram string of a new plot',
@@ -96,12 +96,6 @@ def key_action( key, terminal = False ):
             return a
     return None
 
-def field_label( field ):
-    for f, label, _, _, _ in fields:
-        if f == field:
-            return label
-    raise KeyError(field)
-
 def shortcut_text( name ):
     """Text of the status line when the mouse is over a field or action"""
     for f, label, k, _, _ in fields:
@@ -128,8 +122,9 @@ def shortcut_text( name ):
 #The look of the viewers with windows (for toolkits with colours): the
 #colours of the line of messages and of the marks of the checks, of the
 #highlighted code (see _viewer_code.highlight), of the cards of the views (see
-#WidgetViewer.cards), and of the parts below the plot (that of the shown plot
-#in the colour of its selected card, and that of the pick and edit):
+#WidgetViewer.cards, where the shown card is marked in the accent colour),
+#and of the parts below the plot (that of the shown plot, tinted, and that of
+#the pick and edit):
 colors = { 'normal' : 'black', 'dim' : '#777777', 'ok' : '#2ca02c', 'error' : '#d62728' }
 code_styles = { 'comment' : { 'foreground' : '#6a737d' },
                 'string' : { 'foreground' : '#067d17' },
@@ -177,9 +172,9 @@ plot_controls = {
 }
 
 def quantity_plot( text ):
-    """The start of a plot string for a quantity of quantities, given as its
-    name or its expression (e.g. Energy or ekin for ekin;logx=auto), or the
-    text itself for other expressions"""
+    """The start of a plot string for one of the quantities (see quantities),
+    given as its name or its expression (e.g. Energy or ekin for
+    ekin;logx=auto), or the text itself for other expressions"""
     t = text.strip()
     return next( ( p for name, p in quantities if t in ( name, p.split(';')[0] ) ), t )
 
@@ -301,9 +296,9 @@ is done.''' ),
       ' help). The particles are picked before they are edited.' ) ),
     ( 'key', 'a', ( 'Add a plot of an expression, with options as for -H, e.g.'
       ' hypot(x,y)/cm;logy (see mcpltool -H help).' ) ),
-    ( 'key', 'c', ( 'Choose the groups of plots shown, separated by commas, e.g.'
-      ' spectra,beamz for a beam along the z axis (the custom plots are kept).' ) ),
-    ( 'key', 'Enter', 'Change the shown plot (an empty text removes it).' ),
+    ( 'key', 'c', ( 'Choose the group of plots shown, from a menu (in windows, groups are'
+      ' activated in the list of plots). The custom plots are kept.' ) ),
+    ( 'key', 'Enter', 'Change the shown plot (an empty text removes a custom plot).' ),
     ( 'key', 'w', 'Write the picked and edited particles to a new file.' ),
     ( 'key', 'v', ( 'Save the state of the viewer (the settings and plots) in a file, which'
       ' -wFILE.json (or --view=FILE.json) opens again.' ) ),
@@ -331,11 +326,12 @@ no_widget_text = ( 'For interactive plots (zoom, pan, and clicking the plots of'
 
 def closing_text( viewer ):
     """What is printed when the viewer is closed: the commands doing the same
-    (writing the particles only if some were picked or edited)"""
+    (writing the particles only if they are not just those of the file, see
+    Viewer.changes_particles)"""
     c = viewer.commands()
     text = f'To open the viewer like this again:\n  {c["view"]}'
-    if viewer.field_text('pick') or viewer.field_text('edit'):
-        text += f'\nTo write the picked and edited particles to a file:\n  {c["extract"]}'
+    if viewer.changes_particles:
+        text += f'\nTo write these particles to a new file:\n  {c["extract"]}'
     return text
 
 def labelled( label, keypos ):
@@ -537,7 +533,9 @@ class LineEditor:
     """Editing of the text of a field with keys (for the front ends without
     their own text fields): characters, Left, Right, Home, End, Backspace,
     Delete, Tab (completion), Up and Down (earlier texts), Enter (apply) and
-    Esc (cancel). The text is checked after each change (ok and message)."""
+    Esc (cancel). The text is checked after each change (ok and message).
+    The fields of menu_fields are a menu instead: Up and Down choose, Enter
+    applies and Esc cancels."""
     def __init__( self, viewer, field, text = None, replaces = None ):
         #(replaces: the key of the view of the plot changed by the text of a
         #plot field, which removes it when empty):
@@ -717,7 +715,6 @@ def cache_line( info ):
              f' {count_text(info["nrange"])} particles'
              ' (those in the cache), but new files get all' )
 
-#The help about the cache (see cache_menu), as blocks (see _helptext):
 def about_blocks():
     """The help blocks (see _helptext) about MCPL: its version, website and
     how to help its development"""
@@ -732,6 +729,7 @@ def about_blocks():
         ( 'bullet', 'Help add MCPL support to your favourite Monte Carlo' ),
         ( 'bullet', f'Give it a star on GitHub: {repo}' ) )
 
+#The help about the cache (see cache_menu), as blocks (see _helptext):
 cache_blocks = (
     ( 'text', ( 'The viewer keeps the particles it reads in memory (the cache), so it does'
       ' not need to read the file again when the plots, the pick or the edit change.' ) ),
@@ -748,7 +746,7 @@ cache_blocks = (
     ( 'gap', ),
     ( 'section', 'New files' ),
     ( 'text', ( 'New MCPL files always get all particles (of the skip and limit, picked and'
-      ' edited), whatever the limit.' ) ),
+      ' edited), whatever the memory limit.' ) ),
 )
 
 #The settings of the overviews of the standard groups (see

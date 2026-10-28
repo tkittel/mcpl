@@ -89,10 +89,8 @@ def mcpltool_hist(filelist,hists,skip,limit,pick,edit,outfn,backend,terminal,bad
         bad("No input file specified")
     opts = []
     for histstr in hists:
-        try:
-            opts.append(_parse_hist(histstr))
-        except MCPLError as e:
-            bad(str(e))
+        #(the histogram strings are already checked, see _cli):
+        opts.append(_parse_hist(histstr))
         if opts[-1]['print'] and ( outfn or backend or terminal or color ):
             bad("The histogram option print can not be used together with -o, -B,"
                 " -t or --color.")
@@ -119,7 +117,7 @@ def mcpltool_hist(filelist,hists,skip,limit,pick,edit,outfn,backend,terminal,bad
             try:
                 h = _histogram(sources,o,_maxbins=maxbins,selection=selection)
             except MCPLError as e:
-                bad(str(e))
+                bad(str(e),'--hist')
             if o['print']:
                 print(h.to_text())
             elif outfn or bk.resolution() is None:

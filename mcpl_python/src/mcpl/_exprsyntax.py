@@ -141,10 +141,10 @@ class _ExprParser:
     (with tokenize) and giving trees of ast nodes. The precedences are, from
     the lowest: or, and, not, comparisons (which can be chained, as in
     0 < x < 2cm, and "in" or "not in" a list of values, as in
-    pdgcode in (neutron,gamma), which can not), |, &, + and -, * and / and //, unary - + ~, the multiplication
-    by a unit directly after a number or a closing parenthesis (as in 25meV or
-    2^(ekin/MeV)MeV), and ^ (or **, which is right-associative, with unary
-    - + ~ allowed in exponents). Units are values (MeV is 1MeV), and a power
+    pdgcode in (neutron,gamma), which can not), |, &, + and -, * and /, unary
+    - and +, the multiplication by a unit directly after a number or a closing
+    parenthesis (as in 25meV or 2^(ekin/MeV)MeV), and ^ (or **, which is
+    right-associative, with unary - and + allowed in exponents). Units are values (MeV is 1MeV), and a power
     directly after a unit applies to the unit only (as in 4cm^2 or cm^(1/2)),
     and must be a constant."""
     def __init__( self, expr ):

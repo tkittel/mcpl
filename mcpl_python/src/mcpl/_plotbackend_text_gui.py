@@ -19,9 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
-"""The viewer in the terminal (with curses), drawing the plots with the
-unicode plotting backend. The drawing is done on a screen object (see
-_CursesScreen), so it can also be tested with a screen in memory."""
+"""The viewer in the terminal (with curses), drawing the plots with a text
+plotting backend (unicode or ascii). The drawing is done on a screen object
+(see _CursesScreen), so it can also be tested with a screen in memory."""
 
 __all__ = []
 
@@ -403,10 +403,10 @@ class TextViewer(ui.KeyViewer):
         width = min( nw + 2 + dw, w - 4 )
         x = max( 0, min( x - 1, w - width - 3 ) )
         top = y - rows - 2
-        hl, vl, corners = ( ( '-', '|', '++++' ) if self.ascii else
-                            ( '\u2500', '\u2502', '\u250c\u2510\u2514\u2518' ) )
+        hl, vl, box_ends = ( ( '-', '|', '++++' ) if self.ascii else
+                             ( '\u2500', '\u2502', '\u250c\u2510\u2514\u2518' ) )
         count = f' {count} ' if count is not None else ''
-        s.put(top,x,corners[0] + hl * width + corners[1],'normal')
+        s.put(top,x,box_ends[0] + hl * width + box_ends[1],'normal')
         for i, text in enumerate(texts):
             text = text[:width].ljust(width)
             s.put(top+1+i,x,vl,'normal')
@@ -417,7 +417,7 @@ class TextViewer(ui.KeyViewer):
                 s.put(top+1+i,x+1+nw,text[nw:],'dim')
             s.put(top+1+i,x+1+width,vl,'normal')
         bottom = hl * max( 0, width - len(count) ) + count
-        s.put(top+1+rows,x,corners[2] + bottom[:width] + corners[3],'normal')
+        s.put(top+1+rows,x,box_ends[2] + bottom[:width] + box_ends[3],'normal')
 
     def _draw_plot( self, y0, x0, height, width ):
         fig = self.v.figure()

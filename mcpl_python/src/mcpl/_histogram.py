@@ -36,6 +36,7 @@ from ._exprsyntax import _dim_unknown
 from ._histstring import (
     _as_range,
     _auto_logx,
+    _bins_arg,
     _check_range,
     _display_by,
     _display_only_condition,
@@ -73,8 +74,9 @@ def _blocks( source, flt ):
     for b in source.particle_blocks:
         yield b[flt(b)] if flt is not None else b
 
-class _SplitValue:
-    """Values used to split particles into separate curves"""
+class _DisplayByValue:
+    """Values of the expression of display_by, which give the curves of the
+    particles"""
     def __init__( self, expr ):
         self._v = _as_expression(ParticleValue,expr)
         self.expression = self._v.expression
@@ -93,23 +95,23 @@ class _SplitValue:
                             ' different values (more than 1000)')
         return keys, index.ravel()
 
-def _split_label( split, key, unicode = False ):
-    """Label of the curve of a value of the split expression (with symbols for
-    plots if unicode is set, see _pdg_symbols)"""
-    if split is None or key is None:
-        #No split, or no particles (so no values of the split expression):
+def _display_by_label( display_by, key, unicode = False ):
+    """Label of the curve of a value of the expression of display_by (with
+    symbols for plots if unicode is set, see _pdg_symbols)"""
+    if display_by is None or key is None:
+        #No display_by, or no particles (so no values of its expression):
         return None
-    name = split._v._e.value_label(key,unicode)
+    name = display_by._v._e.value_label(key,unicode)
     if name is not None:
         return name
-    if key in (0.0,1.0) and split._is_bool:
-        return split.expression if key else f'not ({split.expression})'
-    return f'{split.expression} = {key:g}'
+    if key in (0.0,1.0) and display_by._is_bool:
+        return display_by.expression if key else f'not ({display_by.expression})'
+    return f'{display_by.expression} = {key:g}'
 
 class _Plot:
-    """Common basis of Histogram, BarHistogram and Histogram2D: the title (the
-    pick, for instance), whether the values are sums of weights, and the plots
-    and text tables"""
+    """Common basis of Histogram, BarHistogram, Histogram2D and Points3D: the
+    title (the pick, for instance), whether the values are sums of weights,
+    and the plots and text tables"""
     _panel_options = ()#(keyword arguments of panel(), also for figure() and plot())
     def __init__( self, weighted, title ):
         self.weighted = weighted
@@ -554,7 +556,6 @@ def _auto_nbins( neff, nbins, ndim = 1 ):
     entries on average as there are bins per axis (as for the square-root
     rule), clamped to [10,400], and then the closest divisor of nbins (in log
     distance, so the bins can be merged exactly)."""
-    import math
     target = max( 1.0, neff ) ** ( 1.0 / ( ndim + 1 ) )
     target = max( 10, min( 400, round(target) ) )
     divs = [ d for d in _range(1,nbins+1) if nbins % d == 0 ]
@@ -620,7 +621,8 @@ def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
     The options can also be given in the expression, as in the histogram
     strings of mcpltool -H (see mcpltool -H help), e.g.
     "ekin/eV;logx;lethargy;bins=50;logy", which can also have two
-    expressions for a 2D histogram (see histogram2d()).
+    expressions for a 2D histogram (see histogram2d()), or three for a 3D plot
+    of a sample of the particles.
     """
     bins = _bins_arg(bins,1)
     given = { 'bins' : None if bins == 'auto' else bins, 'range' : range,
@@ -656,17 +658,18 @@ def histogram2d( files, xexpression, yexpression, *, pick = None, bins = 'auto',
     """
     bins = _bins_arg(bins,2)
     o = _hist_defaults([ xexpression, yexpression ])
-    o.update( bins = None if bins == 'auto' else bins, xrange = _as_range(xrange,'xrange'),
+    o.update( bins = _bins_arg(None if bins == 'auto' else bins,2),
+              xrange = _as_range(xrange,'xrange'),
               yrange = _as_range(yrange,'yrange'), unweighted = unweighted,
               logx = logx, logy = logy )
     return _histogram(files,o,pick = pick,_maxbins = _maxbins)
 
-def _selection_title( pick = None, edit = None, only = None ):
+def _selection_title( pick = None, edit = None, display_only = None ):
     """The title of a plot of the particles picked and edited with these
     expressions (as texts, or None), and of those shown (display_only): one
     line each, or None"""
     return '\n'.join( f'{what}: {e}' for what, e in ( ('pick',pick), ('edit',edit),
-                                                      ('only',only) )
+                                                      ('display_only',display_only) )
                       if e is not None ) or None
 
 def _histogram( files, o, pick = None, _maxbins = None, selection = ( None, None ) ):
@@ -696,42 +699,44 @@ def _filler_for( o, pick = None, labels = ( None, ), _maxbins = None ):
     #display_by is given, instead of one for each particle type in each file,
     #while 2D histograms and 3D plots combine the files):
     by_file = len(labels) > 1 and o['display_by'] is None and len(o['exprs']) == 1
-    split = None if by_file else _display_by(o)
-    only = ( _display_only_condition(o['display_only']) if o['display_only'] is not None
-             else None )
+    display_by = None if by_file else _display_by(o)
+    display_only = ( _display_only_condition(o['display_only'])
+                     if o['display_only'] is not None else None )
     if len(o['exprs']) == 3:
         return _Points3DFiller(o['exprs'],pick = pick,points = o['points'],
-                               unweighted = o['unweighted'],split = split,
-                               max_curves = o['groups'] or 8,only = only)
+                               unweighted = o['unweighted'],display_by = display_by,
+                               max_curves = o['groups'] or 8,
+                               display_only = display_only)
     if len(o['exprs']) == 2:
         return _Hist2DFiller(o['exprs'][0],o['exprs'][1],pick = pick,bins = bins,
                              xrange = o['xrange'],yrange = o['yrange'],
                              unweighted = o['unweighted'],_maxbins = _maxbins,
                              logz = o['logz'] is not False,equal = o['equal'],
-                             only = only,logx = o['logx'],logy = o['logy'] or False)
+                             display_only = display_only,logx = o['logx'],
+                             logy = o['logy'] or False)
     if o['bar'] is not False:
         return _BarFiller(o['exprs'][0],pick = pick,
                           limit = 10 if o['bar'] is True else o['bar'],
                           unweighted = o['unweighted'],logy = o['logy'],labels = labels,
-                          only = only)
+                          display_only = display_only)
     return _Hist1DFiller(o['exprs'][0],pick = pick,bins = bins,range = o['range'],
-                         logx = o['logx'],unweighted = o['unweighted'],split = split,
+                         logx = o['logx'],unweighted = o['unweighted'],display_by = display_by,
                          lethargy = o['lethargy'],max_curves = o['groups'] or 8,
                          logy = o['logy'] or False,labels = labels,_maxbins = _maxbins,
-                         only = only)
+                         display_only = display_only)
 
 class _Filler:
     """Common basis of the fillers, which make histograms from blocks of (picked)
     particles of files: if needs_range, the blocks are first given to
     add_range (to find the ranges of the values), and then, after start_fill,
     to add. The labels are those of the files, and result() is the histogram
-    of the blocks given to add so far. With only (a pick, see ParticleFilter,
-    the option display_only of histogram strings), only those particles of the blocks
-    are used."""
+    of the blocks given to add so far. With display_only (a pick, see
+    ParticleFilter, the option display_only of histogram strings), only those
+    particles of the blocks are used."""
     needs_range = False
-    def __init__( self, expressions, pick, unweighted, labels, only = None ):
+    def __init__( self, expressions, pick, unweighted, labels, display_only = None ):
         self.pick = _as_expression(ParticleFilter,pick)
-        self._only = _as_expression(ParticleFilter,only)
+        self._only = _as_expression(ParticleFilter,display_only)
         self._vals = [ _PlotValue(e) for e in expressions ]
         #(ranges whose units are checked when the units of the expressions are
         #known, see _range_of):
@@ -772,14 +777,14 @@ class _Filler:
             res.append( ( keys, lbl, plbl, colors.get(k) ) )
         return res
 
-    def _split_values( self, spl, b, defined ):
-        """The values of the split expression (see _SplitValue) of the particles
-        of the block b with defined values (see _values)"""
-        return np.asarray(spl(b),dtype=float)[defined]
+    def _display_by_values( self, dby, b, defined ):
+        """The values of the expression of display_by (see _DisplayByValue) of
+        the particles of the block b with defined values (see _values)"""
+        return np.asarray(dby(b),dtype=float)[defined]
 
     def _used( self, b ):
-        """The mask of the particles of the block which are used (see only), or
-        None for all"""
+        """The mask of the particles of the block which are used (see
+        display_only), or None for all"""
         return None if self._only is None else np.asarray(self._only(b),dtype=bool)
 
     def _values( self, b ):
@@ -837,11 +842,11 @@ class _Filler:
 class _Hist1DFiller(_Filler):
     """Makes the histogram of histogram() (see _Filler)"""
     def __init__( self, expression, pick = None, bins = 'auto', range = None,
-                  logx = False, unweighted = False, split = None,
+                  logx = False, unweighted = False, display_by = None,
                   lethargy = False, max_curves = 8, logy = False,
-                  labels = ( None, ), _maxbins = None, only = None ):
-        super().__init__([ expression ],pick,unweighted,labels,only)
-        self._spl = _SplitValue(split) if split is not None else None
+                  labels = ( None, ), _maxbins = None, display_only = None ):
+        super().__init__([ expression ],pick,unweighted,labels,display_only)
+        self._dby = _DisplayByValue(display_by) if display_by is not None else None
         #(with logx='auto', it is decided from the range, see _auto_logx):
         self._logx = True if lethargy else logx
         self._positive[0] = self._logx is True
@@ -864,14 +869,14 @@ class _Hist1DFiller(_Filler):
         self._auto = ( self._bins == 'auto' )
         self._nbins = _nice_nbins(self._maxbins or 1200) if self._auto else int(self._bins)
         self._edges = _make_edges(self._range,self._nbins,self._logx)
-        self._acc = {}#(file label,split key) -> [contents,sumw2,underflow,overflow]
+        self._acc = {}#(file label,display_by key) -> [contents,sumw2,underflow,overflow]
 
     def add( self, flabel, b ):
-        edges, spl = self._edges, self._spl
+        edges, dby = self._edges, self._dby
         n = len(edges) - 1
         ( v, ), w, defined = self._values(b)
-        if spl is not None:
-            keys, kidx = spl.keys(self._split_values(spl,b,defined))
+        if dby is not None:
+            keys, kidx = dby.keys(self._display_by_values(dby,b,defined))
         else:
             keys, kidx = [ None ], np.zeros(len(v),dtype=np.intp)
         #(all curves at once: the sums by curve and bin, below and above):
@@ -891,7 +896,7 @@ class _Hist1DFiller(_Filler):
             a[3] += float(over[j])
 
     def result( self ):
-        edges, nbins, spl = self._edges, self._nbins, self._spl
+        edges, nbins, dby = self._edges, self._nbins, self._dby
         acc = { k : list(a) for k, a in self._acc.items() }
         #With automatic binning, merge the bins according to the effective number
         #of entries:
@@ -920,8 +925,8 @@ class _Hist1DFiller(_Filler):
         for flabel in self._labels:
             sums = { k : a[0].sum() for (fl,k), a in acc.items() if fl == flabel }
             for keys, lbl, plbl, color in self._curves(sums or { None : 0.0 },self._max_curves,
-                                                       spl and spl.field,
-                                                       lambda k, u : _split_label(spl,k,u),
+                                                       dby and dby.field,
+                                                       lambda k, u : _display_by_label(dby,k,u),
                                                        flabel if multifile else None):
                 parts = [ acc.get((flabel,k),empty) for k in keys ]
                 a = [ sum( p[i] for p in parts ) for i in range(4) ]
@@ -934,8 +939,8 @@ class _BarFiller(_Filler):
     """Makes the bar charts of histogram() with bar (see _Filler; no range is
     needed)"""
     def __init__( self, expression, pick = None, limit = 10, unweighted = False,
-                  logy = None, labels = ( None, ), only = None ):
-        super().__init__([ expression ],pick,unweighted,labels,only)
+                  logy = None, labels = ( None, ), display_only = None ):
+        super().__init__([ expression ],pick,unweighted,labels,display_only)
         #(the units of fields of the userdata are checked with the values):
         if self._vals[0].dim not in ( None, _dim_unknown ):
             self._not_whole()
@@ -978,9 +983,10 @@ class _Hist2DFiller(_Filler):
     combined)"""
     def __init__( self, xexpression, yexpression, pick = None, bins = 'auto',
                   xrange = None, yrange = None, unweighted = False,
-                  _maxbins = None, logz = True, equal = False, only = None,
+                  _maxbins = None, logz = True, equal = False, display_only = None,
                   logx = False, logy = False ):
-        super().__init__([ xexpression, yexpression ],pick,unweighted,( None, ),only)
+        super().__init__([ xexpression, yexpression ],pick,unweighted,( None, ),
+                         display_only)
         self._bins, self._maxbins, self._logz, self._equal = bins, _maxbins, logz, equal
         #(logarithmic axes, or 'auto' to decide from the ranges, see _auto_logx):
         self._log = [ logx, logy ]
@@ -1050,7 +1056,8 @@ class _Hist2DFiller(_Filler):
             if kx > 1 or ky > 1:
                 xe, ye = xe[::kx], ye[::ky]
                 contents = contents.reshape(bx//kx,kx,by//ky,ky).sum(axis=(1,3))
-        #(the units of the axes, for expressions with units, see Hist1D):
+        #(the units of the axes, for expressions with units, see
+        #_Hist1DFiller.result):
         ( xunit, xscale ), ( yunit, yscale ) = ( _plot_unit(v.dim,*r,lg,v.wavelength) for v, r, lg
                                                  in zip(self._vals,self._ranges,self._log) )
         h = Histogram2D(self._vals[0].expression,self._vals[1].expression,xe/xscale,
@@ -1071,10 +1078,10 @@ class _Points3DFiller(_Filler):
     (weighted, with the method of Efraimidis and Spirakis: the points with the
     largest u^(1/w), for random u in [0,1)), which needs no ranges"""
     def __init__( self, expressions, pick = None, points = None, unweighted = False,
-                  split = None, max_curves = 8, only = None ):
-        super().__init__(list(expressions),pick,unweighted,( None, ),only)
+                  display_by = None, max_curves = 8, display_only = None ):
+        super().__init__(list(expressions),pick,unweighted,( None, ),display_only)
         self._npoints = points or 5000
-        self._spl = _SplitValue(split) if split is not None else None
+        self._dby = _DisplayByValue(display_by) if display_by is not None else None
         self._max_curves = max_curves
         #(a fixed seed, so the same particles give the same sample):
         self._rng = np.random.default_rng(12345)
@@ -1084,7 +1091,7 @@ class _Points3DFiller(_Filler):
     def add( self, flabel, b ):
         vals, w, defined = self._values(b)
         pts = np.column_stack(vals)
-        sv = ( self._split_values(self._spl,b,defined) if self._spl is not None
+        sv = ( self._display_by_values(self._dby,b,defined) if self._dby is not None
                else np.zeros(len(pts)) )
         ok = np.isfinite(pts).all(axis=1) & ( w > 0 )
         pts, w, sv = pts[ok], w[ok], sv[ok]
@@ -1099,7 +1106,7 @@ class _Points3DFiller(_Filler):
         self._keys, self._pts, self._sv = keys, pts, sv
 
     def result( self ):
-        pts, spl = self._pts, self._spl
+        pts, dby = self._pts, self._dby
         units = []
         for i, v in enumerate(self._vals):
             lo, hi = ( pts[:,i].min(), pts[:,i].max() ) if len(pts) else ( 0.0, 1.0 )
@@ -1109,13 +1116,15 @@ class _Points3DFiller(_Filler):
                        nparticles = self._n)
         res.notes = [ n.note() for n in self._notes ]
         scaled = pts / np.array([ s for _, s in units ]) if len(pts) else pts
-        if spl is None:
+        if dby is None:
             res.groups[None] = scaled
             return res
-        counts = { k : int(( self._sv == k ).sum()) for k in np.unique(self._sv) }
+        #(keys() also notes whether the values are true/false, for the labels):
+        keys, kidx = dby.keys(self._sv)
+        counts = dict(zip(keys,np.bincount(kidx,minlength=len(keys)).tolist()))
         for keys, lbl, plbl, color in self._curves(counts or { None : 0 },self._max_curves,
-                                                   spl.field,
-                                                   lambda k, u : _split_label(spl,k,u)):
+                                                   dby.field,
+                                                   lambda k, u : _display_by_label(dby,k,u)):
             res.groups[lbl] = scaled[np.isin(self._sv,keys)]
             res._add_label(lbl,plbl,color)
         return res

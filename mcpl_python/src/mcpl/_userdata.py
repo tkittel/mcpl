@@ -138,15 +138,21 @@ def _parse_error( layout ):
             return 'too large userdata (at most 65535 bytes are allowed)'
     return None
 
-def userdata_fields( layout ):
+def _split_fields( layout ):
     """The fields of a (valid) userdata layout, as (name, type, number of
-    values, or None for fields of one value)"""
+    values or None, unit or None)"""
     res = []
     for fld in layout.split(','):
         name, _, typespec = fld.partition(':')
-        tname, bracket, arr = typespec.partition(':')[0].partition('[')
-        res.append( ( name, tname, int(arr[:-1]) if bracket else None ) )
+        typespec, _, unit = typespec.partition(':')
+        tname, bracket, arr = typespec.partition('[')
+        res.append( ( name, tname, int(arr[:-1]) if bracket else None, unit or None ) )
     return res
+
+def userdata_fields( layout ):
+    """The fields of a (valid) userdata layout, as (name, type, number of
+    values, or None for fields of one value)"""
+    return [ f[:3] for f in _split_fields(layout) ]
 
 def userdata_dtype( layout ):
     """Numpy dtype (in native byte order) for the userdata of one particle,
@@ -168,11 +174,7 @@ def userdata_units( layout ):
     """The units of the fields of the layout, as {name : unit}, with None for
     fields without a unit (e.g. {'temp': 'K', 'n': None})"""
     userdata_dtype(layout)#(checks the layout)
-    res = {}
-    for fld in layout.split(','):
-        name, _, typespec = fld.partition(':')
-        res[name] = typespec.partition(':')[2] or None
-    return res
+    return { name : unit for name, _, _, unit in _split_fields(layout) }
 
 def _exact_ints( v, base ):
     """Plain Python integers (single numbers or lists) as an array of the

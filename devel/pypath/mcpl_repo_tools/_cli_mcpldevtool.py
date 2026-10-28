@@ -138,6 +138,12 @@ class NCDevUtilsArgParser:
     def parse_args( self ):
         return self.__parser.parse_args( self.__args )
 
+    def has_args( self ):
+        return bool( self.__args )
+
+    def print_help( self ):
+        self.__parser.print_help()
+
     def error( self, msg ):
         self.__parser.error(msg)
 

@@ -48,16 +48,16 @@ def dump_file(filename,header=True,particles=True,limit=10,skip=0,pick=None,**kw
     dump both header and particle contents of a file to stdout. If pick is
     given (an expression or a ParticleFilter), only the picked particles are
     shown."""
-    f = MCPLFile(filename,**kwargs)
-    print(f"Opened MCPL file {os.path.basename(filename)}:")
-    if header:
-        f.dump_hdr()
-    if particles:
-        if pick is not None:
-            from ._expressions import _as_filter
-            print(f"Showing particles picked with: {_as_filter(pick).expression}")
-            print()
-        f.dump_particles(limit=limit,skip=skip,pick=pick)
+    with MCPLFile(filename,**kwargs) as f:
+        print(f"Opened MCPL file {os.path.basename(filename)}:")
+        if header:
+            f.dump_hdr()
+        if particles:
+            if pick is not None:
+                from ._expressions import _as_filter
+                print(f"Showing particles picked with: {_as_filter(pick).expression}")
+                print()
+            f.dump_particles(limit=limit,skip=skip,pick=pick)
 
 def convert2ascii(mcplfile,outfile):
     """Read particle contents of mcplfile and write into outfile using a simple ASCII-based format"""
@@ -231,7 +231,7 @@ def _stablesum_add(s, x):
     s[1] += (s[0] - t) + x if abs(s[0]) >= abs(x) else (x - t) + s[0]
     s[0] = t
 
-def merge_files(file_output, files, dry_run = False):
+def merge_files(file_output, files, *, dry_run = False):
     """Merge the particle contents of a list of compatible files into a new file
     (like mcpl_merge_files in the C API). Values of stat:sum entries are
     added up. Returns the new file as an open MCPLOutFile object, which must
@@ -319,7 +319,7 @@ def merge_files(file_output, files, dry_run = False):
         return None
     return out
 
-def forcemerge_files(file_output, files, keep_userflags = False, dry_run = False):
+def forcemerge_files(file_output, files, *, keep_userflags = False, dry_run = False):
     """Merge particle contents of a list of files, even if they are not
     compatible, at the price of discarding most meta-data like comments and
     blobs (like mcpl_forcemerge_files in the C API). Userflags are discarded
@@ -428,7 +428,7 @@ def forcemerge_files(file_output, files, keep_userflags = False, dry_run = False
         return None
     return out
 
-def merge_inplace(file1, file2, dry_run = False):
+def merge_inplace(file1, file2, *, dry_run = False):
     """Append the particle contents of file2 to file1 (like mcpl_merge_inplace in
     the C API). The files must be compatible, and file1 must not be
     gzipped. Values of stat:sum entries are added up. With dry_run=True,
@@ -486,7 +486,7 @@ def merge_inplace(file1, file2, dry_run = False):
                     write_at(pos, encode_stat_sum(key, newval).encode('ascii'))
             write_at(8, _nparticles_bytes(f1, np1 + np2))
 
-def repair(filename, dry_run = False):
+def repair(filename, *, dry_run = False):
     """Repair a file which was not properly closed, or which was truncated, by
     updating the number of particles in the header and removing any
     incomplete particle data at the end (like mcpl_repair in the C API).

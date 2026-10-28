@@ -421,7 +421,7 @@ def py_merge_files(out, files):
     mcpl.merge_files(out, files.split('|')).close()
 
 def py_forcemerge_files(out, files, keep_userflags):
-    mcpl.forcemerge_files(out, files.split('|'), bool(keep_userflags)).close()
+    mcpl.forcemerge_files(out, files.split('|'), keep_userflags = bool(keep_userflags)).close()
 
 def test_file_functions():
     ok = True

@@ -1,38 +1,69 @@
 Modules of the mcpl package and their imports from the package:
   layer   0 : _common              <- -
-  layer   0 : _exprhelp            <- -
+  layer   0 : _helptext            <- -
+  layer   0 : _logo                <- -
   layer   0 : _messages            <- -
   layer   0 : _numpy               <- -
+  layer   0 : _particles           <- -
+  layer   0 : _stdviews            <- -
   layer   0 : constants            <- -
-  layer   1 : _physics             <- _common, _numpy, constants
+  layer   1 : _exprhelp            <- _helptext, _particles
+  layer   1 : _exprrotation        <- _numpy
+  layer   1 : _exprsyntax          <- _common
+  layer   1 : _physics             <- _common, _numpy, _particles, constants
   layer   1 : _statsum             <- _common
   layer   1 : _termcolor           <- _common
   layer   1 : _userdata            <- _common, _numpy
+  layer   1 : _viewer_ui           <- _common, _helptext, _stdviews
   layer   2 : _blocks              <- _common, _numpy, _physics
-  layer   2 : _expressions         <- _common, _numpy, _physics, _userdata
+  layer   2 : _exprcore            <- _common, _exprsyntax, _numpy, _particles, _physics, _userdata
   layer   2 : _scipp               <- _common, _messages, _numpy, _userdata
-  layer   3 : _reader              <- _blocks, _common, _expressions, _messages, _numpy, _scipp, _statsum, _userdata
-  layer   4 : _writer              <- _blocks, _common, _expressions, _messages, _numpy, _physics, _reader, _statsum, _userdata
-  layer   5 : _examples            <- _common, _messages, _numpy, _writer
-  layer   5 : _fileops             <- _common, _expressions, _messages, _reader, _statsum, _writer
-  layer   6 : _plotbackend         <- _common, _messages
-  layer   6 : _stats               <- _common, _expressions, _messages, _numpy, _physics, _reader
-  layer   7 : plotting             <- _plotbackend
-  layer   8 : _histogram           <- _common, _expressions, _numpy, _physics, _reader, plotting
-  layer   8 : _plotbackend_mpl     <- _common, _numpy, _plotbackend, plotting
-  layer   8 : _plotbackend_test    <- _numpy, _plotbackend, plotting
-  layer   8 : _plotbackend_text    <- _numpy, _plotbackend, _termcolor, plotting
-  layer   9 : _statsplot           <- _common, _numpy, _physics, _plotbackend, _stats, plotting
-  layer  10 : _clistats            <- _common, _histogram, _plotbackend, _reader, _stats, _statsplot
-  layer  11 : _cli                 <- _clistats, _common, _examples, _expressions, _exprhelp, _fileops, _messages, _physics, _reader, _writer
+  layer   3 : _expressions         <- _common, _exprcore, _exprrotation, _exprsyntax, _numpy, _particles, _physics
+  layer   4 : _exprplot            <- _common, _exprcore, _expressions, _exprsyntax, _numpy
+  layer   4 : _reader              <- _blocks, _common, _expressions, _messages, _numpy, _scipp, _statsum, _userdata
+  layer   4 : _records             <- _blocks, _common, _numpy, _particles, _physics
+  layer   5 : _histstring          <- _common, _exprcore, _expressions, _exprplot, _exprsyntax, _particles
+  layer   5 : _writer              <- _blocks, _common, _expressions, _messages, _numpy, _reader, _records, _statsum, _userdata
+  layer   6 : _examples            <- _common, _messages, _numpy, _writer
+  layer   6 : _extract             <- _messages, _reader, _writer
+  layer   6 : _fileops             <- _common, _expressions, _messages, _reader, _statsum, _writer
+  layer   7 : _plotbackend         <- _common, _messages
+  layer   7 : _stats               <- _common, _expressions, _messages, _numpy, _physics, _reader
+  layer   7 : _viewer_code         <- _exprcore, _expressions, _exprrotation, _exprsyntax, _extract
+  layer   8 : plotting             <- _plotbackend
+  layer   9 : _histogram           <- _common, _exprcore, _expressions, _exprplot, _exprsyntax, _histstring, _numpy, _particles, _reader, plotting
+  layer   9 : _plotbackend_mpl     <- _common, _logo, _numpy, _plotbackend, plotting
+  layer   9 : _plotbackend_test    <- _numpy, _plotbackend, plotting
+  layer   9 : _plotbackend_text    <- _numpy, _particles, _physics, _plotbackend, _termcolor, plotting
+  layer   9 : _thumbnails          <- _numpy, plotting
+  layer   9 : _viewer_overviews    <- _histstring, _numpy, plotting
+  layer  10 : _plotbackend_text_gui <- _common, _plotbackend, _plotbackend_text, _termcolor, _viewer_ui
+  layer  10 : _viewer_groups       <- _exprcore, _histstring, _particles, _stdviews, _viewer_overviews
+  layer  10 : _viewer_jupyter      <- _common, _exprhelp, _logo, _plotbackend_mpl, _viewer_ui
+  layer  10 : _viewer_reading      <- _blocks, _common, _exprcore, _histogram, _histstring, _numpy, _reader, _stdviews, _viewer_overviews, _viewer_ui, plotting
+  layer  10 : _viewer_widgets      <- _common, _exprhelp, _histstring, _particles, _plotbackend_mpl, _stdviews, _thumbnails, _viewer_ui, plotting
+  layer  11 : _clistats            <- _common, _histogram, _histstring, _plotbackend, _reader, _stats, plotting
+  layer  11 : _viewer_output       <- _common, _extract, _reader, _stdviews, _viewer_code, _viewer_groups, _viewer_ui
+  layer  11 : _viewer_tkbase       <- _viewer_ui
+  layer  12 : _viewer              <- _common, _exprcore, _expressions, _exprhelp, _exprsyntax, _histstring, _plotbackend, _reader, _stdviews, _userdata, _viewer_groups, _viewer_jupyter, _viewer_output, _viewer_overviews, _viewer_reading, _viewer_ui
+  layer  12 : _viewer_tkcards      <- _viewer_tkbase, _viewer_ui
+  layer  12 : _viewer_tkcontrols   <- _viewer_tkbase, _viewer_ui
+  layer  12 : _viewer_tkwindows    <- _exprhelp, _viewer_code, _viewer_tkbase, _viewer_ui
+  layer  13 : _cli                 <- _clistats, _common, _examples, _expressions, _exprhelp, _extract, _fileops, _histogram, _histstring, _messages, _particles, _plotbackend, _reader, _stdviews, _viewer, _viewer_ui
+  layer  13 : _viewer_tk           <- _common, _logo, _messages, _plotbackend_mpl, _viewer_tkbase, _viewer_tkcards, _viewer_tkcontrols, _viewer_tkwindows, _viewer_ui, _viewer_widgets
+  layer  14 : _plotbackend_mpl_gui <- _plotbackend_mpl, _viewer_tk, _viewer_ui, _viewer_widgets
   layer top : __init__             <- _blocks, _common, _fileops, _messages, _reader, _statsum, _writer, constants
   layer top : __main__             <- _cli
-  layer top : mcpl                 <- _blocks, _cli, _common, _fileops, _reader, _stats, _statsplot, _statsum
+  layer top : mcpl                 <- _blocks, _cli, _common, _fileops, _reader, _stats, _statsum
 numpy is imported by: _numpy
-matplotlib is imported by: _plotbackend_mpl
+matplotlib is imported by: _plotbackend_mpl, _plotbackend_mpl_gui, _thumbnails, _viewer_tk
+tkinter is imported by: _viewer_tk, _viewer_tkbase
 scipp is imported by: _scipp
-matplotlib, scipp are only imported inside functions
-mcpl.__all__ has 35 names, provided by:
+ipywidgets is imported by: _viewer_jupyter
+IPython is imported by: _viewer, _viewer_jupyter
+curses is imported by: _plotbackend_text_gui
+matplotlib, scipp, ipywidgets, IPython, curses are only imported inside functions
+mcpl.__all__ has 33 names, provided by:
   _common              : MCPLError
   _messages            : use_logging
   _statsum             : encode_stat_sum, is_valid_stat_sum_key
@@ -41,7 +72,7 @@ mcpl.__all__ has 35 names, provided by:
   _reader              : MCPLFile
   _writer              : MCPLOutFile, gzip_file
   _fileops             : can_merge, convert2ascii, create_outfile_mpi, dump_file, forcemerge_files, merge_files, merge_inplace, merge_outfiles_mpi, name_helper, repair
-  _stats               : collect_stats, dump_stats
-  _histogram           : Histogram, Histogram2D, histogram, histogram2d, plot_histograms
-  _statsplot           : plot_stats, stats_figures
+  _stats               : collect_stats, dump_stats, plot_stats
+  _histogram           : histogram, histogram2d, plot_histograms
+  _viewer              : view
   _cli                 : app_mcpltool, app_pymcpltool

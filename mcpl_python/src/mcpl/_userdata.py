@@ -138,6 +138,16 @@ def _parse_error( layout ):
             return 'too large userdata (at most 65535 bytes are allowed)'
     return None
 
+def userdata_fields( layout ):
+    """The fields of a (valid) userdata layout, as (name, type, number of
+    values, or None for fields of one value)"""
+    res = []
+    for fld in layout.split(','):
+        name, _, typespec = fld.partition(':')
+        tname, bracket, arr = typespec.partition(':')[0].partition('[')
+        res.append( ( name, tname, int(arr[:-1]) if bracket else None ) )
+    return res
+
 def userdata_dtype( layout ):
     """Numpy dtype (in native byte order) for the userdata of one particle,
     with a field for each field of the layout. An MCPLError is raised for
@@ -149,15 +159,9 @@ def userdata_dtype( layout ):
             s = layout if isinstance(layout,str) else repr(layout)
             raise MCPLError(f'Invalid userdata layout "{s[:200]}'
                             f'{"..." if len(s) > 200 else ""}": {err}')
-        fields = []
-        for fld in layout.split(','):
-            name, _, typespec = fld.partition(':')
-            tname, bracket, arr = typespec.partition(':')[0].partition('[')
-            if bracket:
-                fields.append( ( name, _types[tname], ( int(arr[:-1]), ) ) )
-            else:
-                fields.append( ( name, _types[tname] ) )
-        dt = _cache[layout] = np.dtype(fields)
+        dt = _cache[layout] = np.dtype([ ( name, _types[t] ) if n is None else
+                                         ( name, _types[t], ( n, ) )
+                                         for name, t, n in userdata_fields(layout) ])
     return dt
 
 def userdata_units( layout ):

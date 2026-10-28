@@ -6,11 +6,14 @@ dependencies:
   - c-compiler
   - cmake
   - make
-  - pip
+  - pip >=26.2.2
   - python
+  - ipympl >=0.9
+  - ipywidgets >=8.0
   - matplotlib >=3.6
   - numpy >=1.22
   - pyyaml >=6.0.0
   - ruff >=0.8.1
   - scipp >=26.9
+  - tk
   - tomli >=2.0.0

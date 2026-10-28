@@ -47,8 +47,6 @@ programme under grant agreement No 676548 (the BrightnESS project)
 """
 
 __all__ = [
-            'Histogram',
-            'Histogram2D',
             'MCPLError',
             'MCPLFile',
             'MCPLOutFile',
@@ -80,8 +78,8 @@ __all__ = [
             'plot_stats',
             'plotting',
             'repair',
-            'stats_figures',
             'use_logging',
+            'view',
            ]
 
 __version__ = '2.2.9'
@@ -110,11 +108,9 @@ from ._writer import MCPLOutFile, gzip_file
 #only imported when used (so the code for reading and writing files does not
 #depend on them in any way):
 _on_demand = {
-    'Histogram' : '_histogram',
     'ParticleEdit' : '_expressions',
     'ParticleFilter' : '_expressions',
     'ParticleValue' : '_expressions',
-    'Histogram2D' : '_histogram',
     'app_mcpltool' : '_cli',
     'app_pymcpltool' : '_cli',
     'collect_stats' : '_stats',
@@ -122,9 +118,9 @@ _on_demand = {
     'histogram' : '_histogram',
     'histogram2d' : '_histogram',
     'plot_histograms' : '_histogram',
-    'plot_stats' : '_statsplot',
+    'plot_stats' : '_stats',
     'plotting' : 'plotting',
-    'stats_figures' : '_statsplot',
+    'view' : '_viewer',
 }
 
 def __getattr__(name):

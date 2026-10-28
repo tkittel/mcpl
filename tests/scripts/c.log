@@ -46,7 +46,8 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   mcpltool [options] FILE                  Show the header and first particles
   mcpltool -S [options] FILE               Summary of the particles
-  mcpltool -H HIST [options] FILE [...]    Histogram
+  mcpltool -w [options] FILE               View the particles interactively
+  mcpltool -H HIST [options] FILE [...]    Histograms
   mcpltool -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
   mcpltool -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   mcpltool -r FILE                         Repair a file not properly closed
@@ -61,7 +62,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
-  mcpltool -H "ekin/MeV;logx;split=pdgcode" file.mcpl.gz
+  mcpltool -H "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
   mcpltool -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   mcpltool -S file.mcpl.gz
 
@@ -85,7 +86,8 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   mcpltool [options] FILE                  Show the header and first particles
   mcpltool -S [options] FILE               Summary of the particles
-  mcpltool -H HIST [options] FILE [...]    Histogram
+  mcpltool -w [options] FILE               View the particles interactively
+  mcpltool -H HIST [options] FILE [...]    Histograms
   mcpltool -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
   mcpltool -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   mcpltool -r FILE                         Repair a file not properly closed
@@ -100,7 +102,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
-  mcpltool -H "ekin/MeV;logx;split=pdgcode" file.mcpl.gz
+  mcpltool -H "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
   mcpltool -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   mcpltool -S file.mcpl.gz
 
@@ -1254,6 +1256,7 @@ userflags    :           0 (0x00000000)            5 (100.00%)
 ------------------------------------------------------------------------------
 ======================> Test stats(reffile_empty.mcpl,bin_data=True,stats=['x', 'y'])
 MCPL WARNING: Can not calculate stats on an empty file
+plot_stats: plot_stats is no longer available: use mcpl.view(FILE) for an interactive overview of a file, or mcpl.histogram(FILE,EXPR).plot() for single plots
 ======================> Test stats(reffile_uw.mcpl.gz)
 ------------------------------------------------------------------------------
 nparticles   : 15

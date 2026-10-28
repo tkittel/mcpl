@@ -55,16 +55,18 @@ def main( parser ):
                                               'testdeps2json',
                                               'minversions',
                                               'freebsdpkgs',
+                                              'freebsdpips',
                                               'json',
                                               'pprint'),
         default = 'pprint',
         help="""Mode (default: pprint). The "minversions" mode prints the
         minimum versions of the dependencies of all packages which can be
         installed in the current environment, in the requirements.txt format
-        (like "numpy==1.22.*"), and "freebsdpkgs" the origins of the FreeBSD
+        (like "numpy==1.22.*"), "freebsdpkgs" the origins of the FreeBSD
         packages of the all_and_devel requirements (like math/py-numpy, for the
         current Python version, which should be the default Python of
-        FreeBSD)."""
+        FreeBSD), and "freebsdpips" the requirements which are instead
+        installed with pip on FreeBSD (those without FreeBSD packages)."""
     )
 
     args = parser.parse_args()
@@ -84,9 +86,10 @@ def main( parser ):
             print(r)
         return
 
-    if args.mode=='freebsdpkgs':
+    if args.mode in ('freebsdpkgs','freebsdpips'):
         from .depdb import freebsd_origins
-        print(' '.join( freebsd_origins( load(), 'all_and_devel' ) ))
+        print(' '.join( freebsd_origins( load(), 'all_and_devel',
+                                         pip = args.mode == 'freebsdpips' ) ))
         return
 
     if args.mode=='pprint':

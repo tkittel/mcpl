@@ -547,6 +547,27 @@ class _ArrayBlock:
     def wavelength(self):
         return wavelength_checked(self.ekin,self.pdgcode)
 
+def record_dtype( singleprec, polarisation, universalweight, universalpdgcode,
+                  userflags, userdata = None ):
+    """The numpy dtype of the particle records of files with these options (in
+    native byte order), with userdata the dtype of the userdata (or None)"""
+    fp = 'f4' if singleprec else 'f8'
+    fields = []
+    if polarisation:
+        fields += [('polx',fp),('poly',fp),('polz',fp)]
+    fields += [('x',fp),('y',fp),('z',fp),
+               ('uve1',fp),('uve2',fp),('uve3',fp),#packed unit vector and ekin
+               ('t',fp)]
+    if not universalweight:
+        fields += [('w',fp)]
+    if not universalpdgcode:
+        fields += [('pdg','i4')]
+    if userflags:
+        fields += [('uf','u4')]
+    if userdata is not None:
+        fields += [('ud',userdata)]
+    return np.dtype(fields)
+
 def _surely_finite( b ):
     """Quick check that the raw data of a block read from a file has no NaN or
     infinite values (False means that it might have some, which must then be

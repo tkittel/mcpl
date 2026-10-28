@@ -24,6 +24,7 @@ other modes do not load the code for statistics, histograms and plots."""
 
 __all__ = []
 
+import contextlib
 import os
 
 from ._common import MCPLError
@@ -51,93 +52,98 @@ def _plot_backend( outfn, backend, terminal, color = None ):
         bk.check_format(outfn)
         return bk
     cls = _show_backend(backend,terminal)
-    opts = {}
-    if color is not None and not isinstance(cls,PlotBackend):
-        if cls.kind == 'terminal' and f'{cls.name}_color' in _option_names(cls):
-            opts[f'{cls.name}_color'] = color
-        elif backend is not None:
-            raise MCPLError(f'--color can not be used with the {cls.name}'
-                            ' plotting backend (only for plots in the terminal)')
-    return _create(cls,**opts)
+    return _create(cls,**_color_options(cls,backend,color))
 
-def _option_names( cls ):
-    import inspect
-    return set(inspect.signature(cls).parameters)
+def _color_options( cls, backend, color ):
+    """Options of the backend (class) for the --color setting (None if not
+    given), for plots in the terminal. An error if the backend was chosen
+    (backend is not None) and is not for the terminal."""
+    from ._plotbackend import PlotBackend, _option_names
+    if color is None or isinstance(cls,PlotBackend):
+        return {}
+    if cls.kind == 'terminal' and f'{cls.name}_color' in _option_names(cls):
+        return { f'{cls.name}_color' : color }
+    if backend is not None:
+        raise MCPLError(f'--color can not be used with the {cls.name}'
+                        ' plotting backend (only for plots in the terminal)')
+    return {}
 
-def mcpltool_stats(filename,skip,limit,pick,edit,outfn,backend,bad):
+def mcpltool_stats(filename,skip,limit,pick,edit,bad):
     from ._stats import _PickedFile, dump_stats
-    f = _view(filename,skip,limit,pick,edit)
-    if MCPLFile(filename).nparticles == 0:
-        bad("Can not calculate statistics for an empty file")
-    if f.nparticles == 0:
-        bad("Can not calculate statistics when no particles are picked")
-    f = _PickedFile(f,None)
-    if not outfn:
-        dump_stats(f)
-        return
-    from ._statsplot import plot_stats
-    try:
-        files = plot_stats(f,filename=outfn,backend=_plot_backend(outfn,backend,False))
-    except MCPLError as e:
-        bad(str(e))
-    if files:
-        print('Created ' + ', '.join(files))
+    with MCPLFile(filename) as raw:
+        if raw.nparticles == 0:
+            bad("Can not calculate statistics for an empty file")
+    with _view(filename,skip,limit,pick,edit) as f:
+        if f.nparticles == 0:
+            bad("Can not calculate statistics when no particles are picked")
+        dump_stats(_PickedFile(f,None))
 
-def mcpltool_hist(filelist,histstr,skip,limit,pick,edit,outfn,backend,terminal,bad,
+def mcpltool_hist(filelist,hists,skip,limit,pick,edit,outfn,backend,terminal,bad,
                   color=None):
-    from ._histogram import _parse_hist, histogram, histogram2d
+    """The histograms of -H (which can be given several times): printed (with
+    the print option), or plotted (in a file with -o, with a page or file for
+    each, or else shown)"""
+    from ._histogram import _histogram
+    from ._histstring import _parse_hist
     if not filelist:
         bad("No input file specified")
-    try:
-        o = _parse_hist(histstr)
-    except MCPLError as e:
-        bad(str(e))
-    if o['print'] and ( outfn or backend or terminal or color ):
-        bad("The histogram option print can not be used together with -o, -B,"
-            " -t or --color.")
-    exprs = o['exprs']
-    #Unless the number of bins is given, it is chosen automatically, with at
-    #most the resolution of the plot (if the backend has one, like the text
-    #backends, whose plots are then fitted to the bins):
-    bk, maxbins = None, None
-    if not o['print']:
+    opts = []
+    for histstr in hists:
         try:
-            bk = _plot_backend(outfn,backend,terminal,color)
+            opts.append(_parse_hist(histstr))
         except MCPLError as e:
             bad(str(e))
-        if o['bins'] is None:
-            res = bk.resolution()
-            if res is not None:
-                maxbins = tuple(res) if len(exprs) == 2 else res[0]
-    bins = o['bins'] or 'auto'
-    sources = [ _view(fn,skip,limit,pick,edit) for fn in filelist ]
+        if opts[-1]['print'] and ( outfn or backend or terminal or color ):
+            bad("The histogram option print can not be used together with -o, -B,"
+                " -t or --color.")
+    files = contextlib.ExitStack()
+    sources = [ files.enter_context(_view(fn,skip,limit,pick,edit)) for fn in filelist ]
     try:
-        if len(exprs) == 2:
-            h = histogram2d(sources,exprs[0],exprs[1],bins=bins,
-                            xrange=o['xrange'],yrange=o['yrange'],
-                            unweighted=o['unweighted'],_maxbins=maxbins)
-        else:
-            h = histogram(sources,exprs[0],bins=bins,range=o['range'],
-                          _maxbins=maxbins,logx=o['logx'],
-                          unweighted=o['unweighted'],split=o['split'],
-                          lethargy=o['lethargy'])
-    except MCPLError as e:
-        bad(str(e))
-    title = [ f'{what}: {e.expression}' for what, e in (('pick',pick),
-                                                         ('edit',edit))
-              if e is not None ]
-    if title:
-        h.title = '\n'.join(title)
-    if o['print']:
-        print(h.to_text())
-        return
-    kw = {} if len(exprs) == 2 else { 'logy' : o['logy'] }
-    try:
-        if maxbins is not None and hasattr(bk,'_fit_resolution'):
-            #(draw the bins exactly, with a whole number of columns each):
-            bk._fit_resolution(h._display_bins)
-        files = h.plot(filename=outfn,backend=bk,**kw)
-    except MCPLError as e:
-        bad(str(e))
-    if files:
-        print('Created ' + ', '.join(files))
+        selection = tuple( None if e is None else e.expression for e in ( pick, edit ) )
+        figures = []#(plotted together at the end, in a file or in windows, with the
+                    #numbers of bins to fit the plot to, see below)
+        bk = None
+        for o in opts:
+            #Unless the number of bins is given, it is chosen automatically, with
+            #at most the resolution of the plot (if the backend has one, like the
+            #text backends, whose plots are then fitted to the bins):
+            maxbins = None
+            if not o['print']:
+                try:
+                    bk = _plot_backend(outfn,backend,terminal,color)
+                except MCPLError as e:
+                    bad(str(e))
+                res = bk.resolution() if o['bins'] is None else None
+                if res is not None:
+                    maxbins = tuple(res) if len(o['exprs']) == 2 else res[0]
+            try:
+                h = _histogram(sources,o,_maxbins=maxbins,selection=selection)
+            except MCPLError as e:
+                bad(str(e))
+            if o['print']:
+                print(h.to_text())
+            elif outfn or bk.resolution() is None:
+                figures.append( ( h.figure(), h._display_bins if maxbins is not None else None ) )
+            else:
+                #(in the terminal, each is drawn when it is ready, with the bins
+                #drawn exactly, with a whole number of columns each):
+                if maxbins is not None:
+                    bk._fit_resolution(h._display_bins)
+                try:
+                    h.plot(backend=bk)
+                except MCPLError as e:
+                    bad(str(e))
+        if figures:
+            from .plotting import save, show
+            if len(figures) == 1 and figures[0][1] is not None and bk.resolution() is not None:
+                bk._fit_resolution(figures[0][1])#(as in the terminal, see above)
+            figures = [ f for f, _ in figures ]
+            try:
+                if outfn:
+                    print('Created ' + ', '.join(save(figures,outfn,backend=bk)))
+                else:
+                    show(figures,backend=bk)
+            except MCPLError as e:
+                bad(str(e))
+    finally:
+        files.close()

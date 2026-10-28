@@ -73,6 +73,17 @@ jobs:
         pip check
         python -c 'import numpy,matplotlib; print(numpy.__version__, matplotlib.__version__)'
 
+    - name: Virtual display for the tests of the viewer in a window (Xvfb, on Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb
+        Xvfb :99 -screen 0 1600x1000x24 -nolisten tcp &
+        echo "DISPLAY=:99" >> $GITHUB_ENV
+
+    - name: Font caches of matplotlib and Tk (so tests do not wait for them)
+      run: python ./src/devel/bin/mcpldevtool fontcache
+
     - name: Configure CMake
       run: >
         cmake

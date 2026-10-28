@@ -56,10 +56,22 @@ jobs:
             #The packages from devel/dependency_database.yml, by origin (like
             #math/py-numpy, which gives the package for the default Python of
             #FreeBSD, unlike names like py312-numpy):
-            sudo pkg install -y cmake python3 devel/py-pyyaml
+            sudo pkg install -y cmake python3 devel/py-pyyaml devel/py-pip
             FREEBSD_PKGS=$(python3 ./src/devel/bin/mcpldevtool depdb --mode freebsdpkgs) || exit 1
+            FREEBSD_PIPS=$(python3 ./src/devel/bin/mcpldevtool depdb --mode freebsdpips) || exit 1
             echo "FREEBSD_PKGS=${FREEBSD_PKGS}"
+            echo "FREEBSD_PIPS=${FREEBSD_PIPS}"
             sudo pkg install -y ${FREEBSD_PKGS}
+            #(dependencies without FreeBSD packages, see dependency_database.yml):
+            python3 -m pip install --user --upgrade "pip>=26.2.2"
+            python3 -m pip install --user ${FREEBSD_PIPS}
+            #(a virtual display with fonts, for the tests of the viewer in a
+            #window):
+            sudo pkg install -y xorg-vfbserver dejavu
+            Xvfb :99 -screen 0 1600x1000x24 -nolisten tcp > /dev/null 2>&1 &
+            export DISPLAY=:99
+            sleep 2
+            python3 ./src/devel/bin/mcpldevtool fontcache
             df -h
             sudo pkg autoremove -y
             df -h
@@ -100,27 +112,37 @@ jobs:
             #(packages by origin, as in the ctest job):
             sudo pkg install -y cmake python3 devel/py-pyyaml devel/py-pip devel/py-setuptools devel/py-wheel devel/py-scikit-build-core
             FREEBSD_PKGS=$(python3 ./src/devel/bin/mcpldevtool depdb --mode freebsdpkgs) || exit 1
+            FREEBSD_PIPS=$(python3 ./src/devel/bin/mcpldevtool depdb --mode freebsdpips) || exit 1
             echo "FREEBSD_PKGS=${FREEBSD_PKGS}"
+            echo "FREEBSD_PIPS=${FREEBSD_PIPS}"
             sudo pkg install -y ${FREEBSD_PKGS}
             #Make sure pip --user bin dir is in PATH:
             PATH="/home/runner/.local/bin:${PATH}"
             export PATH
+            #(dependencies without FreeBSD packages, see dependency_database.yml):
+            python3 -m pip install --user --upgrade "pip>=26.2.2"
+            python3 -m pip install --user ${FREEBSD_PIPS}
             echo "PATH IS NOW: ${PATH}"
+            #TODO: revisit. Since pip 26.2, pip check fails for all Python
+            #packages installed by FreeBSD itself (with pkg), as "not supported
+            #on this platform", so for now only problems of our own packages
+            #(mcpl*) fail the job (all of the output is still shown):
+            pipcheck_ours() { python3 -mpip check > pipcheck.txt || true; cat pipcheck.txt; ! grep -i '^mcpl' pipcheck.txt; }
             ./src/devel/bin/mcpldevtool check -n "fix""me"
             python3 -mpip install --user ./src/mcpl_python
             python3 -mpip show mcpl-python
             ls -l /home/runner/.local/bin
             which mcpltool
             mcpltool ./src/examples/example.mcpl
-            python3 -mpip check
+            pipcheck_ours
             python3 -mpip install --user -v ./src/mcpl_core
             python3 -mpip show mcpl-core
-            python3 -mpip check
+            pipcheck_ours
             mcpltool-c -h
             mcpltool-c ./src/examples/example.mcpl
             python3 -mpip install --user --no-build-isolation ./src/mcpl_metapkg
             python3 -mpip show mcpl
-            python3 -mpip check
+            pipcheck_ours
             python3 -mpip install --user scikit_build_core ./src/mcpl_extra --no-build-isolation
             mcpl2phits ./src/examples/example.mcpl foo.dmp
             phits2mcpl foo.dmp foo.mcpl

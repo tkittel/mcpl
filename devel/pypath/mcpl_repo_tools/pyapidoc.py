@@ -35,7 +35,7 @@ _sections = [
     ( 'Writing files', ('_writer',) ),
     ( 'File operations', ('_fileops',) ),
     ( 'Expressions', ('_expressions',) ),
-    ( 'Statistics and histograms', ('_stats','_statsplot','_histogram') ),
+    ( 'Statistics and histograms', ('_stats','_histogram') ),
     ( 'Other', ('_common','_messages','_statsum','_cli') ),
 ]
 

@@ -1,0 +1,3 @@
+ipympl>=0.9
+ipywidgets>=8.0
+numpy>=1.22

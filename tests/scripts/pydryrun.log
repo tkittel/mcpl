@@ -22,9 +22,9 @@ mcpltool --dry-run --extract --edit weight *= 2 --keep-statsum a1.mcpl out.mcpl:
    | MCPL: Would extract 30 / 30 particles from a1.mcpl into out.mcpl
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --extract --pick ekin < 1 meV + a1.mcpl out.mcpl: exit code 1, real run did not change files
-   | ERROR: Syntax error in expression "ekin < 1 meV +"
+   | ERROR: Syntax error in expression "ekin < 1 meV +", at the end: a value is missing
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool --dry-run --extract a1.mcpl a2.mcpl: exit code 1, real run did not change files
    | ERROR: Requested output file already exists.
    | 
@@ -183,20 +183,20 @@ mcpltool --dry-run --stats a1.mcpl: exit code 0, real run did not change files
    | userflags    :           0 (0x00000000)        247.5 (100.00%)
    |                      [ values ]             [ weighted counts ]
    | ------------------------------------------------------------------------------
-mcpltool --dry-run --hist ekin/MeV;print a1.mcpl: exit code 0, real run did not change files
+mcpltool --dry-run --hist ekin/MeV;print=1;display_by=single a1.mcpl: exit code 0, real run did not change files
    | # histogram of: ekin/MeV
    | # values: weights per bin
    | # lower edge | upper edge | value
-   | 0.001 0.0039 4.5
-   | 0.0039 0.0067999999 9
-   | 0.0067999999 0.0096999998 13.5
-   | 0.0096999998 0.0126 18
-   | 0.0126 0.0155 22.5
-   | 0.0155 0.0184 27
-   | 0.0184 0.0213 31.5
-   | 0.0213 0.024199999 36
-   | 0.024199999 0.027099999 40.5
-   | 0.027099999 0.029999999 45
+   | 0 0.003 2.5
+   | 0.003 0.006 7.5
+   | 0.006 0.009 17
+   | 0.009 0.012 11.5
+   | 0.012 0.015 29
+   | 0.015 0.018 27
+   | 0.018 0.021 31.5
+   | 0.021 0.024 23.5
+   | 0.024 0.027 39
+   | 0.027 0.03 59
 mcpltool --dry-run --version: exit code 0, real run did not change files
    | MCPL version 2.2.9
 mcpltool --dry-run --bkey1 a1.mcpl: exit code 1, real run did not change files
@@ -234,7 +234,7 @@ mcpltool -jd a1.mcpl: exit code 0
    |     Storage            : 36 bytes/particle
    | 
 mcpltool -d --stats -o s.pdf a1.mcpl: exit code 1
-   | ERROR: -d can not be used with -o (which saves plots in files).
+   | ERROR: -o can only be used with -H (-S only prints text, for plots use -H, or -w for the viewer).
    | 
    | Run with -h or --help for usage information
 mcpltool --dry-run --hist ekin/MeV --output h.txt a1.mcpl: exit code 1

@@ -15,7 +15,6 @@ Figure 1 (1x1): 'A figure'
   Panel None xlabel=None ylabel=None 
     Text 'Hello'
 printing backend shows: None
-printing backend shows: 'example.mcpl: 1006 particles, sum(weights) = 1006'
    formats: ['txt']
 ==> set_default_backend(PrintingBackend object):
 [object] printing backend shows: 'A figure'
@@ -23,7 +22,6 @@ Figure 1 (1x1): 'A figure'
   Panel None xlabel=None ylabel=None 
     Text 'Hello'
 [object] printing backend shows: None
-[object] printing backend shows: 'example.mcpl: 1006 particles, sum(weights) = 1006'
    formats: ['txt']
 ==> set_default_backend(None):
    available backends: ['matplotlib', 'unicode', 'ascii', 'printing']
@@ -39,27 +37,26 @@ save(fig, 'auto.txt'): no error
 save(fig, 'auto.pdf'): no error
 save(fig, 'auto.html'): MCPLError: Plots can not be saved as .html files (the extension gives the format of the plots: .pdf, .png, .svg, .txt)
 save(fig, 'auto'): MCPLError: The file name auto has no extension (the extension gives the format of the plots: .pdf, .png, .svg, .txt)
-==> mcpltool -H ekin/MeV;bins=3 -B test: exit code 0
+==> mcpltool -H ekin/MeV;bins=3;display_by=single -B test: exit code 0
    | Figure 1 (1x1): None
-   |   Panel None xlabel='ekin/MeV' ylabel='weights per bin' xlim=[0.00139345,9724.96]
-   |     StepHist label=None color=0 bins=3 edges=[0.00139345,9724.96] sum=1006 max=1003 nonzero_bins=2
-==> mcpltool -H ekin/MeV;bins=3 -B foo: exit code 1
+   |   Panel None xlabel='ekin/MeV' ylabel='weights per bin' xlim=[0,10000]
+   |     StepHist label=None color=0 bins=3 edges=[0,10000] sum=1006 max=1003 nonzero_bins=2
+==> mcpltool -H ekin/MeV;bins=3;display_by=single -B foo: exit code 1
    | ERROR: Unknown plotting backend "foo". The plotting backends are: matplotlib, unicode, ascii
    | 
    | Run with -h or --help for usage information
-==> mcpltool -H ekin/MeV;bins=3 -t -B test: exit code 0
+==> mcpltool -H ekin/MeV;bins=3;display_by=single -t -B test: exit code 0
    | Figure 1 (1x1): None
-   |   Panel None xlabel='ekin/MeV' ylabel='weights per bin' xlim=[0.00139345,9724.96]
-   |     StepHist label=None color=0 bins=3 edges=[0.00139345,9724.96] sum=1006 max=1003 nonzero_bins=2
-==> mcpltool -H ekin/MeV;bins=3 -o tool1.txt: exit code 0
+   |   Panel None xlabel='ekin/MeV' ylabel='weights per bin' xlim=[0,10000]
+   |     StepHist label=None color=0 bins=3 edges=[0,10000] sum=1006 max=1003 nonzero_bins=2
+==> mcpltool -H ekin/MeV;bins=3;display_by=single -o tool1.txt: exit code 0
    | Created tool1.txt
-==> mcpltool -H ekin/MeV;bins=3 -o tool2.txt -B test: exit code 0
+==> mcpltool -H ekin/MeV;bins=3;display_by=single -o tool2.txt -B test: exit code 0
    | Created tool2.txt
-==> mcpltool -H ekin/MeV;bins=3 -o tool3.txt -B ascii: exit code 0
+==> mcpltool -H ekin/MeV;bins=3;display_by=single -o tool3.txt -B ascii: exit code 0
    | Created tool3.txt
-==> mcpltool -H ekin/MeV;bins=3 -t: exit code 0
+==> mcpltool -H ekin/MeV;bins=3;display_by=single -t: exit code 0
    | (weights per bin)
    |     1003 ┤███████████████████████
    |          │███████████████████████
    |          │███████████████████████
-plot_stats with set_backend created ['stats.txt'], with warnings: ['DeprecationWarning: The set_backend parameter of plot_stats is deprecated, use matplotlib_backend instead']

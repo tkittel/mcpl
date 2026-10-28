@@ -15,7 +15,24 @@
 # error with MCTOOLS_REQUIRE_ALL_TEST_DEPS=ON). The freebsd_origin field gives
 # the origin of the FreeBSD package (the port, like math/py-numpy), for the
 # FreeBSD CI (origins of Python packages always give the package for the
-# default Python version of FreeBSD).
+# default Python version of FreeBSD), which installs the dependencies with
+# freebsd_pip: true with pip instead (those without FreeBSD packages).
+#
+# Dependencies without pip packages (like parts of Python which not all
+# installations have) have pypi_pkgname: null, and are left out of the
+# pyproject.toml and requirements files. The field check_code gives Python
+# code which the tests run to see if a dependency works (instead of importing
+# it), for dependencies which can be imported without working.
+
+#Added to all the conda environment files, for building from source (pip at
+#least 26.2.2, which no longer trusts the root certificate "emSign ECC Root CA
+#- G3", see discuss.python.org/t/109576):
+conda_env_tools:
+  - c-compiler
+  - cmake
+  - make
+  - pip >=26.2.2
+  - python
 
 packages:
   mcpl-core:
@@ -28,10 +45,21 @@ packages:
     deps:
       BASE:
         - numpy
+      #(the viewer in a window needs tkinter, else it is a plain matplotlib
+      #window):
       plot:
         - matplotlib
+        - tkinter
+      #(curses is in the standard library, except on Windows):
+      curses:
+        - windows-curses
+      #(not in "all", since it is only needed in Jupyter):
+      jupyter:
+        - ipywidgets
+        - ipympl
       all:
         - ADD plot
+        - ADD curses
       #(not in "all", since scipp needs a more recent Python and numpy):
       scipp:
         - scipp
@@ -51,6 +79,10 @@ packages:
       #(extras of mcpl-python are forwarded):
       plot:
         - mcpl-python[plot]
+      curses:
+        - mcpl-python[curses]
+      jupyter:
+        - mcpl-python[jupyter]
       all:
         - mcpl-python[all]
       scipp:
@@ -76,6 +108,29 @@ dependencies:
   numpy:
     min_version: "1.22"
     freebsd_origin: math/py-numpy
+  windows-curses:
+    min_version: "2.3"
+    import_check: curses
+    only_on: [ Windows ]
+    #(not on conda-forge):
+    conda_pkgname: null
+  tkinter:
+    #(part of Python, but not of all installations, so there is no pip
+    #package; the tests check that Tk can open windows, so test jobs need a
+    #display, like Xvfb on Linux and FreeBSD; no semicolons, as they separate
+    #CMake list entries):
+    pypi_pkgname: null
+    conda_pkgname: tk
+    check_code: "__import__('tkinter').Tk().destroy()"
+    freebsd_origin: x11-toolkits/py-tkinter
+  ipywidgets:
+    min_version: "8.0"
+    freebsd_origin: devel/py-ipywidgets
+  ipympl:
+    min_version: "0.9"
+    #(the FreeBSD port devel/py-ipympl is marked broken, so there are no
+    #packages; to be revisited, e.g. when it is fixed):
+    freebsd_pip: true
   scipp:
     min_version: "26.9"
     min_python: "3.12"

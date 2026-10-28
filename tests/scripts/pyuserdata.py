@@ -455,6 +455,35 @@ def test_expressions():
             print(f'  exit: {e}')
         sys.stdout.flush()
 
+def test_units():
+    print('=== Units of userdata fields in expressions and plots')
+    layout = 'temp:float32:K,theta:float32:deg,d:float64:cm,q:float64:cm^-1,n:int32'
+    with mcpl.MCPLOutFile('units.mcpl',userdata_layout=layout) as o:
+        for i in range(4):
+            o.add_particle(pdgcode=2112,ekin=1.0,position=(i,0,0),direction=(0,0,1),
+                           userdata={'temp':290+2*i,'theta':30*i,'d':10*i,'q':0.5*i,'n':i})
+    f = mcpl.MCPLFile('units.mcpl')
+    b = next(iter(f.particle_blocks))
+    for e in ( 'userdata.temp/K', 'userdata.theta/deg', 'userdata.d/mm', '(userdata.d + x)/cm',
+               'userdata.q*cm', 'userdata.n' ):
+        print(f'{e}:', [ round(float(v),4) for v in mcpl.ParticleValue(e)(b) ])
+    print('userdata.temp > 293K:', [ bool(v) for v in mcpl.ParticleFilter('userdata.temp > 293K')(b) ])
+    for e in ( 'userdata.temp + x', 'userdata.temp > 293', 'userdata.q + userdata.d',
+               'userdata.temp' ):
+        try:
+            v = ( mcpl.ParticleFilter if '>' in e else mcpl.ParticleValue )(e)(b)
+            print(f'{e}: {list(v)}')
+        except mcpl.MCPLError as err:
+            print(f'{e}: MCPLError: {err}')
+    for p in ( 'userdata.temp', 'userdata.d : userdata.temp', 'userdata.d;range=0cm:20cm',
+               'userdata.d;range=0:20', 'userdata.temp;range=0cm:2cm', 'userdata.n;bar',
+               'userdata.d;bar' ):
+        try:
+            panel = mcpl.histogram(f,p).figure().panels[0]
+            print(f'plot {p}: {panel.xlabel} | {panel.ylabel}')
+        except mcpl.MCPLError as err:
+            print(f'plot {p}: MCPLError: {err}')
+
 def main():
     make_inputs()
     ok = test_compare_with_mcpltool()
@@ -463,6 +492,7 @@ def main():
     test_example()
     test_layouts()
     test_expressions()
+    test_units()
     if not ok:
         raise SystemExit('Problems found')
 

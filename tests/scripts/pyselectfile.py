@@ -145,6 +145,38 @@ def test_names_and_errors():
         print(f'MCPLFile with an invalid pick: {err}')
     gc.collect()
 
+def test_range():
+    #skip and limit choose a range of the file, before pick and edit (as -s
+    #and -l of mcpltool), for all block lengths:
+    ref = mcpl.MCPLFile(ex).read_block()
+    for skip, limit, pick in ( (5,None,None), (0,13,None), (250,300,'pdgcode == neutron'),
+                               (999,50,None), (2000,None,None), (10,0,None) ):
+        n = min( len(ref), skip + ( len(ref) if limit is None else limit ) )
+        idx = np.arange(min(skip,len(ref)),n)
+        if pick is not None:
+            idx = idx[ref.pdgcode[idx] == 2112]
+        ok = True
+        for blocklength in ( 7, 100, 10000 ):
+            f = mcpl.MCPLFile(ex, blocklength=blocklength, skip=skip, limit=limit,
+                              pick=pick, edit='z += 1m')
+            got = [ b.fileidx for b in f.particle_blocks ]
+            got = np.concatenate(got) if got else np.zeros(0,dtype=int)
+            ok = ok and np.array_equal(got, idx) and [ p.fileidx for p in f.particles ] == list(idx)
+            ok = ok and np.allclose(np.concatenate([ b.z for b in f.particle_blocks ] or [[]]),
+                                    ref.z[idx] + 100)
+        print(f'skip={skip} limit={limit} pick={pick!r}: {len(idx)} particles, as expected: {ok}')
+        assert ok
+    for bad in ( {'skip':-1}, {'limit':2.5}, {'skip':True} ):
+        try:
+            mcpl.MCPLFile(ex, **bad)
+        except mcpl.MCPLError as e:
+            print(f'{bad}: {e}')
+    try:
+        mcpl.MCPLFile(ex, skip=3).skip_forward(1)
+    except mcpl.MCPLError as e:
+        print(f'skip_forward: {e}')
+
 test_read()
+test_range()
 test_write()
 test_names_and_errors()

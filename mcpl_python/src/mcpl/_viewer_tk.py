@@ -43,7 +43,13 @@ from ._viewer_tkbase import (
 )
 from ._viewer_tkcards import CardList
 from ._viewer_tkcontrols import Controls, OverviewControls, make_part, row_label, tint
-from ._viewer_tkwindows import AlignWindow, CodeWindow, Examples, HelpWindow, WriteWindow
+from ._viewer_tkwindows import (
+    AlignWindow,
+    CodeWindow,
+    Examples,
+    HelpWindow,
+    WriteWindow,
+)
 from ._viewer_ui import card_colors, colors, part_colors
 from ._viewer_widgets import WidgetViewer, run_with_ctrl_c
 
@@ -316,7 +322,7 @@ class TkViewer(WidgetViewer):
         self._popup = None#(the list of completions: (field, start, Toplevel, Listbox, choices))
         root.bind('<Key>',self._on_root_key)
         root.protocol('WM_DELETE_WINDOW',self.close_window)
-        if root.tk.call('tk','windowingsystem') == 'aqua':
+        if self.system == 'aqua':
             root.configure(menu=self._menubar(root))
             #(Quit in the menu of the application, or Cmd-Q, as closing the window):
             root.createcommand('tk::mac::Quit',self.close_window)

@@ -26,8 +26,8 @@ file"""
 __all__ = []
 
 from . import _viewer_ui as ui
-from ._viewer_tkbase import bind_enter, on_paste, tk_modules
 from ._common import MCPLError
+from ._viewer_tkbase import bind_enter, on_paste, tk_modules
 from ._viewer_ui import card_colors, code_styles, colors
 
 

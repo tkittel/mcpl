@@ -744,11 +744,11 @@ mcpltool -E z = 1cm, x = 0 example.mcpl: exit code 1
    | ERROR: Separate statements with ";" (not ",") in "z = 1cm, x = 0"
    | 
    | Run with "-E help" for how to edit particles with expressions
-mcpltool -p help: exit code 0, 198 lines, starting with:
+mcpltool -p help: exit code 0, 206 lines, starting with:
    | PICK: an expression which is true for the particles to use, for example:
    | 
    | Particle types:
-mcpltool --edit=help: exit code 0, 197 lines, starting with:
+mcpltool --edit=help: exit code 0, 202 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    | 
    | Changing values:

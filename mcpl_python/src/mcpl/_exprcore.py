@@ -93,8 +93,11 @@ _rotation_matrix_args = { 'rotate_around' : 2, 'rotate_frame' : 4 }
 _rotated_vectors = ( ('x','y','z'), ('ux','uy','uz'), ('polx','poly','polz') )
 #Functions of vectors (abs also gives the lengths of vectors):
 _expr_functions_vector = ( 'dot', 'cross', 'angle' )
+#(functions using the position and direction of the particles):
+_expr_functions_flight = { 'through_sphere' : ( 'pos', 'dir' ) }
 _expr_functions = dict( sqrt = np.sqrt, atan2 = np.arctan2, mod = np.mod,
                         **dict.fromkeys(_expr_functions_vector),
+                        **dict.fromkeys(_expr_functions_flight),
                         **_expr_functions_nodim, **_expr_functions_toint,
                         **_expr_functions_samedim )
 
@@ -203,6 +206,8 @@ class _Expr:
         """The particle fields used (including fileidx, and those of the
         vectors used, as x for pos)"""
         vectors = [ _expr_vectors[n] for n in self.names if n in _expr_vectors ]
+        vectors += [ _expr_vectors[v] for n in self.names if n in _expr_functions_flight
+                     for v in _expr_functions_flight[n] ]
         return ( self.names & frozenset(_expr_fields) ).union(*vectors)
 
     @property
@@ -724,6 +729,8 @@ class _ExprEvaluator:
         return tuple(res)
     def call( self, fname, args ):
         fct = _expr_functions[fname]
+        if fname == 'through_sphere':
+            return self.through_sphere(args)
         if fname in _expr_functions_vector or ( fname == 'abs' and len(args) == 1
                                                 and isinstance(args[0],_V) ):
             with np.errstate(divide='ignore',invalid='ignore'):
@@ -849,6 +856,27 @@ class _ExprEvaluator:
             return res
         sub = lambda i, j : self.binop(ast.Sub(),mult(v.c[i],w.c[j]),mult(v.c[j],w.c[i]))
         return _V([ sub(1,2), sub(2,0), sub(0,1) ])
+    def through_sphere( self, args ):
+        """Whether the line of flight of the particles (through their
+        positions, along their directions, in both directions) passes through
+        the sphere with the center and radius"""
+        what = ( 'through_sphere(center,radius) takes the center (a 3D vector) and the'
+                 ' radius of the sphere, as in through_sphere((0,0,1m),5cm)' )
+        if ( len(args) != 2 or not isinstance(args[0],_V) or len(args[0].c) != 3
+             or isinstance(args[1],_V) ):
+            self.error(what)
+        center, radius = args
+        x = self.name('x')
+        for q in ( *center.c, radius ):
+            self.same(q,x,'the center and radius of through_sphere(center,radius), which'
+                      ' must be lengths')
+        if np.any(self.masked( np.asarray(radius.v) < 0 )):
+            self.error('The radius of through_sphere(center,radius) can not be negative')
+        #(the distance of the center from the line is the length of the cross
+        #product of the direction, a unit vector, and the vector to the center):
+        to_center = _V( self.binop(ast.Sub(),c,p) for c, p in zip(center.c,self.name('pos').c) )
+        d = self.vcall('cross',[to_center,self.name('dir')])
+        return _Q(np.less_equal(self.vcall('dot',[d,d]).v,np.square(self.as_float(radius).v)))
     def int_call( self, fname, args, what ):
         """mod, abs, round, floor, ceil, min, max and clamp of integers"""
         if fname == 'mod':

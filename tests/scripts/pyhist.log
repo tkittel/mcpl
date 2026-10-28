@@ -25,12 +25,17 @@ panel(logz=False) of the default: False
 'x : y : z;equal': Histogram option "equal" (equal scales of the axes) can only be used for 2D histograms, in "x : y : z;equal"
 3D: Points3D {None: (100, 3)} ['x [cm]', 'y [cm]', 'z [cm]'] 1006
 same sample: True
-split: {'n (2112)': 726, 'gamma (22)': 239, 'other': 41} {'n (2112)': 0, 'gamma (22)': 8, 'other': 9}
+split: {'mod(fileidx,10) = 0': 101, 'mod(fileidx,10) = 1': 101, 'mod(fileidx,10) = 2': 101, 'mod(fileidx,10) = 3': 101, 'mod(fileidx,10) = 4': 101, 'mod(fileidx,10) = 5': 101, 'mod(fileidx,10) = 6': 100, 'other': 300} {}
 Figure 1 (1x1): None
   Panel 'pick: ekin > 1keV' xlabel='ux' ylabel='uy' 
-    Scatter3D label='n (2112)' color=0 points=726 x=[-0.994109,0.993176] y=[-0.994904,0.979886] z=[0.0794396,0.999233]
-    Scatter3D label='γ (22)' color=8 points=239 x=[-0.934464,0.995773] y=[-0.943447,0.96159] z=[0.053197,0.999794]
-    Scatter3D label='other' color=9 points=41 x=[-0.900682,0.884409] y=[-0.947483,0.62116] z=[-0.734438,0.999994]
+    Scatter3D label='mod(fileidx,10) = 0' color=0 points=101 x=[-0.952691,0.983025] y=[-0.983829,0.972862] z=[0.0836284,0.999082]
+    Scatter3D label='mod(fileidx,10) = 1' color=1 points=101 x=[-0.934464,0.965526] y=[-0.936342,0.979886] z=[0.146776,0.996766]
+    Scatter3D label='mod(fileidx,10) = 2' color=2 points=101 x=[-0.946124,0.95677] y=[-0.951279,0.889154] z=[0.0920351,0.998256]
+    Scatter3D label='mod(fileidx,10) = 3' color=3 points=101 x=[-0.959858,0.993176] y=[-0.881352,0.958532] z=[0.0857445,0.999978]
+    Scatter3D label='mod(fileidx,10) = 4' color=4 points=101 x=[-0.876218,0.961164] y=[-0.972122,0.977327] z=[-0.734438,0.999898]
+    Scatter3D label='mod(fileidx,10) = 5' color=5 points=101 x=[-0.861244,0.995773] y=[-0.918314,0.921416] z=[0.053197,0.998486]
+    Scatter3D label='mod(fileidx,10) = 6' color=6 points=100 x=[-0.935036,0.983604] y=[-0.913236,0.911936] z=[0.149306,0.999588]
+    Scatter3D label='other' color=7 points=300 x=[-0.994109,0.985248] y=[-0.994904,0.977384] z=[0.0794396,0.999994]
 ['# 3D plot of: ux : uy : uz', '# pick: ekin > 1keV', '# values: 1006 points (of 1006 particles)', '# x | y | z | group']
 more points than particles: 1006 of 1006
 range of values from 0.3 to 20.5: 0 to 22
@@ -155,8 +160,7 @@ histogram('mod(floor(ekin/MeV),3);bar=auto;logy=0',{}):
 Figure 1 (1x1): None
   Panel None xlabel='weights' ylabel='mod(floor(ekin/MeV),3)' 
     Bars '0 (62.43%)'=628, '1 (24.35%)'=245, '2 (13.22%)'=133 (horizontal)
-split with groups=3: ['n (2112)', 'gamma (22)', 'other'] {'n (2112)': 0, 'gamma (22)': 8, 'other': 9}
-split with max_curves=4: ['n (2112)', 'gamma (22)', 'e- (11)', 'other'] {'n (2112)': 0, 'gamma (22)': 8, 'e- (11)': 1, 'other': 9}
+split in at most 8 curves: ['mod(fileidx,10) = 0', 'mod(fileidx,10) = 1', 'mod(fileidx,10) = 2', 'mod(fileidx,10) = 3', 'mod(fileidx,10) = 4', 'mod(fileidx,10) = 5', 'mod(fileidx,10) = 6', 'other'] {}
 histogram('wavelength;bins=3',{}): label 'wavelength [Aa] (n/gamma only)', contents [726.0, 239.0]
 histogram('wavelength;bins=3',{'pick': 'pdgcode == neutron'}): label 'wavelength [Aa]', contents [726.0]
 histogram('wavelength;display_by=pdgcode;bins=3',{}): label 'wavelength [Aa] (n/gamma only)', contents [726.0, 239.0]
@@ -168,8 +172,7 @@ histogram('pdgcode;bar=on',{}): Histogram option "bar" must be a number of at le
 histogram('pdgcode;bar=auto;logx=1',{}): Histogram option "logx" can not be used for bar charts (logy=1 gives a logarithmic scale of the bars), in "pdgcode;bar=auto;logx=1"
 histogram('pdgcode;bar=auto;display_by=pdgcode',{}): Histogram option "display_by" can not be used for bar charts, in "pdgcode;bar=auto;display_by=pdgcode"
 histogram('x:y;bar=auto',{}): Histogram option "bar" can not be used for 2D histograms, in "x:y;bar=auto"
-histogram('ekin/MeV;groups=3',{}): no error
-histogram('ekin/MeV;display_by=pdgcode;groups=1',{}): Histogram option "groups" must be a number of at least 2 or auto (not "1"), in "ekin/MeV;display_by=pdgcode;groups=1"
+histogram('ekin/MeV;groups=3',{}): Unknown histogram option "groups" in "ekin/MeV;groups=3" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, points, equal, display_only)
 histogram('pdgcode',{'bar': 1}): The histogram argument bar must be True or a number of at least 2 (not 1)
 histogram('pdgcode',{'bar': 'auto'}): The histogram argument bar must be True or a number of at least 2 (not 'auto')
 histogram('pdgcode;bar=auto',{'bar': 4}): The histogram option bar can not be given both as an argument and in the expression "pdgcode;bar=auto"
@@ -237,9 +240,14 @@ Figure 1 (1x1): None
 underflow: {'example.mcpl': 51.0, 'reffile_1.mcpl': 0.0} overflow: {'example.mcpl': 43.0, 'reffile_1.mcpl': 0.0}
 Figure 1 (1x1): None
   Panel None xlabel='pdgcode' ylabel='weights per bin' xlim=[-300,2300]
-    StepHist label='n (2112)' color=0 bins=26 edges=[-300,2300] sum=726 max=726 nonzero_bins=1
-    StepHist label='γ (22)' color=8 bins=26 edges=[-300,2300] sum=239 max=239 nonzero_bins=1
-    StepHist label='other' color=9 bins=26 edges=[-300,2300] sum=41 max=16 nonzero_bins=5
+    StepHist label='mod(fileidx,10) = 0' color=0 bins=26 edges=[-300,2300] sum=101 max=72 nonzero_bins=4
+    StepHist label='mod(fileidx,10) = 1' color=1 bins=26 edges=[-300,2300] sum=101 max=68 nonzero_bins=4
+    StepHist label='mod(fileidx,10) = 2' color=2 bins=26 edges=[-300,2300] sum=101 max=72 nonzero_bins=5
+    StepHist label='mod(fileidx,10) = 3' color=3 bins=26 edges=[-300,2300] sum=101 max=73 nonzero_bins=3
+    StepHist label='mod(fileidx,10) = 4' color=4 bins=26 edges=[-300,2300] sum=101 max=75 nonzero_bins=6
+    StepHist label='mod(fileidx,10) = 5' color=5 bins=26 edges=[-300,2300] sum=101 max=75 nonzero_bins=6
+    StepHist label='mod(fileidx,10) = 6' color=6 bins=26 edges=[-300,2300] sum=100 max=74 nonzero_bins=3
+    StepHist label='other' color=7 bins=26 edges=[-300,2300] sum=300 max=217 nonzero_bins=4
 Figure 1 (1x1): None
   Panel 'pick: pdgcode == gamma' xlabel='x/cm' ylabel='y/cm' 
     Hist2D shape=(10, 10) x=[-27.5,25] y=[-45,35] sum=239 logz=True
@@ -526,7 +534,7 @@ mcpltool -H x/cm;logx=1;logx=1 example.mcpl: exit code 1
    | 
    | Run with "-H help" for how to write histograms
 mcpltool -H x/cm;foo example.mcpl: exit code 1
-   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, groups, bar, unweighted, print, points, equal, display_only)
+   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, points, equal, display_only)
    | 
    | Run with "-H help" for how to write histograms
 mcpltool -H x/cm -B foo example.mcpl: exit code 1
@@ -744,7 +752,7 @@ mcpltool --edit=help: exit code 0, 197 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    | 
    | Changing values:
-mcpltool -H help example.mcpl: exit code 0, 82 lines, starting with:
+mcpltool -H help example.mcpl: exit code 0, 80 lines, starting with:
    | HIST: what to plot, an expression of the particles (written as for -p),
    | or two separated by ":" for a 2D histogram (or three for a 3D plot of a
    | sample of the particles, in windows), followed by options separated by ";".

@@ -499,7 +499,7 @@ def test_canonical():
     for h in ( 'ekin/MeV;logx=1;bins=50', 'ekin / MeV ; bins=50 ;logx=1', '(ekin)/MeV;bins=50;logx=1',
                'x/cm : y/cm;xrange=-1:1', 'x/cm:y/cm;xrange=-1.0:1', 'ekin/MeV;display_by=pdgcode==22',
                'ekin;logy', 'ekin;logy=1', 'ekin;logy=0', 'pdgcode;bar', 'pdgcode;bar=auto',
-               'x;lethargy;unweighted', 'x;bins', 'x;display_by', 'x;groups',
+               'x;lethargy;unweighted', 'x;bins', 'x;display_by',
                'x;display_by=single', 'x : y;display_by=1' ):
         try:
             print(f'histogram {h!r}: {_hist_key(h)!r}')

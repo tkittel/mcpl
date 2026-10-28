@@ -216,7 +216,6 @@ histogram 'pdgcode;bar=auto': 'pdgcode;bar'
 histogram 'x;lethargy;unweighted': 'x;lethargy;unweighted'
 histogram 'x;bins': Histogram option "bins" needs a value, like bins=..., in "x;bins"
 histogram 'x;display_by': Histogram option "display_by" needs a value, like display_by=..., in "x;display_by"
-histogram 'x;groups': Histogram option "groups" needs a value, like groups=..., in "x;groups"
 histogram 'x;display_by=single': 'x;display_by=single'
 histogram 'x : y;display_by=1': 'x:y'
 pos.x/cm as with numpy

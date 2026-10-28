@@ -570,7 +570,7 @@ _range = range#(the name range is shadowed by arguments below)
 
 def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
                logx = False, unweighted = False, display_by = None,
-               display_only = None, lethargy = False, max_curves = None, bar = False,
+               display_only = None, lethargy = False, bar = False,
                _maxbins = None ):
     """Histogram of the values of an expression (see ParticleValue) for the
     particles in one or more files (picked with pick, see ParticleFilter),
@@ -592,8 +592,8 @@ def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
 
     There is a curve for each value of the expression display_by, by default
     pdgcode (a curve for each particle type), e.g. display_by="x > 0cm", or
-    "single" for one curve, for at most max_curves values (by default 8),
-    the others are combined into one. With several files, there is a curve for each
+    "single" for one curve, for at most 8 values, the others are combined
+    into one. With several files, there is a curve for each
     file (and of each value of display_by in each file, if it is given), and
     the 2D histograms and 3D plots of histogram strings combine the files.
     With display_only (a condition, or a particle type like "neutron"), only
@@ -609,7 +609,7 @@ def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
     given = { 'bins' : None if bins == 'auto' else bins, 'range' : range,
               'logx' : logx, 'unweighted' : unweighted, 'display_by' : display_by,
               'display_only' : display_only,
-              'lethargy' : lethargy, 'groups' : max_curves,
+              'lethargy' : lethargy,
               'bar' : bar }
     o = _hist_with_args(expression,given)
     if o['print']:
@@ -685,7 +685,6 @@ def _filler_for( o, pick = None, labels = ( None, ), _maxbins = None ):
     if len(o['exprs']) == 3:
         return _Points3DFiller(o['exprs'],pick = pick,points = o['points'],
                                unweighted = o['unweighted'],display_by = display_by,
-                               max_curves = o['groups'] or 8,
                                display_only = display_only)
     if len(o['exprs']) == 2:
         return _Hist2DFiller(o['exprs'][0],o['exprs'][1],pick = pick,bins = bins,
@@ -701,7 +700,7 @@ def _filler_for( o, pick = None, labels = ( None, ), _maxbins = None ):
                           display_only = display_only)
     return _Hist1DFiller(o['exprs'][0],pick = pick,bins = bins,range = o['range'],
                          logx = o['logx'],unweighted = o['unweighted'],display_by = display_by,
-                         lethargy = o['lethargy'],max_curves = o['groups'] or 8,
+                         lethargy = o['lethargy'],
                          logy = o['logy'] or False,labels = labels,_maxbins = _maxbins,
                          display_only = display_only)
 

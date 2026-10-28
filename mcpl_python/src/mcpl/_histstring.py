@@ -34,7 +34,7 @@ from ._exprsyntax import _dim_unknown
 #kinds of their values (bool: 1 or 0, auto: also auto):
 _hist_options = { 'bins' : 'bins', 'range' : 'range', 'xrange' : 'range',
                   'yrange' : 'range', 'logx' : 'auto', 'logy' : 'auto', 'logz' : 'bool',
-                  'lethargy' : 'bool', 'display_by' : 'expr', 'groups' : 'count',
+                  'lethargy' : 'bool', 'display_by' : 'expr',
                   'bar' : 'count', 'unweighted' : 'bool', 'print' : 'bool',
                   'points' : 'count', 'equal' : 'bool', 'display_only' : 'pick' }
 #The values of the options given without a value (as "logy" or "bar"):
@@ -74,7 +74,7 @@ def _hist_defaults( exprs ):
     histograms, or three for 3D plots) when none are given"""
     return { 'exprs' : list(exprs), 'bins' : None, 'range' : None, 'xrange' : None,
              'yrange' : None, 'logx' : False, 'logy' : None, 'logz' : None, 'lethargy' : False,
-             'display_by' : None, 'unweighted' : False, 'print' : False, 'groups' : None,
+             'display_by' : None, 'unweighted' : False, 'print' : False,
              'bar' : False, 'points' : None, 'equal' : False, 'display_only' : None }
 
 def _parse_hist( text ):
@@ -231,9 +231,6 @@ def _check_hist_options( o, text ):
     if o['logz'] is not None and len(o['exprs']) != 2:
         raise MCPLError(f'Histogram option "logz" (the colour scale) can only be used'
                         f' for 2D histograms, in "{text}"')
-    if o['groups'] is not None and _display_by(o) is None:
-        raise MCPLError(f'Histogram option "groups" can only be used with several curves'
-                        f' (see display_by), in "{text}"')
 
 class _Range:
     """Range of an axis of a histogram: lo and hi in the units of MCPL, with
@@ -361,17 +358,12 @@ def _hist_with_args( expression, given ):
     for name, v in given.items():
         if v is None or v is False:
             continue
-        #(the arguments of mcpl.histogram which have other names than their
-        #options):
-        arg = { 'groups' : 'max_curves' }.get(name,name)
         if o[name] not in ( None, False ):
             raise MCPLError(f'The histogram option {name} can not be given'
                             ' both as an argument and in the expression'
                             f' "{expression}"')
-        if name in ( 'bar', 'groups' ) and not ( ( v is True and name == 'bar' ) or
-                                                 ( type(v) is int and v >= 2 ) ):
-            what = 'True or a number' if name == 'bar' else 'a number'
-            raise MCPLError(f'The histogram argument {arg} must be {what} of at least 2'
+        if name == 'bar' and not ( v is True or ( type(v) is int and v >= 2 ) ):
+            raise MCPLError('The histogram argument bar must be True or a number of at least 2'
                             f' (not {v!r})')
         if name == 'display_only':
             _display_only_condition(v)

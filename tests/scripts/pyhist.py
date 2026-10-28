@@ -69,7 +69,8 @@ def test_histograms():
     h = mcpl.histogram([example_file, ref1], 'x/cm', range=(-20,20), bins=8)
     show(h)
     print('underflow:', h.underflow, 'overflow:', h.overflow)
-    h = mcpl.histogram(example_file, 'pdgcode', display_by='pdgcode', max_curves=3,
+    #(at most 8 curves, the others combined into one):
+    h = mcpl.histogram(example_file, 'pdgcode', display_by='mod(fileidx,10)',
                        range=(-300,2300), bins=26)
     show(h)
     h = mcpl.histogram2d(example_file, 'x/cm', 'y/cm', bins=10,
@@ -285,10 +286,8 @@ def test_bars_groups_domains():
         print(f'histogram({e!r},{kw}):')
         print(h.to_text())
         show(h)
-    h = mcpl.histogram(ex,'ekin/MeV;display_by=pdgcode;groups=3;bins=3')
-    print('split with groups=3:', list(h.contents), h.colors)
-    h = mcpl.histogram(ex,'ekin/MeV',display_by='pdgcode',max_curves=4,bins=3)
-    print('split with max_curves=4:', list(h.contents), h.colors)
+    h = mcpl.histogram(ex,'ekin/MeV',display_by='mod(fileidx,10)',bins=3)
+    print('split in at most 8 curves:', list(h.contents), h.colors)
     for e, kw in ( ( 'wavelength;bins=3', {} ), ( 'wavelength;bins=3', { 'pick' : 'pdgcode == neutron' } ),
                    ( 'wavelength;display_by=pdgcode;bins=3', {} ), ( 'round(1000*wavelength/Aa);bar=auto', { 'pick' : 'ekin > 1GeV' } ) ):
         h = mcpl.histogram(ex,e,**kw)
@@ -297,7 +296,7 @@ def test_bars_groups_domains():
     print('histogram2d(wavelength,x):', h.xlabel, '|', h.ylabel, '|', h.contents.sum())
     for e, kw in ( ( 'x;bar=auto', {} ), ( 'pdgcode;bar=1', {} ), ( 'pdgcode;bar=on', {} ),
                    ( 'pdgcode;bar=auto;logx=1', {} ), ( 'pdgcode;bar=auto;display_by=pdgcode', {} ),
-                   ( 'x:y;bar=auto', {} ), ( 'ekin/MeV;groups=3', {} ), ( 'ekin/MeV;display_by=pdgcode;groups=1', {} ),
+                   ( 'x:y;bar=auto', {} ), ( 'ekin/MeV;groups=3', {} ),
                    ( 'pdgcode', { 'bar' : 1 } ), ( 'pdgcode', { 'bar' : 'auto' } ),
                    ( 'pdgcode;bar=auto', { 'bar' : 4 } ), ( 'pdgcode', { 'bar' : True, 'logx' : True } ),
                    ( 'ekin/MeV;bar=auto', {} ), ( 'round(x);bar=auto', {} ),
@@ -339,7 +338,7 @@ def test_3d():
           h.nparticles)
     same = mcpl.histogram(ex,'x : y : z;points=100;display_by=single')
     print('same sample:', np.array_equal(h.groups[None],same.groups[None]))
-    h = mcpl.histogram(ex,'ux : uy : uz;display_by=pdgcode;groups=3',pick='ekin > 1keV')
+    h = mcpl.histogram(ex,'ux : uy : uz;display_by=mod(fileidx,10)',pick='ekin > 1keV')
     print('split:', { k : len(v) for k, v in h.groups.items() }, h.colors)
     print(describe([ h.figure() ]))
     print(h.to_text().splitlines()[:4])

@@ -51,7 +51,7 @@ def test_histograms():
         show(h.figure(), backend)
     #Several curves (markers and legend), and a logarithmic y axis:
     h = mcpl.histogram(example_file, 'ekin/MeV', logx=True, bins=50,
-                       display_by='pdgcode', max_curves=3)
+                       display_by='pdgcode')
     show(h.figure(logy=True), 'unicode', height=10)
     h = mcpl.histogram(example_file, 'acos(uz)/deg', range=(0,180), bins=36,
                        display_by='x > 0cm')

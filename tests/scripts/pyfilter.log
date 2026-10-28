@@ -287,6 +287,10 @@ rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0)) is exactly rotate_y(90deg)
 rotate_around((1,2,3),37deg) as with the formula of Rodrigues
 rotate_frame((0,0,1),(1,1,0),(0,1,0),(0,0,1)) turns (0,0,1) into (1,1,0)/sqrt(2) and (0,1,0) into (0,0,1)
 rotate_around(dir,33deg) keeps the directions
+rotate_around: 10000 random rotations are proper rotations: True
+rotate_frame: 10000 random rotations are proper rotations: True
+rotate_frame (mirrored vout and uout): 10000 random rotations are proper rotations: True
+nearly parallel: vout and uout must not be parallel
 normalised selection: 'pdgcode == neutron and ekin < 1MeV and hypot(x,y) < 10 cm'
 normalised edit: 'z = 0cm; wavelength = 1.8Aa'
 normalised value: 'ekin / eV'

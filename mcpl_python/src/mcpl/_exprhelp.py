@@ -295,18 +295,20 @@ _intro = {
   -p "pdgcode == neutron and ekin < 25meV"
   -p "hypot(x,y) < 10cm and angle_to(0,0,1) < 1deg"
   -p "(userflags & 0xff) == 7 or time > 10us"
-The operators are: + - * / (and ^ for powers), == != < <= > >=, and, or,
+The operators are: + - * / // (and ^ for powers), == != < <= > >=, and, or,
 not (and & | for bits). Values with units must be written with units
 (e.g. 25meV or 10cm), except for a plain 0 (e.g. x > 0), and the wavelength
 can only be used for neutrons and gammas, which must be picked first (e.g.
 "pdgcode == neutron and wavelength > 1.8Aa"). Integers (like pdgcode,
 userflags, and integer userdata) work essentially as in C, but with more
-protection against problems like overflow.''',
+protection against problems like overflow. The operator / always divides as
+floating point numbers (e.g. 1/2 is 0.5), and // divides non-negative
+integers (e.g. 7//2 is 3).''',
     'edit' : '''EDIT: statements separated by ";", executed in order, e.g.
   -E "z += 1cm;weight *= 0.5"
   -E "rotate_y(90deg);x += 10cm"
   -E "tmp = x;x = y;y = tmp"
-The statements are assignments to fields (=, +=, -=, *= and /=, with values
+The statements are assignments to fields (=, +=, -=, *=, /= and //=, with values
 in the units of the field, and wavelength = ... changing ekin), assignments
 to variables (other lowercase names, which can be used in later statements),
 and the statements listed below. The expressions are written as for -p (see

@@ -2,9 +2,11 @@ v2.2.9  (work in progress)
       * Expressions can use the fields of the userdata, as userdata.NAME (and
         userdata.NAME.at(INDEX) for arrays), with the units of their layout
         (and the new unit K), e.g. -p "userdata.temp > 300K". Integers work
-        essentially as in C (e.g. 7/2 is 3), but with errors for overflow and
-        for unsigned integers combined with negative values. The operators ~
-        and // are no longer supported, and & and | only work on integers.
+        essentially as in C, but with errors for overflow and for unsigned
+        integers combined with negative values. The operator / always divides
+        as floating point numbers (1/2 is 0.5), and // divides non-negative
+        integers (7//2 is 3). The operator ~ is no longer supported, and & and
+        | only work on integers.
       * Some more names are reserved for userdata fields (e.g. class, from,
         if and pass).
       * mcpl_closeandgzip_outfile no longer compresses output files left

@@ -325,7 +325,8 @@ def test_angle_to():
 def test_integers():
     #Integers work essentially as in C, but results which do not fit in their
     #type (like in C) are errors instead of wrapping around, and so are
-    #unsigned integers combined with negative values:
+    #unsigned integers combined with negative values. The operator / divides as
+    #floating point numbers, and // divides non-negative integers:
     print('Integers:')
     with mcpl.MCPLOutFile('ints.mcpl', opt_userflags = True) as o:
         o.add_particles( ekin = 1.0, uz = 1.0, weight = 1.0,
@@ -335,8 +336,9 @@ def test_integers():
         b = f.read_block()
     for e in ( 'userflags > 0', 'userflags & 0x80000000', '(userflags & 0xff) == 0xff',
                'userflags | 0x10 == 0x11', 'userflags + 1 > 1',
-               'userflags * 2 > 1', 'userflags/2 == 0', 'pdgcode/1000 == 2',
-               'pdgcode/1000 == -2', 'pdgcode * 1000000 > 0',
+               'userflags * 2 > 1', 'userflags/2 == 0.5', '7/2 == 3.5', '1/2 == 0.5',
+               'userflags//2 == 0', 'abs(pdgcode)//1000 == 2', '7//2 == 3',
+               'pdgcode/1000 < -2', 'pdgcode * 1000000 > 0',
                'mod(abs(pdgcode),2) == 0', 'abs(pdgcode) == 2212', '-pdgcode < 0',
                'min(pdgcode,0) < 0', 'clamp(pdgcode,0,2200) == 2200',
                'userflags == 4294967295', 'pdgcode/1000.0 < 0',
@@ -344,9 +346,10 @@ def test_integers():
                #Errors:
                'userflags - 1 > 0', 'userflags + 4294967295 > 0',
                'pdgcode * 1000000000 > 0', 'userflags > -1', 'userflags & -1',
-               'userflags / 0 > 0', 'mod(pdgcode,3) == 1', 'mod(userflags,0) == 0',
+               'userflags / 0 > 0', 'userflags // 0 > 0', 'pdgcode // 1000 == 2',
+               '7 // -2 == -3', 'x // cm > 0', '7.0 // 2 == 3', 'mod(pdgcode,3) == 1', 'mod(userflags,0) == 0',
                '-userflags < 0', 'userflags & 2^3', '(x > 0) & (y > 0)',
-               '~userflags == 0', 'userflags // 2 > 0',
+               '~userflags == 0',
                '18446744073709551616 > 0' ):
         try:
             print(f'  {e}: {mcpl.ParticleFilter(e)(b).tolist()}')
@@ -357,6 +360,7 @@ def test_integers():
           mcpl.ParticleFilter('userflags > 0 and userflags - 1 == 0')(b).tolist())
     #Values assigned to pdgcode and userflags must fit:
     for e in ( 'userflags = userflags + 1', 'userflags = userflags / 2',
+               'userflags = userflags // 2',
                'pdgcode = pdgcode * 1.0', 'pdgcode = 2.5',
                'pdgcode = 4294967295', 'swap(pdgcode,userflags)' ):
         try:

@@ -5,9 +5,13 @@ Integers:
   userflags | 0x10 == 0x11: [False, True, False]
   userflags + 1 > 1: MCPLError: Addition of integers gives values outside the range of the result (unsigned 32-bit integers) in expression "userflags + 1 > 1"
   userflags * 2 > 1: MCPLError: Multiplication of integers gives values outside the range of the result (unsigned 32-bit integers) in expression "userflags * 2 > 1"
-  userflags/2 == 0: [True, True, False]
-  pdgcode/1000 == 2: [True, True, False]
-  pdgcode/1000 == -2: [False, False, True]
+  userflags/2 == 0.5: [False, True, False]
+  7/2 == 3.5: [True, True, True]
+  1/2 == 0.5: [True, True, True]
+  userflags//2 == 0: [True, True, False]
+  abs(pdgcode)//1000 == 2: [True, True, True]
+  7//2 == 3: [True, True, True]
+  pdgcode/1000 < -2: [False, False, True]
   pdgcode * 1000000 > 0: MCPLError: Multiplication of integers gives values outside the range of the result (32-bit integers) in expression "pdgcode * 1000000 > 0"
   mod(abs(pdgcode),2) == 0: [True, True, True]
   abs(pdgcode) == 2212: [False, True, True]
@@ -23,18 +27,23 @@ Integers:
   pdgcode * 1000000000 > 0: MCPLError: Multiplication of integers gives values outside the range of the result (32-bit integers) in expression "pdgcode * 1000000000 > 0"
   userflags > -1: MCPLError: Unsigned integers (like userflags) can not be combined with negative values (in a comparison) in expression "userflags > -1"
   userflags & -1: MCPLError: Unsigned integers (like userflags) can not be combined with negative values (in the operation &) in expression "userflags & -1"
-  userflags / 0 > 0: MCPLError: Division by zero (of integers) in expression "userflags / 0 > 0"
+  userflags / 0 > 0: MCPLError: Division gives NaN or infinite values in expression "userflags / 0 > 0"
+  userflags // 0 > 0: MCPLError: Division by zero (of integers) in expression "userflags // 0 > 0"
+  pdgcode // 1000 == 2: MCPLError: The operator // can not be used with negative values in expression "pdgcode // 1000 == 2"
+  7 // -2 == -3: MCPLError: The operator // can not be used with negative values in expression "7 // -2 == -3"
+  x // cm > 0: MCPLError: The operator // can only be used with integers (/ divides as floating point numbers) in expression "x // cm > 0"
+  7.0 // 2 == 3: MCPLError: The operator // can only be used with integers (/ divides as floating point numbers) in expression "7.0 // 2 == 3"
   mod(pdgcode,3) == 1: MCPLError: mod(a,b) can not be used with negative values in expression "mod(pdgcode,3) == 1"
   mod(userflags,0) == 0: MCPLError: Division by zero in mod(a,b) in expression "mod(userflags,0) == 0"
   -userflags < 0: MCPLError: Negation of unsigned integers (like userflags) gives negative values, which they can not have in expression "-userflags < 0"
   userflags & 2^3: MCPLError: The bitwise operator & can only be used with integers (use "and" and "or" for logical and/or) in expression "userflags & 2^3"
   (x > 0) & (y > 0): MCPLError: The bitwise operator & can only be used with integers (use "and" and "or" for logical and/or) in expression "(x > 0) & (y > 0)"
   ~userflags == 0: MCPLError: The operator ~ is not supported in expressions (e.g. "(userflags & 0x10) == 0" tests that a bit is not set), in expression "~userflags == 0"
-  userflags // 2 > 0: MCPLError: The operator // is not supported in expressions (use /, which divides integers like in C, e.g. 7/2 is 3), in expression "userflags // 2 > 0"
   18446744073709551616 > 0: MCPLError: The integer 18446744073709551616 is too large (integers must fit in 64 bits) in expression "18446744073709551616 > 0"
   userflags > 0 and userflags - 1 == 0: [False, True, False]
   edit userflags = userflags + 1: MCPLError: Addition of integers gives values outside the range of the result (unsigned 32-bit integers) in expression "userflags = userflags + 1"
-  edit userflags = userflags / 2: {'userflags': [0, 0, 2147483647]}
+  edit userflags = userflags / 2: MCPLError: Non-integer values assigned to userflags in expression "userflags = userflags / 2"
+  edit userflags = userflags // 2: {'userflags': [0, 0, 2147483647]}
   edit pdgcode = pdgcode * 1.0: {'pdgcode': [2112, 2212, -2212]}
   edit pdgcode = 2.5: MCPLError: Non-integer values assigned to pdgcode in expression "pdgcode = 2.5"
   edit pdgcode = 4294967295: MCPLError: Values assigned to pdgcode must be integers from -2147483648 to 2147483647, in expression "pdgcode = 4294967295"

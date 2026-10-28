@@ -69,8 +69,9 @@ def _rotation_matrix( fname, args ):
         v, vo, u, uo = ( unit(vec(i)) for i in ( 0, 3, 6, 9 ) )
         if v is None or u is None or vo is None or uo is None:
             return 'the vectors must not be zero'
-        if np.any( np.linalg.norm(np.cross(v,u),axis=-1) <= tol ):
-            return 'v and u must not be parallel'
+        for a, b, names in ( ( v, u, 'v and u' ), ( vo, uo, 'vout and uout' ) ):
+            if np.any( np.linalg.norm(np.cross(a,b),axis=-1) <= tol ):
+                return f'{names} must not be parallel'
         if np.any( np.abs( np.sum(v*u,axis=-1) - np.sum(vo*uo,axis=-1) ) > tol ):
             return 'the angle between v and u must be that between vout and uout'
         def frame( e1, w ):

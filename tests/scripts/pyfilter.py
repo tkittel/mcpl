@@ -306,6 +306,23 @@ def test_exact_rotations():
     r = mcpl.ParticleEdit('rotate_around(dir,33deg)')(b)
     assert np.allclose(r['ux'],ux) and np.allclose(r['uy'],uy)
     print('rotate_around(dir,33deg) keeps the directions')
+    #All rotations are proper rotations (never reflections), also when
+    #rotate_frame is given the mirror image of a rotated pair of vectors, and
+    #nearly parallel vectors give errors instead of NaN:
+    from mcpldev._exprrotation import _rotation_matrix
+    rng = np.random.default_rng(123)
+    n = 10000
+    q = _rotation_matrix('rotate_around',[ *rng.normal(size=(3,n)), rng.uniform(-10,10,n) ])
+    v, u = rng.normal(size=(3,n)), rng.normal(size=(3,n))
+    vo, uo = np.einsum('nij,jn->in',q,v), np.einsum('nij,jn->in',q,u)
+    for name, args in ( ('rotate_around',[ *rng.normal(size=(3,n)), rng.uniform(-10,10,n) ]),
+                        ('rotate_frame',[ *v, *vo, *u, *uo ]),
+                        ('rotate_frame (mirrored vout and uout)',[ *v, -vo[0], *vo[1:], *u, -uo[0], *uo[1:] ]) ):
+        m = _rotation_matrix(name.split()[0],args)
+        ok = ( np.allclose(np.linalg.det(m),1.0)
+               and np.allclose(m @ np.swapaxes(m,1,2),np.eye(3)) )
+        print(f'{name}: {n} random rotations are proper rotations: {ok}')
+    print('nearly parallel:',_rotation_matrix('rotate_frame',[0,0,1,0,0,1,1.01e-6,0,1,0,0,1]))
 
 def test_whitespace():
     #Whitespace, including newlines, is normalised to single spaces:

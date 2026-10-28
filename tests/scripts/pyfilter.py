@@ -170,7 +170,7 @@ def test_expressions():
                 'rotate_around((0,0,1))', 'rotate_around((0,0,0),10deg)', 'rotate_around((0,0,1),1cm)',
                 'rotate_around((1cm,0,1),10deg)', 'rotate_around(0,0,1,10deg)', 'rotate_around((0,1),10deg)',
                 'rotate_around(1,10deg)', 'rotate_frame((0,0,1),(0,1,0))',
-                'rotate_x(90)', 'rotate_z(-45)', 'rotate_around((0,0,1),30)',
+                'rotate_x(90)', 'rotate_z(-45)', 'rotate_around((0,0,1),30)', 'rotate_x(090deg)',
                 'rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)',
                 'rotate_frame((0,0,1),(1,0,0),(0,0,2),(0,1,0))', 'rotate_frame((0,0,1),(1,0,0),(0,1,0),(1,1,0))',
                 'pos = (1cm,2cm)', 'pos = 1cm', 'dir = (0,0,1cm)', 'x = pos', 'pos += 1cm',

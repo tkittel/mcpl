@@ -453,6 +453,7 @@ ParticleEdit('rotate_frame((0,0,1),(0,1,0))'): rotate_frame(..) takes 4 argument
 ParticleEdit('rotate_x(90)'): The angle of rotate_x(..) must have a unit, as in 90deg or 90rad (not 90), in "rotate_x(90)"
 ParticleEdit('rotate_z(-45)'): The angle of rotate_z(..) must have a unit, as in -45deg or -45rad (not -45), in "rotate_z(-45)"
 ParticleEdit('rotate_around((0,0,1),30)'): The angle of rotate_around(..) must have a unit, as in 30deg or 30rad (not 30), in "rotate_around((0,0,1),30)"
+ParticleEdit('rotate_x(090deg)'): Invalid number 090 (integers can not start with 0) in expression "rotate_x(090deg)"
 ParticleEdit('rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)'): rotate_frame(..) takes 4 arguments (the vectors v, vout, u and uout, as in rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))) in "rotate_frame(0,0,1,1,0,0,0,1,0,0,1,0)"
 ParticleEdit('rotate_frame((0,0,1),(1,0,0),(0,0,2),(0,1,0))'): In rotate_frame(..), v and u must not be parallel in expression "rotate_frame((0,0,1),(1,0,0),(0,0,2),(0,1,0))"
 ParticleEdit('rotate_frame((0,0,1),(1,0,0),(0,1,0),(1,1,0))'): In rotate_frame(..), the angle between v and u must be that between vout and uout in expression "rotate_frame((0,0,1),(1,0,0),(0,1,0),(1,1,0))"

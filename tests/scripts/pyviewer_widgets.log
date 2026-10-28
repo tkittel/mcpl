@@ -1,7 +1,7 @@
 ==> start, and the end of the reading
    field skip: ''
    field limit: ''
-   field collection: 'spectra,fields,correlations'
+   field groups: 'spectra,fields,correlations'
    field pick: ''
    field edit: ''
    field plot: ''
@@ -52,10 +52,10 @@
    line (dim): Enter: apply   Up/Down: earlier texts   Esc: cancel
 ==> the groups of plots are chosen in a field
    choices: ['spectra', 'fields', 'beamz', 'beamx', 'beamy', '3d', 'correlations']
-   check of collection: True
+   check of groups: True
    line (dim): Up/Down: choose   Enter: apply   Esc: cancel
-   check of collection: None
-   field collection: 'beamz'
+   check of groups: None
+   field groups: 'beamz'
    line (normal): 
    views: 14 views, shown: 'Z beam profile' (None, group Z beam profile, badges ['overview · 7 plots'])
    compact cards: ['Spectra: click to activate', 'Fields: click to activate', 'Position z: all 20 cm', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate', 'Correlations: click to activate']
@@ -67,8 +67,8 @@
    settings: None
    bins used: None
    plot: 12 axes
-   check of collection: None
-   field collection: 'spectra,fields,correlations'
+   check of groups: None
+   field groups: 'spectra,fields,correlations'
    line (normal): 
    views: 54 views, shown: 'Spectra' (None, group Spectra, badges ['overview · 5 plots'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
@@ -442,7 +442,7 @@
    plot: 6 axes
    field skip: ''
    field limit: ''
-   field collection: 'spectra,fields,correlations'
+   field groups: 'spectra,fields,correlations'
    field pick: 'pdgcode == neutron'
    field edit: ''
    field plot: ''
@@ -524,7 +524,7 @@
 ==> the most correlated variables of a single particle (none varies)
    field skip: ''
    field limit: '1'
-   field collection: 'correlations'
+   field groups: 'correlations'
    field pick: ''
    field edit: ''
    field plot: ''

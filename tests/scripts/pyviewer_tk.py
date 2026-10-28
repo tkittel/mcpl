@@ -221,7 +221,7 @@ tv.on_cache_limit(v.cache_info()['size'] * 300)
 wait()
 show('with a small cache')
 menu.invoke(next( i for i in range(menu.index('end') + 1) if menu.type(i) != 'separator'
-                 and menu.entrycget(i,'label').startswith('Max 500 MB') ))
+                 and menu.entrycget(i,'label').split('  ',1)[-1].startswith('Max 500 MB') ))
 wait()
 show('with 500 MB')
 
@@ -294,6 +294,13 @@ for label, title, blocks in tv.help_topics():
     print('   closed with q:', not top.winfo_exists())
 print('help in the menu:', [ tv._actions_menu.entrycget(i,'label')
                              for i in range(tv._actions_menu.index('end') + 1) ])
+#The menu bar (only used on macOS, with the menus of the viewer), and the
+#icon of the windows (in two sizes):
+bar = tv._menubar(root)
+print('menu bar:', { bar.entrycget(i,'label') : [ m.entrycget(j,'label') for j in range(m.index('end') + 1) ]
+                     for i in range(bar.index('end') + 1)
+                     for m in [ root.nametowidget(bar.entrycget(i,'menu')) ] })
+print('icons:', [ ( im.width(), im.height() ) for im in tv._icons ])
 
 #Rows of settings wrap in narrow frames, also with items in frames, whose sizes
 #Tk only knows when idle:

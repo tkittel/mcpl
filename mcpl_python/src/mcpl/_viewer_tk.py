@@ -149,8 +149,12 @@ class TkViewer(WidgetViewer):
         #The logo and the views (on the left):
         left = ttk.Frame(root,padding=6)
         left.grid(row=0,column=0,rowspan=2,sticky='ns')
-        from ._logo import _logo_base64
+        from ._logo import _icon_base64, _logo_base64
         self._logo = tk.PhotoImage(data=_logo_base64).subsample(3)
+        #(the icon of the windows, e.g. in the Dock and when switching
+        #applications, also for the windows opened later):
+        self._icons = [ tk.PhotoImage(data=_icon_base64[size]) for size in ( 256, 32 ) ]
+        root.iconphoto(True,*self._icons)
         ttk.Label(left,image=self._logo).pack(anchor='w',pady=(0,6))
         self._entries, self._marks = {}, {}
         #(the actions in a menu: another file, with the same plots, pick and
@@ -304,6 +308,10 @@ class TkViewer(WidgetViewer):
         self._popup = None#(the list of completions: (field, start, Toplevel, Listbox, choices))
         root.bind('<Key>',self._on_root_key)
         root.protocol('WM_DELETE_WINDOW',self.close_window)
+        if root.tk.call('tk','windowingsystem') == 'aqua':
+            root.configure(menu=self._menubar(root))
+            #(Quit in the menu of the application, or Cmd-Q, as closing the window):
+            root.createcommand('tk::mac::Quit',self.close_window)
         repaint_after_resize(root)
 
     def _help_menu( self, parent ):
@@ -315,13 +323,38 @@ class TkViewer(WidgetViewer):
         menu = tk.Menu(button,tearoff=0)
         button['menu'] = menu
         self._menu_key(button,menu,'h')
+        self._add_help_topics(menu)
+        self._help_choices = menu
+
+    def _add_help_topics( self, menu ):
         topics = self.help_topics()
         #(w for the viewer, as for mcpltool -w):
         for ( label, title, text ), pos in zip(topics,mnemonics([ t[0] for t in topics ],
                                                                 { 'The viewer' : 'w' })):
             menu.add_command(label=label,underline=pos,
                              command=lambda t=title, x=text : self.show_text(t,x))
-        self._help_choices = menu
+
+    def _menubar( self, root ):
+        """The menu bar of the window with the menus of the viewer (only used
+        on macOS, where the menu bar at the top of the screen otherwise has
+        default menus, and elsewhere would repeat the menus in the window)"""
+        tk, _ = tk_modules()
+        bar = tk.Menu(root,tearoff=0)
+        menu = tk.Menu(bar,tearoff=0)
+        menu.add_command(label='Open MCPL file...',command=self._ask_open,
+                         accelerator=shortcut_name('O',root))
+        menu.add_command(label='New MCPL file...',command=lambda : self.on_action('write'))
+        for action, label, _keys, _kpos in ui.actions:
+            #(Quit is in the menu of the application):
+            if action not in ( 'write', 'help', 'quit' ):
+                menu.add_command(label=label,command=lambda a=action : self.on_action(a))
+        bar.add_cascade(label='File',menu=menu)
+        self._bar_file = menu
+        #(the name help makes it the help menu of macOS, with its search field):
+        menu = tk.Menu(bar,name='help',tearoff=0)
+        self._add_help_topics(menu)
+        bar.add_cascade(label='Help',menu=menu)
+        return bar
 
     def _plot_part( self, part, head ):
         """The fields of the shown plot (or of a new plot): its title, its axes
@@ -581,6 +614,8 @@ class TkViewer(WidgetViewer):
         assert action == 'write'#(the only action enabled or not)
         #(in blue only when there is something to write):
         self._write.state([ '!disabled' if enabled else 'disabled' ])
+        if getattr(self,'_bar_file',None) is not None:#(the menu bar on macOS)
+            self._bar_file.entryconfigure(1,state='normal' if enabled else 'disabled')
         n = self.v.nused_text(compact = True)
         self._write.configure(style='Head.Accent.TButton' if enabled else 'Head.TButton',
                               text=( f'New MCPL file ({n} particles)...'
@@ -618,7 +653,11 @@ class TkViewer(WidgetViewer):
         for i, ( label, limit, used, fits ) in enumerate(ui.cache_menu(self.v.cache_info())):
             if used:
                 menu._used.set(str(i))
-            menu.add_radiobutton(label=label,value=str(i),variable=menu._used,
+            #(marked also with a symbol for all or a part of the particles in
+            #memory, as menus on macOS have no colours):
+            mark = '' if limit is None else ( '\u25cf  ' if fits else '\u25d0  ' )
+            menu.add_radiobutton(label=mark + label,
+                                 value=str(i),variable=menu._used,
                                  foreground=colors['ok' if fits else 'error'],
                                  command=lambda x=limit : self.on_cache_limit(x))
         #(the help about the cache, as in the help menu):

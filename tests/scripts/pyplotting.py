@@ -23,15 +23,15 @@
 # NEEDS: numpy
 
 # Test the plotting module with the test backend (which prints descriptions of
-# the figures), and the figures of plot_stats.
+# the figures), and that plot_stats gives an error.
 
 import pathlib
-import warnings
 
 import mcpldev as mcpl
 import numpy as np
 from mcpldev.plotting import Bars, Figure, Hist2D, Panel, StepHist, Text
 from MCPLTestUtils.dirs import test_data_dir
+from MCPLTestUtils.plots import example_figures
 
 example_file = test_data_dir.joinpath('example.mcpl')
 
@@ -64,15 +64,14 @@ def test_figures():
     nlines = len(pathlib.Path(files[0]).read_text(encoding='utf-8').splitlines())
     print(f'save() created {files}, with {nlines} lines')
 
-def test_stats_figures():
-    mcpl.plotting.show(mcpl.stats_figures(example_file), backend='test')
-    with warnings.catch_warnings(record=True) as wlist:
-        warnings.simplefilter('always')
-        files = mcpl.plot_stats(example_file, pdf='stats.txt', backend='test')
-    print(f'plot_stats with pdf parameter created {files}, with warnings:'
-          f' {[ f"{w.category.__name__}: {w.message}" for w in wlist ]}')
+def test_example_figures():
+    mcpl.plotting.show(example_figures(mcpl,example_file), backend='test')
+    try:
+        mcpl.plot_stats(example_file, pdf='stats.txt')
+    except mcpl.MCPLError as e:
+        print(f'plot_stats: MCPLError: {e}')
 
 if __name__ == '__main__':
     test_backends()
     test_figures()
-    test_stats_figures()
+    test_example_figures()

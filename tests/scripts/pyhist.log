@@ -1,13 +1,192 @@
+ekin/MeV;bins=20;display_only=ekin < 1MeV (pick None): as picking them: True | title 'only: ekin < 1MeV'
+x/cm : y/cm;bins=8;display_only=pdgcode == neutron (pick None): as picking them: True | title 'only: pdgcode == neutron'
+pdgcode;bar;display_only=ekin > 1MeV (pick None): as picking them: True | title 'only: ekin > 1MeV'
+ekin/MeV;bins=20;display_by=pdgcode;display_only=ekin < 1MeV (pick x > 0): as picking them: True | title 'pick: x > 0\nonly: ekin < 1MeV'
+x : y : z;points=50;display_only=ekin < 1MeV (pick None): as picking them: True | title 'only: ekin < 1MeV'
+canonical: x;bins=5;display_only=pdgcode==neutron
+'x;display_only': Histogram option "display_only" needs a value, like display_only=..., in "x;display_only"
+'x;display_only=r = x': Histogram option "display_only" must be a condition as in picks or a particle type (like display_only=ekin > 1MeV or display_only=neutron), in "x;display_only=r = x": Syntax error in expression "r = x", after "r": unexpected "=" (use == for comparisons)
+'x;display_only=foo > 1': Histogram option "display_only" must be a condition as in picks or a particle type (like display_only=ekin > 1MeV or display_only=neutron), in "x;display_only=foo > 1": Unknown name "foo" in expression "foo > 1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+'x;display_only=1cm': Histogram option "display_only" must be a condition as in picks or a particle type (like display_only=ekin > 1MeV or display_only=neutron), in "x;display_only=1cm": Expression "1cm" is not a condition (e.g. a comparison)
+'x : y': logz True, panel True, key 'x:y'
+'x : y;logz': logz True, panel True, key 'x:y'
+'x : y;logz=0': logz False, panel False, key 'x:y;logz=0'
+panel(logz=False) of the default: False
+'x;logz=0': Histogram option "logz" (the colour scale) can only be used for 2D histograms, in "x;logz=0"
+'x : y : z;logz': Histogram option "logz" (the colour scale) can only be used for 2D histograms, in "x : y : z;logz"
+'x : y;logz=2': Histogram option "logz" must be 1 or 0 (not "2"), in "x : y;logz=2"
+'x : y;equal': aspect 1.0 (cm, cm), panel 1.0
+'x : 0.02*y;equal': aspect 1.0 (cm, cm), panel 1.0
+'ux : uy;equal': aspect 1.0 (None, None), panel 1.0
+'x : y': aspect None (cm, cm), panel None
+  Panel None xlabel='x [cm]' ylabel='y [cm]' aspect=1
+'x : ekin;equal': Equal scales of the axes (the histogram option "equal") need expressions with the same units, not length and energy (of x and ekin)
+'x;equal': Histogram option "equal" (equal scales of the axes) can only be used for 2D histograms, in "x;equal"
+'x : y : z;equal': Histogram option "equal" (equal scales of the axes) can only be used for 2D histograms, in "x : y : z;equal"
+3D: Points3D {None: (100, 3)} ['x [cm]', 'y [cm]', 'z [cm]'] 1006
+same sample: True
+split: {'n (2112)': 726, 'gamma (22)': 239, 'other': 41} {'n (2112)': 0, 'gamma (22)': 8, 'other': 9}
+Figure 1 (1x1): None
+  Panel 'pick: ekin > 1keV' xlabel='ux' ylabel='uy' 
+    Scatter3D label='n (2112)' color=0 points=726 x=[-0.994109,0.993176] y=[-0.994904,0.979886] z=[0.0794396,0.999233]
+    Scatter3D label='γ (22)' color=8 points=239 x=[-0.934464,0.995773] y=[-0.943447,0.96159] z=[0.053197,0.999794]
+    Scatter3D label='other' color=9 points=41 x=[-0.900682,0.884409] y=[-0.947483,0.62116] z=[-0.734438,0.999994]
+['# 3D plot of: ux : uy : uz', '# pick: ekin > 1keV', '# values: 1006 points (of 1006 particles)', '# x | y | z | group']
+more points than particles: 1006 of 1006
+range of values from 0.3 to 20.5: 0 to 22
+range of values from -20.5 to -0.3: -22 to 0
+range of values from -9.83 to 10.21: -10 to 11
+range of values from 1012.3 to 1077.9: 1010 to 1080
+range of values from 0.001234 to 0.0098: 0 to 0.01
+range of values from 3 to 4: 3 to 4
+range of values from -0.99 to 0.999: -1 to 1
+range of values from 1e-09 to 3.3e-07: 0 to 3.5e-07
+range of values from 0.1 to 0.3: 0.1 to 0.3
+range of values from 2.2 to 7.7: 2 to 7.75
+range of values from 123457 to 123499: 123455 to 123500
+colours of [2112, 22, 12, 14, 'other'] {12: 9, 14: 2, 'other': 3, 2112: 0, 22: 8}
+colours of [2112, 22, 11, -11, 2212, 211, -211, 13, -13, 12, 14, 16, 321, 'other'] {12: 9, 14: 10, 16: 11, 321: 12, 'other': 13, 2112: 0, 22: 8, 11: 1, -11: 3, 2212: 4, 211: 2, -211: 7, 13: 5, -13: 6} [(9, 'solid'), (0, 'dashed'), (1, 'dashed'), (2, 'dashed'), (3, 'dashed')]
+line styles: [(0, 'solid'), (9, 'solid'), (0, 'dashed'), (9, 'dashed'), (0, 'dotted'), (0, 'solid')]
+unit of x, 0.3m: ('cm', 1.0)
+unit of x, 2.5m: ('m', 100.0)
+unit of x, 5mm: ('mm', 0.1)
+unit of ekin, 9.7GeV: ('GeV', 1000.0)
+unit of ekin, log axis: ('eV', 1e-06)
+unit of time, log axis: ('s', 1000.0)
+unit of x^2: ('m^2', 10000.0)
+unit of sqrt(ekin): ('eV^0.5', 0.001)
+unit of x*ekin: ('cm*MeV', 1.0)
+unit of 1/x: ('cm^-1', 1.0)
+unit of wavelength, 1.8Aa: ('Aa', 1e-08)
+unit of wavelength, log axis 1e-3 to 100Aa: ('Aa', 1e-08)
+unit of wavelength, up to 1mm: ('mm', 0.1)
+unit of no units: (None, 1.0)
+histogram('x'): label 'x [cm]', edges from -65 to 70
+histogram('ekin;logx=auto'): label 'ekin [eV]', edges from 1393 to 9.725e+09
+histogram('wavelength'): label 'wavelength [Aa]', edges from 0 to 0.008
+histogram('x;range=-10cm:10cm;bins=2'): label 'x [cm]', edges from -10 to 10
+histogram('x;range=0:1m;bins=2'): label 'x [m]', edges from 0 to 1
+histogram('x/cm;bins=2'): label 'x/cm', edges from -65 to 70
+histogram('hypot(x,y)'): label 'hypot(x,y) [cm]', edges from 0 to 70
+histogram2d(x, ekin/MeV): # 2D histogram of: x [cm] : ekin/MeV
+histogram('x;range=-10:10'): The range of "x" must be given with units, as it has units (length), e.g. range=0cm:10cm
+histogram('x/cm;range=-10cm:10cm'): The range of "x/cm" must be given without units, as it has none
+histogram('ekin;range=0cm:1cm'): The range of "ekin" (energy) has other units (length)
+histogram('x;range=1cm'): The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm), in "x;range=1cm"
+histogram('x;range=y:1cm'): The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm), in "x;range=y:1cm"
+histogram('pdgcode;bar=auto',{}):
+# bars of: pdgcode
+# values: weights
+# bar | value
+n (2112) | 726
+gamma (22) | 239
+e- (11) | 15
+p (2212) | 10
+e+ (-11) | 8
+pi+ (211) | 5
+pi- (-211) | 2
+nu_mu (14) | 1
+Figure 1 (1x1): None
+  Panel None xlabel='weights' ylabel='pdgcode' 
+    Bars 'n (2112) (72.17%)'=726, 'γ (22) (23.76%)'=239, 'e⁻ (11) (1.49%)'=15, 'p (2212) (0.99%)'=10, 'e⁺ (-11) (0.80%)'=8, 'π⁺ (211) (0.50%)'=5, 'π⁻ (-211) (0.20%)'=2, 'νμ (14) (0.10%)'=1 (horizontal)
+histogram('pdgcode;bar=3',{}):
+# bars of: pdgcode
+# values: weights
+# bar | value
+n (2112) | 726
+gamma (22) | 239
+other | 41
+Figure 1 (1x1): None
+  Panel None xlabel='weights' ylabel='pdgcode' 
+    Bars 'n (2112) (72.17%)'=726, 'γ (22) (23.76%)'=239, 'other (4.08%)'=41 (horizontal)
+histogram('mod(abs(pdgcode),7);bar=auto;unweighted=1',{}):
+# bars of: mod(abs(pdgcode),7)
+# values: particles
+# bar | value
+5 | 726
+1 | 246
+4 | 23
+0 | 11
+Figure 1 (1x1): None
+  Panel None xlabel='particles' ylabel='mod(abs(pdgcode),7)' 
+    Bars '5 (72.17%)'=726, '1 (24.45%)'=246, '4 (2.29%)'=23, '0 (1.09%)'=11 (horizontal)
+histogram('pdgcode',{'bar': 2}):
+# bars of: pdgcode
+# values: weights
+# bar | value
+n (2112) | 726
+other | 280
+Figure 1 (1x1): None
+  Panel None xlabel='weights' ylabel='pdgcode' 
+    Bars 'n (2112) (72.17%)'=726, 'other (27.83%)'=280 (horizontal)
+histogram('pdgcode;bar=auto',{'pick': 'pdgcode != neutron'}):
+# bars of: pdgcode
+# pick: pdgcode != neutron
+# values: weights
+# bar | value
+gamma (22) | 239
+e- (11) | 15
+p (2212) | 10
+e+ (-11) | 8
+pi+ (211) | 5
+pi- (-211) | 2
+nu_mu (14) | 1
+Figure 1 (1x1): None
+  Panel 'pick: pdgcode != neutron' xlabel='weights' ylabel='pdgcode' 
+    Bars 'γ (22) (85.36%)'=239, 'e⁻ (11) (5.36%)'=15, 'p (2212) (3.57%)'=10, 'e⁺ (-11) (2.86%)'=8, 'π⁺ (211) (1.79%)'=5, 'π⁻ (-211) (0.71%)'=2, 'νμ (14) (0.36%)'=1 (horizontal)
+histogram('round(x/10cm);bar=4;logy=1',{}):
+# bars of: round(x/10cm)
+# values: weights
+# bar | value
+0 | 546
+-1 | 155
+1 | 136
+other | 169
+Figure 1 (1x1): None
+  Panel None xlabel='weights' ylabel='round(x/10cm)' logx
+    Bars '0 (54.27%)'=546, '-1 (15.41%)'=155, '1 (13.52%)'=136, 'other (16.80%)'=169 (horizontal)
+histogram('mod(floor(ekin/MeV),3);bar=auto;logy=0',{}):
+# bars of: mod(floor(ekin/MeV),3)
+# values: weights
+# bar | value
+0 | 628
+1 | 245
+2 | 133
+Figure 1 (1x1): None
+  Panel None xlabel='weights' ylabel='mod(floor(ekin/MeV),3)' 
+    Bars '0 (62.43%)'=628, '1 (24.35%)'=245, '2 (13.22%)'=133 (horizontal)
+split with groups=3: ['n (2112)', 'gamma (22)', 'other'] {'n (2112)': 0, 'gamma (22)': 8, 'other': 9}
+split with max_curves=4: ['n (2112)', 'gamma (22)', 'e- (11)', 'other'] {'n (2112)': 0, 'gamma (22)': 8, 'e- (11)': 1, 'other': 9}
+histogram('wavelength;bins=3',{}): label 'wavelength [Aa] (n/gamma only)', contents [726.0, 239.0]
+histogram('wavelength;bins=3',{'pick': 'pdgcode == neutron'}): label 'wavelength [Aa]', contents [726.0]
+histogram('wavelength;display_by=pdgcode;bins=3',{}): label 'wavelength [Aa] (n/gamma only)', contents [726.0, 239.0]
+histogram('round(1000*wavelength/Aa);bar=auto',{'pick': 'ekin > 1GeV'}): label 'round(1000*wavelength/Aa) (n only)', contents [2.0]
+histogram2d(wavelength,x): wavelength [Aa] (n/gamma only) | x [cm] | 965.0
+histogram('x;bar=auto',{}): Bar charts are of whole numbers without units, like pdgcode or round(x/cm), not of "x"
+histogram('pdgcode;bar=1',{}): Histogram option "bar" must be a number of at least 2 or auto, or 0 (not "1"), in "pdgcode;bar=1"
+histogram('pdgcode;bar=on',{}): Histogram option "bar" must be a number of at least 2 or auto, or 0 (not "on"), in "pdgcode;bar=on"
+histogram('pdgcode;bar=auto;logx=1',{}): Histogram option "logx" can not be used for bar charts (logy=1 gives a logarithmic scale of the bars), in "pdgcode;bar=auto;logx=1"
+histogram('pdgcode;bar=auto;display_by=pdgcode',{}): Histogram option "display_by" can not be used for bar charts, in "pdgcode;bar=auto;display_by=pdgcode"
+histogram('x:y;bar=auto',{}): Histogram option "bar" can not be used for 2D histograms, in "x:y;bar=auto"
+histogram('ekin/MeV;groups=3',{}): no error
+histogram('ekin/MeV;display_by=pdgcode;groups=1',{}): Histogram option "groups" must be a number of at least 2 or auto (not "1"), in "ekin/MeV;display_by=pdgcode;groups=1"
+histogram('pdgcode',{'bar': 1}): The histogram argument bar must be True or a number of at least 2 (not 1)
+histogram('pdgcode',{'bar': 'auto'}): The histogram argument bar must be True or a number of at least 2 (not 'auto')
+histogram('pdgcode;bar=auto',{'bar': 4}): The histogram option bar can not be given both as an argument and in the expression "pdgcode;bar=auto"
+histogram('pdgcode',{'bar': True, 'logx': True}): Histogram option "logx" can not be used for bar charts (logy=1 gives a logarithmic scale of the bars), in "pdgcode"
+histogram('ekin/MeV;bar=auto',{}): Bar charts are of whole numbers without units, like pdgcode or round(x/cm), not of "ekin/MeV"
+histogram('round(x);bar=auto',{}): round(..) requires a value without units, not length in expression "round(x)"
+histogram('round(1e300*x/cm);bar=auto',{}): round(..) of values too large for integers in expression "round(1e300*x/cm)"
 Figure 1 (1x1): None
   Panel None xlabel='ekin/MeV' ylabel='weights per bin' logx xlim=[0.00139345,9724.96]
     StepHist label='n (2112)' color=0 bins=30 edges=[0.00139345,9724.96] sum=726 max=106 nonzero_bins=26
-    StepHist label='gamma (22)' color=1 bins=30 edges=[0.00139345,9724.96] sum=239 max=46 nonzero_bins=13
-    StepHist label='e- (11)' color=2 bins=30 edges=[0.00139345,9724.96] sum=15 max=3 nonzero_bins=10
-    StepHist label='p (2212)' color=3 bins=30 edges=[0.00139345,9724.96] sum=10 max=3 nonzero_bins=4
-    StepHist label='e+ (-11)' color=4 bins=30 edges=[0.00139345,9724.96] sum=8 max=2 nonzero_bins=5
-    StepHist label='pi+ (211)' color=5 bins=30 edges=[0.00139345,9724.96] sum=5 max=1 nonzero_bins=5
-    StepHist label='pi- (-211)' color=6 bins=30 edges=[0.00139345,9724.96] sum=2 max=1 nonzero_bins=2
-    StepHist label='nu_mu (14)' color=7 bins=30 edges=[0.00139345,9724.96] sum=1 max=1 nonzero_bins=1
+    StepHist label='γ (22)' color=8 bins=30 edges=[0.00139345,9724.96] sum=239 max=46 nonzero_bins=13
+    StepHist label='e⁻ (11)' color=1 bins=30 edges=[0.00139345,9724.96] sum=15 max=3 nonzero_bins=10
+    StepHist label='p (2212)' color=4 bins=30 edges=[0.00139345,9724.96] sum=10 max=3 nonzero_bins=4
+    StepHist label='e⁺ (-11)' color=3 bins=30 edges=[0.00139345,9724.96] sum=8 max=2 nonzero_bins=5
+    StepHist label='π⁺ (211)' color=2 bins=30 edges=[0.00139345,9724.96] sum=5 max=1 nonzero_bins=5
+    StepHist label='π⁻ (-211)' color=7 bins=30 edges=[0.00139345,9724.96] sum=2 max=1 nonzero_bins=2
+    StepHist label='νμ (14)' color=9 bins=30 edges=[0.00139345,9724.96] sum=1 max=1 nonzero_bins=1
 Figure 1 (1x1): None
   Panel 'pick: pdgcode == neutron' xlabel='ekin/eV' ylabel='weights per unit lethargy' logx xlim=[1393.45,2.40978e+09]
     StepHist label=None color=0 bins=20 edges=[1393.45,2.40978e+09] sum=1010.91 max=197.727 nonzero_bins=19
@@ -59,164 +238,43 @@ underflow: {'example.mcpl': 51.0, 'reffile_1.mcpl': 0.0} overflow: {'example.mcp
 Figure 1 (1x1): None
   Panel None xlabel='pdgcode' ylabel='weights per bin' xlim=[-300,2300]
     StepHist label='n (2112)' color=0 bins=26 edges=[-300,2300] sum=726 max=726 nonzero_bins=1
-    StepHist label='gamma (22)' color=1 bins=26 edges=[-300,2300] sum=239 max=239 nonzero_bins=1
-    StepHist label='other' color=2 bins=26 edges=[-300,2300] sum=41 max=16 nonzero_bins=5
+    StepHist label='γ (22)' color=8 bins=26 edges=[-300,2300] sum=239 max=239 nonzero_bins=1
+    StepHist label='other' color=9 bins=26 edges=[-300,2300] sum=41 max=16 nonzero_bins=5
 Figure 1 (1x1): None
   Panel 'pick: pdgcode == gamma' xlabel='x/cm' ylabel='y/cm' 
-    Hist2D shape=(10, 10) x=[-26.4199,24.6688] y=[-44.7764,30.7065] sum=239 logz=True
-empty histogram with split='pdgcode': # histogram of: ekin/MeV
+    Hist2D shape=(10, 10) x=[-27.5,25] y=[-45,35] sum=239 logz=True
+empty histogram with display_by='pdgcode': # histogram of: ekin/MeV
 # pick: x > 1km
 # values: weights per bin
 # lower edge | upper edge | value
 0 5 0
 5 10 0
-empty histogram with split='x > 0cm': # histogram of: ekin/MeV
+empty histogram with display_by='x > 0cm': # histogram of: ekin/MeV
 # pick: x > 1km
 # values: weights per bin
 # lower edge | upper edge | value
 0 5 0
 5 10 0
-histogram('ekin',) {}: Expression "ekin" has units (energy), so divide it by a unit, e.g. ekin/MeV
+histogram('ekin',) {}: no error
 histogram('ekin/MeV',) {'pick': 'x > 1km'}: No values to histogram (no particles picked?)
 histogram('x/cm',) {'logx': True, 'range': (-1, 1)}: Logarithmic binning requires a positive range
-histogram('wavelength',) {}: Expression "wavelength" has units (length), so divide it by a unit, e.g. wavelength/Aa
-histogram('x/cm',) {'split': 'x'}: Expression "x" has units (length), so divide it by a unit, e.g. x/cm
+histogram('wavelength',) {}: no error
+histogram('x/cm',) {'display_by': 'x'}: Expression "x" has units (length), so divide it by a unit, e.g. x/cm
 histogram('x/cm',) {'bins': 0}: The histogram argument bins must be "auto" or a positive number of bins, not 0
 histogram('x/cm',) {'bins': -3}: The histogram argument bins must be "auto" or a positive number of bins, not -3
 histogram('x/cm',) {'bins': 2.5}: The histogram argument bins must be "auto" or a positive number of bins, not 2.5
 histogram('x/cm',) {'bins': 'x'}: The histogram argument bins must be "auto" or a positive number of bins, not 'x'
 histogram('x/cm',) {'bins': True}: The histogram argument bins must be "auto" or a positive number of bins, not True
-histogram('x/cm',) {'range': (5, 1)}: The histogram argument range must be (low,high), with finite numbers and low < high, not (5, 1)
-histogram('x/cm',) {'range': (1, 1)}: The histogram argument range must be (low,high), with finite numbers and low < high, not (1, 1)
-histogram('x/cm',) {'range': (0, inf)}: The histogram argument range must be (low,high), with finite numbers and low < high, not (0, inf)
-histogram('x/cm',) {'range': 'a'}: The histogram argument range must be (low,high), with finite numbers and low < high, not 'a'
-histogram('x/cm',) {'range': (1, 2, 3)}: The histogram argument range must be (low,high), with finite numbers and low < high, not (1, 2, 3)
+histogram('x/cm',) {'range': (5, 1)}: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm)
+histogram('x/cm',) {'range': (1, 1)}: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm)
+histogram('x/cm',) {'range': (0, inf)}: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm)
+histogram('x/cm',) {'range': 'a'}: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm)
+histogram('x/cm',) {'range': (1, 2, 3)}: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm)
 histogram2d {'bins': (5, 0)}: The histogram argument bins must be "auto" or a positive number of bins (or two, as (nx,ny)), not (5, 0)
 histogram2d {'bins': [3]}: The histogram argument bins must be "auto" or a positive number of bins (or two, as (nx,ny)), not [3]
-histogram2d {'xrange': (1, 0)}: The histogram argument xrange must be (low,high), with finite numbers and low < high, not (1, 0)
-histogram2d {'yrange': 'a'}: The histogram argument yrange must be (low,high), with finite numbers and low < high, not 'a'
+histogram2d {'xrange': (1, 0)}: The xrange must be given as xrange=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in xrange=0cm:10cm)
+histogram2d {'yrange': 'a'}: The yrange must be given as yrange=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in yrange=0cm:10cm)
 bins as a numpy integer, and range as a list: 4 [-1.0, 1.0]
-Figure 1 (2x3): 'example.mcpl: 1006 particles, sum(weights) = 1006'
-  Panel 'Kinetic energy (weighted)' xlabel='ekin [MeV]' ylabel=None logx logy xlim=[0.00139345,9724.96]
-    StepHist label='n (2112)' color=0 bins=100 edges=[0.00139345,9724.96] sum=726 max=38 nonzero_bins=73
-    StepHist label='gamma (22)' color=1 bins=100 edges=[0.00139345,9724.96] sum=239 max=17 nonzero_bins=34
-    StepHist label='e- (11)' color=2 bins=100 edges=[0.00139345,9724.96] sum=15 max=2 nonzero_bins=13
-    StepHist label='p (2212)' color=3 bins=100 edges=[0.00139345,9724.96] sum=10 max=3 nonzero_bins=7
-    StepHist label='e+ (-11)' color=4 bins=100 edges=[0.00139345,9724.96] sum=8 max=2 nonzero_bins=7
-    StepHist label='other' color=5 bins=100 edges=[0.00139345,9724.96] sum=8 max=1 nonzero_bins=8
-  Panel 'Wavelength of neutrons and gammas (weighted)' xlabel='wavelength [Aa]' ylabel=None logx xlim=[3.46826e-06,0.0574461]
-    StepHist label='n (2112)' color=0 bins=100 edges=[1.16712e-06,0.007662] sum=726 max=38 nonzero_bins=73
-    StepHist label='gamma (22)' color=1 bins=100 edges=[1.27491e-06,8.89765] sum=239 max=17 nonzero_bins=34
-  Panel 'Direction (weighted)' xlabel='angle to z axis [degrees]' ylabel=None logy xlim=[0,180]
-    StepHist label='n (2112)' color=0 bins=90 edges=[0,180] sum=726 max=34 nonzero_bins=42
-    StepHist label='gamma (22)' color=1 bins=90 edges=[0,180] sum=239 max=14 nonzero_bins=44
-    StepHist label='e- (11)' color=2 bins=90 edges=[0,180] sum=15 max=2 nonzero_bins=14
-    StepHist label='p (2212)' color=3 bins=90 edges=[0,180] sum=10 max=3 nonzero_bins=6
-    StepHist label='e+ (-11)' color=4 bins=90 edges=[0,180] sum=8 max=2 nonzero_bins=7
-    StepHist label='other' color=5 bins=90 edges=[0,180] sum=8 max=2 nonzero_bins=7
-  Panel 'Position (weighted)' xlabel='x [cm]' ylabel='y [cm]' 
-    Hist2D shape=(80, 80) x=[-24.3934,23.8971] y=[-22.9871,28.0675] sum=879 logz=True
-  Panel 'Time (weighted)' xlabel='time [ms]' ylabel=None logx logy
-    StepHist label=None color=None bins=100 edges=[7.01658e-07,0.00166018] sum=1006 max=170 nonzero_bins=90
-  Panel 'Particle types (weighted)' xlabel=None ylabel=None logx
-    Bars 'n (2112)'=726, 'gamma (22)'=239, 'e- (11)'=15, 'p (2212)'=10, 'e+ (-11)'=8, 'pi+ (211)'=5, 'pi- (-211)'=2, 'nu_mu (14)'=1 (horizontal)
-Figure 2 (1x1): None
-  Panel 'pdgcode' xlabel=None ylabel=None 
-    Bars '2112\n(n)\n72.17%'=726, '22\n(gamma)\n23.76%'=239, '11\n(e-)\n1.49%'=15, '2212\n(p)\n0.99%'=10, '-11\n(e+)\n0.80%'=8, '211\n(pi+)\n0.50%'=5, '-211\n(pi-)\n0.20%'=2, '14\n(nu_mu)\n0.10%'=1
-Figure 3 (1x1): None
-  Panel 'userflags' xlabel=None ylabel=None 
-    Bars '0\n(0x00000000)\n100.00%'=1006
-Figure 4 (1x1): None
-  Panel 'ekin [MeV] (weighted)' xlabel='min=0.00139345, max=9724.96, mean=52.165, rms=548.838, integral=1006\n(0.895% of weights outside plot range)' ylabel=None xlim=[0.00139345,1149.84]
-    StepHist label=None color=None bins=201 edges=[0.00139345,1149.84] sum=997 max=856 nonzero_bins=40
-Figure 5 (1x1): None
-  Panel 'x [cm] (weighted)' xlabel='min=-60.0882, max=65.8944, mean=-0.248153, rms=12.0726, integral=1006\n(6.36% of weights outside plot range)' ylabel=None xlim=[-24.3934,23.8971]
-    StepHist label=None color=None bins=201 edges=[-24.3934,23.8971] sum=942 max=48 nonzero_bins=172
-Figure 6 (1x1): None
-  Panel 'y [cm] (weighted)' xlabel='min=-61.3354, max=57.6935, mean=2.54021, rms=12.7636, integral=1006\n(7.46% of weights outside plot range)' ylabel=None xlim=[-22.9871,28.0675]
-    StepHist label=None color=None bins=201 edges=[-22.9871,28.0675] sum=931 max=62 nonzero_bins=177
-Figure 7 (1x1): None
-  Panel 'z [cm] (weighted)' xlabel='min=20, max=20, mean=20, rms=0, integral=1006' ylabel=None xlim=[19,21]
-    StepHist label=None color=None bins=201 edges=[19,21] sum=1006 max=1006 nonzero_bins=1
-Figure 8 (1x1): None
-  Panel 'ux (weighted)' xlabel='min=-0.994109, max=0.995773, mean=0.0216263, rms=0.487791, integral=1006\n(0.199% of weights outside plot range)' ylabel=None xlim=[-0.953957,0.995773]
-    StepHist label=None color=None bins=201 edges=[-0.953957,0.995773] sum=1004 max=16 nonzero_bins=199
-Figure 9 (1x1): None
-  Panel 'uy (weighted)' xlabel='min=-0.994904, max=0.979886, mean=-0.00868233, rms=0.47584, integral=1006\n(1.09% of weights outside plot range)' ylabel=None xlim=[-0.960362,0.942998]
-    StepHist label=None color=None bins=201 edges=[-0.960362,0.942998] sum=995 max=13 nonzero_bins=199
-Figure 10 (1x1): None
-  Panel 'uz (weighted)' xlabel='min=-0.734438, max=0.999994, mean=0.690676, rms=0.240955, integral=1006\n(3.38% of weights outside plot range)' ylabel=None xlim=[0.208767,0.999994]
-    StepHist label=None color=None bins=201 edges=[0.208767,0.999994] sum=972 max=18 nonzero_bins=191
-Figure 11 (1x1): None
-  Panel 'time [ms] (weighted)' xlabel='min=7.01658e-07, max=0.00166018, mean=5.04828e-05, rms=0.00010785, integral=1006\n(3.78% of weights outside plot range)' ylabel=None xlim=[7.01658e-07,0.000266182]
-    StepHist label=None color=None bins=201 edges=[7.01658e-07,0.000266182] sum=968 max=305 nonzero_bins=137
-Figure 12 (1x1): None
-  Panel 'weight (unweighted)' xlabel='min=1, max=1, mean=1, rms=0, integral=1006' ylabel=None xlim=[0,2]
-    StepHist label=None color=None bins=201 edges=[0,2] sum=1006 max=1006 nonzero_bins=1
-Figure 13 (1x1): None
-  Panel 'polx (weighted)' xlabel='min=0, max=0, mean=0, rms=0, integral=1006' ylabel=None xlim=[-1,1]
-    StepHist label=None color=None bins=201 edges=[-1,1] sum=1006 max=1006 nonzero_bins=1
-Figure 14 (1x1): None
-  Panel 'poly (weighted)' xlabel='min=0, max=0, mean=0, rms=0, integral=1006' ylabel=None xlim=[-1,1]
-    StepHist label=None color=None bins=201 edges=[-1,1] sum=1006 max=1006 nonzero_bins=1
-Figure 15 (1x1): None
-  Panel 'polz (weighted)' xlabel='min=0, max=0, mean=0, rms=0, integral=1006' ylabel=None xlim=[-1,1]
-    StepHist label=None color=None bins=201 edges=[-1,1] sum=1006 max=1006 nonzero_bins=1
-Figure 1 (2x3): 'example.mcpl: 15 particles, sum(weights) = 15\npick: pdgcode == electron'
-  Panel 'Kinetic energy (weighted)' xlabel='ekin [MeV]' ylabel=None logx logy xlim=[0.0777547,230.688]
-    StepHist label='e- (11)' color=0 bins=100 edges=[0.0777547,230.688] sum=15 max=2 nonzero_bins=14
-  Panel 'Wavelength of neutrons and gammas (weighted)' xlabel='wavelength [Aa]' ylabel=None 
-    Text 'No neutrons or gammas'
-  Panel 'Direction (weighted)' xlabel='angle to z axis [degrees]' ylabel=None logy xlim=[0,180]
-    StepHist label='e- (11)' color=0 bins=90 edges=[0,180] sum=15 max=2 nonzero_bins=14
-  Panel 'Position (weighted)' xlabel='x [cm]' ylabel='y [cm]' 
-    Hist2D shape=(80, 80) x=[-1.99964,16.7426] y=[-25.2398,3.14284] sum=14 logz=True
-  Panel 'Time (weighted)' xlabel='time [ms]' ylabel=None logy
-    StepHist label=None color=None bins=100 edges=[7.03474e-07,1.31087e-05] sum=15 max=14 nonzero_bins=2
-  Panel 'Particle types (weighted)' xlabel=None ylabel=None 
-    Bars 'e- (11)'=15 (horizontal)
-Figure 2 (1x1): None
-  Panel 'pdgcode' xlabel=None ylabel=None 
-    Bars '11\n(e-)\n100.00%'=15
-Figure 3 (1x1): None
-  Panel 'userflags' xlabel=None ylabel=None 
-    Bars '0\n(0x00000000)\n100.00%'=15
-Figure 4 (1x1): None
-  Panel 'ekin [MeV] (weighted)' xlabel='min=0.0777547, max=230.688, mean=20.0313, rms=56.596, integral=15\n(6.67% of weights outside plot range)' ylabel=None xlim=[0.0777547,133.223]
-    StepHist label=None color=None bins=101 edges=[0.0777547,133.223] sum=14 max=4 nonzero_bins=8
-Figure 5 (1x1): None
-  Panel 'x [cm] (weighted)' xlabel='min=-1.99964, max=28.3457, mean=2.56422, rms=7.08917, integral=15\n(6.67% of weights outside plot range)' ylabel=None xlim=[-1.99964,16.7426]
-    StepHist label=None color=None bins=101 edges=[-1.99964,16.7426] sum=14 max=3 nonzero_bins=9
-Figure 6 (1x1): None
-  Panel 'y [cm] (weighted)' xlabel='min=-43.5895, max=3.14284, mean=-3.13966, rms=11.0501, integral=15\n(6.67% of weights outside plot range)' ylabel=None xlim=[-25.2398,3.14284]
-    StepHist label=None color=None bins=101 edges=[-25.2398,3.14284] sum=14 max=4 nonzero_bins=7
-Figure 7 (1x1): None
-  Panel 'z [cm] (weighted)' xlabel='min=20, max=20, mean=20, rms=0, integral=15' ylabel=None xlim=[19,21]
-    StepHist label=None color=None bins=101 edges=[19,21] sum=15 max=15 nonzero_bins=1
-Figure 8 (1x1): None
-  Panel 'ux (weighted)' xlabel='min=-0.900682, max=0.884409, mean=0.146666, rms=0.494004, integral=15\n(6.67% of weights outside plot range)' ylabel=None xlim=[-0.841343,0.884409]
-    StepHist label=None color=None bins=101 edges=[-0.841343,0.884409] sum=14 max=2 nonzero_bins=13
-Figure 9 (1x1): None
-  Panel 'uy (weighted)' xlabel='min=-0.947483, max=0.396059, mean=-0.264117, rms=0.44927, integral=15' ylabel=None xlim=[-0.947483,0.396059]
-    StepHist label=None color=None bins=101 edges=[-0.947483,0.396059] sum=15 max=1 nonzero_bins=15
-Figure 10 (1x1): None
-  Panel 'uz (weighted)' xlabel='min=0.246897, max=0.983538, mean=0.634315, rms=0.245952, integral=15' ylabel=None xlim=[0.246897,0.983538]
-    StepHist label=None color=None bins=101 edges=[0.246897,0.983538] sum=15 max=1 nonzero_bins=15
-Figure 11 (1x1): None
-  Panel 'time [ms] (weighted)' xlabel='min=7.03474e-07, max=1.31087e-05, mean=1.5637e-06, rms=3.08576e-06, integral=15\n(6.67% of weights outside plot range)' ylabel=None xlim=[7.03474e-07,7.73521e-06]
-    StepHist label=None color=None bins=101 edges=[7.03474e-07,7.73521e-06] sum=14 max=11 nonzero_bins=2
-Figure 12 (1x1): None
-  Panel 'weight (unweighted)' xlabel='min=1, max=1, mean=1, rms=0, integral=15' ylabel=None xlim=[0,2]
-    StepHist label=None color=None bins=101 edges=[0,2] sum=15 max=15 nonzero_bins=1
-Figure 13 (1x1): None
-  Panel 'polx (weighted)' xlabel='min=0, max=0, mean=0, rms=0, integral=15' ylabel=None xlim=[-1,1]
-    StepHist label=None color=None bins=101 edges=[-1,1] sum=15 max=15 nonzero_bins=1
-Figure 14 (1x1): None
-  Panel 'poly (weighted)' xlabel='min=0, max=0, mean=0, rms=0, integral=15' ylabel=None xlim=[-1,1]
-    StepHist label=None color=None bins=101 edges=[-1,1] sum=15 max=15 nonzero_bins=1
-Figure 15 (1x1): None
-  Panel 'polz (weighted)' xlabel='min=0, max=0, mean=0, rms=0, integral=15' ylabel=None xlim=[-1,1]
-    StepHist label=None color=None bins=101 edges=[-1,1] sum=15 max=15 nonzero_bins=1
 Figure 1 (1x1): None
   Panel None xlabel='ekin/MeV' ylabel='weights per bin' logx logy xlim=[0.00139345,2409.78]
     StepHist label='pick: pdgcode == neutron' color=0 bins=10 edges=[0.00139345,2409.78] sum=726 max=258 nonzero_bins=10
@@ -227,56 +285,56 @@ Figure 1 (1x1): None
     StepHist label='g' color=1 bins=10 edges=[0.249474,182.253] sum=239 max=61 nonzero_bins=10
 plot_histograms without overlay created ['hists.txt']
 Figure 1 (1x1): None
-  Panel None xlabel='ekin/MeV, x/cm' ylabel='weights per bin' xlim=[-20,2409.78]
+  Panel None xlabel='x/cm, ekin/MeV\n(5.41% of weights outside plot range)' ylabel='weights per bin' xlim=[-20,2409.78]
     StepHist label='x/cm: example.mcpl' color=0 bins=4 edges=[-20,20] sum=912 max=384 nonzero_bins=4
     StepHist label='x/cm: reffile_1.mcpl' color=1 bins=4 edges=[-20,20] sum=5 max=5 nonzero_bins=1
     StepHist label='pick: pdgcode == neutron' color=2 bins=10 edges=[0.00139345,2409.78] sum=726 max=258 nonzero_bins=10
 plot_histograms(overlay=True) with 0 histograms {}: No histograms to plot
 plot_histograms(overlay=True) with 2 histograms {}: Only 1D histograms can be overlaid
 plot_histograms(overlay=True) with 2 histograms {'labels': ['a']}: The number of labels must be the number of histograms
-mcpltool -H ekin/MeV;logx;split=pdgcode -B test example.mcpl: exit code 0
+mcpltool -H ekin/MeV;logx=1;display_by=pdgcode -B test example.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='ekin/MeV' ylabel='weights per bin' logx xlim=[0.00139345,9724.96]
    |     StepHist label='n (2112)' color=0 bins=30 edges=[0.00139345,9724.96] sum=726 max=106 nonzero_bins=26
-   |     StepHist label='gamma (22)' color=1 bins=30 edges=[0.00139345,9724.96] sum=239 max=46 nonzero_bins=13
-   |     StepHist label='e- (11)' color=2 bins=30 edges=[0.00139345,9724.96] sum=15 max=3 nonzero_bins=10
-   |     StepHist label='p (2212)' color=3 bins=30 edges=[0.00139345,9724.96] sum=10 max=3 nonzero_bins=4
-   |     StepHist label='e+ (-11)' color=4 bins=30 edges=[0.00139345,9724.96] sum=8 max=2 nonzero_bins=5
-   |     StepHist label='pi+ (211)' color=5 bins=30 edges=[0.00139345,9724.96] sum=5 max=1 nonzero_bins=5
-   |     StepHist label='pi- (-211)' color=6 bins=30 edges=[0.00139345,9724.96] sum=2 max=1 nonzero_bins=2
-   |     StepHist label='nu_mu (14)' color=7 bins=30 edges=[0.00139345,9724.96] sum=1 max=1 nonzero_bins=1
-mcpltool -H ekin/eV;lethargy;bins=5;print -p pdgcode == neutron example.mcpl: exit code 0
+   |     StepHist label='γ (22)' color=8 bins=30 edges=[0.00139345,9724.96] sum=239 max=46 nonzero_bins=13
+   |     StepHist label='e⁻ (11)' color=1 bins=30 edges=[0.00139345,9724.96] sum=15 max=3 nonzero_bins=10
+   |     StepHist label='p (2212)' color=4 bins=30 edges=[0.00139345,9724.96] sum=10 max=3 nonzero_bins=4
+   |     StepHist label='e⁺ (-11)' color=3 bins=30 edges=[0.00139345,9724.96] sum=8 max=2 nonzero_bins=5
+   |     StepHist label='π⁺ (211)' color=2 bins=30 edges=[0.00139345,9724.96] sum=5 max=1 nonzero_bins=5
+   |     StepHist label='π⁻ (-211)' color=7 bins=30 edges=[0.00139345,9724.96] sum=2 max=1 nonzero_bins=2
+   |     StepHist label='νμ (14)' color=9 bins=30 edges=[0.00139345,9724.96] sum=1 max=1 nonzero_bins=1
+mcpltool -H ekin/eV;lethargy=1;bins=5;print=1 -p pdgcode == neutron example.mcpl: exit code 0
    | # histogram of: ekin/eV
    | # pick: pdgcode == neutron
    | # values: weights per unit lethargy
-   | # lower edge | upper edge | value
+   | # lower edge | upper edge | n (2112)
    | 1393.4488 24641.574 4.5254331
    | 24641.574 435758.52 102.69252
    | 435758.52 7705899.2 119.40181
    | 7705899.2 1.3627016e+08 20.886614
    | 1.3627016e+08 2.4097844e+09 5.2216536
-mcpltool -H x/cm : y/cm;bins=4;print -p pdgcode == gamma example.mcpl: exit code 0
+mcpltool -H x/cm : y/cm;bins=4;print=1 -p pdgcode == gamma example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
    | # pick: pdgcode == gamma
    | # values: weights per bin
    | # x lower edge | x upper edge | y lower edge | y upper edge | value
-   | -26.419943 -13.647766 -44.776417 -25.905695 0
-   | -26.419943 -13.647766 -25.905695 -7.0349731 0
-   | -26.419943 -13.647766 -7.0349731 11.835749 3
-   | -26.419943 -13.647766 11.835749 30.70647 2
-   | -13.647766 -0.87558842 -44.776417 -25.905695 0
-   | -13.647766 -0.87558842 -25.905695 -7.0349731 0
-   | -13.647766 -0.87558842 -7.0349731 11.835749 53
-   | -13.647766 -0.87558842 11.835749 30.70647 7
-   | -0.87558842 11.896589 -44.776417 -25.905695 1
-   | -0.87558842 11.896589 -25.905695 -7.0349731 1
-   | -0.87558842 11.896589 -7.0349731 11.835749 170
-   | -0.87558842 11.896589 11.835749 30.70647 1
-   | 11.896589 24.668766 -44.776417 -25.905695 1
-   | 11.896589 24.668766 -25.905695 -7.0349731 0
-   | 11.896589 24.668766 -7.0349731 11.835749 0
-   | 11.896589 24.668766 11.835749 30.70647 0
-mcpltool -H x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print example.mcpl: exit code 0
+   | -27.5 -14.375 -45 -25 0
+   | -27.5 -14.375 -25 -5 0
+   | -27.5 -14.375 -5 15 3
+   | -27.5 -14.375 15 35 1
+   | -14.375 -1.25 -45 -25 0
+   | -14.375 -1.25 -25 -5 2
+   | -14.375 -1.25 -5 15 47
+   | -14.375 -1.25 15 35 6
+   | -1.25 11.875 -45 -25 1
+   | -1.25 11.875 -25 -5 2
+   | -1.25 11.875 -5 15 176
+   | -1.25 11.875 15 35 0
+   | 11.875 25 -45 -25 1
+   | 11.875 25 -25 -5 0
+   | 11.875 25 -5 15 0
+   | 11.875 25 15 35 0
+mcpltool -H x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print=1 example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
    | # values: weights per bin
    | # x lower edge | x upper edge | y lower edge | y upper edge | value
@@ -284,120 +342,208 @@ mcpltool -H x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print example.mcpl: exit c
    | -10 0 2.5 5 33
    | 0 10 0 2.5 75
    | 0 10 2.5 5 36
-mcpltool -H x/cm : y/cm;bins=2;xrange=-10:10;print example.mcpl: exit code 0
+mcpltool -H x/cm : y/cm;bins=2;xrange=-10:10;print=1 example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
    | # values: weights per bin
    | # x lower edge | x upper edge | y lower edge | y upper edge | value
-   | -10 0 -61.335377 -1.8209381 115
-   | -10 0 -1.8209381 57.693501 231
-   | 0 10 -61.335377 -1.8209381 82
-   | 0 10 -1.8209381 57.693501 302
-mcpltool -H x/cm : y/cm;bins=3,2;print example.mcpl: exit code 0
+   | -10 0 -65 -2.5 105
+   | -10 0 -2.5 60 241
+   | 0 10 -65 -2.5 74
+   | 0 10 -2.5 60 310
+mcpltool -H x/cm : y/cm;bins=3,2;print=1 example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
    | # values: weights per bin
    | # x lower edge | x upper edge | y lower edge | y upper edge | value
-   | -60.088242 -18.094035 -61.335377 -1.8209381 18
-   | -60.088242 -18.094035 -1.8209381 57.693501 42
-   | -18.094035 23.900172 -61.335377 -1.8209381 256
-   | -18.094035 23.900172 -1.8209381 57.693501 659
-   | 23.900172 65.894379 -61.335377 -1.8209381 14
-   | 23.900172 65.894379 -1.8209381 57.693501 17
+   | -65 -20 -65 -2.5 14
+   | -65 -20 -2.5 60 37
+   | -20 25 -65 -2.5 239
+   | -20 25 -2.5 60 690
+   | 25 70 -65 -2.5 11
+   | 25 70 -2.5 60 15
 mcpltool -H x/cm;range=-10:10;bins=4 -B test example.mcpl reffile_1.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='x/cm\n(27.3% of weights outside plot range)' ylabel='weights per bin' xlim=[-10,10]
    |     StepHist label='example.mcpl' color=0 bins=4 edges=[-10,10] sum=730 max=294 nonzero_bins=4
    |     StepHist label='reffile_1.mcpl' color=1 bins=4 edges=[-10,10] sum=5 max=5 nonzero_bins=1
-mcpltool -H time/ms;logx;logy;unweighted -B test example.mcpl: exit code 0
+mcpltool -H time/ms;logx=1;logy=1;unweighted=1 -B test example.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='time/ms' ylabel='particles per bin' logx logy xlim=[7.01658e-07,0.00166018]
-   |     StepHist label=None color=0 bins=30 edges=[7.01658e-07,0.00166018] sum=1006 max=247 nonzero_bins=29
-mcpltool -H ekin/MeV;split=pdgcode;range=0:10;bins=2;print -p x > 1km example.mcpl: exit code 0
+   |     StepHist label='n (2112)' color=0 bins=30 edges=[7.01658e-07,0.00166018] sum=726 max=52 nonzero_bins=29
+   |     StepHist label='γ (22)' color=8 bins=30 edges=[7.01658e-07,0.00166018] sum=239 max=199 nonzero_bins=11
+   |     StepHist label='e⁻ (11)' color=1 bins=30 edges=[7.01658e-07,0.00166018] sum=15 max=14 nonzero_bins=2
+   |     StepHist label='p (2212)' color=4 bins=30 edges=[7.01658e-07,0.00166018] sum=10 max=9 nonzero_bins=2
+   |     StepHist label='e⁺ (-11)' color=3 bins=30 edges=[7.01658e-07,0.00166018] sum=8 max=8 nonzero_bins=1
+   |     StepHist label='π⁺ (211)' color=2 bins=30 edges=[7.01658e-07,0.00166018] sum=5 max=5 nonzero_bins=1
+   |     StepHist label='π⁻ (-211)' color=7 bins=30 edges=[7.01658e-07,0.00166018] sum=2 max=2 nonzero_bins=1
+   |     StepHist label='νμ (14)' color=9 bins=30 edges=[7.01658e-07,0.00166018] sum=1 max=1 nonzero_bins=1
+mcpltool -H ekin/MeV : time/ms;logx=1;logy=auto -B test example.mcpl: exit code 0
+   | Figure 1 (1x1): None
+   |   Panel None xlabel='ekin/MeV' ylabel='time/ms' logx logy
+   |     Hist2D shape=(10, 10) x=[0.00139345,9724.96] y=[7.01658e-07,0.00166018] sum=1006 logz=True
+mcpltool -H ekin/MeV;display_by=pdgcode;range=0:10;bins=2;print=1 -p x > 1km example.mcpl: exit code 0
    | # histogram of: ekin/MeV
    | # pick: x > 1km
    | # values: weights per bin
    | # lower edge | upper edge | value
    | 0 5 0
    | 5 10 0
-mcpltool -H z/cm;bins=2;range=0:100;print -s1000 example.mcpl: exit code 0
+mcpltool -H z/cm;bins=2;range=0:100;print=1 -s1000 example.mcpl: exit code 0
    | # histogram of: z/cm
    | # values: weights per bin
-   | # lower edge | upper edge | value
+   | # lower edge | upper edge | n (2112)
    | 0 50 6
    | 50 100 0
-mcpltool -H z/cm;bins=2;range=0:100;print -l3 -E z += 50cm example.mcpl: exit code 0
+mcpltool -H z/cm;bins=2;range=0:100;print=1 -l3 -E z += 50cm example.mcpl: exit code 0
    | # histogram of: z/cm
    | # edit: z += 50cm
    | # values: weights per bin
-   | # lower edge | upper edge | value
-   | 0 50 0
-   | 50 100 3
-mcpltool -H z/cm;bins=2;range=0:100;print --pick=z < 25cm --edit=z += 50cm example.mcpl: exit code 0
+   | # lower edge | upper edge | gamma (22) | pi+ (211)
+   | 0 50 0 0
+   | 50 100 2 1
+mcpltool -H z/cm;bins=2;range=0:100;print=1 --pick=z < 25cm --edit=z += 50cm example.mcpl: exit code 0
    | # histogram of: z/cm
    | # pick: z < 25cm
    | # edit: z += 50cm
    | # values: weights per bin
-   | # lower edge | upper edge | value
-   | 0 50 0
-   | 50 100 1006
-mcpltool -Hekin/MeV;print;bins=2 -ppdgcode==22 example.mcpl: exit code 0
+   | # lower edge | upper edge | n (2112) | gamma (22) | e- (11) | p (2212) | e+ (-11) | pi+ (211) | pi- (-211) | nu_mu (14)
+   | 0 50 0 0 0 0 0 0 0 0
+   | 50 100 726 239 15 10 8 5 2 1
+mcpltool -Hekin/MeV;print=1;bins=2 -ppdgcode==22 example.mcpl: exit code 0
    | # histogram of: ekin/MeV
    | # pick: pdgcode==22
    | # values: weights per bin
-   | # lower edge | upper edge | value
-   | 0.24947436 91.251263 238
-   | 91.251263 182.25305 1
-mcpltool -H ekin example.mcpl: exit code 1
-   | ERROR: Expression "ekin" has units (energy), so divide it by a unit, e.g. ekin/MeV
-   | 
-   | Run with -h or --help for usage information
+   | # lower edge | upper edge | gamma (22)
+   | 0 95 238
+   | 95 190 1
+mcpltool -H ekin example.mcpl: exit code 0
+   | (weights per bin)
+   |      721 +**
+   |          |
+   |          |
+   |          |
+   |          |
+   |          |
+   |          |
+   |          |
+   |          |
+   |          |
+   |          |oo
+   |          |
+   |          |
+   |          |
+   |        0 +++****xxxx**  **                                          xx
+   |          ++----------------------------------------------------------+
+   |          0                             5                            10
+   |                                    ekin [GeV]
+   | * n (2112)     o gamma (22)   + e- (11)      x p (2212)
+   | @ e+ (-11)     % pi+ (211)    & pi- (-211)   = nu_mu (14)
 mcpltool -H ekin/MeV;bins=0 example.mcpl: exit code 1
    | ERROR: bins must be a positive integer (or two for 2D histograms, like bins=50,40) in "ekin/MeV;bins=0"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-H help" for how to write histograms
 mcpltool -H ekin/MeV;range=1 example.mcpl: exit code 1
-   | ERROR: range must be given as range=LOW:HIGH, with numbers in the units of the expression, in "ekin/MeV;range=1"
+   | ERROR: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm), in "ekin/MeV;range=1"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-H help" for how to write histograms
 mcpltool -H ekin/MeV;range=2:1 example.mcpl: exit code 1
-   | ERROR: range must be given as range=LOW:HIGH, with numbers in the units of the expression, in "ekin/MeV;range=2:1"
+   | ERROR: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm), in "ekin/MeV;range=2:1"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-H help" for how to write histograms
 mcpltool -H ekin/MeV;range=1:2,3:4 example.mcpl: exit code 1
-   | ERROR: range must be given as range=LOW:HIGH, with numbers in the units of the expression, in "ekin/MeV;range=1:2,3:4"
+   | ERROR: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm), in "ekin/MeV;range=1:2,3:4"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-H help" for how to write histograms
 mcpltool -H ekin/MeV;xrange=1:2 example.mcpl: exit code 1
    | ERROR: Histogram option "xrange" can only be used for 2D histograms (use range), in "ekin/MeV;xrange=1:2"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-H help" for how to write histograms
 mcpltool -H x/cm : y/cm;range=1:2 example.mcpl: exit code 1
    | ERROR: Histogram option "range" can only be used for 1D histograms (use xrange and yrange), in "x/cm : y/cm;range=1:2"
    | 
-   | Run with -h or --help for usage information
-mcpltool -H x/cm : y/cm;logx example.mcpl: exit code 1
-   | ERROR: Histogram option "logx" can not be used for 2D histograms, in "x/cm : y/cm;logx"
+   | Run with "-H help" for how to write histograms
+mcpltool -H x/cm : y/cm;logx=1;equal example.mcpl: exit code 1
+   | ERROR: Histogram option "equal" (equal scales of the axes) can not be used with logarithmic axes, in "x/cm : y/cm;logx=1;equal"
    | 
-   | Run with -h or --help for usage information
-mcpltool -H x/cm : y/cm : z/cm example.mcpl: exit code 1
-   | ERROR: Histograms are of an expression, or two expressions separated by ":" for 2D histograms, in "x/cm : y/cm : z/cm"
+   | Run with "-H help" for how to write histograms
+mcpltool -H x/cm : y/cm : z/cm example.mcpl: exit code 0
+   |            (3D plots are not shown in the terminal, only in windows)
+mcpltool -H x : y : z : x example.mcpl: exit code 1
+   | ERROR: Histograms are of an expression, or two expressions separated by ":" for 2D histograms (or three for 3D plots), in "x : y : z : x"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-H help" for how to write histograms
+mcpltool -H x : y : z;bins=5 example.mcpl: exit code 1
+   | ERROR: Histogram option "bins" can not be used for 3D plots, in "x : y : z;bins=5"
+   | 
+   | Run with "-H help" for how to write histograms
 mcpltool -H x/cm;bins example.mcpl: exit code 1
-   | ERROR: Histogram option "bins" needs a value (like bins=...) in "x/cm;bins"
+   | ERROR: Histogram option "bins" needs a value, like bins=..., in "x/cm;bins"
    | 
-   | Run with -h or --help for usage information
-mcpltool -H x/cm;logx=1 example.mcpl: exit code 1
-   | ERROR: Histogram option "logx" takes no value in "x/cm;logx=1"
+   | Run with "-H help" for how to write histograms
+mcpltool -H x/cm;logx example.mcpl: exit code 0
+   | (weights per bin)
+   |       53 +                                          ***   ***
+   |          |                                             ***
+   |          |
+   |          |                                                   ***
+   |          |                                       ***
+   |          |                        ooo
+   |          |
+   |          |
+   |          |
+   |          |                              *********
+   |          |                  ooo
+   |          |            ooo            ***         ooo            ***
+   |          |               ooo   ooo***
+   |          |         ooo         ***xxx   oooooo                     ***
+   |        0 +***   ooo************@@@+++      xxx++++++oooooo   ooo+++
+   |          ++----------------------------------------------------------+
+   |          0.01411                    0.9643                       65.89
+   |                                       x/cm
+   |                      (48.9% of weights outside plot range)
+   | * n (2112)     o gamma (22)   + e- (11)      x e+ (-11)
+   | @ pi+ (211)    % p (2212)     & pi- (-211)   = nu_mu (14)
+mcpltool -H x/cm;logx=true example.mcpl: exit code 1
+   | ERROR: Histogram options which are on or off are given as 1 or 0 (not "true"), like logx=1, in "x/cm;logx=true"
    | 
-   | Run with -h or --help for usage information
-mcpltool -H x/cm;logx;logx example.mcpl: exit code 1
-   | ERROR: Histogram option "logx" given more than once in "x/cm;logx;logx"
+   | Run with "-H help" for how to write histograms
+mcpltool -H x/cm;logy=yes example.mcpl: exit code 1
+   | ERROR: Histogram options which are on or off are given as 1 or 0 (not "yes"), like logy=1, in "x/cm;logy=yes"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-H help" for how to write histograms
+mcpltool -H x/cm;logx=2 example.mcpl: exit code 1
+   | ERROR: Histogram option "logx" must be 1, 0 or auto (not "2"), in "x/cm;logx=2"
+   | 
+   | Run with "-H help" for how to write histograms
+mcpltool -H x/cm;logy=auto example.mcpl: exit code 0
+   | (weights per bin)
+   |      163 +                            **
+   |          |                          **  **
+   |          |                        **
+   |          |                      **        ****
+   |          |                          oo        **
+   |          |                    **        oo
+   |          |                  **
+   |          |                **                    **
+   |          |                            ++          **
+   |          |                            xx
+   |          |              **      oooo    ++              **
+   |          |            **                  oo        ****  **
+   |          |  **    ****        oo      %%xx
+   |          |
+   |        1 +    **          oo      xx&&&&        oo++          ****  **
+   |          ++----------------------------------------------------------+
+   |          -65                          2.5                           70
+   |                                       x/cm
+   | * n (2112)     o gamma (22)   + e- (11)      x p (2212)
+   | @ e+ (-11)     % pi+ (211)    & pi- (-211)   = nu_mu (14)
+mcpltool -H x/cm;logx=1;logx=1 example.mcpl: exit code 1
+   | ERROR: Histogram option "logx" given more than once in "x/cm;logx=1;logx=1"
+   | 
+   | Run with "-H help" for how to write histograms
 mcpltool -H x/cm;foo example.mcpl: exit code 1
-   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, lethargy, split, unweighted, print)
+   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, groups, bar, unweighted, print, points, equal, display_only)
    | 
-   | Run with -h or --help for usage information
+   | Run with "-H help" for how to write histograms
 mcpltool -H x/cm -B foo example.mcpl: exit code 1
    | ERROR: Unknown plotting backend "foo". The plotting backends are: matplotlib, unicode, ascii
    | 
@@ -411,7 +557,7 @@ mcpltool --bins 10 example.mcpl: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool -o a.pdf example.mcpl: exit code 1
-   | ERROR: -o can only be used with -S or -H.
+   | ERROR: -o can only be used with -H.
    | 
    | Run with -h or --help for usage information
 mcpltool -H x/cm -e example.mcpl out.mcpl: exit code 1
@@ -422,16 +568,39 @@ mcpltool -H x/cm: exit code 1
    | ERROR: No input file specified
    | 
    | Run with -h or --help for usage information
-mcpltool -H x/cm;print -t example.mcpl: exit code 1
+mcpltool -H x/cm;print=1 -t example.mcpl: exit code 1
    | ERROR: The histogram option print can not be used together with -o, -B, -t or --color.
    | 
    | Run with -h or --help for usage information
+mcpltool -H ekin/MeV;logx=auto;bins=3;print=1 example.mcpl: exit code 0
+   | # histogram of: ekin/MeV
+   | # values: weights per bin
+   | # lower edge | upper edge | n (2112) | gamma (22) | e- (11) | p (2212) | e+ (-11) | pi+ (211) | pi- (-211) | nu_mu (14)
+   | 0.0013934488 0.26629109 222 1 2 0 0 0 0 0
+   | 0.26629109 50.888805 471 235 12 0 8 0 0 1
+   | 50.888805 9724.9609 33 3 1 10 0 5 2 0
+mcpltool -H x/cm;logx=auto;bins=3;print=1 example.mcpl: exit code 0
+   | # histogram of: x/cm
+   | # values: weights per bin
+   | # lower edge | upper edge | n (2112) | gamma (22) | e- (11) | p (2212) | e+ (-11) | pi+ (211) | pi- (-211) | nu_mu (14)
+   | -65 -20 49 1 0 0 0 0 0 1
+   | -20 25 652 238 14 10 8 5 2 0
+   | 25 70 25 0 1 0 0 0 0 0
+mcpltool -H ekin/MeV;logx=auto;range=1:10;bins=3;print=1 example.mcpl: exit code 0
+   | # histogram of: ekin/MeV
+   | # values: weights per bin
+   | # lower edge | upper edge | n (2112) | gamma (22) | e- (11) | e+ (-11) | pi- (-211) | nu_mu (14) | pi+ (211) | p (2212)
+   | 1 4 161 110 5 3 0 0 0 0
+   | 4 7 19 23 2 3 0 0 0 0
+   | 7 10 14 13 1 1 0 0 0 0
 mcpltool -H x/cm -t -o a.txt example.mcpl: exit code 1
    | ERROR: -t and -o can not be used together.
    | 
    | Run with -h or --help for usage information
-mcpltool -S -o stats.txt -B test -p pdgcode == gamma example.mcpl: exit code 0
-   | Created stats.txt
+mcpltool -S -o stats.txt -B test -p pdgcode == gamma example.mcpl: exit code 1
+   | ERROR: -o can only be used with -H (-S only prints text, for plots use -H, or -w for the viewer).
+   | 
+   | Run with -h or --help for usage information
 mcpltool -S -s1000 -E x = 1cm example.mcpl: exit code 0
    | ------------------------------------------------------------------------------
    | edit         : x = 1cm
@@ -461,18 +630,31 @@ mcpltool -S -s1000 -E x = 1cm example.mcpl: exit code 0
    | ------------------------------------------------------------------------------
 mcpltool -H x/cm;bins=3 -o hist.txt -B test example.mcpl: exit code 0
    | Created hist.txt
+mcpltool -H x/cm;bins=2;print -H pdgcode;bar=2;print example.mcpl: exit code 0
+   | # histogram of: x/cm
+   | # values: weights per bin
+   | # lower edge | upper edge | n (2112) | gamma (22) | e- (11) | p (2212) | e+ (-11) | pi+ (211) | pi- (-211) | nu_mu (14)
+   | -65 2.5 463 208 10 8 8 3 2 1
+   | 2.5 70 263 31 5 2 0 2 0 0
+   | # bars of: pdgcode
+   | # values: weights
+   | # bar | value
+   | n (2112) | 726
+   | other | 280
+mcpltool -H x/cm;bins=3 -H pdgcode;bar -o twohists.txt -B test example.mcpl: exit code 0
+   | Created twohists.txt
 mcpltool -p neutron example.mcpl: exit code 1
    | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == neutron"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool -p2112 example.mcpl: exit code 1
    | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == 2112"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool -p  gamma  example.mcpl: exit code 1
    | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == gamma"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool -p: exit code 1
    | ERROR: Missing argument for -p
    | 
@@ -490,7 +672,7 @@ mcpltool -p x > 0 -p x < 1cm example.mcpl: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool --pdf example.mcpl: exit code 1
-   | ERROR: --pdf is no longer supported as an option (a similar option now is: -S -o FILE.pdf)
+   | ERROR: --pdf is no longer supported as an option (similar options now are -w, and -H HIST -o FILE.pdf)
    | 
    | Run with -h or --help for usage information
 mcpltool --gui example.mcpl: exit code 1
@@ -502,11 +684,11 @@ mcpltool --select x > 0 example.mcpl: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool -S -B test example.mcpl: exit code 1
-   | ERROR: -B can only be used with -S together with -o.
+   | ERROR: -B can only be used with -H or -w (-S only prints text, for plots use -H, or -w for the viewer).
    | 
    | Run with -h or --help for usage information
 mcpltool -S -t example.mcpl: exit code 1
-   | ERROR: -t can not be used without -H.
+   | ERROR: -t can not be used without -H or -w.
    | 
    | Run with -h or --help for usage information
 mcpltool -S -H x/cm example.mcpl: exit code 1
@@ -526,7 +708,7 @@ mcpltool --text example.mcpl hist.txt: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool -t example.mcpl: exit code 1
-   | ERROR: -t can not be used without -H (did you mean --text?).
+   | ERROR: -t can not be used without -H or -w (did you mean --text?).
    | 
    | Run with -h or --help for usage information
 mcpltool -j -H x/cm example.mcpl: exit code 1
@@ -537,10 +719,10 @@ mcpltool --no-comment -S example.mcpl: exit code 1
    | ERROR: --no-comment can only be used with -e.
    | 
    | Run with -h or --help for usage information
-mcpltool -H x/cm : y/cm;split=pdgcode example.mcpl: exit code 1
-   | ERROR: Histogram option "split" can not be used for 2D histograms, in "x/cm : y/cm;split=pdgcode"
+mcpltool -H x/cm : y/cm;display_by=pdgcode example.mcpl: exit code 1
+   | ERROR: Histogram option "display_by" can not be used for 2D histograms, in "x/cm : y/cm;display_by=pdgcode"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-H help" for how to write histograms
 mcpltool -H x/cm -o hist.txt -B test example.mcpl: exit code 1
    | ERROR: Requested output file already exists.
    | 
@@ -557,37 +739,37 @@ mcpltool -H x/cm -o hist.png -d example.mcpl: exit code 1
    | ERROR: -d can not be used with -o (which saves plots in files).
    | 
    | Run with -h or --help for usage information
-mcpltool -p x > 0; example.mcpl: exit code 1
-   | ERROR: Syntax error in expression "x > 0;"
+mcpltool -p x = 1cm; x > 0 example.mcpl: exit code 1
+   | ERROR: Picks can not change the particles (here x), only variables, like "r = hypot(x,y)" (edits can change the particles), in "x = 1cm; x > 0"
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool -p x > "1" example.mcpl: exit code 1
    | ERROR: The character " can not be used in expressions (in "x > "1"")
    | 
-   | Run with -h or --help for usage information
+   | Run with "-p help" for how to pick particles with expressions
 mcpltool -E z = 1cm, x = 0 example.mcpl: exit code 1
-   | ERROR: Separate the statements of edits with ";" (not ",") in "z = 1cm, x = 0"
+   | ERROR: Separate statements with ";" (not ",") in "z = 1cm, x = 0"
    | 
-   | Run with -h or --help for usage information
-mcpltool -p help: exit code 0, 131 lines, starting with:
-   | PICK: an expression which is true for the particles to use, e.g.
-   |   -p "pdgcode == neutron and ekin < 25meV"
-   |   -p "hypot(x,y) < 10cm and angle_to(0,0,1) < 1deg"
-mcpltool --edit=help: exit code 0, 137 lines, starting with:
-   | EDIT: statements separated by ";", executed in order, e.g.
-   |   -E "z += 1cm;weight *= 0.5"
-   |   -E "rotate_y(90deg);x += 10cm"
-mcpltool -H help example.mcpl: exit code 0, 143 lines, starting with:
-   | HIST: an expression without units (divide values with units by a unit,
-   | e.g. ekin/MeV), or two separated by ":" for a 2D histogram, followed by
-   | options separated by ";", e.g.
+   | Run with "-E help" for how to edit particles with expressions
+mcpltool -p help: exit code 0, 198 lines, starting with:
+   | PICK: an expression which is true for the particles to use, for example:
+   | 
+   | Particle types:
+mcpltool --edit=help: exit code 0, 194 lines, starting with:
+   | EDIT: statements separated by ";", executed in order, for example:
+   | 
+   | Changing values:
+mcpltool -H help example.mcpl: exit code 0, 82 lines, starting with:
+   | HIST: what to plot, an expression of the particles (written as for -p),
+   | or two separated by ":" for a 2D histogram (or three for a 3D plot of a
+   | sample of the particles, in windows), followed by options separated by ";".
 nice numbers of bins: [(1200, 1080), (400, 360), (239, 216), (83, 72), (37, 36), (15, 15), (8, 8)]
 neff=1: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
 neff=100: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
 neff=1000: bins of 1080 -> 30, of 216 -> 36, 2D of 216 -> 9
-neff=10000: bins of 1080 -> 108, of 216 -> 108, 2D of 216 -> 9
-neff=100000: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 18
-neff=1e+06: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 36
+neff=10000: bins of 1080 -> 108, of 216 -> 108, 2D of 216 -> 24
+neff=100000: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 54
+neff=1e+06: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 108
 2756 (ncols,neff) cases, 0 bad, ratio to target 0.72..1.25 when not capped, 1035 capped by narrow plots, at most 15% unused columns
 auto: 30 bins, sum 1006 (1080 bins: 1006), merged exactly: True, same edges: True, for display: 1080
 auto with few particles: 10 bins, sum 10

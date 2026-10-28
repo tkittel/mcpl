@@ -25,13 +25,11 @@
 # Test the selection of plotting backends (by name, with set_default_backend,
 # and automatically, for showing plots or for saving them in files of a
 # format), custom backends registered with register_backend, Backend objects,
-# backend options, the deprecated set_backend parameter of plot_stats, and the
-# -B, -t and -o options of mcpltool.
+# backend options, and the -B, -t and -o options of mcpltool.
 
 import os
 import subprocess
 import sys
-import warnings
 
 import mcpldev as mcpl
 from mcpldev.plotting import Backend, Figure, Panel, Text
@@ -99,8 +97,7 @@ def test_default():
             continue
         mcpl.plotting.show(fig)
         mcpl.plotting.show(fig, backend='test')#explicit backend wins
-        mcpl.histogram(example_file, 'ekin/MeV', bins=5).plot()
-        mcpl.plot_stats(mcpl.collect_stats(example_file))
+        mcpl.histogram(example_file, 'ekin/MeV', bins=5, display_by='single').plot()
         print(f'   formats: {mcpl.plotting.formats()}')
     obj = PrintingBackend()
     expect_error('Backend object with options',
@@ -131,22 +128,14 @@ def test_tool_backends():
         sys.stdout.flush()
         #(with UTF-8 output, also on Windows, so the plots in the terminal are
         #drawn with the unicode backend):
-        rv = subprocess.run([sys.executable, '-m', 'mcpldev', '-H', 'ekin/MeV;bins=3',
+        rv = subprocess.run([sys.executable, '-m', 'mcpldev', '-H', 'ekin/MeV;bins=3;display_by=single',
                              *args, str(example_file)],
                             capture_output=True, encoding='utf-8', check=False,
                             env=dict(os.environ, PYTHONIOENCODING='utf-8'))
-        print(f'==> mcpltool -H ekin/MeV;bins=3 {" ".join(args)}:'
+        print(f'==> mcpltool -H ekin/MeV;bins=3;display_by=single {" ".join(args)}:'
               f' exit code {rv.returncode}')
         for line in rv.stdout.splitlines()[:4]:
             print(f'   | {line}')
-
-def test_deprecated_set_backend():
-    with warnings.catch_warnings(record=True) as wlist:
-        warnings.simplefilter('always')
-        files = mcpl.plot_stats(example_file, filename='stats.txt', backend='test',
-                                set_backend='agg')
-    print(f'plot_stats with set_backend created {files}, with warnings:'
-          f' {[ f"{w.category.__name__}: {w.message}" for w in wlist ]}')
 
 def test_can_show():
     #Whether the matplotlib backend can show plots, also on systems where
@@ -195,5 +184,4 @@ if __name__ == '__main__':
     test_default()
     test_automatic()
     test_tool_backends()
-    test_deprecated_set_backend()
     test_can_show()

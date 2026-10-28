@@ -23,6 +23,8 @@
 # --mode fixreqfiles" (do not edit). Information about the
 # dependencies of the Python tests (see mctools_testutils.cmake).
 
+set( MCTOOLS_TESTDEP_ipympl_IMPORT "ipympl" )
+set( MCTOOLS_TESTDEP_ipywidgets_IMPORT "ipywidgets" )
 set( MCTOOLS_TESTDEP_matplotlib_IMPORT "matplotlib.pyplot" )
 set( MCTOOLS_TESTDEP_numpy_IMPORT "numpy" )
 set( MCTOOLS_TESTDEP_pyyaml_IMPORT "yaml" )
@@ -30,3 +32,6 @@ set( MCTOOLS_TESTDEP_ruff_CMD "ruff" )
 set( MCTOOLS_TESTDEP_scipp_IMPORT "scipp" )
 set( MCTOOLS_TESTDEP_scipp_MINPYTHON "3.12" )
 set( MCTOOLS_TESTDEP_scipp_UNAVAILABLE_ON "FreeBSD" )
+set( MCTOOLS_TESTDEP_tkinter_PYCODE "__import__('tkinter').Tk().destroy()" )
+set( MCTOOLS_TESTDEP_windows-curses_IMPORT "curses" )
+set( MCTOOLS_TESTDEP_windows-curses_UNAVAILABLE_ON "Darwin;FreeBSD;Linux" )

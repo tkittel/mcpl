@@ -41,20 +41,23 @@ def _check_setting( when ):
 
 def _ncolors( when = 'auto', stream = None ):
     """Number of colours to use for output to the stream (default
-    sys.stdout): 0 (no colours), 8, 256 or 16777216. With when='auto', colours
-    are used for terminals, unless NO_COLOR is set (to a non-empty value) or
-    TERM is "dumb", and always if FORCE_COLOR is set (like in CPython)."""
+    sys.stdout): 0 (no colours), 8, 256 or 16777216 (see _use_colors)"""
+    return _depth() if _use_colors(when,lambda : _is_terminal(stream)) else 0
+
+def _use_colors( when, is_terminal ):
+    """Whether colours are used with the setting (auto, always or never), for
+    output where is_terminal() tells whether it is a terminal which can show
+    colours. With when='auto', colours are used for terminals, unless NO_COLOR
+    is set (to a non-empty value) or TERM is "dumb", and always if FORCE_COLOR
+    is set (like in CPython)."""
     _check_setting(when)
-    if when == 'never':
-        return 0
-    if when == 'auto':
-        env = os.environ
-        if env.get('NO_COLOR'):
-            return 0
-        if not env.get('FORCE_COLOR') and ( env.get('TERM') == 'dumb'
-                                            or not _is_terminal(stream) ):
-            return 0
-    return _depth()
+    if when != 'auto':
+        return when == 'always'
+    env = os.environ
+    if env.get('NO_COLOR'):
+        return False
+    return bool( env.get('FORCE_COLOR') ) or ( env.get('TERM') != 'dumb'
+                                                and is_terminal() )
 
 def _is_terminal( stream ):
     stream = sys.stdout if stream is None else stream

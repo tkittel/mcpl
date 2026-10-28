@@ -36,6 +36,7 @@ import mcpldev as mcpl
 import numpy as np
 from mcpldev.plotting import Figure, Panel, StepHist, Text, resolution
 from MCPLTestUtils.dirs import test_data_dir
+from MCPLTestUtils.plots import example_figures
 
 example_file = test_data_dir.joinpath('example.mcpl')
 
@@ -45,15 +46,15 @@ def show(figs, backend, width=72, height=8):
     mcpl.plotting.show(figs, backend=backend, **opts)
 
 def test_histograms():
-    h = mcpl.histogram(example_file, 'ekin/MeV', logx=True, bins=50)
+    h = mcpl.histogram(example_file, 'ekin/MeV', logx=True, bins=50, display_by='single')
     for backend in ('unicode','ascii'):
         show(h.figure(), backend)
     #Several curves (markers and legend), and a logarithmic y axis:
     h = mcpl.histogram(example_file, 'ekin/MeV', logx=True, bins=50,
-                       split='pdgcode', max_curves=3)
+                       display_by='pdgcode', max_curves=3)
     show(h.figure(logy=True), 'unicode', height=10)
     h = mcpl.histogram(example_file, 'acos(uz)/deg', range=(0,180), bins=36,
-                       split='x > 0cm')
+                       display_by='x > 0cm')
     show(h.figure(), 'ascii')
     #2D histogram:
     h = mcpl.histogram2d(example_file, 'x/cm', 'y/cm', bins=30,
@@ -62,14 +63,14 @@ def test_histograms():
         show(h.figure(), backend, height=12)
 
 def test_stats():
-    figs = mcpl.stats_figures(example_file)
+    figs = example_figures(mcpl,example_file)
     show(figs[0], 'ascii')
     show(figs[1:3], 'unicode', height=6)
     show(Figure( title='Empty', panels=[ Panel( title='No data here',
                                                items=[ Text('No data') ] ) ] ), 'unicode')
 
 def test_files_and_options():
-    figs = mcpl.stats_figures(example_file)[:2]
+    figs = example_figures(mcpl,example_file)[:2]
     for backend in ('unicode','ascii'):
         files = mcpl.plotting.save(figs, f'stats_{backend}.txt', backend=backend,
                                    **{ f'{backend}_width' : 60 })
@@ -99,7 +100,7 @@ def test_files_and_options():
     for args in ( 'terminal=True,ascii_width=40,ascii_height=5',
                   'backend="unicode",unicode_width=40,unicode_height=5' ):
         code = ( f'import mcpldev; mcpldev.histogram({str(example_file)!r},"ekin/MeV",'
-                 f'bins=10).plot({args})' )
+                 f'bins=10,display_by="single").plot({args})' )
         rv = subprocess.run([sys.executable,'-c',code], capture_output=True,
                             env=env, check=False)
         print(f'plot({args}) with PYTHONIOENCODING=ascii: exit code {rv.returncode},'
@@ -136,7 +137,7 @@ def test_resolution():
 def test_tool():
     out = io.StringIO()
     with contextlib.redirect_stdout(out), contextlib.suppress(SystemExit):
-        mcpl.app_mcpltool(['mcpltool','--hist','time/ms;logx;bins=20',
+        mcpl.app_mcpltool(['mcpltool','--hist','time/ms;logx=1;bins=20;display_by=single',
                              '--backend','ascii',str(example_file)])
     lines = out.getvalue().splitlines()
     print(f'mcpltool --hist --backend ascii: {len(lines)} lines, first and last:')
@@ -149,7 +150,7 @@ def test_tool():
     old = { k : os.environ.get(k) for k in env }
     os.environ.update(env)
     try:
-        for args in ( ['--hist','x/cm'], ['--hist','x/cm : y/cm'] ):
+        for args in ( ['--hist','x/cm;display_by=single'], ['--hist','x/cm : y/cm'] ):
             out = io.StringIO()
             with contextlib.redirect_stdout(out), contextlib.suppress(SystemExit):
                 mcpl.app_mcpltool(['mcpltool',*args,'--backend','ascii',

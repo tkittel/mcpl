@@ -25,20 +25,15 @@ __all__ = []
 
 from ._common import MCPLError
 from ._numpy import np
+from ._particles import _pdg_names, _pdg_symbols, _wavelength_pdgcodes
 from .constants import hc_eV_Aa, neutron_mass_energy
 
-_db_pdg = None
 _db_elem = None
 def _pdg_database(pdgcode):
-    global _db_pdg, _db_elem
-    if _db_pdg is None:
-        _db_pdg = { 12:'nu_e',14:'nu_mu',16:'nu_tau',-12:'nu_e-bar',-14:'nu_mu-bar',
-                    -16:'nu_tau-bar',2112:'n',2212:'p',-2112:'n-bar',-2212:'p-bar',
-                    22:'gamma',11:'e-',-11:'e+',13:'mu-',-13:'mu+',15:'tau-',-15:'tau+',
-                    211:'pi+',-211:'pi-',111:'pi0',321:'K+',-321:'K-',130:'Klong',
-                    310:'Kshort',-1000010020:'D-bar',-1000010030:'T-bar',1000010020:'D',
-                    1000010030:'T',1000020040:'alpha',-1000020040:'alpha-bar' }
-    r=_db_pdg.get(pdgcode,None)
+    """Name of a particle type, from the table of particle types with names (see
+    _particles), or for ions (PDG codes 10LZZZAAAI), like "C12" (or None)"""
+    global _db_elem
+    r = _pdg_names.get(pdgcode)
     if r is not None:
         return r
     if _db_elem is None:
@@ -74,13 +69,26 @@ def _pdg_database(pdgcode):
             return s
     return None
 
-#Names of a few common particles, which can be used instead of PDG codes in
-#"mcpltool -p" (mcpltool-c has an identical list):
-_particle_names = { 'neutron' : 2112, 'antineutron' : -2112,
-                    'proton' : 2212, 'antiproton' : -2212,
-                    'electron' : 11, 'positron' : -11, 'antielectron' : -11,
-                    'muon' : 13, 'antimuon' : -13,
-                    'gamma' : 22, 'photon' : 22 }
+
+
+def _pdg_name( pdgcode, unicode = False ):
+    """Name of a particle type, like "n" (with the symbol for plots, like "\u03b3", if
+    unicode is set), or None if unknown"""
+    name = _pdg_database(int(pdgcode))
+    return _pdg_symbols.get(name,name) if unicode else name
+
+def _pdg_label( pdgcode, unicode = False ):
+    """Label of a particle type, like "n (2112)" (or "2112" if unknown, see
+    _pdg_name for unicode)"""
+    name = _pdg_name(pdgcode,unicode)
+    return f'{name} ({int(pdgcode)})' if name else str(int(pdgcode))
+
+def _ascii_symbols( text ):
+    """The text with the symbols of particles for plots (see _pdg_symbols)
+    replaced by their names, for plots in ASCII"""
+    for name, sym in sorted( _pdg_symbols.items(), key = lambda kv : -len(kv[1]) ):
+        text = text.replace(sym,name)
+    return text
 
 def wavelength_from_ekin(ekin, pdgcode = 2112):
     """Convert kinetic energy [MeV] to (de Broglie) wavelength [Aa] for
@@ -117,7 +125,7 @@ def wavelength_checked(ekin, pdgcode):
     or infinite values (for particles which are not neutrons or gammas, or which
     have zero kinetic energy)."""
     pdg = np.asarray(pdgcode)
-    notng = ~np.isin(pdg,(2112,22))
+    notng = ~np.isin(pdg,_wavelength_pdgcodes)
     if np.any(notng):
         bad = int(pdg[notng].flat[0])
         raise MCPLError('The wavelength is only defined for neutrons (pdgcode'

@@ -1389,9 +1389,9 @@ Userdata fields in expressions:
   userdata.d > 1cm: MCPLError: The userdata field "d" has 3 values per particle (use userdata.d.at(0) to userdata.d.at(2)) in expression "userdata.d > 1cm"
   userdata.d.at(3) > 0cm: MCPLError: The index 3 is too large for the userdata field "d", which has 3 values per particle (from .at(0) to .at(2)) in expression "userdata.d.at(3) > 0cm"
   userdata.nope > 0: MCPLError: No userdata field "nope" (the fields are: temp, nscat, d, theta, big) in expression "userdata.nope > 0"
-  userdata > 0: MCPLError: Fields of the userdata are written as userdata.NAME in expression "userdata > 0"
-  userdata.d.x > 0: MCPLError: Values of arrays in the userdata are written as userdata.d.at(INDEX), not userdata.d.x in expression "userdata.d.x > 0"
-  userdata.d.at(x) > 0: MCPLError: The index in userdata.d.at(INDEX) must be a non-negative integer, like userdata.d.at(0) in expression "userdata.d.at(x) > 0"
+  userdata > 0: MCPLError: Fields of the userdata are written as userdata.NAME, in expression "userdata > 0"
+  userdata.d.x > 0: MCPLError: Syntax error in expression "userdata.d.x > 0", after "userdata.d.": values of arrays in the userdata are written as userdata.NAME.at(INDEX)
+  userdata.d.at(x) > 0: MCPLError: Syntax error in expression "userdata.d.at(x) > 0", after "userdata.d.at(": the index of a value in an array must be a whole number (counting from 0)
   userdata.big + 1 > 0: MCPLError: Addition of integers gives values outside the range of the result (unsigned 64-bit integers) in expression "userdata.big + 1 > 0"
   userdata.big > -1: MCPLError: Unsigned integers (like userflags) can not be combined with negative values (in a comparison) in expression "userdata.big > -1"
   userdata.big - 1 > 0: MCPLError: Subtraction of integers gives values outside the range of the result (unsigned 64-bit integers) in expression "userdata.big - 1 > 0"
@@ -1401,7 +1401,7 @@ Userdata fields in expressions:
   userdata.temp: MCPLError: Expression "userdata.temp" has units (temperature), so divide it by a unit, e.g. userdata.temp/K
   x = userdata.d.at(0): {'x': array([1., 4., 7.])}
   ekin = userdata.temp*1MeV/K: {'ekin': array([290., 300., 310.])}
-  userdata.temp = 3K: MCPLError: Fields of the userdata (userdata.temp) can not be changed, in "userdata.temp = 3K"
+  userdata.temp = 3K: MCPLError: Syntax error in expression "userdata.temp = 3K", at the start: fields of the userdata can not be changed
   swap(userdata.temp,x): MCPLError: Fields of the userdata (userdata.temp) can not be changed, in "swap(userdata.temp,x)"
   userdata.temp > 0K: MCPLError: The particles have no userdata (for userdata.temp) in expression "userdata.temp > 0K"
   picked from arrays added to MCPLOutFile: [300.0, 310.0]
@@ -1417,8 +1417,27 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
   mcpltool -H userdata.temp/K;print;bins=3 udexpr.mcpl:
 # histogram of: userdata.temp/K
 # values: weights per bin
-# lower edge | upper edge | value
+# lower edge | upper edge | n (2112)
 290 296.66667 1
 296.66667 303.33333 1
 303.33333 310 1
   exit: 0
+=== Units of userdata fields in expressions and plots
+userdata.temp/K: [290.0, 292.0, 294.0, 296.0]
+userdata.theta/deg: [0.0, 30.0, 60.0, 90.0]
+userdata.d/mm: [0.0, 100.0, 200.0, 300.0]
+(userdata.d + x)/cm: [0.0, 11.0, 22.0, 33.0]
+userdata.q*cm: [0.0, 0.5, 1.0, 1.5]
+userdata.n: [0.0, 1.0, 2.0, 3.0]
+userdata.temp > 293K: [False, False, True, True]
+userdata.temp + x: MCPLError: Incompatible units in arithmetic: temperature and length in expression "userdata.temp + x"
+userdata.temp > 293: MCPLError: Incompatible units in comparison: temperature and value without units (add units, e.g. 2K) in expression "userdata.temp > 293"
+userdata.q + userdata.d: MCPLError: Incompatible units in arithmetic: length^-1 and length in expression "userdata.q + userdata.d"
+userdata.temp: MCPLError: Expression "userdata.temp" has units (temperature), so divide it by a unit, e.g. userdata.temp/K
+plot userdata.temp: userdata.temp [K] | weights per bin
+plot userdata.d : userdata.temp: userdata.d [cm] | userdata.temp [K]
+plot userdata.d;range=0cm:20cm: userdata.d [cm] | weights per bin
+plot userdata.d;range=0:20: MCPLError: The range of "userdata.d" must be given with units, as it has units (length), e.g. range=0cm:10cm
+plot userdata.temp;range=0cm:2cm: MCPLError: The range of "userdata.temp" (temperature) has other units (length)
+plot userdata.n;bar: weights | userdata.n
+plot userdata.d;bar: MCPLError: Bar charts are of whole numbers without units, like pdgcode or round(x/cm), not of "userdata.d"

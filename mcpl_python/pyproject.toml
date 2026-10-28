@@ -45,7 +45,12 @@ classifiers = [
 [project.optional-dependencies]
 #Plotting backends (the text backends need no extra packages):
 plot = [ 'matplotlib>=3.6' ]
-all = [ 'matplotlib>=3.6' ]
+#The viewer in the terminal (curses is in the standard library of Python,
+#except on Windows):
+curses = [ 'windows-curses>=2.3; platform_system == "Windows"' ]
+#The viewer in Jupyter (not included in "all", since it is only needed there):
+jupyter = [ 'ipywidgets>=8.0', 'ipympl>=0.9' ]
+all = [ 'matplotlib>=3.6', 'windows-curses>=2.3; platform_system == "Windows"' ]
 #Conversion to scipp (MCPLFile.to_scipp), not included in "all" since scipp
 #needs a more recent Python and numpy than the rest of mcpl-python:
 scipp = [

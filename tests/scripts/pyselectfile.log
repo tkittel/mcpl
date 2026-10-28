@@ -1,7 +1,7 @@
 pick=ParticleFilter('pdgcode == neutron') edit=None nparticles=1006
 block lengths with blocklength=100: [185, 188, 179, 168, 6]
 first particle after rewind: 3
-skip_forward: skip_forward can not be used with files opened with pick or edit
+skip_forward: skip_forward can not be used with files opened with pick, edit, skip or limit
 edited block (_EditedParticleBlock) as expected: True
 selection from edited block: 81 particles, as expected: True
 particle 14: z=120 x=-22.5224 y=-6.54176
@@ -39,6 +39,16 @@ pdgcode      :        2112 (n)                   466 (100.00%)
 userflags    :           0 (0x00000000)          466 (100.00%)
                      [ values ]             [ weighted counts ]
 ------------------------------------------------------------------------------
+skip=5 limit=None pick=None: 1001 particles, as expected: True
+skip=0 limit=13 pick=None: 13 particles, as expected: True
+skip=250 limit=300 pick='pdgcode == neutron': 275 particles, as expected: True
+skip=999 limit=50 pick=None: 7 particles, as expected: True
+skip=2000 limit=None pick=None: 0 particles, as expected: True
+skip=10 limit=0 pick=None: 0 particles, as expected: True
+{'skip': -1}: skip must be a number of particles (not -1)
+{'limit': 2.5}: limit must be a number of particles (not 2.5)
+{'skip': True}: skip must be a number of particles (not True)
+skip_forward: skip_forward can not be used with files opened with pick, edit, skip or limit
 edited blocks written like explicit field values: True
 MCPLOutFile with pick and edit gives the same: True True
 fields then selection and edit: 239 particles, weights {2.0}, pdgcodes {22}
@@ -49,4 +59,4 @@ MCPLOutFile({'pick': 'wavelength > 1Aa'}): The wavelength is only defined for ne
 MCPLOutFile with pick using fileidx: 11 particles
 fileidx with arrays: fileidx can only be used for particles read from files
 MCPLFile with a bytes filename: ok
-MCPLFile with an invalid pick: Syntax error in expression "blah +"
+MCPLFile with an invalid pick: Syntax error in expression "blah +", at the end: a value is missing

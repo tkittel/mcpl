@@ -1,0 +1,13 @@
+name: mcpl_jupyter
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - c-compiler
+  - cmake
+  - make
+  - pip >=26.2.2
+  - python
+  - ipympl >=0.9
+  - ipywidgets >=8.0
+  - numpy >=1.22

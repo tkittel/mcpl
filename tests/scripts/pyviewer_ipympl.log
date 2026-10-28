@@ -1,0 +1,6 @@
+interactive figure shown: True warning: ''
+axes of the overview: 6 clickable: 5
+view after clicking the 4th plot: plot:time;logx=auto;logy selected in the list: True
+x range after the pick, zoom kept: (2.0, 20.0)
+x range of another view, not zoomed: True
+window, after changing the limit: log (1.0, 100.0)

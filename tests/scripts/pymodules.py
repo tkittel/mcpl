@@ -70,6 +70,7 @@ layers = {
     '_examples' : 6,
     '_extract' : 6,
     '_viewer_code' : 7,
+    '_viewer_align' : 2,
     '_plotbackend' : 7,
     'plotting' : 8,
     '_plotbackend_mpl' : 9,

@@ -27,6 +27,7 @@ __all__ = []
 
 from . import _viewer_ui as ui
 from ._viewer_tkbase import bind_enter, on_paste, tk_modules
+from ._common import MCPLError
 from ._viewer_ui import card_colors, code_styles, colors
 
 
@@ -348,3 +349,169 @@ class WriteWindow:
             self.tv.show_line(msg,'normal')
         else:
             self.tv.on_open_file(name,particles = False)#(with its own message)
+
+class AlignWindow:
+    """The window of the align helper (see _viewer_align): the mean position
+    and direction of the particles used (after the current edit), and the
+    statements of an edit which turn the mean direction into a target
+    direction, and move the mean position to a point, which are added to the
+    edit (to be applied there)"""
+    def __init__( self, tv ):
+        import threading
+
+        from . import _viewer_align as al
+        tk, ttk = tk_modules()
+        self.tv, self._al = tv, al
+        w = tk.Toplevel(tv.root)
+        w.title('MCPL viewer: Align particles')
+        w.transient(tv.root)
+        self.window = w
+        f = ttk.Frame(w,padding=10)
+        f.pack(fill='both',expand=True)
+        edit = tv.v.edit_text
+        ttk.Label(f,text=( 'The weighted means of the particles used'
+                           + ( f' (after the edit "{edit}"):' if edit else ':' ) ),
+                  font=tv.bold).pack(anchor='w')
+        self._means = ttk.Label(f,justify='left')
+        self._means.pack(anchor='w',pady=(4,8))
+        dirs = [ '' ] + list(al.axis_choices)
+        #(1. turning the mean direction):
+        self._rotate = tk.BooleanVar(w,value=True)
+        ttk.Checkbutton(f,text='Turn the mean direction into the direction',
+                        variable=self._rotate,command=self._update).pack(anchor='w')
+        row = ttk.Frame(f)
+        row.pack(fill='x',padx=(24,0),pady=(2,6))
+        self._target = self._combo(row,'Direction:',dirs[1:],'+z',14)
+        self._keep = self._combo(row,'keeping the axis:',[ 'none' ] + dirs[1:],'none',14)
+        self._pivot = self._combo(row,'rotating around:',[ 'mean position', 'origin' ],
+                                  'mean position',18)
+        ttk.Label(f,text='(any vector can be typed, as in (1,1,0), and a point to rotate around,'
+                  ' as in (0,0,1m))',foreground=colors['dim']).pack(anchor='w',padx=(24,0))
+        #(2. moving the mean position):
+        self._move = tk.BooleanVar(w,value=False)
+        ttk.Checkbutton(f,text='Then move the mean position to the point',
+                        variable=self._move,command=self._update).pack(anchor='w',pady=(8,0))
+        row = ttk.Frame(f)
+        row.pack(fill='x',padx=(24,0),pady=(2,6))
+        self._point = self._combo(row,'Point:',[ '(0,0,0)' ],'(0,0,0)',18)
+        ttk.Label(row,text='in').pack(side='left',padx=(12,4))
+        self._coords = {}
+        for c in 'xyz':
+            self._coords[c] = tk.BooleanVar(w,value=True)
+            ttk.Checkbutton(row,text=c,variable=self._coords[c],
+                            command=self._update).pack(side='left')
+        #(the result):
+        ttk.Label(f,text='Added to the edit:',font=tv.bold).pack(anchor='w',pady=(8,0))
+        self._edit = tk.Text(f,width=90,height=3,wrap='char',font='TkFixedFont',relief='flat',
+                             background='white',padx=6,pady=4)
+        self._edit.pack(fill='x',pady=(2,0))
+        self._result = ttk.Label(f,justify='left')
+        self._result.pack(anchor='w',pady=(4,0))
+        row = ttk.Frame(f)
+        row.pack(fill='x',pady=(10,0))
+        self._add = ttk.Button(row,text='Add to the edit',style='Accent.TButton',
+                               command=self._on_add)
+        self._add.pack(side='left')
+        ttk.Button(row,text='Close',command=w.destroy).pack(side='left',padx=(6,0))
+        w.bind('<Escape>',lambda _e : w.destroy())
+        #(the means are read in a thread, first estimated from the first
+        #particles, see _viewer_align.read_stats):
+        self._stats, self._statements = None, None
+        self._lock, self._new, self._gone = threading.Lock(), [], threading.Event()
+        w.bind('<Destroy>',lambda e : self._gone.set() if e.widget is w else None)
+        threading.Thread(target = lambda : al.read_stats(tv.v.picked_blocks(),self._publish,
+                                                          self._gone.is_set),
+                         daemon = True).start()
+        self._update()
+        self._poll()
+
+    def _combo( self, parent, label, values, value, width ):
+        _, ttk = tk_modules()
+        ttk.Label(parent,text=label).pack(side='left',padx=(0 if label == 'Direction:'
+                                                          or label == 'Point:' else 12,4))
+        c = ttk.Combobox(parent,values=values,width=width)
+        c.set(value)
+        c.pack(side='left')
+        c.bind('<<ComboboxSelected>>',lambda _e : self._update())
+        c.bind('<KeyRelease>',lambda _e : self._update())
+        return c
+
+    def _publish( self, stats ):
+        with self._lock:#(from the thread, shown by _poll)
+            self._new.append(stats)
+
+    def _poll( self ):
+        if self._gone.is_set():
+            return
+        with self._lock:
+            new, self._new = self._new, []
+        if new:
+            self._stats = new[-1]
+            self._update()
+        if self._stats is None or not self._stats.complete:
+            self.window.after(200,self._poll)
+
+    def _update( self ):
+        """Show the means, and the statements of the edit with the result"""
+        from ._viewer_ui import count_text, number_text
+        al, s = self._al, self._stats
+        self._statements = None
+        if s is None:
+            self._means.configure(text='Reading the particles ...')
+            self._show('',None)
+            return
+        if s.w <= 0:
+            self._means.configure(text='No particles (with weights) to align')
+            self._show('',None)
+            return
+        how = 'all' if s.complete else f'estimate from the first {count_text(s.n)}'
+        d = s.mean_dir
+        self._means.configure(text=(
+            f'Position: {_xyz(s.mean_pos)} cm\n'
+            f'Direction: {"not defined (the directions cancel out)" if d is None else _xyz(d)},'
+            f' spread {s.spread_deg:.3g} deg (typical angle to the mean direction)\n'
+            f'Particles: {count_text(s.n)} ({how}), {chr(0x3a3)}w = {number_text(s.w)},'
+            f' {s.types_text()}' ))
+        try:
+            target = keep = centre = None
+            pivot = 'mean'
+            if self._rotate.get():
+                target = al.parse_vector(self._target.get(),'direction')
+                k = self._keep.get().strip()
+                keep = None if k in ( '', 'none' ) else al.parse_vector(k,'axis to keep')
+                p = self._pivot.get().strip()
+                pivot = ( 'mean' if p == 'mean position' else 'origin' if p == 'origin'
+                          else al.parse_vector(p,'point to rotate around','cm') )
+            if self._move.get():
+                centre = al.parse_vector(self._point.get(),'point','cm')
+            coords = ''.join( c for c in 'xyz' if self._coords[c].get() )
+            text, pos, d = al.align_edit(s,target,keep,pivot,centre,coords)
+        except MCPLError as e:
+            self._show('',str(e))
+            return
+        self._statements = text
+        self._show(text,( f'After it: position {_xyz(pos)} cm, direction {_xyz(d)}'
+                          + ( '' if s.complete else ' (estimated)' ) ))
+
+    def _show( self, text, result ):
+        self._edit.configure(state='normal')
+        self._edit.delete('1.0','end')
+        self._edit.insert('1.0',text)
+        self._edit.configure(state='disabled')
+        error = result is not None and not text
+        self._result.configure(text=result or '',foreground=colors['error' if error else 'dim'])
+        #(added when the means of all particles are known):
+        done = self._stats is not None and self._stats.complete
+        self._add.state([ '!disabled' if text and done else 'disabled' ])
+
+    def _on_add( self ):
+        if not self._statements:
+            return
+        edit = self.tv.v.edit_text
+        self.tv._use_example('edit',f'{edit};{self._statements}' if edit else self._statements)
+        self.window.destroy()
+
+def _xyz( v ):
+    """A vector as a text, with rounding noise (as 1e-23 in a unit vector) as 0"""
+    tiny = 1e-12 * max( 1.0, max( abs(c) for c in v ) )
+    return '(' + ', '.join( f'{c:.6g}' if abs(c) > tiny else '0' for c in v ) + ')'

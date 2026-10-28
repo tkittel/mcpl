@@ -416,6 +416,25 @@ view '[1]': Unknown groups of plots or view "[1]" (groups: spectra, fields, beam
 view 'nope.json': Can not read the viewer state from nope.json ([Errno 2] No such file or directory: 'nope.json')
 view 'nope': Unknown groups of plots or view "nope" (groups: spectra, fields, beamz, beamx, beamy, geometry, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
 view 'overview:nope': Unknown groups of plots or view "overview:nope" (groups: spectra, fields, beamz, beamx, beamy, geometry, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
+align: 2403 particles, neutron 100%, position (3.002553, -0.998609, 5.013888), direction (0.279722, -0.188441, 0.941406), spread 3.749 deg
+align (0, 0, 1) keeping None around mean, to None in xyz: 327 characters, position (3.002553, -0.998609, 5.013888), direction (0, 0, 1.000000), as applied: True
+align (0, 0, 1) keeping (0, 1, 0) around mean, to None in xyz: 292 characters, position (3.002553, -0.998609, 5.013888), direction (0, 0, 1.000000), as applied: True
+align (1, 1, 0) keeping (0, 0, 1) around origin, to None in xyz: 183 characters, position (3.463974, 4.665159, -1.178474), direction (0.707107, 0.707107, 0), as applied: True
+align (0, 0, -1) keeping None around (1, 2, 3), to (0, 0, 0) in xy: 265 characters, position (0, 0, -0.021105), direction (0, 0, -1.000000), as applied: True
+align None keeping None around mean, to (10, 0, 0) in xyz: 70 characters, position (10.000000, 0, 0), direction (0.279722, -0.188441, 0.941406), as applied: True
+align [-1.  0.  0.] keeping [0. 1. 0.] around mean, to (0, 0, 0) in xyz: 222 characters, position (0, 0, 0), direction (-1.000000, 0, 0), as applied: True
+kept axis after: (0, 0.982085, -0.188441) | in the plane of y and z: True
+align ((0, 0, 1), (0.3, -0.2, 1.0)): no error
+align ((0, 0, 1), (0, 0, 2)): The axis to keep must not be along the mean direction or the target direction
+align (None, None): Nothing to do: choose a target direction or a point to move to
+align ((0, 0, 0), None): The target direction must not be zero
+vector '+y': [0.0, 1.0, 0.0]
+vector '(1,2,3)': [1.0, 2.0, 3.0]
+vector '1, 2, 3': [1.0, 2.0, 3.0]
+vector '(1,2)': The point must be three lengths, as in (0,0,1m) (or numbers in cm, as in (0,0,100)), not "(1,2)"
+vector 'z': The point must be three lengths, as in (0,0,1m) (or numbers in cm, as in (0,0,100)), not "z"
+vector '(1,2,3)cm': [1.0, 2.0, 3.0]
+numbers: ['1', '0', '0', '0.1', '0.3333333333333333', '1', '2.5e-07']
 suggested name: example_selected.mcpl.gz
 dry run: MCPL: Would extract 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz
 files after the dry run: []

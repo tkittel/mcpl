@@ -3,8 +3,10 @@ v2.2.9  (work in progress)
         Jupyter) shows overviews and plots of the particles, in a window or
         in the terminal, where the particles can be picked and edited, and
         written to a new file. The plots are in groups for some uses (e.g.
-        -wbeamz for a beam along z), each with an overview. New extras:
-        "curses" and "jupyter".
+        -wbeamz for a beam along z), each with an overview. In a window, an
+        align helper adds edits turning the mean direction of the particles
+        into a given direction, or moving their mean position to a point. New
+        extras: "curses" and "jupyter".
       * Python fixes: MCPLFile closes the file of gzipped files, a plain 0
         in hypot, min, max and clamp has the units of the other values,
         histogram() checks its bins and range, text plots have no round-off

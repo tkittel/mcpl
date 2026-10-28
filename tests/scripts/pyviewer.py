@@ -332,6 +332,70 @@ def test_reading():
           'current:', v.views[v.current][0])
     v.stop()
 
+def test_align():
+    #The align helper: edits turning the mean direction of the particles into
+    #a direction (keeping another axis in its plane with it, around a pivot)
+    #and moving the mean position to a point, which give that result when
+    #applied (weighted means, after the edit already used):
+    import numpy as np
+    from mcpldev import _viewer_align as al
+    rng = np.random.default_rng(7)
+    n = 3000
+    d = rng.normal((0.3,-0.2,1.0),0.05,(n,3))
+    d /= np.linalg.norm(d,axis=1)[:,None]
+    with mcpl.MCPLOutFile('tilted.mcpl') as o:
+        o.add_particles(x=rng.normal(2,1,n),y=rng.normal(-1,1,n),z=rng.normal(5,1,n),
+                        direction=d,ekin=1.0,weight=rng.uniform(0.5,1.5,n),
+                        pdgcode=np.where(rng.random(n) < 0.8,2112,22))
+    def means( v, edit = None ):
+        if edit:
+            v = Viewer(v.filename,pick='pdgcode == neutron',edit=f'{v.edit_text};{edit}')
+        s = al.AlignStats()
+        for b in v.picked_blocks():
+            s.add(b)
+        return s
+    def fmt( a ):
+        return '(' + ', '.join( f'{x:.6f}' if abs(x) > 1e-9 else '0' for x in a ) + ')'
+    v = Viewer('tilted.mcpl',pick='pdgcode == neutron',edit='x += 1cm')
+    s = means(v)
+    print(f'align: {s.n} particles, {s.types_text()}, position {fmt(s.mean_pos)},'
+          f' direction {fmt(s.mean_dir)}, spread {s.spread_deg:.3f} deg')
+    for target, keep, pivot, centre, coords in (
+            ( (0,0,1), None, 'mean', None, 'xyz' ),
+            ( (0,0,1), (0,1,0), 'mean', None, 'xyz' ),
+            ( (1,1,0), (0,0,1), 'origin', None, 'xyz' ),
+            ( (0,0,-1), None, (1,2,3), (0,0,0), 'xy' ),
+            ( None, None, 'mean', (10,0,0), 'xyz' ),
+            ( al.parse_vector('-x','direction'), al.parse_vector('(0,1,0)','axis'), 'mean',
+              (0,0,0), 'xyz' ) ):
+        edit, pos, mdir = al.align_edit(s,target,keep,pivot,centre,coords)
+        after = means(v,edit)
+        ok = np.allclose(after.mean_pos,pos,atol=1e-9) and np.allclose(after.mean_dir,mdir,atol=1e-12)
+        if target is not None:
+            t = np.asarray(target,dtype=float) / np.linalg.norm(target)
+            ok = ok and np.allclose(mdir,t,atol=1e-12)
+        print(f'align {target} keeping {keep} around {pivot}, to {centre} in {coords}:'
+              f' {len(edit)} characters, position {fmt(pos)}, direction {fmt(mdir)},'
+              f' as applied: {ok}')
+    #(the kept axis stays in the plane of itself and the target, on its side):
+    edit, _, _ = al.align_edit(s,(0,0,1),(0,1,0))
+    k = means(Viewer('tilted.mcpl',edit='dir = (0,1,0);' + edit)).mean_dir
+    print('kept axis after:', fmt(k), '| in the plane of y and z:', abs(k[0]) < 1e-12 and k[1] > 0)
+    for args in ( ( (0,0,1), (0.3,-0.2,1.0) ), ( (0,0,1), (0,0,2) ), ( None, None ),
+                  ( (0,0,0), None ) ):
+        try:
+            al.align_edit(s,*args)
+            print(f'align {args}: no error')
+        except mcpl.MCPLError as e:
+            print(f'align {args}: {e}')
+    for text in ( '+y', '(1,2,3)', '1, 2, 3', '(1,2)', 'z', '(1,2,3)cm' ):
+        try:
+            print(f'vector {text!r}: {al.parse_vector(text,"point","cm").tolist()}')
+        except mcpl.MCPLError as e:
+            print(f'vector {text!r}: {e}')
+    print('numbers:', [ al.number(x) for x in ( 1.0, -0.0, 1e-17, 0.1, 1/3, 1 + 1e-16, 2.5e-7 ) ])
+    pathlib.Path('tilted.mcpl').unlink()
+
 def test_write():
     v = Viewer(ex,pick='pdgcode == neutron',edit='z += 1m',dry_run=True)
     print('suggested name:', v.suggested_filename())
@@ -759,6 +823,7 @@ test_fields()
 test_reading()
 test_groups()
 test_state()
+test_align()
 test_write()
 test_terminal()
 test_tool()

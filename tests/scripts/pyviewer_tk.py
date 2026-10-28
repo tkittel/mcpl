@@ -37,7 +37,7 @@ import mcpldev._viewer_tk as viewer_tk
 from mcpldev._viewer import Viewer
 from mcpldev._viewer_tk import TkViewer, _root
 from mcpldev._viewer_tkbase import Flow, focus_of
-from mcpldev._viewer_tkwindows import WriteWindow
+from mcpldev._viewer_tkwindows import AlignWindow, WriteWindow
 from MCPLTestUtils.dirs import test_data_dir
 
 shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
@@ -319,6 +319,36 @@ flow.set(items)
 pump()
 print('settings in a narrow frame, rows:', len(flow._rows))
 top.destroy()
+
+#The align helper: the means of the particles (read in a thread), and the
+#edit added to the edit field:
+aw = AlignWindow(tv)
+for _ in range(500):
+    pump(0.02)
+    if aw._stats is not None and aw._stats.complete:
+        break
+print('align means:', str(aw._means.cget('text')).replace('\n',' | '))
+print('align edit:', aw._edit.get('1.0','end').strip())
+print('align result:', str(aw._result.cget('text')), '| add enabled:', 'disabled' not in aw._add.state())
+aw._keep.set('+y')
+aw._move.set(True)
+aw._point.set('(0,0,1m)')
+aw._coords['z'].set(False)
+aw._update()
+print('align edit, keeping +y and moving to (0,0,1m) in x and y:', aw._edit.get('1.0','end').strip())
+print('align result:', str(aw._result.cget('text')))
+aw._target.set('(1,2)')
+aw._update()
+print('align with a bad direction:', str(aw._result.cget('text')),
+      '| add enabled:', 'disabled' not in aw._add.state())
+aw._target.set('+z')
+aw._update()
+aw._on_add()
+pump()
+print('edit field after adding:', tv._entries['edit'].get()[:60], '...',
+      '| align window closed:', not aw.window.winfo_exists())
+tv._set_text(tv._entries['edit'],'')
+tv.on_field_edited('edit','')
 
 #Writing a file happens in a thread, with a message and the buttons disabled
 #meanwhile (the window closes when it is written):

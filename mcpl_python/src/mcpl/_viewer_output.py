@@ -206,6 +206,20 @@ class _Output:
     #(the reason why writing is not possible, see changes_particles):
     nothing_to_write = 'Pick, edit or choose a range of particles first, to write them to a new file'
 
+    def picked_blocks( self ):
+        """The blocks of the picked and edited particles of the range (as they
+        are written, see write), read from the file opened again, so this can
+        be used in another thread"""
+        from ._reader import MCPLFile, _FileView
+        s = self._s
+        with MCPLFile(self.filename) as f:
+            yield from _FileView(f,s.skip,s.limit,s.pick,s.edit).particle_blocks
+
+    @property
+    def edit_text( self ):
+        """The text of the edit used (empty if none)"""
+        return '' if self._s.edit is None else self._s.edit.expression
+
     def suggested_filename( self ):
         """<input>_selected.mcpl.gz, or <input>_selected2.mcpl.gz, ... if that
         (or the same without .gz) exists"""

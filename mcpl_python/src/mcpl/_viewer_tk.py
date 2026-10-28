@@ -43,7 +43,7 @@ from ._viewer_tkbase import (
 )
 from ._viewer_tkcards import CardList
 from ._viewer_tkcontrols import Controls, OverviewControls, make_part, row_label, tint
-from ._viewer_tkwindows import CodeWindow, Examples, HelpWindow, WriteWindow
+from ._viewer_tkwindows import AlignWindow, CodeWindow, Examples, HelpWindow, WriteWindow
 from ._viewer_ui import card_colors, colors, part_colors
 from ._viewer_widgets import WidgetViewer, run_with_ctrl_c
 
@@ -275,7 +275,15 @@ class TkViewer(WidgetViewer):
                 #the mark of its check):
                 if field in ui.example_topics:
                     self._apply_button(grid,field).grid(row=r,column=col,padx=(2,0))
-                    self._examples_button(grid,field).grid(row=r,column=col+1,padx=(2,0))
+                    #(for the edit with the button of the align helper):
+                    box = ttk.Frame(grid)
+                    box.grid(row=r,column=col+1,padx=(2,0),sticky='w')
+                    self._examples_button(box,field).pack(side='left')
+                    if field == 'edit':
+                        b = ttk.Button(box,text='Align...',takefocus=0,style='Small.TButton',
+                                       command=lambda : AlignWindow(self))
+                        b.pack(side='left',padx=(2,0))
+                        self._hover(b,'align')
                     col += 2
                 mark = ttk.Label(grid,width=2)
                 mark.grid(row=r,column=col)

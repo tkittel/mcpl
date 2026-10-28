@@ -107,6 +107,9 @@ def shortcut_text( name ):
             return f'{label.rstrip(".")}: press {" or ".join(keys)}'
     if name == 'new_plot':#(the button of the viewers with windows)
         return 'New plot: press a'
+    if name == 'align':
+        return ( 'Align: add to the edit a rotation of the mean direction of the particles'
+                 ' into a direction, or a move of their mean position to a point' )
     if name == 'views':
         return 'Views: click on one, or press Up and Down (with Shift, Ctrl or Alt to move the plot)'
     if name == 'panel':

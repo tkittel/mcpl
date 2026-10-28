@@ -208,7 +208,7 @@ class _CTranslator:
             a, b = sub
             ops = { ast.Add : ( '+', _prec_add ), ast.Sub : ( '-', _prec_add ),
                     ast.Mult : ( '*', _prec_mul ), ast.Div : ( '/', _prec_mul ),
-                    ast.BitAnd : ( '&', _prec_bitand ), ast.BitOr : ( '|', _prec_bitor ) }
+                    ast.FloorDiv : ( '/', _prec_mul ), ast.BitAnd : ( '&', _prec_bitand ), ast.BitOr : ( '|', _prec_bitor ) }
             if isinstance(node.op,ast.Pow):
                 if a[3] is not None and b[3] is not None:
                     return const(float(a[3]) ** b[3])
@@ -216,23 +216,31 @@ class _CTranslator:
             if type(node.op) not in ops:
                 return None
             op, prec = ops[type(node.op)]
-            if op in '&|' and not ( a[1] and b[1] ):
+            #(// of integers is / in C, which agrees for the non-negative
+            #values it accepts, and / always divides as floating point numbers):
+            floordiv = isinstance(node.op,ast.FloorDiv)
+            if ( op in '&|' or floordiv ) and not ( a[1] and b[1] ):
                 return None
-            if a[3] is not None and b[3] is not None and op in '+-*/':
+            if a[3] is not None and b[3] is not None:
                 #(constants, as from units, e.g. 25meV):
-                #(integers divided like in C and the expressions, e.g. 7/2 is 3):
-                ints = a[1] and b[1]
-                div = ( None if not b[3] else ( abs(a[3]) // abs(b[3])
-                                                * ( 1 if ( a[3] < 0 ) == ( b[3] < 0 ) else -1 ) )
-                        if ints else a[3] / b[3] )
-                v = { '+' : a[3] + b[3], '-' : a[3] - b[3], '*' : a[3] * b[3], '/' : div }[op]
+                if floordiv:
+                    return const(a[3] // b[3]) if a[3] >= 0 and b[3] > 0 else None
+                div = a[3] / b[3] if b[3] else None
+                v = { '+' : a[3] + b[3], '-' : a[3] - b[3], '*' : a[3] * b[3],
+                      '/' : div }.get(op)
                 if v is not None:
                     return const(v)
-            if op in '*/' and b[3] == 1 and ( b[1] or not a[1] ):
+            if op == '/' and b[3] == 1 and ( b[1] if floordiv else not a[1] ):
                 return a#(e.g. ekin/MeV)
+            if op == '*' and b[3] == 1 and ( b[1] or not a[1] ):
+                return a
             if op == '*' and a[3] == 1 and ( a[1] or not b[1] ):
                 return b#(e.g. 1ms*x)
-            #(integers are divided like in C, as in the expressions):
+            if op == '/' and not floordiv and a[1] and b[1]:
+                #(integers divided as floating point numbers):
+                a = ( ( f'static_cast<double>( {a[0]} )', False, _prec_atom, None )
+                      if self.lang == 'cpp' else
+                      ( f'(double){at(a,_prec_unary)}', False, _prec_unary, None ) )
             return ( f'{at(a,prec)} {op} {at(b,prec+1)}', a[1] and b[1], prec, None )
         if isinstance(node,ast.Compare):
             ops = { ast.Eq : '==', ast.NotEq : '!=', ast.Lt : '<', ast.LtE : '<=',
@@ -393,14 +401,20 @@ def _c_assignment( st, tr, indent ):
     if st[0] != 'assign' or st[1] not in _c_assignable:
         return None
     node = st[2].tree.body
-    ops = { ast.Add : '+=', ast.Sub : '-=', ast.Mult : '*=', ast.Div : '/=' }
+    ops = { ast.Add : '+=', ast.Sub : '-=', ast.Mult : '*=', ast.Div : '/=', ast.FloorDiv : '/=' }
     if ( isinstance(node,ast.BinOp) and type(node.op) in ops
          and isinstance(node.left,ast.Name) and node.left.id == st[1] ):
         #(as x += ..):
         value, op = tr(node.right), ops[type(node.op)]
+        whole = tr(node)
     else:
         value, op = tr(node), '='
-    return None if value is None else [ f'{indent}{tr.field(st[1])} {op} {value[0]};' ]
+        whole = value
+    if value is None or whole is None:
+        return None
+    if st[1] in _c_int_fields and not whole[1]:
+        return None#(the expressions refuse non-integer values, C would truncate)
+    return [ f'{indent}{tr.field(st[1])} {op} {value[0]};' ]
 
 def _custom( lang, what, text, indent ):
     """A comment saying where to add code for something which is not

@@ -59,10 +59,6 @@ _expr_unsupported_ops = ( ( '&&', 'and', 'x > 0 and y > 0' ),
 def _expr_check_ops( expr ):
     #NB: Do not add support for these: ! and % break command lines in some
     #shells (bash history expansion, Windows batch files).
-    if '//' in expr:
-        raise MCPLError('The operator // is not supported in expressions (use /,'
-                        ' which divides integers like in C, e.g. 7/2 is 3),'
-                        f' in expression "{expr}"')
     if '~' in expr:
         raise MCPLError('The operator ~ is not supported in expressions (e.g.'
                         ' "(userflags & 0x10) == 0" tests that a bit is not set),'
@@ -118,7 +114,8 @@ _prec_unary, _prec_implied, _prec_power, _prec_atom = 10, 10.5, 11, 12
 _op_bool = { 'or' : ( ast.Or, _prec_or ), 'and' : ( ast.And, _prec_and ) }
 #(left-associative):
 _op_binary = { '|' : ( ast.BitOr, 5 ), '&' : ( ast.BitAnd, 6 ), '+' : ( ast.Add, 8 ),
-               '-' : ( ast.Sub, 8 ), '*' : ( ast.Mult, 9 ), '/' : ( ast.Div, 9 ) }
+               '-' : ( ast.Sub, 8 ), '*' : ( ast.Mult, 9 ), '/' : ( ast.Div, 9 ),
+               '//' : ( ast.FloorDiv, 9 ) }
 #(right-associative, written as ^):
 _op_power = ( '^', '**' )
 #The names of the values of vectors (as in pos.x, see _ExprParser._parts):
@@ -141,7 +138,7 @@ class _ExprParser:
     (with tokenize) and giving trees of ast nodes. The precedences are, from
     the lowest: or, and, not, comparisons (which can be chained, as in
     0 < x < 2cm, and "in" or "not in" a list of values, as in
-    pdgcode in (neutron,gamma), which can not), |, &, + and -, * and /, unary
+    pdgcode in (neutron,gamma), which can not), |, &, + and -, *, / and //, unary
     - and +, the multiplication by a unit directly after a number or a closing
     parenthesis (as in 25meV or 2^(ekin/MeV)MeV), and ^ (or **, which is
     right-associative, with unary - and + allowed in exponents). Units are values (MeV is 1MeV), and a power

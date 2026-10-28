@@ -401,7 +401,7 @@ protection against problems like overflow. The operator / always divides as
 floating point numbers (e.g. 1/2 is 0.5), and // divides non-negative
 integers (e.g. 7//2 is 3).''' ),
     'edit' : ( 'EDIT: statements separated by ";", executed in order, for example:',
-               '''The statements are assignments to fields (=, +=, -=, *=, /=, ^=, &= and |=, with values
+               '''The statements are assignments to fields (=, +=, -=, *=, /=, //=, ^=, &= and |=, with values
 in the units of the field, and wavelength = ... changing ekin), assignments
 to variables (other lowercase names, which can be used in later statements),
 and the statements listed below. The expressions are written as for -p (see

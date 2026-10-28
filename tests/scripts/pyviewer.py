@@ -584,6 +584,7 @@ def test_c_translation():
     for pick in ( 'pdgcode == neutron', 'abs(pdgcode) in (electron,muon) or ekin < 25meV and hypot(x,y) < 5cm',
                   'pdgcode not in (22,2112)', '(userflags & 0xff) == 0 and not ekin > 1MeV', '0cm < x < 2cm',
                   'ekin/MeV > 0.5 and uz > 0.9', 'sqrt(x^2+y^2) < 3cm', '-x > 1mm', 'pdgcode/2 > 1000',
+                  'abs(pdgcode)//1000 == 2', 'userflags//2 == 7/2', 'x // 1cm > 0',
                   'angle(dir,(0,0,1)) < 1deg', 'wavelength > 1.8Aa', 'mod(fileidx,10) == 0',
                   'pos.z > 1cm and dir.at(2) > 0' ):
         for lang, kind in ( ('c','c'), ('cpp','cpp') ):
@@ -594,7 +595,8 @@ def test_c_translation():
                   'swap(pdgcode,userflags)', 'rotate_z(x/cm*1deg)', 'ux = 1', 'a = 2*x;y = a',
                   'rotate_around((0,0,1),90deg)', 'rotate_frame((0,0,1),(1,1,0),(0,1,0),(0,0,1))',
                   'rotate_around(dir,10deg)', 'rotate_around((0,0,-(1)),90deg)', 'x = pos.y',
-                  'pos += (0,0,1m)' ):
+                  'pos += (0,0,1m)', 'userflags //= 2', 'userflags /= 2', 'pdgcode = 7//2',
+                  'weight = userflags/2' ):
         print(f'edit {edit!r}: {_c_edit(edit,_CTranslator("c","q","struct"),"")}')
     #In files with userdata, the edited particles keep it:
     import numpy as np

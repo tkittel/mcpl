@@ -312,5 +312,7 @@ class WriteWindow:
         self._code.window.destroy()
         #(the new file has the picked and edited particles, so only the plots
         #are kept):
-        if not view or not self.tv.on_open_file(name,particles = False):
+        if not view:
             self.tv.show_line(msg,'normal')
+        else:
+            self.tv.on_open_file(name,particles = False)#(with its own message)

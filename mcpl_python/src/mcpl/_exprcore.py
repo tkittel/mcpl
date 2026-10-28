@@ -674,8 +674,9 @@ class _ExprEvaluator:
         return q
     def negate( self, q ):
         """-q (of integers like in C, but with errors instead of wrapping around)"""
-        if not _is_int(q.v):
+        if np.asarray(q.v).dtype.kind not in 'iub':
             return _Q(-q.v,q.d,zero=q.zero)
+        #(conditions are 32-bit integers, as in C, so -(x > 0cm) is -1 or 0):
         return _Q(self.int_negate(q.v,'Negation'),q.d,zero=q.zero)
     def int_negate( self, v, what ):
         rt, ( v, ) = self.int_operands((v,),what)

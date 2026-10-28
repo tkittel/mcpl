@@ -118,7 +118,7 @@ _c_assignable = ( 'x', 'y', 'z', 'ekin', 'time', 'weight', 'pdgcode', 'userflags
 #(functions of one or two values, with their names in C, and in C++ in std::):
 _c_math = { 'sqrt' : 1, 'exp' : 1, 'log' : 1, 'log10' : 1, 'sin' : 1, 'cos' : 1,
             'tan' : 1, 'asin' : 1, 'acos' : 1, 'atan' : 1, 'floor' : 1, 'ceil' : 1,
-            'round' : 1, 'atan2' : 2, 'hypot' : 2 }
+            'atan2' : 2, 'hypot' : 2 }
 
 #(the precedences of C and C++, from the lowest; & and | are below the
 #comparisons, unlike in the expressions):
@@ -201,9 +201,7 @@ class _CTranslator:
                 return x
             if isinstance(node.op,ast.USub) and x[3] is not None:
                 return const(-x[3])
-            if isinstance(node.op,ast.Invert) and not x[1]:
-                return None
-            op = { ast.Not : '!', ast.USub : '-', ast.Invert : '~' }[type(node.op)]
+            op = { ast.Not : '!', ast.USub : '-' }[type(node.op)]
             return f'{op}{at(x,_prec_unary)}', x[1] or op == '!', _prec_unary, None
         if isinstance(node,ast.BinOp):
             a, b = sub
@@ -221,19 +219,20 @@ class _CTranslator:
                 return None
             if a[3] is not None and b[3] is not None and op in '+-*/':
                 #(constants, as from units, e.g. 25meV):
-                v = { '+' : a[3] + b[3], '-' : a[3] - b[3], '*' : a[3] * b[3],
-                      '/' : a[3] / b[3] if b[3] else None }[op]
+                #(integers divided like in C and the expressions, e.g. 7/2 is 3):
+                ints = a[1] and b[1]
+                div = ( None if not b[3] else ( abs(a[3]) // abs(b[3])
+                                                * ( 1 if ( a[3] < 0 ) == ( b[3] < 0 ) else -1 ) )
+                        if ints else a[3] / b[3] )
+                v = { '+' : a[3] + b[3], '-' : a[3] - b[3], '*' : a[3] * b[3], '/' : div }[op]
                 if v is not None:
                     return const(v)
-            if op in '*/' and b[3] == 1:
+            if op in '*/' and b[3] == 1 and ( b[1] or not a[1] ):
                 return a#(e.g. ekin/MeV)
             if op == '*' and a[3] == 1:
                 return b#(e.g. 1ms*x)
-            left = at(a,prec)
-            if op == '/' and a[1] and b[1]:
-                #(integers divided as values, as in the expressions):
-                left = f'(double){left}' if self.lang == 'c' else f'static_cast<double>({a[0]})'
-            return ( f'{left} {op} {at(b,prec+1)}', a[1] and b[1] and op != '/', prec, None )
+            #(integers are divided like in C, as in the expressions):
+            return ( f'{at(a,prec)} {op} {at(b,prec+1)}', a[1] and b[1], prec, None )
         if isinstance(node,ast.Compare):
             ops = { ast.Eq : '==', ast.NotEq : '!=', ast.Lt : '<', ast.LtE : '<=',
                     ast.Gt : '>', ast.GtE : '>=' }
@@ -253,6 +252,8 @@ class _CTranslator:
             name, args = node.func.id, [ x[0] for x in sub ]
             if name == 'abs' and len(sub) == 1:
                 i = sub[0][1]
+                if i and 'userflags' in args[0]:
+                    return None#(unsigned, where abs of C differs)
                 if self.lang == 'cpp':
                     self.headers.add('cstdlib' if i else 'cmath')
                     return f'std::abs( {args[0]} )', i, _prec_atom, None
@@ -260,7 +261,7 @@ class _CTranslator:
                 return f'{"abs" if i else "fabs"}( {args[0]} )', i, _prec_atom, None
             if _c_math.get(name) == len(args):
                 return self._math(name,args), False, _prec_atom, None
-            if name in ( 'min', 'max' ) and len(args) == 2:
+            if name in ( 'min', 'max' ) and len(args) == 2 and not ( sub[0][1] and sub[1][1] ):
                 return self._math(f'f{name}',args), False, _prec_atom, None
         return None
 
@@ -508,7 +509,7 @@ def _c( job ):
 _keywords = {
     'python' : ( 'import', 'for', 'in', 'with', 'as' ),
     'cpp' : ( 'int', 'auto', 'for', 'if', 'continue', 'break', 'return', 'const',
-              'double', 'static_cast' ),
+              'double' ),
     'c' : ( 'int', 'void', 'for', 'while', 'if', 'continue', 'break', 'return',
             'const', 'double' ),
 }

@@ -156,6 +156,8 @@ def test_expressions():
                 'x > 0 && y > 0', 'x > 0 || y > 0', '!(x > 0)', 'x/cm % 2 > 1',
                 'fileidx > 1cm', 'mod(fileidx,2.0) == 0', '1e999 > x/cm', '(-1)^(x/cm) > 0',
                 'x != x and 1/(x/cm - x/cm) > 1', '~x > 0cm', '~uz > 0',
+                'through_sphere((0,0,1),1cm)', 'through_sphere((0,0,1m))', 'through_sphere((0,0,1m),-1cm)',
+                'through_sphere((0,0,1m),1)', 'through_sphere(1m,1cm)',
                 'x > 0cm if ux > 0 else x < 0cm'):
         try:
             mcpl.ParticleFilter(bad)(b)
@@ -388,9 +390,12 @@ def test_vectors():
     assert np.all( np.abs(a-1e-9) <= 1e-24 )
     #Picks and edits with vectors (and vector variables):
     for pick, ref in ( ('d = pos - (0,0,1m); abs(d) < 100.5cm', np.linalg.norm(pos-[0,0,100],axis=1) < 100.5),
-                       ('angle(dir,(0,0,1)) < 30deg', np.degrees(np.arccos(np.clip(b.uz,-1,1))) < 30) ):
+                       ('angle(dir,(0,0,1)) < 30deg', np.degrees(np.arccos(np.clip(b.uz,-1,1))) < 30),
+                       #(the line of flight, forwards and backwards, through a sphere):
+                       ('through_sphere((1cm,-2cm,30cm),4cm)',
+                        np.linalg.norm(np.cross(np.array([1,-2,30])-pos,d),axis=1) <= 4) ):
         assert np.array_equal(mcpl.ParticleFilter(pick)(b),ref), pick
-        print(f'pick {pick!r} as with numpy')
+        print(f'pick {pick!r} as with numpy ({np.count_nonzero(ref)} of {len(ref)})')
     for edit, ref in ( ('pos += (0,0,1m)', {'x': b.x, 'y': b.y, 'z': b.z+100}),
                        ('pos += 50cm*dir', {'x': b.x+50*b.ux, 'y': b.y+50*b.uy, 'z': b.z+50*b.uz}),
                        ('x += 1cm; pos = pos/2', {'x': (b.x+1)/2, 'y': b.y/2, 'z': b.z/2}),

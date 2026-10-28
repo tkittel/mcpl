@@ -83,6 +83,7 @@ pick example 'e = ekin/MeV; e > 1 and e < 10': 355 particles
 pick example 'angle(dir,(0,0,1)) < 1deg': 3 particles
 pick example 'd = pos - (0,0,1m); abs(d) < 10cm': 0 particles
 pick example 'dot(dir,(1,0,0)) < 0': 474 particles
+pick example 'through_sphere((0,0,1m),5cm)': 10 particles
 pick example '(userflags & 0xff) == 7': 0 particles
 pick example 'mod(fileidx,10) == 0': 101 particles
 pick example 'userdata.nscat >= 2': 502 particles
@@ -240,8 +241,9 @@ angle(pos,dir)/deg of the first particles: [14.360296 22.479602  5.704463]
 angle between (1,1e-06,0) and (1,0,0): 1e-06 (acos of dot product: 1.00004e-06)
 angle between (1,1e-09,0) and (1,0,0): 1e-09 (acos of dot product: 0)
 angle between (1,1e-12,0) and (1,0,0): 1e-12 (acos of dot product: 0)
-pick 'd = pos - (0,0,1m); abs(d) < 100.5cm' as with numpy
-pick 'angle(dir,(0,0,1)) < 30deg' as with numpy
+pick 'd = pos - (0,0,1m); abs(d) < 100.5cm' as with numpy (1001 of 1006)
+pick 'angle(dir,(0,0,1)) < 30deg' as with numpy (313 of 1006)
+pick 'through_sphere((1cm,-2cm,30cm),4cm)' as with numpy (104 of 1006)
 edit 'pos += (0,0,1m)' changes ['x', 'y', 'z'] as with numpy
 edit 'pos += 50cm*dir' changes ['x', 'y', 'z'] as with numpy
 edit 'x += 1cm; pos = pos/2' changes ['x', 'y', 'z'] as with numpy
@@ -267,7 +269,7 @@ dir^3 > 0: Vectors can be added and subtracted, multiplied and divided by number
 (1,2,3,4) == 0: Syntax error in expression "(1,2,3,4) == 0", after "(1,2,3,4)": vectors have two or three values
 x.at(0) > 0: Only vectors have values like .x or .at(INDEX) in expression "x.at(0) > 0"
 pos.at(x) > 0: Syntax error in expression "pos.at(x) > 0", after "pos.at(": the index of a value of a vector must be a whole number (counting from 0)
-angle_to(0,0,1) < 1deg: Unsupported function call in expression "angle_to(0,0,1) < 1deg" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan)
+angle_to(0,0,1) < 1deg: Unsupported function call in expression "angle_to(0,0,1) < 1deg" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_sphere)
 pos: A vector can not be a condition (here a 3D vector of lengths; abs(v) is its length, and v.x or v.at(0) its first value) in expression "pos"
 ParticleValue of a vector: A vector can not be the value of an expression (here a 3D vector; abs(v) is its length, and v.x or v.at(0) its first value) in expression "dir"
 rotate_z(90deg) is exact
@@ -385,7 +387,7 @@ ParticleFilter('dirx > 0'): Unknown name "dirx" in expression "dirx > 0" (partic
 ParticleFilter('t < 1ms'): Unknown name "t" in expression "t < 1ms" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 ParticleFilter('is_neutron'): Unknown name "is_neutron" in expression "is_neutron" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 ParticleFilter('neutron_wl > 1Aa'): Unknown name "neutron_wl" in expression "neutron_wl > 1Aa" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-ParticleFilter('degrees(acos(uz)) < 10'): Unsupported function call in expression "degrees(acos(uz)) < 10" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan)
+ParticleFilter('degrees(acos(uz)) < 10'): Unsupported function call in expression "degrees(acos(uz)) < 10" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_sphere)
 ParticleFilter('ekin = 1MeV'): Syntax error in expression "ekin = 1MeV", after "ekin": unexpected "=" (use == for comparisons)
 ParticleFilter('ekin > 1MeV & x < 2cm'): The bitwise operator & can only be used with integers (use "and" and "or" for logical and/or) in expression "ekin > 1MeV & x < 2cm"
 ParticleFilter('foo > 1'): Unknown name "foo" in expression "foo > 1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
@@ -416,6 +418,11 @@ ParticleFilter('(-1)^(x/cm) > 0'): Raising to a power gives NaN or infinite valu
 ParticleFilter('x != x and 1/(x/cm - x/cm) > 1'): no error
 ParticleFilter('~x > 0cm'): The operator ~ is not supported in expressions (e.g. "(userflags & 0x10) == 0" tests that a bit is not set), in expression "~x > 0cm"
 ParticleFilter('~uz > 0'): The operator ~ is not supported in expressions (e.g. "(userflags & 0x10) == 0" tests that a bit is not set), in expression "~uz > 0"
+ParticleFilter('through_sphere((0,0,1),1cm)'): Incompatible units in the center and radius of through_sphere(center,radius), which must be lengths: value without units and length (add units, e.g. 2cm) in expression "through_sphere((0,0,1),1cm)"
+ParticleFilter('through_sphere((0,0,1m))'): through_sphere(center,radius) takes the center (a 3D vector) and the radius of the sphere, as in through_sphere((0,0,1m),5cm) in expression "through_sphere((0,0,1m))"
+ParticleFilter('through_sphere((0,0,1m),-1cm)'): The radius of through_sphere(center,radius) can not be negative in expression "through_sphere((0,0,1m),-1cm)"
+ParticleFilter('through_sphere((0,0,1m),1)'): Incompatible units in the center and radius of through_sphere(center,radius), which must be lengths: value without units and length (add units, e.g. 2cm) in expression "through_sphere((0,0,1m),1)"
+ParticleFilter('through_sphere(1m,1cm)'): through_sphere(center,radius) takes the center (a 3D vector) and the radius of the sphere, as in through_sphere((0,0,1m),5cm) in expression "through_sphere(1m,1cm)"
 ParticleFilter('x > 0cm if ux > 0 else x < 0cm'): Syntax error in expression "x > 0cm if ux > 0 else x < 0cm", after "x > 0cm": an operator is missing
 ParticleEdit('x = 2*ux'): Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x = 2*ux"
 ParticleEdit('x = 2'): Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x = 2"

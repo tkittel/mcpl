@@ -303,6 +303,8 @@ v2.2.9  (work in progress)
         (e.g. "angle(dir,(0,0,1)) < 1deg"). Edits can rotate with
         rotate_around(axis,angle) and rotate_frame(v,vout,u,uout), and picks
         can assign variables before their condition (e.g. "r = abs(pos); r < 1m").
+        Picks can select the particles whose line of flight passes through a
+        sphere, as in "through_sphere((0,0,1m),5cm)".
       * New plotting backends "unicode" and "ascii" in the Python API and
         mcpltool, which draw plots as text: in the terminal (e.g. with
         mcpltool -H ... -t), or in .txt files. They need no extra Python

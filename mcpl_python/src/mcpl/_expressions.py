@@ -133,7 +133,10 @@ class ParticleFilter:
     direction and polarisation, of which x is an alias of pos.x or pos.at(0),
     or written as (0,0,1m), with +, -, * and / by numbers, abs(v) for their
     lengths, v^2, dot(v,w), cross(v,w), and angle(v,w) for the angle between
-    them, which is precise also for small angles), the constant
+    them, which is precise also for small angles), through_sphere(center,
+    radius) for whether the line of flight of the particles (through their
+    positions along their directions, both forwards and backwards) passes
+    through a sphere, as in "through_sphere((0,0,1m),5cm)", the constant
     pi, and the names neutron, antineutron, proton, antiproton, electron,
     positron (or antielectron), muon, antimuon, and gamma (or photon), which
     can be used for pdgcode values. The wavelength is only defined for

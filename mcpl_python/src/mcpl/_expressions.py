@@ -374,6 +374,8 @@ class _Statements:
                          ' uout, as in rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))' )
                 raise MCPLError(f'{fname}(..) takes {nargs} arguments ({what}) in'
                                 f' "{self.text}"')
+            if fname == 'rotate_around':
+                self._check_angle(fname,call.args[1])
             args = tuple( _Expr(self.text, tree = a, variables = variables)
                           for a in call.args )
             for a in args:
@@ -382,9 +384,20 @@ class _Statements:
         if len(call.args) != 1:
             raise MCPLError(f'{fname}(..) takes one argument (an angle) in'
                             f' "{self.text}"')
+        self._check_angle(fname,call.args[0])
         angle = _Expr(self.text, tree = call.args[0], variables = variables)
         self._used.update( angle.names & variables )
         return ( fname, angle )
+
+    def _check_angle( self, fname, node ):
+        """Plain numbers (other than 0) as angles of rotations are refused, as
+        they are easily meant as degrees (rotate_x(90) instead of 90deg)"""
+        v = node.operand if isinstance(node,ast.UnaryOp) and isinstance(node.op,(ast.USub,ast.UAdd)) else node
+        if ( isinstance(v,ast.Constant) and isinstance(v.value,(int,float))
+             and not isinstance(v.value,bool) and v.value != 0 ):
+            n = ast.unparse(node)
+            raise MCPLError(f'The angle of {fname}(..) must have a unit, as in {n}deg or'
+                            f' {n}rad (not {n}), in "{self.text}"')
 
     @functools.cached_property
     def fields( self ):
@@ -599,8 +612,9 @@ class ParticleEdit:
         with the same units, e.g. "swap(x,y)".
       * rotate_x(angle), rotate_y(angle), rotate_z(angle), which rotate the
         position, direction and polarisation of the particles around the
-        given axis (through the origin), e.g. "rotate_y(90deg)". The rotation
-        is counter-clockwise when looking from the positive axis towards the
+        given axis (through the origin), e.g. "rotate_y(90deg)" (angles
+        written as numbers need a unit, deg or rad). The rotation is
+        counter-clockwise when looking from the positive axis towards the
         origin. Rotations by multiples of 90 degrees are exact (e.g.
         "rotate_z(90deg)" changes (x,y) to exactly (-y,x)), and rotations never
         give negative zeros (-0.0).

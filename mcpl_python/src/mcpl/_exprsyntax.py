@@ -403,7 +403,12 @@ class _ExprParser:
         return int(index)
 
     def _number( self, s ):
-        v = ast.literal_eval(s)
+        try:
+            v = ast.literal_eval(s)
+        except ( SyntaxError, ValueError ):
+            #(e.g. 090, which is not an integer in C or Python):
+            hint = ' (integers can not start with 0)' if s[:1] == '0' and s.isdigit() else ''
+            raise MCPLError(f'Invalid number {s}{hint} in expression "{self._expr}"')
         if not isinstance(v,(int,float)):
             raise MCPLError(f'Unsupported value in expression "{self._expr}"')
         return v

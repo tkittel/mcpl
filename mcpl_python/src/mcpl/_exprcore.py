@@ -147,7 +147,7 @@ def _expr_check( node, expr, variables = () ):
     (variables are names of variables defined in edits)"""
     ok_nodes = ( ast.Expression, ast.BoolOp, ast.And, ast.Or, ast.UnaryOp,
                  ast.Not, ast.USub, ast.UAdd, ast.BinOp, ast.Add,
-                 ast.Sub, ast.Mult, ast.Div, ast.Pow,
+                 ast.Sub, ast.Mult, ast.Div, ast.FloorDiv, ast.Pow,
                  ast.BitAnd, ast.BitOr, ast.Compare, ast.Eq, ast.NotEq,
                  ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn, ast.Tuple,
                  ast.Subscript, ast.Name, ast.Load, ast.Constant, ast.Call, _Unit )
@@ -531,6 +531,7 @@ class _ExprEvaluator:
         if isinstance(node,ast.BinOp):
             what = { ast.Add : 'Addition', ast.Sub : 'Subtraction',
                      ast.Mult : 'Multiplication', ast.Div : 'Division',
+                     ast.FloorDiv : 'Integer division',
                      ast.Pow : 'Raising to a power' }.get(type(node.op),'An operation')
             a, b = ev(node.left), ev(node.right)
             res = ( self.vbinop(node.op,a,b) if isinstance(a,_V) or isinstance(b,_V)
@@ -562,12 +563,18 @@ class _ExprEvaluator:
         if isinstance(op,(ast.BitAnd,ast.BitOr)):
             return self.bitwise(op,a,b)
         what = { ast.Add : 'Addition', ast.Sub : 'Subtraction',
-                 ast.Mult : 'Multiplication',
+                 ast.Mult : 'Multiplication', ast.FloorDiv : 'Integer division',
                  ast.Pow : 'Raising to a power' }.get(type(op),'Division')
-        if ( not isinstance(op,ast.Pow) and np.asarray(a.v).dtype.kind in 'iub'
+        if isinstance(op,ast.FloorDiv):
+            if not ( _is_int(a.v) and _is_int(b.v) ):
+                self.error('The operator // can only be used with integers (/ divides'
+                           ' as floating point numbers)')
+            return self.int_arith(op,a,b,what)
+        if ( isinstance(op,(ast.Add,ast.Sub,ast.Mult)) and np.asarray(a.v).dtype.kind in 'iub'
              and np.asarray(b.v).dtype.kind in 'iub' ):
             return self.int_arith(op,a,b,what)
-        #(otherwise integers are used as doubles, like in C):
+        #(otherwise integers are used as doubles, like in C, and / always
+        #divides as floating point numbers):
         a, b = self.as_float(a), self.as_float(b)
         with np.errstate(divide='ignore',invalid='ignore',over='ignore'):
             if isinstance(op,(ast.Add,ast.Sub)):
@@ -622,15 +629,18 @@ class _ExprEvaluator:
             self.error(f'{what} of integers gives values outside the range of'
                        f' the result ({desc})')
     def int_arith( self, op, a, b, what ):
-        """+, -, * and / of integers, like in C (division truncates towards 0),
-        but with errors instead of wrapping around"""
+        """+, -, * and // of integers, like in C, but with errors instead of
+        wrapping around (// only divides non-negative integers, where Python
+        and C agree)"""
         if isinstance(op,(ast.Add,ast.Sub)):
             _, _, d = self.same(a,b,'arithmetic')
         else:
             d = self.muldim(a.d,b.d,1 if isinstance(op,ast.Mult) else -1)
         rt, ( x, y ) = self.int_operands((a.v,b.v),what)
         info = np.iinfo(rt)
-        if isinstance(op,ast.Div):
+        if isinstance(op,ast.FloorDiv):
+            if np.any(self.masked( ( x < 0 ) | ( y < 0 ) )):
+                self.error('The operator // can not be used with negative values')
             zero = y == 0
             if np.any(self.masked(zero)):
                 self.error('Division by zero (of integers)')
@@ -656,7 +666,7 @@ class _ExprEvaluator:
                 if rt.kind == 'i':
                     bad |= ( ( x == -1 ) & ( y == info.min ) ) | ( ( y == -1 ) & ( x == info.min ) )
             else:
-                bad = ( ( x == info.min ) & ( y == -1 ) ) if rt.kind == 'i' else False
+                bad = False#(no overflow, since the values are not negative)
         self.int_overflow(bad,rt,what)
         return _Q(v,d)
     @staticmethod
@@ -667,12 +677,8 @@ class _ExprEvaluator:
             return x - y
         if isinstance(op,ast.Mult):
             return x * y
-        #Division, truncating towards 0 like in C:
-        with np.errstate(over='ignore'):
-            q = np.floor_divide(x,y)
-            if x.dtype.kind == 'i':
-                q = q + ( ( q * y != x ) & ( ( x < 0 ) != ( y < 0 ) ) )
-        return q
+        #Integer division (of non-negative integers, see int_arith):
+        return np.floor_divide(x,y)
     def negate( self, q ):
         """-q (of integers like in C, but with errors instead of wrapping around)"""
         if np.asarray(q.v).dtype.kind not in 'iub':

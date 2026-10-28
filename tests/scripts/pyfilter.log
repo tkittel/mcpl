@@ -199,7 +199,7 @@ edit 'rotate_z(90deg) ; z+=10 cm': 'rotate_z(90deg);z+=10cm'
 parsed 'pdgcode == neutron and wavelength > 1.8Aa': fields ['pdgcode', 'wavelength'], names ['neutron', 'pdgcode', 'wavelength'], canonical 'pdgcode==neutron and wavelength>1.8Aa'
 parsed 'hypot(x,y)/cm': fields ['x', 'y'], names ['hypot', 'x', 'y'], canonical 'hypot(x,y)/cm'
 parsed 'mod(fileidx,10) == 0': fields ['fileidx'], names ['fileidx', 'mod'], canonical 'mod(fileidx,10)==0'
-random expressions: 474 of 474 valid ones have equivalent normalised forms
+random expressions: 448 of 448 valid ones have equivalent normalised forms
 exp(2,3): exp(..) takes one argument in expression "exp(2,3)"
 cos(ux,2): cos(..) takes one argument in expression "cos(ux,2)"
 histogram 'ekin/MeV;logx=1;bins=50': 'ekin/MeV;bins=50;logx'

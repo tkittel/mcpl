@@ -198,7 +198,8 @@ class _TextBackend(PlotBackend):
     def save( self, figures, filename ):
         self.check_format(filename)
         pathlib.Path(filename).write_text( '\n\n'.join( self.draw(f,self.encoding) for f in figures )
-                                           + '\n', encoding = self.encoding )
+                                           + '\n', encoding = self.encoding,
+                                           errors = 'replace' )#(e.g. ? in titles)
         return [ filename ]
 
     def draw( self, figure, encoding = None ):

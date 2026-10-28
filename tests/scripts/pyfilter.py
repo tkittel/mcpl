@@ -663,6 +663,7 @@ def test_integers():
                'min(pdgcode,0) < 0', 'clamp(pdgcode,0,2200) == 2200',
                'userflags == 4294967295', 'pdgcode/1000.0 < 0',
                '2^31 > 2147483647', 'pdgcode == -2147483648 + 2147481436',
+               '-(pdgcode > 0) == -1', '-(1 > 0) * 2 == -2',
                #Errors:
                'userflags - 1 > 0', 'userflags + 4294967295 > 0',
                'pdgcode * 1000000000 > 0', 'userflags > -1', 'userflags & -1',

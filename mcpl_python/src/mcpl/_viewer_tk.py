@@ -550,7 +550,9 @@ class TkViewer(WidgetViewer):
                     self.show_pending('shown_plot',False)
         if focus_of(self.root) not in self._axes:
             self.show_pending('axes',False)#(the axes are those of the plot)
-        self._remove.configure(state='disabled' if text is None else 'normal')
+        #(only custom plots can be removed, or a new plot given up):
+        removable = self._new_plot is not None or ( text is not None and self.v.is_custom(text) )
+        self._remove.configure(state='normal' if removable else 'disabled')
         #(the fields are only shown for plots, so the overview gets more room):
         if text is None:
             self._plot_fields.pack_forget()

@@ -89,7 +89,8 @@ class PlotGroups:
 
     #The settings of the standard groups:
 
-    def setting_names( self, key ):
+    @staticmethod
+    def setting_names( key ):
         """The names of the settings of the group: the particle type shown, and
         what the plots show a curve of each value of (not in correlation plots,
         which have the variables instead)"""

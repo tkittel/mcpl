@@ -29,10 +29,11 @@ from ._helptext import plain_text
 from ._stdviews import _field_titles
 
 #The fields, in the order they are shown: (field of the Viewer, label, key,
-#position of the key in the label, text shown when the field is empty):
+#position of the key in the label or None if it is not in it, text shown when
+#the field is empty):
 fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
            ( 'limit', 'Limit', 'i', 1, 'all' ),
-           ( 'collection', 'Plot groups', 'c', 5, 'spectra,fields' ),
+           ( 'collection', 'Plot groups', 'c', None, 'spectra,fields' ),
            ( 'pick', 'Pick', 'p', 0, 'all particles' ),
            ( 'edit', 'Edit', 'e', 0, 'no changes' ),
            ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy' ) )
@@ -339,7 +340,9 @@ def closing_text( viewer ):
 
 def labelled( label, keypos ):
     """The label split into the parts before, at and after the shortcut key
-    (for highlighting the key)"""
+    (for highlighting the key; the key part is empty for keypos None)"""
+    if keypos is None:
+        return label, '', ''
     return label[:keypos], label[keypos:keypos+1], label[keypos+1:]
 
 def label_segments( label, keypos ):

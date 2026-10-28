@@ -790,8 +790,8 @@ class _Filler:
         for n in self._notes:
             n.add(b if used is None else b[used])
         vals = [ np.asarray(v(b),dtype=float) for v in self._vals ]
-        for rng, i, name in self._unchecked:#(now that the units are known)
-            _check_range(rng,self._vals[i],name)
+        for check in self._unchecked:#(now that the units are known)
+            check()
         self._unchecked = []
         w = np.broadcast_to(b.weight if self._weighted else 1.0,(len(b),))
         #(values are NaN where the expressions are not defined):
@@ -830,7 +830,8 @@ class _Filler:
         rng = _as_range(rng,name)
         _check_range(rng,self._vals[i],name)
         if rng is not None and self._vals[i].dim == _dim_unknown:
-            self._unchecked.append( ( rng, i, name ) )#(e.g. of userdata, see _values)
+            #(e.g. of userdata, see _values):
+            self._unchecked.append( lambda : _check_range(rng,self._vals[i],name) )
         return ( rng.lo, rng.hi ) if rng is not None else None
 
 class _Hist1DFiller(_Filler):
@@ -984,15 +985,23 @@ class _Hist2DFiller(_Filler):
         #(logarithmic axes, or 'auto' to decide from the ranges, see _auto_logx):
         self._log = [ logx, logy ]
         self._positive = [ lg is True for lg in self._log ]
-        if equal and self._vals[0].dim != self._vals[1].dim:
-            raise MCPLError('Equal scales of the axes (the histogram option "equal")'
-                            ' need expressions with the same units, not'
-                            f' {_dimstr(self._vals[0].dim)} and {_dimstr(self._vals[1].dim)}'
-                            f' (of {self._vals[0].expression} and {self._vals[1].expression})')
+        if equal:
+            #(checked when the units are known, e.g. of userdata, see _values):
+            if _dim_unknown in ( self._vals[0].dim, self._vals[1].dim ):
+                self._unchecked.append(self._check_equal)
+            else:
+                self._check_equal()
         self._ranges = [ self._range_of(xrange,0,'xrange'), self._range_of(yrange,1,'yrange') ]
         self.needs_range = None in self._ranges
         if not self.needs_range:
             self._setup()
+
+    def _check_equal( self ):
+        if self._vals[0].dim != self._vals[1].dim:
+            raise MCPLError('Equal scales of the axes (the histogram option "equal")'
+                            ' need expressions with the same units, not'
+                            f' {_dimstr(self._vals[0].dim)} and {_dimstr(self._vals[1].dim)}'
+                            f' (of {self._vals[0].expression} and {self._vals[1].expression})')
 
     def start_fill( self ):
         for i, r in enumerate(self._ranges):

@@ -28,7 +28,7 @@ import pathlib
 
 from ._common import MCPLError
 from ._stdviews import _groups, _plot_item
-from ._viewer_groups import settings_without_file
+from ._viewer_groups import PlotGroups, settings_without_file
 from ._viewer_ui import plot_of
 
 
@@ -299,13 +299,26 @@ def _as_state( view ):
     groups = state.get('groups',[])
     check(isinstance(groups,list) and all( g in _groups for g in groups ),
           f'groups must be a list of the groups of plots ({", ".join(_groups)})')
+    check(groups or state.get('custom') or 'groups' not in state,
+          'groups can only be empty if there are custom plots')
     settings = state.get('settings',{})
     check(isinstance(settings,dict) and all( k in _groups and isinstance(v,dict)
-                                             and set(v) <= { 'display_only', 'display_by',
-                                                             'variables' }
                                              for k, v in settings.items() ),
           'settings must give the settings of groups, like {"correlations":'
           ' {"display_only": 2112}}')
+    for k, v in settings.items():
+        names = PlotGroups.setting_names(k)
+        for name, value in v.items():
+            check(name in names,f'the settings of the group "{k}" can be: {", ".join(names)}')
+            if name == 'display_only':
+                ok = value is None or ( isinstance(value,int) and not isinstance(value,bool) )
+                check(ok,'display_only must be a PDG code (or null for all particles)')
+            elif name == 'display_by':
+                check(value in ( 'pdgcode', 'single' ),'display_by must be "pdgcode" or "single"')
+            else:
+                choices = _groups[k][2]['variables']
+                check(isinstance(value,list) and len(value) >= 2 and all( c in choices for c in value ),
+                      'variables must be a list of at least two of: ' + ', '.join(choices))
     custom = state.get('custom',[])
     check(isinstance(custom,list),'custom must be a list of plots')
     for item in custom:

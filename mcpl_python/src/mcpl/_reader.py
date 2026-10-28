@@ -122,6 +122,11 @@ class MCPLFile:
             from ._expressions import _as_edit, _as_filter
             self._flt = None if pick is None else _as_filter(pick)
             self._edt = None if edit is None else _as_edit(edit)
+        for name, value in ( ('skip',skip), ('limit',limit) ):
+            if value is not None and ( not isinstance(value,(int,float,np.integer))
+                                       or isinstance(value,bool) or int(value) != value
+                                       or value < 0 ):
+                raise MCPLError(f'{name} must be a number of particles (not {value!r})')
         self._skip, self._limit = int(skip or 0), None if limit is None else int(limit)
         self._fblocks, self._fparts = None, None
         #NaN or infinite values are not allowed, but files might have them, so
@@ -132,10 +137,6 @@ class MCPLFile:
         self._nonfinite_mask = None
 
         self._str_decode = (not raw_strings)
-        for name, value in ( ('skip',skip), ('limit',limit) ):
-            if value is not None and ( isinstance(value,bool) or int(value) != value
-                                       or value < 0 ):
-                raise MCPLError(f'{name} must be a number of particles (not {value!r})')
 
         if hasattr(filename,'__fspath__'):
             #work with all pathlike objects:

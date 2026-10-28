@@ -22,6 +22,8 @@ Integers:
   pdgcode/1000.0 < 0: [False, False, True]
   2^31 > 2147483647: [True, True, True]
   pdgcode == -2147483648 + 2147481436: [False, False, True]
+  -(pdgcode > 0) == -1: [True, True, False]
+  -(1 > 0) * 2 == -2: [True, True, True]
   userflags - 1 > 0: MCPLError: Subtraction of integers gives values outside the range of the result (unsigned 32-bit integers) in expression "userflags - 1 > 0"
   userflags + 4294967295 > 0: [True, True, True]
   pdgcode * 1000000000 > 0: MCPLError: Multiplication of integers gives values outside the range of the result (32-bit integers) in expression "pdgcode * 1000000000 > 0"

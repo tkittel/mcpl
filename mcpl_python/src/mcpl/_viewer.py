@@ -438,6 +438,9 @@ class Viewer(_Output,_Reading):
             if not custom:
                 return False, ( 'The plots of the standard groups are not removed (the groups'
                                 ' are shown or hidden as a whole, see the groups of plots)' )
+            if not groups.shown and groups.custom == [ old ]:
+                return False, ( 'The last plot can not be removed, when no group of plots'
+                                ' is shown' )
             #(showing the plot before it, or the next for the first):
             keys = [ k for k, _ in self.views if plot_of(k) is not None ]
             k = keys.index(key) if key in keys else 0
@@ -524,8 +527,14 @@ class Viewer(_Output,_Reading):
         return '0' if field in self._absent else constants.get(field) if field else None
 
     def show_group( self, key, shown = True ):
-        """Show (or hide) the standard group with the key: whether it changed"""
-        if not self._groups.show(key,shown):
+        """Show (or hide) the standard group with the key: whether it changed
+        (an MCPLError is raised for hiding the last group when there are no
+        custom plots, as there would be nothing left to show)"""
+        groups = self._groups
+        if not shown and groups.shown == [ key ] and not groups.custom:
+            raise MCPLError('The last group of plots can not be deactivated, when there'
+                            ' are no custom plots')
+        if not groups.show(key,shown):
             return False
         self._sync()
         if not shown and self._current is not None and self._current not in [ k for k, _ in self.views ]:

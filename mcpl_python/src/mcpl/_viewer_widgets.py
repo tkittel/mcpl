@@ -358,7 +358,12 @@ class WidgetViewer:
     def on_show_group( self, key, shown = True ):
         """Show (or hide) the standard group of plots with the key (see
         Viewer.show_group)"""
-        if self.v.show_group(key,shown):
+        try:
+            changed = self.v.show_group(key,shown)
+        except MCPLError as e:
+            self.show_line(str(e),'error')
+            return
+        if changed:
             title = { k : t for k, t, _ in self.v.group_list() }[key]
             self.show_line(f'{"Activated" if shown else "Deactivated"}: the group {title}','normal')
             if shown:
@@ -684,7 +689,8 @@ class WidgetViewer:
         """The command and Python code of the shown plot (or of the plots of
         the overview), see Viewer.code"""
         plot = self._shown_plot()
-        plots = [ plot ] if plot else [ ui.plot_of(k) for k in self.v.overview_keys(self.v.current_key) if k ]
+        plots = [ plot ] if plot else [ p for p in map(ui.plot_of,self.v.overview_keys(self.v.current_key))
+                                         if p ]
         return self.v.code(plots)
 
     def cards( self ):

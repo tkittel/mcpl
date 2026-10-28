@@ -1,5 +1,5 @@
 views: 18
-list: [('overview:spectra', 'overview'), ('overview:fields', 'overview'), ('info:group:beamz', 'inactive'), ('info:group:beamx', 'inactive'), ('info:group:beamy', 'inactive'), ('info:group:geometry', 'inactive'), ('info:group:3d', 'inactive'), ('info:group:correlations', 'inactive')]
+list: [('overview:spectra', 'overview'), ('overview:fields', 'overview'), ('info:group:geometry', 'inactive'), ('info:group:beamz', 'inactive'), ('info:group:beamx', 'inactive'), ('info:group:beamy', 'inactive'), ('info:group:3d', 'inactive'), ('info:group:correlations', 'inactive')]
 status: <b>example.mcpl: 1,006 particles, Σw = 1,006</b><br><span style="color:#555"></span>
 overview as a grid: True plots: True
 buttons: ['ekin;logx=auto;logy', 'ekin;lethargy;logy', 'wavelength;logx', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto']

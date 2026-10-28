@@ -6,7 +6,7 @@
    field edit: ''
    field plot: ''
    views: 55 views, shown: 'Spectra' (None, group Spectra, badges ['overview · 5 plots'])
-   compact cards: ['Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 43
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -26,7 +26,7 @@
    field pick: 'pdgcode == neutron'
    line (normal): 
    views: 55 views, shown: 'Spectra' (None, group Spectra, badges ['overview · 5 plots'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -57,7 +57,7 @@
    field groups: 'beamz'
    line (normal): 
    views: 15 views, shown: 'Z beam profile' (None, group Z beam profile, badges ['overview · 7 plots'])
-   compact cards: ['Spectra: click to activate', 'Fields: click to activate', 'Position z: all 20 cm', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate', 'Correlations: click to activate']
+   compact cards: ['Spectra: click to activate', 'Fields: click to activate', 'Geometry: click to activate', 'Position z: all 20 cm', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate', 'Correlations: click to activate']
    problems: []
    thumbnails: 7
    kinds of cards: ['s---', 's--g', 's-rg']
@@ -70,7 +70,7 @@
    field groups: 'spectra,fields,correlations'
    line (normal): 
    views: 55 views, shown: 'Spectra' (None, group Spectra, badges ['overview · 5 plots'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -84,7 +84,7 @@
    field plot: ''
    line (normal): 
    views: 57 views, shown: 'hypot(x,y)/cm' (hypot(x,y)/cm;logy, group Custom, badges ['log y'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 44
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -99,7 +99,7 @@
    check of shown_plot: None
    line (normal): 
    views: 57 views, shown: 'hypot(x,y)/mm' (hypot(x,y)/mm;logy, group Custom, badges ['log y'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 44
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -111,7 +111,7 @@
    check of shown_plot: None
    line (normal): 
    views: 55 views, shown: 'Time' (time;logx=auto;display_by=single, group Correlations, badges ['log x'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -123,7 +123,7 @@
 ==> keys outside the fields
   key Down:
    views: 55 views, shown: 'Time' (time;logx=auto;display_by=single, group Correlations, badges ['log x'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -134,7 +134,7 @@
    plot: 1 axes
   key MoveDown:
    views: 55 views, shown: 'Time' (time;logx=auto;display_by=single, group Correlations, badges ['log x'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -145,7 +145,7 @@
    plot: 1 axes
   key Up:
    views: 55 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -157,7 +157,7 @@
   key P:
    focus: pick
    views: 55 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -169,7 +169,7 @@
   key Enter:
    focus: shown_plot
    views: 55 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -181,7 +181,7 @@
   key w:
    asked for a file to write, suggested: example_selected.mcpl.gz
    views: 55 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -193,7 +193,7 @@
   key v:
    asked for a file to state, suggested: example_viewer.json
    views: 55 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -205,7 +205,7 @@
   key ?:
    help shown: 43 lines
    views: 55 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -220,7 +220,7 @@
    written: ['example_selected.mcpl.gz']
 ==> a click on a plot of the overview shows it on its own
    views: 55 views, shown: 'Spectra' (None, group Spectra, badges ['overview · 5 plots'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -230,7 +230,7 @@
    bins used: None
    plot: 6 axes
    views: 55 views, shown: 'Wavelength' (wavelength;logx, group Spectra, badges ['log x'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 42
    kinds of cards: ['--rg', 's---', 's--g', 's-rg']
@@ -246,7 +246,7 @@
    dragged: ['uz;bins=10', 'hypot(x,y)/cm']
    line (error): Only the custom plots are reordered
    views: 58 views, shown: 'Position x' (x, group Fields, badges [])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 45
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -270,7 +270,7 @@
   logx set to 'nonsense':
    line (error): Histogram option "logx" must be 1, 0 or auto (not "nonsense"), in "x;bins=40;display_by=single;logx=nonsense"
    views: 59 views, shown: 'Position x' (x;bins=40;display_by=single, group Custom, badges [])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 46
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -312,7 +312,7 @@
    added: True
    3D: x : y : z
    views: 61 views, shown: 'Arrival time' (time;logx=auto, group Custom, badges ['log x'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 48
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -324,7 +324,7 @@
    line (normal): 
    added again, with another title: True
    views: 61 views, shown: 'Arrival time' (time;logx=auto, group Custom, badges ['log x'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 48
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -359,7 +359,7 @@
    check of axes: False
    line (error): Choose the Y axis too for a 3D plot (or empty the Z axis)
    views: 61 views, shown: 'Arrival time (??)' (x, group Custom, badges [])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 48
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -372,7 +372,7 @@
    focus: x_axis
    line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
    views: 62 views, shown: 'New plot' (None, group Custom, badges ['choose what to plot'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 48
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -386,7 +386,7 @@
    line (normal): 
    added: True
    views: 61 views, shown: 'Radius' (hypot(x,y)/cm, group Custom, badges [])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 48
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -414,7 +414,7 @@
    field pick: ''
    line (normal): 
    views: 62 views, shown: 'Spectra' (None, group Spectra, badges ['overview · 5 plots'])
-   compact cards: ['Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 50
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -430,7 +430,7 @@
    field pick: 'pdgcode == neutron'
    line (normal): 
    views: 62 views, shown: 'Spectra' (None, group Spectra, badges ['overview · 5 plots'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 49
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -448,7 +448,7 @@
    line (normal): 
    opened: True
    views: 62 views, shown: 'Spectra' (None, group Spectra, badges ['overview · 5 plots'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 49
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -464,7 +464,7 @@
    line (error): The plots of the standard groups are not removed (the groups are shown or hidden as a whole, see the groups of plots)
    line (normal): Removed the plot "Direction z"
    views: 61 views, shown: 'Time' (time;logx=auto;display_by=single, group Correlations, badges ['log x'])
-   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', 'Geometry: click to activate', '3D: click to activate']
+   compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
    thumbnails: 48
    kinds of cards: ['--rg', 's---', 's--g', 's-rg', 'sdrg']
@@ -478,7 +478,7 @@
    folded: ['Fields', 'Spectra'] | shown: plot:time;logx=auto;display_by=single
    after clicking the header of Correlations: overview:correlations ['Fields', 'Spectra']
    with a plot of Fields shown: ['Correlations', 'Spectra']
-   inactive groups: [('info:group:beamz', 'Z beam profile', 'click to activate'), ('info:group:beamx', 'X beam profile', 'click to activate'), ('info:group:beamy', 'Y beam profile', 'click to activate'), ('info:group:geometry', 'Geometry', 'click to activate'), ('info:group:3d', '3D', 'click to activate')]
+   inactive groups: [('info:group:geometry', 'Geometry', 'click to activate'), ('info:group:beamz', 'Z beam profile', 'click to activate'), ('info:group:beamx', 'X beam profile', 'click to activate'), ('info:group:beamy', 'Y beam profile', 'click to activate'), ('info:group:3d', '3D', 'click to activate')]
    code of the shown overview: 49 plots
    line (normal): Deactivated: the group Correlations
    after Delete: ['spectra', 'fields'] overview:spectra | state: {'custom': [{'title': 'Radius', 'plot': 'hypot(x,y)/cm'}, 'x;bins=40;display_by=single', {'title': 'x : y', 'plot': 'x : y;logx=auto;logy=auto'}, {'title': 'Arrival time (??)', 'plot': 'x'}, 'uz;bins=20']}
@@ -487,8 +487,8 @@
    line (normal): Activated: the group 3D
    3D shown: ['spectra', 'fields', '3d', 'correlations'] overview:3d ['3D', 'Positions in 3D', 'Directions in 3D']
    line (normal): Activated: the group Z beam profile
-   beamz activated by its card: ['spectra', 'fields', 'beamz', '3d', 'correlations'] overview:beamz ['X beam profile', 'Y beam profile', 'Geometry']
-   order of the groups: ['Spectra', 'Fields', 'Z beam profile', 'X beam profile', 'Y beam profile', 'Geometry', '3D', 'Correlations', 'Custom']
+   beamz activated by its card: ['spectra', 'fields', 'beamz', '3d', 'correlations'] overview:beamz ['Geometry', 'X beam profile', 'Y beam profile']
+   order of the groups: ['Spectra', 'Fields', 'Geometry', 'Z beam profile', 'X beam profile', 'Y beam profile', '3D', 'Correlations', 'Custom']
    line (error): The custom plots are removed one by one
    the custom group is not hidden: overview:custom
    cells of the custom overview: ['custom:uz;bins=20', 'info:new'] ['StepHist', 'NewPlot']

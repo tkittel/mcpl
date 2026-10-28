@@ -110,15 +110,15 @@ _groups = {
         'ekin;logx=auto;logy', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'time;logx=auto;logy',
         'weight;logx=auto;logy;unweighted',
         'polx', 'poly', 'polz', 'userflags;bar;logy=auto' ), {} ),
+    #(the positions and directions projected on the planes, in rows):
+    'geometry' : ( 'Geometry', (
+        'x : y', 'y : z', 'z : x', 'ux : uy', 'uy : uz', 'uz : ux' ), {} ),
     'beamz' : ( 'Z beam profile',
                 _beam('z','x','y'), {} ),
     'beamx' : ( 'X beam profile',
                 _beam('x','y','z'), {} ),
     'beamy' : ( 'Y beam profile',
                 _beam('y','z','x'), {} ),
-    #(the positions and directions projected on the planes, in rows):
-    'geometry' : ( 'Geometry', (
-        'x : y', 'y : z', 'z : x', 'ux : uy', 'uy : uz', 'uz : ux' ), {} ),
     '3d' : ( '3D', (
         _item('x : y : z','Positions in 3D'),
         _item('ux : uy : uz','Directions in 3D') ), {} ),

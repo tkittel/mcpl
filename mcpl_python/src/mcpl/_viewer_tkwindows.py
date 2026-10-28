@@ -374,16 +374,16 @@ class AlignWindow:
                   font=tv.bold).pack(anchor='w')
         self._means = ttk.Label(f,justify='left')
         self._means.pack(anchor='w',pady=(4,8))
-        dirs = [ '' ] + list(al.axis_choices)
+        dirs = list(al.direction_choices)
         #(1. turning the mean direction):
         self._rotate = tk.BooleanVar(w,value=True)
         ttk.Checkbutton(f,text='Turn the mean direction into the direction',
                         variable=self._rotate,command=self._update).pack(anchor='w')
         row = ttk.Frame(f)
         row.pack(fill='x',padx=(24,0),pady=(2,6))
-        self._target = self._combo(row,'Direction:',dirs[1:],'+z',14)
-        self._keep = self._combo(row,'keeping the axis:',[ 'none' ] + dirs[1:],'none',14)
-        self._pivot = self._combo(row,'rotating around:',[ 'mean position', 'origin' ],
+        self._target = self._combo(row,'Direction:',dirs,dirs[0],14)
+        self._keep = self._combo(row,'keeping the axis:',[ 'none' ] + dirs,'none',14)
+        self._pivot = self._combo(row,'rotating around:',[ 'mean position', '(0,0,0)' ],
                                   'mean position',18)
         ttk.Label(f,text='(any vector can be typed, as in (1,1,0), and a point to rotate around,'
                   ' as in (0,0,1m))',foreground=colors['dim']).pack(anchor='w',padx=(24,0))
@@ -394,12 +394,14 @@ class AlignWindow:
         row = ttk.Frame(f)
         row.pack(fill='x',padx=(24,0),pady=(2,6))
         self._point = self._combo(row,'Point:',[ '(0,0,0)' ],'(0,0,0)',18)
-        ttk.Label(row,text='in').pack(side='left',padx=(12,4))
+        ttk.Label(row,text='changing the coordinates:').pack(side='left',padx=(12,4))
         self._coords = {}
         for c in 'xyz':
             self._coords[c] = tk.BooleanVar(w,value=True)
             ttk.Checkbutton(row,text=c,variable=self._coords[c],
                             command=self._update).pack(side='left')
+        ttk.Label(f,text='(the others are kept: e.g. without z, a beam along z is only moved'
+                  ' sideways)',foreground=colors['dim']).pack(anchor='w',padx=(24,0))
         #(the result):
         ttk.Label(f,text='Added to the edit:',font=tv.bold).pack(anchor='w',pady=(8,0))
         self._edit = tk.Text(f,width=90,height=3,wrap='char',font='TkFixedFont',relief='flat',
@@ -480,7 +482,7 @@ class AlignWindow:
                 k = self._keep.get().strip()
                 keep = None if k in ( '', 'none' ) else al.parse_vector(k,'axis to keep')
                 p = self._pivot.get().strip()
-                pivot = ( 'mean' if p == 'mean position' else 'origin' if p == 'origin'
+                pivot = ( 'mean' if p == 'mean position'
                           else al.parse_vector(p,'point to rotate around','cm') )
             if self._move.get():
                 centre = al.parse_vector(self._point.get(),'point','cm')

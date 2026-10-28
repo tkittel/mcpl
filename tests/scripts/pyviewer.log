@@ -325,7 +325,7 @@ hint line while editing skip with 'x': ('Skip must be a number of particles', 'e
 completions of "e": ['ekin', 'electron', 'eV', 'exp('] chosen: eV | list line: ekin  electron  [eV]  exp( | popup line: Up/Down: choose   Enter or Tab: insert   Esc: close
 Enter inserts it: None 'eV' completions left: []
 Up from the first wraps to: atan2( | Esc closes without inserting: None '' []
-unknown view: Unknown groups of plots or view "foo" (groups: spectra, fields, beamz, beamx, beamy, geometry, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
+unknown view: Unknown groups of plots or view "foo" (groups: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
 invalid pick: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 1"
 view shown first: ('plot:ekin;logx=auto;logy', 'ekin;logx=auto;logy')
 ('example.mcpl: 1,006 particles, Σw = 1,006', '')
@@ -354,10 +354,10 @@ unknown plot: (False, 'No plot "nope"')
 remove: (True, '') ['plot:userflags;bar;logy=auto'] current: plot:userflags;bar;logy=auto
 group spectra: Spectra, 5 plots in 2x3
 group fields: Fields, 13 plots in 3x5
+group geometry: Geometry, 6 plots in 2x3
 group beamz: Z beam profile, 7 plots in 2x4
 group beamx: X beam profile, 7 plots in 2x4
 group beamy: Y beam profile, 7 plots in 2x4
-group geometry: Geometry, 6 plots in 2x3
 group 3d: 3D, 2 plots in 1x2
 group correlations: Correlations, 45 plots in 9x9 (correlation plot)
 default groups: spectra, fields
@@ -368,7 +368,7 @@ removing a custom plot: (True, '') ['x;bins=5']
 changed to a plot of another group: (True, '') custom:ekin Custom ['x;bins=5', 'ekin']
 again, a setting: (True, '') custom:x;bins=20 ['x;bins=5', 'ekin', 'x;bins=20']
 the custom one: (True, '') custom:ekin;logy ['x;bins=5', 'ekin;logy', 'x;bins=20'] | state: {'custom': ['x;bins=5', 'ekin;logy', 'x;bins=20'], 'view': 'ekin;logy'}
-check: (False, 'Unknown groups of plots "beam" (give groups separated by commas: spectra, fields, beamz, beamx, beamy, geometry, 3d, correlations)') (True, '') (True, '') (True, '')
+check: (False, 'Unknown groups of plots "beam" (give groups separated by commas: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations)') (True, '') (True, '') (True, '')
 completions: (0, [('beamz', 'Z beam profile'), ('beamx', 'X beam profile'), ('beamy', 'Y beam profile')]) (8, [('beamz', 'Z beam profile'), ('beamx', 'X beam profile'), ('beamy', 'Y beam profile')]) | hint: beamx  X beam profile beamx  X beam profile
 switched: (True, '') ['beamx', 'correlations'] ['overview:beamx', 'plot:y : z'] custom plot kept: x;bins=20 | state: {'groups': ['beamx', 'correlations'], 'custom': ['x;bins=5', 'ekin;logy', 'x;bins=20']}
 group shown: True ['beamx', '3d', 'correlations'] again: False | hidden: True ['3d', 'correlations'] | state: {'groups': ['3d', 'correlations'], 'custom': ['x;bins=5', 'ekin;logy', 'x;bins=20']}
@@ -385,9 +385,9 @@ view "{'custom':[{'plot':'x','color':'red'}]}": The viewer state "{'custom':[{'p
 view "{'custom':[3]}": The viewer state "{'custom':[3]}" is not valid: in the custom plots, a plot must be a histogram string, or a JSON object with it as "plot", and optionally a "title"
 view "{'custom':[{'plot':'x','title':''}]}": The viewer state "{'custom':[{'plot':'x','title':''}]}" is not valid: in the custom plots, the title of a plot must be a text on one line
 view "{'custom':{}}": The viewer state "{'custom':{}}" is not valid: custom must be a list of plots
-view "{'groups':'nope'}": The viewer state "{'groups':'nope'}" is not valid: groups must be a list of the groups of plots (spectra, fields, beamz, beamx, beamy, geometry, 3d, correlations)
-view "{'groups':3}": The viewer state "{'groups':3}" is not valid: groups must be a list of the groups of plots (spectra, fields, beamz, beamx, beamy, geometry, 3d, correlations)
-view "{'groups':['fields','nope']}": The viewer state "{'groups':['fields','nope']}" is not valid: groups must be a list of the groups of plots (spectra, fields, beamz, beamx, beamy, geometry, 3d, correlations)
+view "{'groups':'nope'}": The viewer state "{'groups':'nope'}" is not valid: groups must be a list of the groups of plots (spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations)
+view "{'groups':3}": The viewer state "{'groups':3}" is not valid: groups must be a list of the groups of plots (spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations)
+view "{'groups':['fields','nope']}": The viewer state "{'groups':['fields','nope']}" is not valid: groups must be a list of the groups of plots (spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations)
 state at the start: {} | command: mcpltool -w example.mcpl
 move up: True again: False down: True | current: custom:uz;bins=20 ['hypot(x,y)/cm', 'uz;bins=20']
 move the overview: False
@@ -412,14 +412,14 @@ view 'pdgcode;bar = auto ; logy=auto': plot:pdgcode;bar;logy=auto
 view "{'foo':1}": The viewer state "{'foo':1}" is not valid: unknown entry "foo" (the entries are: skip, limit, pick, edit, groups, custom, settings, view)
 view '{"limit":"a"}': The viewer state "{"limit":"a"}" is not valid: limit must be a number
 view '{bad': The viewer state "{bad" is not valid JSON (Expecting property name enclosed in double quotes: line 1 column 2 (char 1))
-view '[1]': Unknown groups of plots or view "[1]" (groups: spectra, fields, beamz, beamx, beamy, geometry, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
+view '[1]': Unknown groups of plots or view "[1]" (groups: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
 view 'nope.json': Can not read the viewer state from nope.json ([Errno 2] No such file or directory: 'nope.json')
-view 'nope': Unknown groups of plots or view "nope" (groups: spectra, fields, beamz, beamx, beamy, geometry, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
-view 'overview:nope': Unknown groups of plots or view "overview:nope" (groups: spectra, fields, beamz, beamx, beamy, geometry, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
+view 'nope': Unknown groups of plots or view "nope" (groups: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
+view 'overview:nope': Unknown groups of plots or view "overview:nope" (groups: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
 align: 2403 particles, neutron 100%, position (3.002553, -0.998609, 5.013888), direction (0.279722, -0.188441, 0.941406), spread 3.749 deg
 align (0, 0, 1) keeping None around mean, to None in xyz: 327 characters, position (3.002553, -0.998609, 5.013888), direction (0, 0, 1.000000), as applied: True
 align (0, 0, 1) keeping (0, 1, 0) around mean, to None in xyz: 292 characters, position (3.002553, -0.998609, 5.013888), direction (0, 0, 1.000000), as applied: True
-align (1, 1, 0) keeping (0, 0, 1) around origin, to None in xyz: 183 characters, position (3.463974, 4.665159, -1.178474), direction (0.707107, 0.707107, 0), as applied: True
+align (1, 1, 0) keeping (0, 0, 1) around (0, 0, 0), to None in xyz: 183 characters, position (3.463974, 4.665159, -1.178474), direction (0.707107, 0.707107, 0), as applied: True
 align (0, 0, -1) keeping None around (1, 2, 3), to (0, 0, 0) in xy: 265 characters, position (0, 0, -0.021105), direction (0, 0, -1.000000), as applied: True
 align None keeping None around mean, to (10, 0, 0) in xyz: 70 characters, position (10.000000, 0, 0), direction (0.279722, -0.188441, 0.941406), as applied: True
 align [-1.  0.  0.] keeping [0. 1. 0.] around mean, to (0, 0, 0) in xyz: 222 characters, position (0, 0, 0), direction (-1.000000, 0, 0), as applied: True
@@ -428,7 +428,8 @@ align ((0, 0, 1), (0.3, -0.2, 1.0)): no error
 align ((0, 0, 1), (0, 0, 2)): The axis to keep must not be along the mean direction or the target direction
 align (None, None): Nothing to do: choose a target direction or a point to move to
 align ((0, 0, 0), None): The target direction must not be zero
-vector '+y': [0.0, 1.0, 0.0]
+vector '+y': The point must be three lengths, as in (0,0,1m) (or numbers in cm, as in (0,0,100)), not "+y"
+vector '(0,0,1m)': [0.0, 0.0, 100.0]
 vector '(1,2,3)': [1.0, 2.0, 3.0]
 vector '1, 2, 3': [1.0, 2.0, 3.0]
 vector '(1,2)': The point must be three lengths, as in (0,0,1m) (or numbers in cm, as in (0,0,100)), not "(1,2)"
@@ -569,11 +570,11 @@ Figure 1 (1x1): None
    the figure: logx
 ==> keys ['WAIT', 'hold', 'l', 'k', 'unhold', 'WAIT']:
    k before the changed plot is drawn: The plot is not drawn yet (try again when it is)
-   c shows the collections: ['spectra', 'fields', 'beamz', 'beamx', 'beamy', 'geometry', '3d', 'correlations'] chosen: beamz | key hint: Up/Down: choose   Enter: apply   Esc: cancel
+   c shows the collections: ['spectra', 'fields', 'geometry', 'beamz', 'beamx', 'beamy', '3d', 'correlations'] chosen: geometry | key hint: Up/Down: choose   Enter: apply   Esc: cancel
 ==> keys ['WAIT', 'C', 'Down', 'Down', 'WAIT']:
-   the menu on the screen: ['└┬│beamy         Y beam profile│──────────────────────────────────────┬', 'Up/Down: choose   Enter: apply   Esc: cancel']
+   the menu on the screen: ['13│beamy         Y beam profile│.681e+06                      9.725e+09', 'Up/Down: choose   Enter: apply   Esc: cancel']
 ==> keys ['WAIT', 'c', 'Down', 'Down', 'Enter', 'WAIT']:
-   c changes the groups: beamz plot:x : y
+   c changes the groups: geometry plot:x : y
 ==> keys ['WAIT', 'c', 'Down', 'Esc', 'WAIT']:
    Esc keeps the groups: spectra,fields
 ==> keys ['WAIT', 'v', 'Enter', 'WAIT']:
@@ -604,7 +605,7 @@ mcpltool -H x/cm -H y/cm: exit code 0
 mcpltool -w -B ascii: exit code 1
    | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
 mcpltool --view=foo: exit code 1
-   | ERROR: Unknown groups of plots or view "foo" (groups: spectra, fields, beamz, beamx, beamy, geometry, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
+   | ERROR: Unknown groups of plots or view "foo" (groups: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
 mcpltool -w --color=always: exit code 1
    | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
 mcpltool -w -p x > 1: exit code 1

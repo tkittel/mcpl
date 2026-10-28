@@ -29,9 +29,9 @@ __all__ = []
 from ._common import MCPLError
 from ._numpy import np
 
-#The axes which can be chosen by name (as +x), also for the axis to keep:
-axis_choices = { '+x' : (1,0,0), '-x' : (-1,0,0), '+y' : (0,1,0), '-y' : (0,-1,0),
-                 '+z' : (0,0,1), '-z' : (0,0,-1) }
+#The directions offered (which can be changed, or other vectors typed), also
+#for the axis to keep:
+direction_choices = ( '(0,0,1)', '(0,0,-1)', '(1,0,0)', '(-1,0,0)', '(0,1,0)', '(0,-1,0)' )
 
 #The number of particles of the first estimate of the means:
 estimate_particles = 200000
@@ -111,12 +111,10 @@ def _copy( stats ):
     return res
 
 def parse_vector( text, what, unit = '' ):
-    """The vector of a text: an axis of axis_choices (as +z), or three numbers
-    as in (1,1,0) or 1,1,0. With the unit cm (for points), the numbers can
-    also have units of lengths, as in (0,0,1m) or (1,2,3)cm."""
+    """The vector of a text: three numbers as in (1,1,0) or 1,1,0. With the
+    unit cm (for points), the numbers can also have units of lengths, as in
+    (0,0,1m) or (1,2,3)cm."""
     text = text.strip()
-    if text in axis_choices:
-        return np.array(axis_choices[text],dtype=float)
     inner, after = text, ''
     if unit and ')' in text:
         inner, after = text.rsplit(')',1)
@@ -129,8 +127,7 @@ def parse_vector( text, what, unit = '' ):
         if unit:
             raise MCPLError(f'The {what} must be three lengths, as in (0,0,1m) (or numbers'
                             f' in cm, as in (0,0,100)), not "{text}"')
-        raise MCPLError(f'The {what} must be three numbers, as in (0,0,1), or an axis'
-                        f' like +z, not "{text}"')
+        raise MCPLError(f'The {what} must be three numbers, as in (0,0,1), not "{text}"')
     return v
 
 def _number_in( text, unit, length ):
@@ -168,7 +165,7 @@ def align_edit( stats, target = None, keep = None, pivot = 'mean', centre = None
                 coords = 'xyz' ):
     """The statements of an edit (a text) which turns the mean direction of
     the stats into the target direction (if given), rotating around the pivot
-    ('mean' for the mean position, 'origin', or a point in cm), and keeping
+    ('mean' for the mean position, or a point in cm), and keeping
     the axis to keep (if given) as well as possible: in the plane it spans with
     the target, on the same side. Then the mean position is moved to the
     point centre (in cm, if given) in the coordinates in coords. Returns the
@@ -220,8 +217,7 @@ def align_edit( stats, target = None, keep = None, pivot = 'mean', centre = None
             if isinstance(R,str):
                 raise MCPLError(f'The rotation can not be made ({R})')
             R = R[0]
-            p = pos if isinstance(pivot,str) and pivot == 'mean' else (
-                np.zeros(3) if isinstance(pivot,str) else np.asarray(pivot,dtype=float) )
+            p = pos if isinstance(pivot,str) and pivot == 'mean' else np.asarray(pivot,dtype=float)
             p = np.array([ float(number(c)) for c in p ])
             if np.any( p != 0 ):
                 statements.append(f'pos -= {_vector(p,"cm")}')

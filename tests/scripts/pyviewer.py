@@ -363,10 +363,10 @@ def test_align():
     for target, keep, pivot, centre, coords in (
             ( (0,0,1), None, 'mean', None, 'xyz' ),
             ( (0,0,1), (0,1,0), 'mean', None, 'xyz' ),
-            ( (1,1,0), (0,0,1), 'origin', None, 'xyz' ),
+            ( (1,1,0), (0,0,1), (0,0,0), None, 'xyz' ),
             ( (0,0,-1), None, (1,2,3), (0,0,0), 'xy' ),
             ( None, None, 'mean', (10,0,0), 'xyz' ),
-            ( al.parse_vector('-x','direction'), al.parse_vector('(0,1,0)','axis'), 'mean',
+            ( al.parse_vector('(-1,0,0)','direction'), al.parse_vector('(0,1,0)','axis'), 'mean',
               (0,0,0), 'xyz' ) ):
         edit, pos, mdir = al.align_edit(s,target,keep,pivot,centre,coords)
         after = means(v,edit)
@@ -388,7 +388,7 @@ def test_align():
             print(f'align {args}: no error')
         except mcpl.MCPLError as e:
             print(f'align {args}: {e}')
-    for text in ( '+y', '(1,2,3)', '1, 2, 3', '(1,2)', 'z', '(1,2,3)cm' ):
+    for text in ( '+y', '(0,0,1m)', '(1,2,3)', '1, 2, 3', '(1,2)', 'z', '(1,2,3)cm' ):
         try:
             print(f'vector {text!r}: {al.parse_vector(text,"point","cm").tolist()}')
         except mcpl.MCPLError as e:

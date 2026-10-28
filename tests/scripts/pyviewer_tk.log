@@ -33,7 +33,7 @@ after the pick:
    cache button: cached: 44 kB CacheAll.Compact.TMenubutton
    write button: New MCPL file (544 particles)...
    shown: plot:ekin;logx=auto;logy
-cache menu: ['Memory for the particles used by the plots (counted before the pick):', 'Max 5 MB: all 1,006 particles', 'Max 20 MB: all 1,006 particles', 'Max 100 MB: all 1,006 particles', 'Max 500 MB: all 1,006 particles', 'Max 2 GB: all 1,006 particles', 'Max 5 GB: all 1,006 particles', 'Max 10 GB: all 1,006 particles', 'No memory cache (refreshing plots from file on each change)', 'About caching']
+cache menu: ['Memory for the particles used by the plots (counted before the pick):', '●  Max 5 MB: all 1,006 particles', '●  Max 20 MB: all 1,006 particles', '●  Max 100 MB: all 1,006 particles', '●  Max 500 MB: all 1,006 particles', '●  Max 2 GB: all 1,006 particles', '●  Max 5 GB: all 1,006 particles', '●  Max 10 GB: all 1,006 particles', 'No memory cache (refreshing plots from file on each change)', 'About caching']
 with a small cache:
    status: example.mcpl: 1,006 particles
    counts: ≈647/1,006 particles (64.3%), Σw ≈ 647 (64.3%)
@@ -65,6 +65,8 @@ help 'About data caching': MCPL viewer: Data caching | sections: 2 | lines: Fals
 help 'About MCPL': MCPL viewer: About MCPL | sections: 0 | lines: False
    closed with q: True
 help in the menu: ['Open MCPL file...', 'Save viewer state...', 'Quit']
+menu bar: {'File': ['Open MCPL file...', 'New MCPL file...', 'Save viewer state...'], 'Help': ['The viewer', 'Picks (filtering particles)', 'Edits (modifying particles)', 'Plot expressions', 'About data caching', 'About MCPL']}
+icons: [(256, 256), (32, 32)]
 settings in a narrow frame, rows: 2
 while writing: Writing written_by_tk.mcpl.gz ... ["('disabled',)", "('disabled',)"]
 written: True | window closed: True | status: example.mcpl: 1,006 particles

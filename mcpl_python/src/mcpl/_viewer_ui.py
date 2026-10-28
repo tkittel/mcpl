@@ -33,7 +33,7 @@ from ._stdviews import _field_titles
 #the field is empty):
 fields = ( ( 'skip', 'Skip', 's', 0, '0' ),
            ( 'limit', 'Limit', 'i', 1, 'all' ),
-           ( 'collection', 'Plot groups', 'c', None, 'spectra,fields' ),
+           ( 'groups', 'Plot groups', 'c', None, 'spectra,fields' ),
            ( 'pick', 'Pick', 'p', 0, 'all particles' ),
            ( 'edit', 'Edit', 'e', 0, 'no changes' ),
            ( 'plot', 'Add plot', 'a', 0, 'e.g. hypot(x,y)/cm;logy' ) )
@@ -43,18 +43,18 @@ field_names = tuple( f[0] for f in fields )
 field_descriptions = {
     'skip' : 'the number of particles at the start of the file which are left out',
     'limit' : 'the largest number of particles to use, after those skipped',
-    'collection' : 'the groups of plots shown, separated by commas',
+    'groups' : 'the groups of plots shown, separated by commas',
     'pick' : 'an expression which is true for the particles to use (before they are edited)',
     'edit' : 'statements separated by ";" which change the particles, after they are picked',
     'plot' : 'a histogram string of a new plot',
 }
 
 #The fields shown on the same line (the short ones together):
-field_rows = ( ( 'skip', 'limit', 'collection' ), ( 'pick', ), ( 'edit', ), ( 'plot', ) )
+field_rows = ( ( 'skip', 'limit', 'groups' ), ( 'pick', ), ( 'edit', ), ( 'plot', ) )
 assert [ f for row in field_rows for f in row ] == [ f[0] for f in fields ]
 
 #The fields chosen from a menu (see LineEditor):
-menu_fields = ( 'collection', )
+menu_fields = ( 'groups', )
 
 #The other actions: (action, label, keys, position of the key in the label):
 actions = ( ( 'write', 'Write file...', ( 'w', ), 0 ),

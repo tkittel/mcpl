@@ -113,7 +113,7 @@ Viewer (-w, --view):
   -wGROUPS, --view=GROUPS
                    Show these groups of plots, separated by commas (press c in
                    the viewer to change them), from:
-                   COLLECTIONS.
+                   GROUPNAMES.
   -wVIEW, --view=VIEW
                    The view shown first: overview, or a plot, e.g. -wekin.
   -wFILE.json, --view=FILE.json, --view="{...}"
@@ -186,7 +186,7 @@ def _mcpltool_usage(progname,errmsg=None,full=False,option=None):
     from ._stdviews import _groups
     print(msg.strip().replace('PROGNAME',progname)
           .replace('PROGPADS',' '*len(progname))
-          .replace('COLLECTIONS',', '.join(_groups)))
+          .replace('GROUPNAMES',', '.join(_groups)))
     sys.exit(0)
 
 def _topic_help(topic):

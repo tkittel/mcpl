@@ -527,7 +527,7 @@ class TkViewer(WidgetViewer):
     def show_field( self, field, text ):
         if field == 'plot':
             return#(no field, see focus_field)
-        if field == 'collection':
+        if field == 'groups':
             return#(the groups are shown with the cards)
         self._set_text(self._entries[field],text)
         self.show_pending(field,False)
@@ -603,7 +603,7 @@ class TkViewer(WidgetViewer):
         self._overview_controls.show(controls)
 
     def show_check( self, field, ok ):
-        if field in ( 'plot', 'collection' ):#(no marks)
+        if field in ( 'plot', 'groups' ):#(no marks)
             return
         mark = self._marks[field]
         if ok is None:
@@ -675,7 +675,7 @@ class TkViewer(WidgetViewer):
         if field == 'shown_plot' and not self._advanced.get():
             self._advanced.set(True)
             self._show_advanced()
-        if field == 'collection':
+        if field == 'groups':
             self.show_line(ui.groups_hint,'normal')
             return
         w = self._entries[field]

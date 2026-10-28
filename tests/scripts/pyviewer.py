@@ -133,7 +133,7 @@ def test_groups():
     print('default groups:', ', '.join(_default_groups))
     v = Viewer(ex,view='beamz',plots=['x;bins=5'])
     v.multi_overview = True
-    print('-wbeamz:', v.field_text('collection'), v.groups, [ k for k, _ in v.views ][:2],
+    print('-wbeamz:', v.field_text('groups'), v.groups, [ k for k, _ in v.views ][:2],
           '| state:', v.state(), '| command:', v.commands()['view'])
     #(a plot of a standard group is copied into the custom group when it is
     #changed, with its title, and is not removed; custom plots are):
@@ -144,17 +144,17 @@ def test_groups():
     print('removing a custom plot:', v.change_plot('x/mm : y/mm',''), v._groups.custom)
     #(also when the changed plot is in another group, or among the custom
     #plots, which shows a copy of it, keeping the other settings):
-    v.set('collection','spectra,fields')
+    v.set('groups','spectra,fields')
     print('changed to a plot of another group:', v.change_plot('ekin;logx=auto;logy','ekin'),
           v.current_key, v.plot_info(v.current_key)['group'], v._groups.custom)
     print('again, a setting:', v.change_plot('plot:x','x;bins=20'), v.current_key, v._groups.custom)
     print('the custom one:', v.change_plot('custom:ekin','ekin;logy'), v.current_key, v._groups.custom,
           '| state:', v.state(full = False))
-    print('check:', v.check('collection','beam'), v.check('collection',''), v.check('collection','3d'),
-          v.check('collection','spectra, 3d'))
-    print('completions:', v.complete('collection','beam'), v.complete('collection','spectra,be'),
-          '| hint:', v.hint('collection','beamx'), v.hint('collection','spectra,beamx'))
-    print('switched:', v.set('collection','beamx,correlations'), v.groups, [ k for k, _ in v.views ][:2],
+    print('check:', v.check('groups','beam'), v.check('groups',''), v.check('groups','3d'),
+          v.check('groups','spectra, 3d'))
+    print('completions:', v.complete('groups','beam'), v.complete('groups','spectra,be'),
+          '| hint:', v.hint('groups','beamx'), v.hint('groups','spectra,beamx'))
+    print('switched:', v.set('groups','beamx,correlations'), v.groups, [ k for k, _ in v.views ][:2],
           'custom plot kept:', v._s.plots[-1], '| state:', v.state(full = False))
     print('group shown:', v.show_group('3d'), v.groups, 'again:', v.show_group('3d'),
           '| hidden:', v.show_group('beamx',False), v.groups, '| state:', v.state(full = False))
@@ -470,7 +470,7 @@ def test_terminal():
                                                           for ln in f.splitlines() if 'not drawn' in ln ))
     #c shows a menu of the collections of plots (Up and Down choose one, which
     #Enter applies; the keys work with Shift too):
-    e = ui.editor_for(v,'collection')
+    e = ui.editor_for(v,'groups')
     e.key('Down')
     e.key('Down')
     print('   c shows the collections:', [ n for n, _ in e.choices ],
@@ -479,9 +479,9 @@ def test_terminal():
     print('   the menu on the screen:', [ ln.strip() for ln in t.s.frames[-2].splitlines()
                                           if 'beamy' in ln or 'Up/Down' in ln ])
     v, _ = run(['WAIT','c','Down','Down','Enter','WAIT'],show=False)
-    print('   c changes the collection:', v.field_text('collection'), v.views[v.current][0])
+    print('   c changes the groups:', v.field_text('groups'), v.views[v.current][0])
     v, _ = run(['WAIT','c','Down','Esc','WAIT'],show=False)
-    print('   Esc keeps the collection:', v.field_text('collection'))
+    print('   Esc keeps the groups:', v.field_text('groups'))
     before = set(pathlib.Path('.').glob('*.json'))
     run(['WAIT','v','Enter','WAIT'],show=False)
     print('   v saves the state in:', sorted( str(f) for f in set(pathlib.Path('.').glob('*.json')) - before ))

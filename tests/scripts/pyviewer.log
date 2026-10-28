@@ -541,9 +541,9 @@ Figure 1 (1x1): None
 ==> keys ['WAIT', 'C', 'Down', 'Down', 'WAIT']:
    the menu on the screen: ['13│beamy         Y beam profile│.681e+06                      9.725e+09', 'Up/Down: choose   Enter: apply   Esc: cancel']
 ==> keys ['WAIT', 'c', 'Down', 'Down', 'Enter', 'WAIT']:
-   c changes the collection: beamz plot:x : y
+   c changes the groups: beamz plot:x : y
 ==> keys ['WAIT', 'c', 'Down', 'Esc', 'WAIT']:
-   Esc keeps the collection: spectra,fields
+   Esc keeps the groups: spectra,fields
 ==> keys ['WAIT', 'v', 'Enter', 'WAIT']:
    v saves the state in: ['example_viewer2.json']
 ==> keys ['WAIT', 's', '1', '2', 'Esc', 'i', '5', '0', 'Enter', 'WAIT', 'p', 'Up', 'Esc']:

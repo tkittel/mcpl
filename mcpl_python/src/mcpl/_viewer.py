@@ -251,7 +251,7 @@ class Viewer(_Output,_Reading):
 
     def field_text( self, field ):
         """Current text of a field (as last set)"""
-        if field == 'collection':
+        if field == 'groups':
             return ','.join(self._groups.shown)
         return self._texts[field] if field != 'plot' else ''
 
@@ -291,7 +291,7 @@ class Viewer(_Output,_Reading):
                 raise MCPLError('Give an expression to plot, e.g. ekin/MeV')
             _make_filler(text)#(checks the expressions and options)
             return text
-        if field == 'collection':
+        if field == 'groups':
             keys = parse_groups(text) if text.strip() else list(_default_groups)
             if keys is None:
                 raise MCPLError(f'Unknown groups of plots "{text}" (give groups separated by'
@@ -337,7 +337,7 @@ class Viewer(_Output,_Reading):
                 self._groups.add(text)
                 self._sync()
             self._current = f'custom:{same or text}'
-        elif field == 'collection':
+        elif field == 'groups':
             self._groups.use(value)
             self._sync()
             self._current = None
@@ -637,7 +637,7 @@ class Viewer(_Output,_Reading):
         m = re.search(r'[A-Za-z_][A-Za-z0-9_]*$', text[:cursor])
         start = m.start() if m else cursor
         prefix = m.group(0) if m else ''
-        if field == 'collection':
+        if field == 'groups':
             #(the key of a group after the last comma):
             start = text.rfind(',',0,cursor) + 1
             start += len(text[start:cursor]) - len(text[start:cursor].lstrip())
@@ -680,7 +680,7 @@ class Viewer(_Output,_Reading):
         """Short description of the name at the cursor, as "name  description",
         or None"""
         from ._exprhelp import _short_hint
-        if field == 'collection':
+        if field == 'groups':
             cursor = len(text) if cursor is None else cursor
             name = text[text.rfind(',',0,cursor) + 1:].split(',')[0].strip()
             descr = dict(group_names()).get(name)

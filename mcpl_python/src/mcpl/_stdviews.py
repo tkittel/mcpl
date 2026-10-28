@@ -116,6 +116,9 @@ _groups = {
                 _beam('x','y','z'), {} ),
     'beamy' : ( 'Y beam profile',
                 _beam('y','z','x'), {} ),
+    #(the positions and directions projected on the planes, in rows):
+    'geometry' : ( 'Geometry', (
+        'x : y', 'y : z', 'z : x', 'ux : uy', 'uy : uz', 'uz : ux' ), {} ),
     '3d' : ( '3D', (
         _item('x : y : z','Positions in 3D'),
         _item('ux : uy : uz','Directions in 3D') ), {} ),

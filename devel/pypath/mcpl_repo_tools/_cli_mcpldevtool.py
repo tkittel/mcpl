@@ -28,7 +28,7 @@ def get_mode_list():
 def progname():
     #import os
     #return os.path.basename(sys.argv[0])
-    return 'ncdevtool'
+    return 'mcpldevtool'
 
 def usage():
     theprogname = progname()
@@ -83,13 +83,13 @@ def main():
         raise SystemExit(f'ERROR: Invalid mode "{mode}". Run without'
                          ' arguments to list available modes.')
 
-    parser = NCDevUtilsArgParser( cliname = progname(),
+    parser = McplDevUtilsArgParser( cliname = progname(),
                                   modename = mode,
                                   args = sys.argv[2:] )
 
     import_sibling_module(mode=mode).main( parser )
 
-class NCDevUtilsArgParser:
+class McplDevUtilsArgParser:
 
     def __init__(self, *, cliname, modename, args ):
         self.__parser = None

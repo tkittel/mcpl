@@ -225,13 +225,13 @@ pick 'pos.z > 1cm and dir.at(2) > 0' in cpp: p.z() > 1.0 && p.uz() > 0  []
 edit 'z += 1m;weight *= 0.5': ['q.position[2] += 100.0;', 'q.weight *= 0.5;']
 edit 'x = 2*y;ekin = ekin/2': ['q.position[0] = 2 * q.position[1];', 'q.ekin /= 2;']
 edit 'time = time + 1ms*abs(x)/1cm': ['q.time += fabs( q.position[0] );']
-edit 'rotate_z(90deg)': ['{', '  double tmp = q.position[0];', '  q.position[0] = 0.0 - q.position[1];', '  q.position[1] = tmp;', '}', '{', '  double tmp = q.direction[0];', '  q.direction[0] = 0.0 - q.direction[1];', '  q.direction[1] = tmp;', '}', '{', '  double tmp = q.polarisation[0];', '  q.polarisation[0] = 0.0 - q.polarisation[1];', '  q.polarisation[1] = tmp;', '}']
-edit 'rotate_y(-90deg)': ['{', '  double tmp = q.position[2];', '  q.position[2] = q.position[0];', '  q.position[0] = 0.0 - tmp;', '}', '{', '  double tmp = q.direction[2];', '  q.direction[2] = q.direction[0];', '  q.direction[0] = 0.0 - tmp;', '}', '{', '  double tmp = q.polarisation[2];', '  q.polarisation[2] = q.polarisation[0];', '  q.polarisation[0] = 0.0 - tmp;', '}']
-edit 'rotate_x(30deg)': ['{', '  double tmp = q.position[1];', '  q.position[1] = 0.8660254037844387 * tmp - 0.49999999999999994 * q.position[2];', '  q.position[2] = 0.49999999999999994 * tmp + 0.8660254037844387 * q.position[2];', '}', '{', '  double tmp = q.direction[1];', '  q.direction[1] = 0.8660254037844387 * tmp - 0.49999999999999994 * q.direction[2];', '  q.direction[2] = 0.49999999999999994 * tmp + 0.8660254037844387 * q.direction[2];', '}', '{', '  double tmp = q.polarisation[1];', '  q.polarisation[1] = 0.8660254037844387 * tmp - 0.49999999999999994 * q.polarisation[2];', '  q.polarisation[2] = 0.49999999999999994 * tmp + 0.8660254037844387 * q.polarisation[2];', '}']
+edit 'rotate_z(90deg)': ['{', '  double tmp = q.position[0];', '  q.position[0] = 0.0 - q.position[1];', '  q.position[1] = tmp + 0.0;', '}', '{', '  double tmp = q.direction[0];', '  q.direction[0] = 0.0 - q.direction[1];', '  q.direction[1] = tmp + 0.0;', '}', '{', '  double tmp = q.polarisation[0];', '  q.polarisation[0] = 0.0 - q.polarisation[1];', '  q.polarisation[1] = tmp + 0.0;', '}']
+edit 'rotate_y(-90deg)': ['{', '  double tmp = q.position[2];', '  q.position[2] = q.position[0] + 0.0;', '  q.position[0] = 0.0 - tmp;', '}', '{', '  double tmp = q.direction[2];', '  q.direction[2] = q.direction[0] + 0.0;', '  q.direction[0] = 0.0 - tmp;', '}', '{', '  double tmp = q.polarisation[2];', '  q.polarisation[2] = q.polarisation[0] + 0.0;', '  q.polarisation[0] = 0.0 - tmp;', '}']
+edit 'rotate_x(30deg)': ['{', '  double tmp = q.position[1];', '  q.position[1] = 0.8660254037844387 * tmp - 0.49999999999999994 * q.position[2] + 0.0;', '  q.position[2] = 0.49999999999999994 * tmp + 0.8660254037844387 * q.position[2] + 0.0;', '}', '{', '  double tmp = q.direction[1];', '  q.direction[1] = 0.8660254037844387 * tmp - 0.49999999999999994 * q.direction[2] + 0.0;', '  q.direction[2] = 0.49999999999999994 * tmp + 0.8660254037844387 * q.direction[2] + 0.0;', '}', '{', '  double tmp = q.polarisation[1];', '  q.polarisation[1] = 0.8660254037844387 * tmp - 0.49999999999999994 * q.polarisation[2] + 0.0;', '  q.polarisation[2] = 0.49999999999999994 * tmp + 0.8660254037844387 * q.polarisation[2] + 0.0;', '}']
 edit 'swap(x,y)': ['{', '  double tmp = q.position[0];', '  q.position[0] = q.position[1];', '  q.position[1] = tmp;', '}']
 edit 'swap(pdgcode,userflags)': None
 edit 'rotate_z(x/cm*1deg)': None
-edit 'ux = 1': None
+edit 'ux = 1': ['q.direction[0] = 1;']
 edit 'a = 2*x;y = a': None
 edit 'rotate_around((0,0,1),90deg)': ['{', '  double t0 = q.position[0], t1 = q.position[1], t2 = q.position[2];', '  q.position[0] = 0.0 - t1;', '  q.position[1] = t0 + 0.0;', '  q.position[2] = t2 + 0.0;', '}', '{', '  double t0 = q.direction[0], t1 = q.direction[1], t2 = q.direction[2];', '  q.direction[0] = 0.0 - t1;', '  q.direction[1] = t0 + 0.0;', '  q.direction[2] = t2 + 0.0;', '}', '{', '  double t0 = q.polarisation[0], t1 = q.polarisation[1], t2 = q.polarisation[2];', '  q.polarisation[0] = 0.0 - t1;', '  q.polarisation[1] = t0 + 0.0;', '  q.polarisation[2] = t2 + 0.0;', '}']
 edit 'rotate_frame((0,0,1),(1,1,0),(0,1,0),(0,0,1))': ['{', '  double t0 = q.position[0], t1 = q.position[1], t2 = q.position[2];', '  q.position[0] = 0.0 - 0.7071067811865475 * t0 + 0.7071067811865475 * t2;', '  q.position[1] = 0.7071067811865475 * t0 + 0.7071067811865475 * t2 + 0.0;', '  q.position[2] = t1 + 0.0;', '}', '{', '  double t0 = q.direction[0], t1 = q.direction[1], t2 = q.direction[2];', '  q.direction[0] = 0.0 - 0.7071067811865475 * t0 + 0.7071067811865475 * t2;', '  q.direction[1] = 0.7071067811865475 * t0 + 0.7071067811865475 * t2 + 0.0;', '  q.direction[2] = t1 + 0.0;', '}', '{', '  double t0 = q.polarisation[0], t1 = q.polarisation[1], t2 = q.polarisation[2];', '  q.polarisation[0] = 0.0 - 0.7071067811865475 * t0 + 0.7071067811865475 * t2;', '  q.polarisation[1] = 0.7071067811865475 * t0 + 0.7071067811865475 * t2 + 0.0;', '  q.polarisation[2] = t1 + 0.0;', '}']
@@ -315,7 +315,7 @@ hint line while editing skip with 'x': ('Skip must be a number of particles', 'e
 completions of "e": ['ekin', 'electron', 'eV', 'exp('] chosen: eV | list line: ekin  electron  [eV]  exp( | popup line: Up/Down: choose   Enter or Tab: insert   Esc: close
 Enter inserts it: None 'eV' completions left: []
 Up from the first wraps to: atan2( | Esc closes without inserting: None '' []
-unknown view: Unknown view "foo" (the views are the overviews and the plots, given as overview, overview:GROUP or as the histogram string of a plot, e.g. ekin)
+unknown view: Unknown groups of plots or view "foo" (groups: spectra, fields, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
 invalid pick: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 1"
 view shown first: ('plot:ekin;logx=auto;logy', 'ekin;logx=auto;logy')
 ('example.mcpl: 1,006 particles, Σw = 1,006', '')
@@ -401,10 +401,10 @@ view 'pdgcode;bar = auto ; logy=auto': plot:pdgcode;bar;logy=auto
 view "{'foo':1}": The viewer state "{'foo':1}" is not valid: unknown entry "foo" (the entries are: skip, limit, pick, edit, groups, custom, settings, view)
 view '{"limit":"a"}': The viewer state "{"limit":"a"}" is not valid: limit must be a number
 view '{bad': The viewer state "{bad" is not valid JSON (Expecting property name enclosed in double quotes: line 1 column 2 (char 1))
-view '[1]': Unknown view "[1]" (the views are the overviews and the plots, given as overview, overview:GROUP or as the histogram string of a plot, e.g. ekin)
+view '[1]': Unknown groups of plots or view "[1]" (groups: spectra, fields, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
 view 'nope.json': Can not read the viewer state from nope.json ([Errno 2] No such file or directory: 'nope.json')
-view 'nope': Unknown view "nope" (the views are the overviews and the plots, given as overview, overview:GROUP or as the histogram string of a plot, e.g. ekin)
-view 'overview:nope': Unknown view "overview:nope" (the views are the overviews and the plots, given as overview, overview:GROUP or as the histogram string of a plot, e.g. ekin)
+view 'nope': Unknown groups of plots or view "nope" (groups: spectra, fields, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
+view 'overview:nope': Unknown groups of plots or view "overview:nope" (groups: spectra, fields, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
 suggested name: example_selected.mcpl.gz
 dry run: MCPL: Would extract 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz
 files after the dry run: []
@@ -415,11 +415,13 @@ existing file: The file example_selected.mcpl.gz already exists
 written file: 726 particles, comments: 'mcpltool: extracted particles with -p "pdgcode == neutron" -E "z += 1m"'
 To open the viewer like this again:
   mcpltool -w -p "pdgcode == neutron" -E "z += 1m" example.mcpl
-To write the picked and edited particles to a file:
+To write these particles to a new file:
   mcpltool -e -p "pdgcode == neutron" -E "z += 1m" example.mcpl example_selected3.mcpl.gz
 without pick and edit:
 To open the viewer like this again:
   mcpltool -w -l100 example.mcpl
+To write these particles to a new file:
+  mcpltool -e -l100 example.mcpl example_selected3.mcpl.gz
 ==> keys ['WAIT', 'p', 'p', 'd', 'g', 'c', 'o', 'd', 'e', ' ', '=', '=', ' ', 'n', 'e', 'u', 'Tab', 'Enter', 'WAIT', 'Down', 'Down', 'Down', 'WAIT']:
    |                             example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
    |   ekin;logx=auto;logy
@@ -572,7 +574,7 @@ mcpltool -H x/cm -H y/cm: exit code 0
 mcpltool -w -B ascii: exit code 1
    | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
 mcpltool --view=foo: exit code 1
-   | ERROR: Unknown view "foo" (the views are the overviews and the plots, given as overview, overview:GROUP or as the histogram string of a plot, e.g. ekin)
+   | ERROR: Unknown groups of plots or view "foo" (groups: spectra, fields, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
 mcpltool -w --color=always: exit code 1
    | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
 mcpltool -w -p x > 1: exit code 1

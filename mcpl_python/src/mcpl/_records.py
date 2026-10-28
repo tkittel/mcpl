@@ -57,7 +57,10 @@ class _RecordFormat:
 
     def pack(self, n, cols, validate = True, packed_ekindir = None):
         """Serialise particle data (dictionary of scalars or arrays of length n)
-        into structured array, exactly like the C library."""
+        into structured array, exactly like the C library. The particles are
+        checked first if validate is True, and packed_ekindir gives the packed
+        kinetic energies and directions (uve1, uve2, uve3) to use as they are,
+        e.g. those of another file."""
         def col(name,default=0.0):
             v = cols.get(name)
             if v is None:
@@ -96,7 +99,8 @@ class _RecordFormat:
             v = cols.get('userflags')
             arr['uf'] = 0 if v is None else np.broadcast_to(v,(n,))
         if self.userdata is not None:
-            #(the callers always give the userdata for files with userdata):
+            #(the callers give the userdata for files with userdata, so the
+            #zeros are only a fallback):
             v = cols.get('userdata')
             arr['ud'] = ( np.zeros(n,dtype=self.userdata)
                           if v is None else v )
@@ -133,7 +137,7 @@ class _RecordFormat:
         _raise_first_failure(checks)
 
     def validate_one(self, v, ekin, time, weight):
-        """Like _validate, for a single particle with values given as Python
+        """Like validate, for a single particle with values given as Python
         floats (v being the position, direction and polarisation), which is
         much faster than numpy for single values."""
         x, y, z, ux, uy, uz, polx, poly, polz = v
@@ -231,7 +235,7 @@ _float32_overflow = float.fromhex('0x1.ffffffp+127')
 
 def _int_field( name, v, lo, hi ):
     """Integer value of a single particle field (like the checks of integer
-    arrays in _collect_fields)."""
+    arrays in collect_fields)."""
     if not isinstance(v,(int,np.integer)):
         f = float(v)
         if not f.is_integer():

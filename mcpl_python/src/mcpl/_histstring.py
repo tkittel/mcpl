@@ -20,13 +20,13 @@
 ################################################################################
 
 """Histogram strings, as in mcpltool -H: an expression (or two separated by
-":" for 2D histograms), followed by options NAME=VALUE separated by ";", like
-"ekin/MeV;logx;bins=50"."""
+":" for 2D histograms, or three for 3D plots), followed by options NAME=VALUE
+separated by ";", like "ekin/MeV;logx;bins=50"."""
 
 __all__ = []
 
 from ._common import MCPLError
-from ._exprcore import _dimstr
+from ._exprcore import _dimstr, _expr_unit_hints
 from ._exprplot import _range_value
 from ._exprsyntax import _dim_unknown
 
@@ -123,14 +123,7 @@ def _parse_hist( text ):
                                 f' for 2D histograms, like bins=50,40) in "{text}"')
             res['bins'] = int(nb[0]) if len(nb) == 1 else tuple( int(e) for e in nb )
         elif name in ('range','xrange','yrange'):
-            if len(exprs) == 3:
-                raise MCPLError(f'Histogram option "{name}" can not be used for 3D plots,'
-                                f' in "{text}"')
-            if ( name == 'range' ) != ( len(exprs) == 1 ):
-                use = 'range' if len(exprs) == 1 else 'xrange and yrange'
-                raise MCPLError(f'Histogram option "{name}" can only be used for'
-                                f' {"2D" if len(exprs) == 1 else "1D"} histograms'
-                                f' (use {use}), in "{text}"')
+            _check_range_option(name,len(exprs),text)
             res[name] = _as_range(value,name,text)
         elif name == 'display_only':
             _display_only_condition(value,text)
@@ -139,6 +132,29 @@ def _parse_hist( text ):
             res['display_by'] = value
     _check_hist_options(res,text)
     return res
+
+def _check_range_option( name, nexprs, text ):
+    """Check that the option range, xrange or yrange can be used for a
+    histogram of nexprs expressions"""
+    if nexprs == 3:
+        raise MCPLError(f'Histogram option "{name}" can not be used for 3D plots,'
+                        f' in "{text}"')
+    if ( name == 'range' ) != ( nexprs == 1 ):
+        use = 'range' if nexprs == 1 else 'xrange and yrange'
+        raise MCPLError(f'Histogram option "{name}" can only be used for'
+                        f' {"2D" if nexprs == 1 else "1D"} histograms'
+                        f' (use {use}), in "{text}"')
+
+def _bins_arg( bins, nexprs ):
+    """The argument bins of a histogram of nexprs expressions (None for auto)
+    as the option bins (see _parse_hist), checked"""
+    if bins is None:
+        return None
+    nb = list(bins) if isinstance(bins,( tuple, list )) else [ bins ]
+    if not ( 0 < len(nb) <= nexprs and all( type(e) is int and e > 0 for e in nb ) ):
+        raise MCPLError('The histogram argument bins must be a positive integer (or two'
+                        f' for 2D histograms, like bins=(50,40)), not {bins!r}')
+    return nb[0] if len(nb) == 1 else tuple(nb)
 
 #The values of display_by for one curve of all particles (1 has one value):
 _single = ( 'single', '1' )
@@ -253,8 +269,10 @@ def _check_range( rng, vals, name ):
     if rng is None or rng.dim == vals.dim or vals.dim == _dim_unknown:
         return
     if rng.dim is None:
+        unit = _expr_unit_hints.get(vals.dim)
+        example = f', e.g. {name}=0{unit}:10{unit}' if unit else ''
         raise MCPLError(f'The {name} of "{vals.expression}" must be given with units, as'
-                        f' it has units ({_dimstr(vals.dim)}), e.g. {name}=0cm:10cm')
+                        f' it has units ({_dimstr(vals.dim)}){example}')
     if vals.dim is None:
         raise MCPLError(f'The {name} of "{vals.expression}" must be given without units,'
                         ' as it has none')
@@ -357,6 +375,11 @@ def _hist_with_args( expression, given ):
                             f' (not {v!r})')
         if name == 'display_only':
             _display_only_condition(v)
-        o[name] = _as_range(v) if name == 'range' else v
+        if name == 'bins':
+            v = _bins_arg(v,len(o['exprs']))
+        if name == 'range':
+            _check_range_option(name,len(o['exprs']),expression)
+            v = _as_range(v)
+        o[name] = v
     _check_hist_options(o,expression)
     return o

@@ -56,7 +56,9 @@ class Card:
     when its group is folded (pinned), whether it is the overview of its
     group (overview, shown differently from the plots), and whether it is the
     card of an inactive group (inactive, see WidgetViewer.cards). The key is
-    that of the view, or starts with info: for cards which are not views."""
+    that of the view, or starts with info: for cards which are not views.
+    The title (if given) and the plot (histogram string) of plots are not
+    used by the front ends, but by tests."""
     __slots__ = (
         'badges',
         'draggable',
@@ -107,13 +109,12 @@ class Card:
 
 class WidgetViewer:
     """The viewer in a window with the widgets of a GUI toolkit. A subclass
-    for the toolkit creates the widgets (the list of views, the status, the
-    plot, a text field for each field of _viewer_ui.fields, chosen from a menu
-    for those of _viewer_ui.menu_fields, a field for the text of the shown
-    plot, a line for the check of the field being edited or a message, and
-    buttons for _viewer_ui.actions), implements the methods marked as such
-    below, and calls the on_* methods when they are used. The viewer core is
-    v, and fig is the matplotlib figure of the plot."""
+    for the toolkit creates the widgets (the cards of the views, the status,
+    the plot, the fields of the shown plot: title, axes, settings and plot
+    expression, the settings of overviews, the fields of skip, limit, pick
+    and edit, a line for messages, and the actions), implements the methods
+    marked as such below, and calls the on_* methods when they are used. The
+    viewer core is v, and fig is the matplotlib figure of the plot."""
 
     def __init__( self, viewer, fig ):
         from ._plotbackend_mpl import FigurePane
@@ -138,9 +139,9 @@ class WidgetViewer:
 
     #To implement for the toolkit:
 
-    def show_views( self, cards, current ):
-        """Show the views as cards (see cards()), with the one shown (the
-        index current) selected"""
+    def show_views( self, cards ):
+        """Show the views as cards (see cards()), with the one shown (see
+        shown_key and shown_group) selected"""
         raise NotImplementedError
 
     def show_status( self, first, second ):
@@ -238,8 +239,8 @@ class WidgetViewer:
     def on_timer( self ):
         """To be called regularly (e.g. every 0.2 s), while the file is read.
         While it is read, the plot is only drawn again when some time passed
-        (at least 3 times as long as drawing it took), so the window stays
-        responsive."""
+        (0.5 s, or 3 times as long as drawing it took, if longer), so the
+        window stays responsive."""
         import time
         if self.closed:
             return
@@ -386,14 +387,15 @@ class WidgetViewer:
             self.show_line('Only the custom plots are reordered','error')
         self.refresh(plot = False)
 
-    #The settings of the shown plot, and the plots added with settings:
+    #The settings of the shown plot and of overviews:
 
     def plot_controls( self, plot = None ):
         """The settings of the plot (default the shown one) as (kind, controls),
         where controls are (option, label, the texts of its choices, or None for
         a text field, the shown text, and the text shown greyed in an empty
         text field: what is used, e.g. the numbers of bins), see
-        _viewer_ui.plot_controls, or None if the shown view is not a plot"""
+        _viewer_ui.plot_controls, or None if the shown view is not a plot
+        (another plot is given only by tests)"""
         from ._histstring import _hist_parts, _parse_hist
         plot = plot or self._shown_plot()
         if plot is None:
@@ -583,8 +585,8 @@ class WidgetViewer:
         """A plot string from the quantities x, y and z (names of
         _viewer_ui.quantities or expressions, y empty for a 1D histogram, z
         empty unless it is a 3D plot) and the settings, as (option, shown text)
-        of the controls. The expressions of the quantities come with their
-        options (as their names)."""
+        of the controls (given only by tests). The expressions of the
+        quantities come with their options (as their names)."""
         from ._histstring import _hist_join, _hist_parts
         ( ex, ox ), ( ey, _ ), ( ez, _ ) = ( _hist_parts(ui.quantity_plot(t)) for t in ( x, y, z ) )
         #(the options of a quantity are kept only for 1D histograms):
@@ -725,7 +727,8 @@ class WidgetViewer:
             res.append(Card(key,info['name'],title=info['title'],plot=info['plot'],
                             group=info['group'],grouped=True,badges=info['badges'],
                             status=status,problem=problem,image=status is None,
-                            draggable=custom,removable=custom))
+                            draggable=custom,removable=custom,
+                            remove_text='Remove this plot' if custom else None))
         res = self._cards_in_all_groups(res)
         if ( 'fields' in self.v.groups and not self.v.has_userdata
              and 'info:userdata' not in self._removed ):
@@ -807,7 +810,7 @@ class WidgetViewer:
             hint = self.v.hint('plot',text) if text.strip() else None
         else:
             ok, msg = ui.check_text(self.v,field,text)
-            hint = None if field in ui.menu_fields else self.v.hint(field,text)
+            hint = self.v.hint(field,text)
         self.show_check(field,ok)
         self.show_pending(field,self._is_pending(field,text))
         if not ok and msg:
@@ -824,8 +827,6 @@ class WidgetViewer:
         if field == 'shown_plot':
             return text.strip() != ( '' if self._new_plot is not None
                                      else self._shown_plot() or '' )
-        if field in ui.menu_fields:
-            return False
         return text.strip() != ( self.v.field_text(field) or '' ).strip()
 
     def on_field_unfocused( self, field, text ):
@@ -893,10 +894,6 @@ class WidgetViewer:
             field = ui.written_options[field][2]
         return ui.complete_text(self.v,'plot' if field in ( 'shown_plot', 'axis' ) else field,
                                 text,cursor)
-
-    def menu_choices( self, field ):
-        """The values of a field of ui.menu_fields, as (value, description)"""
-        return self.v.complete(field,'')[1]
 
     def on_key( self, key ):
         """A key pressed outside the text fields (with the names of
@@ -1043,7 +1040,7 @@ class WidgetViewer:
     def refresh( self, plot = True ):
         """Show the views, the status and (if plot is set) the plot"""
         v = self.v
-        self.show_views(self.cards(),v.current)
+        self.show_views(self.cards())
         self.show_status(*v.status_lines())
         shown = self._shown_plot()
         if self._new_plot is not None:

@@ -20,8 +20,8 @@
 ################################################################################
 
 """Plotting backends drawing figures as text, with ASCII characters or with
-Unicode characters (block elements and box drawing, which give smoother
-plots), for showing plots in a terminal (in colour, if the terminal supports
+Unicode characters (block elements, box drawing and braille dots, which give
+smoother plots), for showing plots in a terminal (in colour, if the terminal supports
 it) or saving them in text files."""
 
 __all__ = []
@@ -55,17 +55,17 @@ from .plotting import (
 
 class _Chars:
     """Characters used for drawing"""
-    def __init__( self, fill, hfill, shades, markers, vline, hline, corner,
+    def __init__( self, fill, hfill, shades, markers, vline, hline, origin,
                   ytick, xtick ):
         self.fill = fill#vertical fill: "" (empty), partial levels..., full
         self.hfill = hfill#horizontal fill (for bars): "", partial..., full
         self.shades = shades#for 2D maps, from empty to full
         self.markers = markers#for curves of 1D histograms with several curves
-        self.vline, self.hline, self.corner = vline, hline, corner
+        self.vline, self.hline, self.origin = vline, hline, origin
         self.ytick, self.xtick = ytick, xtick
 
 _ascii = _Chars( fill = ' #', hfill = ' #', shades = ' .:-=+*#%@',
-                 markers = '*o+x@%&=', vline = '|', hline = '-', corner = '+',
+                 markers = '*o+x@%&=', vline = '|', hline = '-', origin = '+',
                  ytick = '+', xtick = '+' )
 #Unicode characters (written as escape sequences, to keep the code ASCII):
 _unicode = _Chars(
@@ -79,12 +79,18 @@ _unicode = _Chars(
     markers = '\u25cf\u25cb\u25c6\u25c7\u25a0\u25a1\u25b2\u25b3',
     #box drawing: light vertical, horizontal, up and right, vertical and
     #left, down and horizontal:
-    vline = '\u2502', hline = '\u2500', corner = '\u2514', ytick = '\u2524',
+    vline = '\u2502', hline = '\u2500', origin = '\u2514', ytick = '\u2524',
     xtick = '\u252c' )
 
 #Bits of the dots of braille characters (U+2800 + bits), for the left and
 #right columns of dots, from the top:
 _braille_bits = ( ( 0x01, 0x02, 0x04, 0x40 ), ( 0x08, 0x10, 0x20, 0x80 ) )
+#Other Unicode characters drawn (also by the viewer): braille, upper and lower
+#half blocks, heavy horizontal and triple dash horizontal (for legends), box
+#drawing (light down and right, down and left, up and left) and a small
+#right-pointing triangle:
+_unicode_other = ( ''.join( chr(0x2800+i) for i in range(256) )
+                   + '\u2580\u2584\u2501\u2505\u250c\u2510\u2518\u25b8' )
 #Characters between the markers along curves of braille dots without colour:
 _marker_step = 8
 
@@ -133,12 +139,13 @@ def _center( text, width ):
 def _stdout_encoding():
     return getattr(sys.stdout,'encoding',None) or 'ascii'
 
-def _can_encode( c ):
-    """Whether all the characters can be written to standard output"""
+def _can_encode( c, other = '' ):
+    """Whether all the characters (of c, and the other ones) can be written to
+    standard output"""
     enc = _stdout_encoding()
     try:
         ( c.fill + c.hfill + c.shades + c.markers + c.vline + c.hline
-          + c.corner + c.ytick + c.xtick ).encode(enc)
+          + c.origin + c.ytick + c.xtick + other ).encode(enc)
     except (UnicodeEncodeError,LookupError):
         return False
     return True
@@ -242,8 +249,7 @@ class _TextBackend(PlotBackend):
             elif isinstance(item,NewPlot):
                 out.append(_center(f'+ {item.text}',self._width))
         if any( isinstance(i,Scatter3D) for i in panel.items ):
-            out.append(_center('(3D plots are not shown in the terminal, only in windows)',
-                               self._width))
+            out.append(_center('(3D plots can only be shown in windows)',self._width))
             return out
         if panel.xlabel and not steps and not any( isinstance(i,Hist2D) for i in panel.items ):
             out += [ _center(line,self._width) for line in panel.xlabel.split('\n') ]
@@ -346,7 +352,7 @@ class _TextBackend(PlotBackend):
             label = top if i == 0 else ( bottom if i == len(rows) - 1 else '' )
             tick = c.ytick if label else c.vline
             out.append( f'{label:>{lw}} {tick}{r}'.rstrip() )
-        out.append( ' ' * lw + ' ' + c.corner + c.xtick + c.hline * ( ncols - 2 ) + c.xtick )
+        out.append( ' ' * lw + ' ' + c.origin + c.xtick + c.hline * ( ncols - 2 ) + c.xtick )
         mid = math.sqrt(lo*hi) if logx else 0.5 * ( lo + hi )
         a, m, b = _fmt(lo), _fmt(mid), _fmt(hi)
         axis = [' '] * ( ncols + 2 )
@@ -384,7 +390,7 @@ class _TextBackend(PlotBackend):
                     k = min( nlev, max( 0, units - row * nlev ) )
                     if k:
                         grid[h-1-row][j] = self._p(c.fill[k],rgb)
-        elif self._use_braille(steps):
+        elif self._braille:
             #The curves are drawn as lines with braille characters (of 2x4
             #dots), in colour, or else with different line styles:
             self._draw_braille(panel,steps,lo,hi,ncols,height,grid)
@@ -392,7 +398,7 @@ class _TextBackend(PlotBackend):
             #A marker symbol for each curve (for bins with contents, drawing
             #the first curves last, so they are on top):
             for k in reversed(range(len(cols))):
-                sym = self._p(self._marker(steps[k],k),self._curve_color(steps[k],k))
+                sym = self._p(self._marker(k),self._curve_color(steps[k],k))
                 for j,v in enumerate(cols[k]):
                     if not ( np.isfinite(v) and v > 0 ):
                         continue
@@ -408,28 +414,24 @@ class _TextBackend(PlotBackend):
                 out.append( f'{self._p(c.fill[-1],self._curve_color(steps[0],0))}'
                             f' {labels[0]}' )
             else:
-                braille = self._use_braille(steps)
                 entries = []#(text, visible width)
                 for k,s in enumerate(steps):
                     if s.label is not None:
-                        sym = self._line_sample(s,k) if braille else self._marker(s,k)
+                        sym = self._line_sample(s,k) if self._braille else self._marker(k)
                         entries.append( ( f'{self._p(sym,self._curve_color(s,k))} {s.label}',
                                           _width(sym) + 1 + _width(s.label) ) )
                 width = max( _width(ln) for ln in out )
                 out += _legend_columns(entries,width)
         return out
 
-    def _use_braille( self, steps ):
-        """Whether several curves are drawn as lines of braille dots"""
-        return self._braille
-
     def _line_sample( self, s, k ):
         """The legend symbol of the k'th curve drawn with braille dots: a piece
-        of line (with its marker, without colour)"""
+        of line in its line style (in colour), or with its marker (without
+        colour)"""
         if self._nc:
             return { 'solid' : '\u2501\u2501', 'dashed' : '\u2501 \u2501',
                      'dotted' : '\u2505\u2505' }[self._curve_style(s,k)]
-        return f'\u2812{self._marker(s,k)}\u2812'
+        return f'\u2812{self._marker(k)}\u2812'
 
     def _draw_braille( self, panel, steps, lo, hi, ncols, height, grid ):
         """Draw the curves on the grid as lines of braille dots (2 by 4 per
@@ -470,7 +472,7 @@ class _TextBackend(PlotBackend):
                 prev = y
                 offset = ( 2 + 3 * k ) % _marker_step
                 if not self._nc and x % 2 == 0 and ( x // 2 ) % _marker_step == offset:
-                    markers.append( ( h - 1 - y // 4, x // 2, self._marker(s,k) ) )
+                    markers.append( ( h - 1 - y // 4, x // 2, self._marker(k) ) )
         for (r,c), (bits, ks) in cells.items():
             rgbs = [ self._curve_color(steps[k],k) for k in sorted(ks) ]
             rgb = tuple( round( sum( x[i] for x in rgbs ) / len(rgbs) ) for i in range(3) )
@@ -478,7 +480,7 @@ class _TextBackend(PlotBackend):
         for r, c, sym in markers:
             grid[r][c] = sym
 
-    def _marker( self, item, k ):
+    def _marker( self, k ):
         """Marker symbol of the k'th StepHist of a panel (by position, so the
         curves of a panel have different markers also with fixed colours)"""
         m = self._chars.markers
@@ -581,8 +583,8 @@ class _TextBackend(PlotBackend):
         return out
 
 class UnicodeBackend(_TextBackend):
-    """Plots drawn as text with Unicode characters (block elements and box
-    drawing), for terminals which can show these characters (files are
+    """Plots drawn as text with Unicode characters (block elements, box
+    drawing and braille dots), for terminals which can show these characters (files are
     always written as UTF-8). The unicode_width and unicode_height options set
     the size of the plots in characters (default is the width of the
     terminal, up to 250, and a height of 15). The unicode_color option
@@ -601,7 +603,7 @@ class UnicodeBackend(_TextBackend):
     @classmethod
     def can_show( cls ):
         #Only in terminals which can show the characters:
-        return _can_encode(cls._chars)
+        return _can_encode(cls._chars,_unicode_other)
 
     def __init__( self, unicode_width = None, unicode_height = None,
                   unicode_color = 'auto' ):

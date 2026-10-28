@@ -278,8 +278,7 @@ def _viewer_backend( backend = None, terminal = False ):
                     _info(f'Showing the viewer in the terminal, since {missing[0]}'
                           ' is not installed')
             return cls
-    raise MCPLError('The viewer needs a window (with matplotlib) or a terminal'
-                    ' which can show Unicode characters')
+    raise MCPLError('No plotting backend can show the viewer here')
 
 def _save_backend( filename, backend = None ):
     """Backend class (or object) for saving plots in filename: the given or

@@ -133,7 +133,8 @@ def markers( info ):
         res.append( f'platform_system != "{system}"' )
     only = info.get('only_on',[])
     if only:
-        res.append( ' or '.join( f'platform_system == "{system}"' for system in only ) )
+        m = ' or '.join( f'platform_system == "{system}"' for system in only )
+        res.append( f'( {m} )' if len(only) > 1 else m )
     return res
 
 def create_py_spec(info):

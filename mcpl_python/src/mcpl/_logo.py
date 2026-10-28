@@ -19,7 +19,7 @@
 ##                                                                            ##
 ################################################################################
 
-"""The MCPL logo, with the name and tagline, for plots made with matplotlib.
+"""The MCPL logo, with the name and tagline, for plots and the viewers.
 
 The image is this file, reduced to 256 colours (with Pillow:
 Image.quantize(colors=256), saved with optimize=True) and encoded with base64:

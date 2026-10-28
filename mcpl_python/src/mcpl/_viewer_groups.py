@@ -24,8 +24,8 @@ which are shown (see _stdviews), with their fixed plots, and the custom
 group, with the plots which were added (and the copies of standard plots
 which were changed). Each group has its overview (see _viewer_overviews).
 A plot in several standard groups is one view, with a card in each (see
-_viewer_widgets.WidgetViewer.cards), and the custom plots (which are always shown) are the only ones which
-can be reordered, given titles and removed."""
+_viewer_widgets.WidgetViewer.cards), and the custom plots (which are always
+shown) are the only ones which can be reordered, given titles and removed."""
 
 __all__ = []
 
@@ -102,10 +102,10 @@ class PlotGroups:
     def setting( self, key, name ):
         """The value of a setting of the group: as chosen, or its default. The
         particle type (display_only) is a PDG code, or None for all particles
-        (by default the most common type for correlation plots of several types),
-        display_by is pdgcode (a curve of each type, by default) or single,
-        and the variables are expressions (by default those of fields with
-        more than one value)"""
+        (by default the most common type for correlation plots of several
+        types), display_by is pdgcode (a curve of each type, by default) or
+        single, and the variables are expressions (by default those of fields
+        with more than one value)"""
         chosen = self.settings.get(key,{})
         if name in chosen:
             return chosen[name]
@@ -130,8 +130,8 @@ class PlotGroups:
 
     def setting_choices( self, key, name ):
         """The possible values of a setting: the particle types found (and None
-        for all), pdgcode or single, or the variables which correlation plots can
-        have"""
+        for all), pdgcode or single, or the variables which correlation plots
+        can have"""
         if name == 'display_only':
             return [ None ] + [ pdg for pdg, _ in self.found['types'] ]
         if name == 'display_by':
@@ -139,18 +139,18 @@ class PlotGroups:
         return list(_groups[key][2]['variables'])
 
     def coefficients( self, key ):
-        """The correlation coefficients of the fields of the correlation plot of the
-        group (for its particle type), as {(field, field) : r}, as far as
+        """The correlation coefficients of the fields of the correlation plot of
+        the group (for its particle type), as {(field, field) : r}, as far as
         known (see Moments.coefficients)"""
         if key == custom_key or 'variables' not in _groups[key][2]:
             return {}
         return self.found['correlations'].get(self.setting(key,'display_only'),{})
 
     def most_correlated( self, key, n = 4 ):
-        """The n variables of the correlation plot of the group with the strongest
-        correlations (the largest absolute correlation coefficient with any
-        other one, of those with more than one value), in their order, or
-        None if the coefficients are not known"""
+        """The n variables of the correlation plot of the group with the
+        strongest correlations (the largest absolute correlation coefficient
+        with any other one, of those with more than one value), in their
+        order, or None if the coefficients are not known"""
         coeffs = self.coefficients(key)
         if not coeffs:
             return None
@@ -162,8 +162,8 @@ class PlotGroups:
         return [ v for v in choices if v in top ]
 
     def _constant( self, expr ):
-        """Whether the particles have one value of the expression (of fields with
-        one value)"""
+        """Whether the particles have one value of the expression (of fields
+        with one value)"""
         from ._exprcore import _Expr
         fields = _Expr(expr).fields
         return bool(fields) and fields <= set(self.found['constants'])

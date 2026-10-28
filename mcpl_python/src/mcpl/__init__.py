@@ -104,9 +104,9 @@ from ._reader import MCPLFile
 from ._statsum import encode_stat_sum, is_valid_stat_sum_key
 from ._writer import MCPLOutFile, gzip_file
 
-#Expressions, statistics, histograms, plotting and the mcpltool command are
-#only imported when used (so the code for reading and writing files does not
-#depend on them in any way):
+#Expressions, statistics, histograms, plotting, the viewer and the mcpltool
+#command are only imported when used (so the code for reading and writing
+#files does not depend on them in any way):
 _on_demand = {
     'ParticleEdit' : '_expressions',
     'ParticleFilter' : '_expressions',

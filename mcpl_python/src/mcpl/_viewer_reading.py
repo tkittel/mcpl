@@ -198,24 +198,9 @@ class _Reading:
         counts of all particles in the range (and their weights), see
         _range_blocks"""
         self._range_counts = [ 0, 0.0 ]
-        yield from _range_blocks(f,settings,progress,self._range_counts,
-                                 lambda : self._cancelled(gen),
-                                 blocks = f.blocks(*self._range(settings.skip,settings.limit)))
-
-    def preview( self, plot, nparticles = 20000 ):
-        """The figure of the plot (a histogram string) for the first nparticles
-        particles of the range of the file (then picked and edited), for
-        previews of plots before they are added, or None if there are no
-        values. The plot must be valid (see check)."""
-        from ._reader import MCPLFile
-        s = self._s.copy()
-        s.plots = [ plot ]
-        s.limit = min( s.limit, nparticles ) if s.limit else nparticles
-        with MCPLFile(self.filename) as f:
-            blocks = list(_range_blocks(f,s))
-            if not blocks:
-                return None
-            return _preview(f,s,blocks)[f'plot:{plot}']
+        yield from _range_blocks(f,f.blocks(*self._range(settings.skip,settings.limit)),
+                                 settings,progress,self._range_counts,
+                                 lambda : self._cancelled(gen))
 
     def _read( self, f, gen, settings ):
         """Read the file twice (for the ranges, and to fill the histograms),
@@ -240,11 +225,9 @@ class _Reading:
         frac = [0.0]
         def progress( x ):
             frac[0] = min( 1.0, x )
-        def make():
-            return _Computation(f,settings)
         #Pass 1: ranges, and provisional figures from the first particles:
-        comp = make()
-        kept, nkept, n, w = [], 0, 0, 0.0
+        comp = _Computation(settings)
+        kept, nkept, npreview, n, w = [], 0, 0, 0, 0.0
         points = _update_points()
         nextpoint = next(points)
         self._publish(gen,figures=figures({}),progress='reading: finding ranges',counts=None)
@@ -258,10 +241,9 @@ class _Reading:
             if n >= nextpoint:
                 while n >= nextpoint:
                     nextpoint = next(points)
-                if nkept <= _preview_max:
-                    figs = _preview(f,settings,kept)
-                else:
-                    figs = None
+                #(made again only when more blocks were kept):
+                figs = _preview(settings,kept) if nkept > npreview else None
+                npreview = nkept
                 self._publish(gen,figures=figures(figs),
                               progress=f'reading: finding ranges ({100*frac[0]:.0f}%)')
         counts = ( n, self._range_counts[0], w, self._range_counts[1] )
@@ -270,7 +252,7 @@ class _Reading:
                           error='no particles picked' if settings.pick else 'no particles')
             return
         del kept
-        comp.start2(n)
+        comp.start2()
         points = _update_points()
         nextpoint = next(points)
         m = 0
@@ -377,7 +359,7 @@ class _Computation:
     same value, from the blocks given to add1 (first pass) and add2 (second
     pass, after start2). A plot which fails (e.g. one without values) shows
     the problem, without stopping the others."""
-    def __init__( self, f, settings ):
+    def __init__( self, settings ):
         self._settings = settings
         self._errors = {}#(plot -> the problem)
         self._plots = []
@@ -408,7 +390,7 @@ class _Computation:
             if h is not None and h.needs_range:
                 self._guard(p,h.add_range,None,b)
 
-    def start2( self, n ):
+    def start2( self ):
         for p, h in self._plots:
             if h is not None and h.needs_range:
                 self._guard(p,h.start_fill)
@@ -468,25 +450,21 @@ class _Computation:
             res[f'plot:{p}'] = hist.figure()
         return res
 
-def _range_blocks( f, settings, progress = None, counts = None, cancelled = None,
-                   blocks = None ):
+def _range_blocks( f, blocks, settings, progress, counts, cancelled ):
     """Blocks of the range of particles of the file f (see settings), picked
-    and edited, from its blocks (or those given). progress (if given) is called
-    with the fraction of the range read, counts (if given) gets the number of
-    particles in the range and the sum of their weights, and cancelled (if
-    given) tells when to stop (with _Cancelled)."""
+    and edited, from the blocks of the file given. progress is called with the
+    fraction of the range read, counts gets the number of particles in the
+    range and the sum of their weights, and cancelled tells when to stop
+    (with _Cancelled)."""
     from ._blocks import _EditedParticleBlock
     from ._reader import _blocks_in_range, _particle_range
     skip, end = _particle_range(f.nparticles,settings.skip,settings.limit or None)
-    if counts is not None:
-        counts[:] = [ end - skip, 0.0 ]
-    for b in _blocks_in_range(f.particle_blocks if blocks is None else blocks,skip,end):
-        if cancelled is not None and cancelled():
+    counts[:] = [ end - skip, 0.0 ]
+    for b in _blocks_in_range(blocks,skip,end):
+        if cancelled():
             raise _Cancelled()
-        if counts is not None:
-            counts[1] += float(b.weight.sum())
-        if progress is not None:
-            progress( ( b.file_offset + len(b) - skip ) / max( 1, end - skip ) )
+        counts[1] += float(b.weight.sum())
+        progress( ( b.file_offset + len(b) - skip ) / max( 1, end - skip ) )
         if settings.pick is not None:
             b = b[settings.pick(b)]
         if not len(b):
@@ -495,12 +473,12 @@ def _range_blocks( f, settings, progress = None, counts = None, cancelled = None
             b = _EditedParticleBlock(b,settings.edit(b))
         yield b
 
-def _preview( f, settings, blocks ):
+def _preview( settings, blocks ):
     """Figures from the blocks kept in memory (both passes over them)"""
-    comp = _Computation(f,settings)
+    comp = _Computation(settings)
     for b in blocks:
         comp.add1(b)
-    comp.start2(sum( len(b) for b in blocks ))
+    comp.start2()
     for b in blocks:
         comp.add2(b)
     return comp.figures()

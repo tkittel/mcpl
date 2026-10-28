@@ -92,7 +92,7 @@ class Backend(PlotBackend):
         except ImportError:
             print()
             print("ERROR: importing matplotlib succeeded, but importing matplotlib.pyplot failed.")
-            print("ERROR: This is rather unusual, an is perhaps related to issues with your chosen")
+            print("ERROR: This is rather unusual, and is perhaps related to issues with your chosen")
             print("ERROR: matplotlib backend, which you might have set globally in a matplotlib")
             print("ERROR: configuration file.")
             print()
@@ -124,10 +124,10 @@ class Backend(PlotBackend):
             self._draw(f,saving=True).savefig(fn)
         return fns
 
-    def _draw( self, figure, saving = False, logo = True ):
+    def _draw( self, figure, saving = False ):
         #(saved figures are not managed by pyplot, so saving works without a
         #display, whatever the backend of matplotlib):
-        return draw_figure(figure,None if saving else self._plt,logo)
+        return draw_figure(figure,None if saving else self._plt)
 
 def draw_figure( figure, plt = None, logo = True ):
     """The figure (see mcpl.plotting) drawn as a matplotlib figure: one of
@@ -298,7 +298,7 @@ def _draw_correlation( ax, item ):
     """Draw the correlation coefficient on the axes, which are only its cell"""
     import matplotlib
     if item.value is not None:
-        #(tinted from white, towards blue or red with the size of the value):
+        #(light grey for 0, towards blue or red with the size of the value):
         rgb = matplotlib.colormaps['coolwarm'](0.5 + 0.5 * item.value)
         ax.set_facecolor(rgb)
         ax.text(0.5,0.5,item.text,ha='center',va='center',transform=ax.transAxes,
@@ -367,8 +367,8 @@ def _correlation_axes( axlist, nrows, ncols ):
             ax.set_ylabel('')
             ax.tick_params(labelleft=False)
 
-_logo_inches = 0.4#(height of the logo, and its margin)
-_logo_margin = 0.06
+_logo_inches = 0.4#(height of the logo, in inches)
+_logo_margin = 0.06#(margin around the logo, in inches)
 
 def logo_height( fig ):
     """The height of the logo with its margins, as a fraction of the height of
@@ -388,7 +388,7 @@ def _logo_image():
     return img
 
 def add_logo( fig, left = False ):
-    """Add the MCPL logo to the top right (or left) corner of the matplotlib
+    """Add the MCPL logo at the top right (or left) of the matplotlib
     figure"""
     img = _logo_image()
     fw, fh = fig.get_figwidth(), fig.get_figheight()

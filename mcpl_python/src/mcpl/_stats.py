@@ -141,8 +141,9 @@ def collect_stats(mcplfile,stats='all',bin_data=True,pick=None):
             mcplfile.pick is not None or mcplfile.edit is not None ) ):
         mcplfile = _PickedFile(mcplfile,pick)
     if mcplfile.nparticles==0:
+        #(picked with the argument pick, or when the file was opened):
         _warning("Can not calculate stats on an empty file"
-                 if pick is None else
+                 if not getattr(mcplfile,'pick',None) else
                  "Can not calculate stats when no particles are picked")
         return {}
     acc = _StatsAccumulator(mcplfile,stats,bin_data)
@@ -401,7 +402,6 @@ def dump_stats(stats):
         s=stats[statname]
         assert s['type']=='freq'
         fct_alt_descr = _freq_alt_descr.get(statname,lambda x: '')
-        #fmt_fct = freq_formats_fcts[statname]
         uv,uvc=s['unique_values'],s['unique_values_counts'].copy()
         percents=uvc*(100.0/uvc.sum())
         showmax=50

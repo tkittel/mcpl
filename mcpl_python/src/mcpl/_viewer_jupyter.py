@@ -20,7 +20,8 @@
 ################################################################################
 
 """The viewer in Jupyter, as a panel of ipywidgets: the views, the plot, the
-fields (applied with Enter) and the actions of _viewer_ui. With the ipympl
+fields (applied with Enter), and buttons moving plots, deactivating groups,
+writing the particles, saving the state and showing help. With the ipympl
 backend of matplotlib (%matplotlib widget), the plot is an interactive
 matplotlib figure, otherwise an image."""
 
@@ -43,6 +44,30 @@ def _exclusive( method ):
         with self._refreshing:
             return method(self,*args)
     return handler
+
+#The help of the viewer in Jupyter (the first topic of help_topics), with the
+#introduction of the viewers with windows:
+_help_blocks = ( ui.help_blocks[0], ( 'gap', ), ( 'text', '''Click a view in the list to show it (or an inactive group, in grey, to
+activate it), and Deactivate group hides the group of the shown view. Move up
+and Move down move the shown custom plot. The fields are applied with Enter:
+Skip, Limit, Pick and Edit (like -s, -l, -p and -E), Add plot adds a plot of a
+histogram string (like -H), and This plot changes the shown plot (an empty
+text removes a custom plot). Write file writes the picked and edited particles
+to a new file, and Save viewer state saves the settings and plots in a file,
+which view=FILE.json of mcpl.view opens again. Names shows the names to use in
+the expressions.''' ) )
+
+def _help_topics():
+    """The topics of the help, as (label, blocks, see _helptext): those of the
+    viewers with windows (see WidgetViewer.help_topics, which this module can
+    not import), with the viewer in Jupyter"""
+    from ._exprhelp import _help_blocks as expr_blocks
+    return [ ( 'The viewer', _help_blocks ),
+             ( 'Picks (filtering particles)', expr_blocks('pick') ),
+             ( 'Edits (modifying particles)', expr_blocks('edit') ),
+             ( 'Plot expressions', expr_blocks('hist') ),
+             ( 'About data caching', ui.cache_blocks ),
+             ( 'About MCPL', ui.about_blocks() ) ]
 
 #(the items of the list of views are left aligned, which needs a style):
 _list_style = ( '<style>.mcpl-viewer-item { justify-content: flex-start !important;'
@@ -115,22 +140,9 @@ class JupyterViewer:
         self._cache.observe(self._on_cache,'index')
         self._cache_text = w.HTML()
         self._image = w.Image(format='png',layout=w.Layout(width='100%'))
-        #The first overview as a grid of its plots, each with a button showing
-        #it on its own (images in ipywidgets can not be clicked), by position
-        #(see Viewer.overview_keys; the other overviews are shown as images):
-        overviews = viewer.overviews()
-        self._panels_key = overviews[0][0] if overviews else None
-        self._panels = []
-        cells = []
-        keys = viewer.overview_keys(self._panels_key) if overviews else []
-        for i in range(len(keys)):
-            img = w.Image(format='png',layout=w.Layout(width='100%'))
-            b = w.Button(layout=w.Layout(width='auto'))
-            b.on_click(lambda _, i=i : self._on_panel(self.v.overview_keys(self._panels_key)[i]))
-            self._panels.append( ( img, b ) )
-            cells.append(w.VBox([ img, b ]))
-        self._grid = w.GridBox(cells,layout=w.Layout(
-            width='100%',grid_template_columns='repeat(3,1fr)'))
+        #The overviews as grids of their plots (without ipympl, see _sync_grid):
+        self._panels_key, self._panels, self._cells = None, [], []
+        self._grid = w.GridBox([],layout=w.Layout(width='100%'))
         #The interactive figure, with ipympl:
         from ._plotbackend_mpl import FigurePane, widget_figure
         self._mplfig = widget_figure(w.DOMWidget)
@@ -179,6 +191,8 @@ class JupyterViewer:
                                 style={'description_width':'70px'})
         write = w.Button(description='Write file')
         write.on_click(self._on_write)
+        deactivate = w.Button(description='Deactivate group',layout=w.Layout(width='190px'))
+        deactivate.on_click(self._on_deactivate)
         self._statefile = w.Text(value=viewer.suggested_state_filename(),
                                  description='Save to:',
                                  style={'description_width':'70px'})
@@ -193,19 +207,26 @@ class JupyterViewer:
         names.on_click(self._on_names)
         helpb = w.Button(description='Help')
         helpb.on_click(self._on_help)
-        self._extra = w.HTML()
+        #(the topics of the help, in a menu shown with it, see _show_extra):
+        self._topics = _help_topics()
+        self._topic = w.Dropdown(options=[ t[0] for t in self._topics ],description='Topic:',
+                                 style={'description_width':'70px'},
+                                 layout=w.Layout(display='none'))
+        self._topic.observe(self._on_topic,'index')
+        self._extra, self._extra_shown = w.HTML(), None
         top = w.HBox([ self._status, w.HBox([ self._cache_text, self._cache ]) ],
                      layout=w.Layout(width='100%',justify_content='space-between'))
         self._right = right = w.VBox([ top, self._image ],layout=w.Layout(width='100%'))
         from ._logo import logo_png
         logo = w.Image(value=logo_png(),format='png',layout=w.Layout(width='190px'))
         self.widget = w.VBox([ self._warning, w.HBox([ w.VBox([ logo, self._views.box,
-                                                                  w.HBox(moves) ]), right ]),
+                                                                  w.HBox(moves), deactivate ]),
+                                                         right ]),
                                *rows,
                                self._message, self._commands,
                                w.HBox([ self._filename, write, names, helpb ]),
                                w.HBox([ self._statefile, save ]),
-                               self._extra ])
+                               self._topic, self._extra ])
         self._stop = threading.Event()
         self._thread = None
         #(whether the widgets are being changed by the viewer, not the user, per
@@ -348,7 +369,31 @@ class JupyterViewer:
         return res + [ e for entries in segments.values() for e in entries ]
 
     @_exclusive
+    def _on_deactivate( self, _ ):
+        """Deactivate the standard group of the shown view (its overview, or
+        the group of its plot)"""
+        key = self.v.current_key
+        group = ui.group_of(key)
+        if group is None and key is not None:
+            title = self.v.plot_info(key)['group']
+            group = next( ( k for k, t, _ in self.v.group_list() if t == title ), None )
+        if group is None or group not in self.v.groups:
+            self._message.value = _error_html('The custom plots are removed one by one')
+            return
+        try:
+            self.v.show_group(group,False)
+        except MCPLError as e:
+            self._message.value = _error_html(str(e))
+            return
+        title = { k : t for k, t, _ in self.v.group_list() }[group]
+        self._show_result(True,'')
+        self._message.value = html.escape(f'Deactivated: the group {title}')
+
+    @_exclusive
     def _on_write( self, _ ):
+        if not self.v.changes_particles:
+            self._message.value = _error_html(self.v.nothing_to_write)
+            return
         self._write_or_save('write',self._filename,self.v.suggested_filename)
 
     @_exclusive
@@ -364,16 +409,32 @@ class JupyterViewer:
         else:
             self._message.value = _error_html(msg)
 
+    def _show_extra( self, what ):
+        """Show the help ('help', of the topic chosen in its menu), the names
+        of the expressions ('names'), or nothing (None) below the buttons"""
+        from ._helptext import plain_text
+        self._extra_shown = what
+        self._topic.layout.display = None if what == 'help' else 'none'
+        if what == 'help':
+            text = plain_text(self._topics[self._topic.index or 0][1])
+        elif what == 'names':
+            from ._exprhelp import _help_text
+            text = _help_text('pick')
+        self._extra.value = f'<pre>{html.escape(text)}</pre>' if what else ''
+
     @_exclusive
     def _on_help( self, _ ):
-        #(the button shows the help, or hides it again):
-        shown = f'<pre>{html.escape(ui.help_text)}</pre>'
-        self._extra.value = '' if self._extra.value == shown else shown
+        #(the buttons show the help or the names, or hide them again):
+        self._show_extra(None if self._extra_shown == 'help' else 'help')
 
     @_exclusive
     def _on_names( self, _ ):
-        from ._exprhelp import _help_text
-        self._extra.value = f'<pre>{html.escape(_help_text("pick"))}</pre>'
+        self._show_extra(None if self._extra_shown == 'names' else 'names')
+
+    @_exclusive
+    def _on_topic( self, _ ):
+        if self._extra_shown == 'help':
+            self._show_extra('help')
 
     def refresh( self ):
         with self._refreshing:
@@ -407,7 +468,7 @@ class JupyterViewer:
             if self._pane.show(self.v,key):
                 self._mplfig.canvas.draw_idle()
             shown = self._mplfig.canvas
-        elif key == self._panels_key:
+        elif self._sync_grid(key):
             for ( img, b ), k in zip(self._panels,self.v.overview_keys(key)):
                 b.description = labels.get(k,ui.plot_of(k))
                 self._show(img,k)
@@ -417,6 +478,29 @@ class JupyterViewer:
             shown = self._image
         if self._right.children[1] is not shown:
             self._right.children = ( self._right.children[0], shown )
+
+    def _sync_grid( self, key ):
+        """Whether the view with the key is an overview shown as the grid of
+        its plots (not a correlation plot): the grid then has a cell for each,
+        with a button showing it on its own (images in ipywidgets can not be
+        clicked), by position (see Viewer.overview_keys)"""
+        w = self._w
+        ov = dict(self.v.overviews()).get(key)
+        if ov is None or ov.correlation_plot:
+            return False
+        n = len(self.v.overview_keys(key))
+        while len(self._panels) < n:
+            i = len(self._panels)
+            img = w.Image(format='png',layout=w.Layout(width='100%'))
+            b = w.Button(layout=w.Layout(width='auto'))
+            b.on_click(lambda _, i=i : self._on_panel(self.v.overview_keys(self._panels_key)[i]))
+            self._panels.append( ( img, b ) )
+            self._cells.append(w.VBox([ img, b ]))
+        self._panels_key = key
+        if len(self._grid.children) != n:
+            self._grid.children = self._cells[:n]
+        self._grid.layout.grid_template_columns = f'repeat({ov.ncols},1fr)'
+        return True
 
 def _error_html( msg ):
     """The message as HTML, in the colour of errors"""
@@ -428,7 +512,7 @@ def _png( figure ):
     from ._plotbackend_mpl import figure_png
     return figure_png(figure)
 
-def run_viewer( viewer, backend = None ):
+def run_viewer( viewer ):
     """Show the viewer in Jupyter (returns the JupyterViewer)"""
     from IPython.display import display
     jv = JupyterViewer(viewer)

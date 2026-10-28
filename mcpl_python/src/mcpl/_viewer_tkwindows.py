@@ -26,7 +26,7 @@ file"""
 __all__ = []
 
 from . import _viewer_ui as ui
-from ._viewer_tkbase import on_paste, tk_modules
+from ._viewer_tkbase import bind_enter, on_paste, tk_modules
 from ._viewer_ui import card_colors, code_styles, colors
 
 
@@ -283,7 +283,7 @@ class WriteWindow:
         self._name.pack(side='left',fill='x',expand=True)
         self._name.bind('<KeyRelease>',lambda _e : self._changed())
         on_paste(self._name,self._changed)
-        self._name.bind('<Return>',lambda _e : self._write())
+        bind_enter(self._name,self._write)
         ttk.Button(row,text='Browse...',takefocus=0,
                    command=lambda : self.tv.ask_file_name('write',self._chosen)).pack(side='left',padx=(6,0))
         ttk.Button(row,text='Write now',style='Accent.TButton',

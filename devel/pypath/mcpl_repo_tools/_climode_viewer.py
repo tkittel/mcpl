@@ -72,8 +72,11 @@ def main( parser ):
     if not f.is_file():
         parser.error(f'File not found: {args.FILE}')
     _, how, needed = _modes[args.MODE]
-    needed = [ *needed, 'matplotlib', 'numpy' ]
+    needed = [ *needed, 'numpy' ] + ( [] if args.MODE.startswith('term') else [ 'matplotlib' ] )
     missing = [ m for m in needed if importlib.util.find_spec(m) is None ]
+    if 'curses' in missing and sys.platform != 'win32':
+        raise SystemExit( 'Error: this Python was built without the curses module,'
+                          f' which the viewer mode {args.MODE} needs.' )
     if missing:
         pipnames = [ 'windows-curses' if m == 'curses' else m for m in missing ]
         raise SystemExit( f'Error: missing Python packages for the viewer mode {args.MODE}.'

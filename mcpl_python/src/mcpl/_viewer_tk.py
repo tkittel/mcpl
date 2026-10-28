@@ -20,9 +20,10 @@
 ################################################################################
 
 """The viewer in a window with Tk (the tkinter module of Python), with the
-views on the left, the plot (a matplotlib figure, with the toolbar of
-matplotlib) on the right, and the fields and actions below it (see
-_viewer_widgets for what happens when they are used)."""
+menus and the cards of the views on the left, the shown plot (a matplotlib
+figure, with the toolbar of matplotlib) with its fields on the right, and the
+pick and edit below it (see _viewer_widgets for what happens when they are
+used)."""
 
 __all__ = []
 
@@ -137,7 +138,7 @@ class TkViewer(WidgetViewer):
         self.small = ( 1 if size > 0 else -1 ) * max( 7, round( 0.8 * abs(size) ) )
         self.small_font = ( bold.cget('family'), self.small )
         self.small_bold = ( *self.small_font, 'bold' )
-        #(the parts below the plot, see make_part):
+        #(the parts of the window, see make_part):
         for name, bg in part_colors.items():
             style.configure(f'{name}.TFrame',background=bg)
             style.configure(f'{name}.TLabel',background=bg)
@@ -148,10 +149,8 @@ class TkViewer(WidgetViewer):
         #The logo and the views (on the left):
         left = ttk.Frame(root,padding=6)
         left.grid(row=0,column=0,rowspan=2,sticky='ns')
-        import base64
-
-        from ._logo import logo_png
-        self._logo = tk.PhotoImage(data=base64.b64encode(logo_png())).subsample(3)
+        from ._logo import _logo_base64
+        self._logo = tk.PhotoImage(data=_logo_base64).subsample(3)
         ttk.Label(left,image=self._logo).pack(anchor='w',pady=(0,6))
         self._entries, self._marks = {}, {}
         #(the actions in a menu: another file, with the same plots, pick and
@@ -170,12 +169,11 @@ class TkViewer(WidgetViewer):
         menu.add_command(label='Open MCPL file...',underline=0,command=self._ask_open,
                          accelerator=shortcut_name('O',root))
         bind_shortcut(root,'O',self._ask_open)
-        self._actions_menu, self._actions = menu, {}#(action -> index of its entry)
+        self._actions_menu = menu
         for action, label, keys, kpos in ui.actions:
             if action not in ( 'write', 'help' ):#(help has its own menu)
                 menu.add_command(label=label,underline=kpos,accelerator=keys[0],
                                  command=lambda a=action : self.on_action(a))
-                self._actions[action] = menu.index('end')
         self._cards = CardList(left,self)
         self._hover(self._cards.canvas,'views')
         #The status and the plot (on the right):
@@ -194,8 +192,9 @@ class TkViewer(WidgetViewer):
         self._cache_choices = tk.Menu(self._cache,tearoff=0,postcommand=self._cache_menu)
         self._cache['menu'] = self._cache_choices
         self._hover(self._cache,'cache')
-        #(the part of the shown plot, in the colours of its selected card: the
-        #plot with its toolbar, and its fields below them, see _plot_part):
+        #(the part of the shown plot, tinted, with an outline in the colour of
+        #the outline of its selected card: the plot with its toolbar, and its
+        #fields below them, see _plot_part):
         bg = part_colors['Plot']
         part, head = make_part(main,'Plot','Plot','the shown plot',card_colors['accent'])
         part.master.grid(row=2,column=0,sticky='nsew')
@@ -280,8 +279,8 @@ class TkViewer(WidgetViewer):
                 self._entries[field], self._marks[field] = w, mark
                 self._hover(lab,field)
                 self._hover(w,field)
-        #(writing the picked and edited particles, in the corner, which opens
-        #a window with the name of the file and the code):
+        #(the button writing the picked and edited particles, which opens a
+        #window with the name of the file and the code):
         self._write = ttk.Button(grid,text='New MCPL file...',
                                  style='Head.Accent.TButton',takefocus=0,
                                  command=lambda : self.on_action('write'))
@@ -511,8 +510,8 @@ class TkViewer(WidgetViewer):
 
     #Implementation of WidgetViewer:
 
-    def show_views( self, cards, current ):
-        self._cards.show(cards,current)
+    def show_views( self, cards ):
+        self._cards.show(cards)
 
     def show_status( self, first, second ):
         #(the numbers of the particles used are shown with the pick and edit,
@@ -526,9 +525,9 @@ class TkViewer(WidgetViewer):
 
     def show_field( self, field, text ):
         if field == 'plot':
-            return#(no field, see focus_field)
+            return#(no field: plots are added with "+ New plot", see on_new_plot)
         if field == 'groups':
-            return#(the groups are shown with the cards)
+            return#(no field: the groups are activated in the list of plots)
         self._set_text(self._entries[field],text)
         self.show_pending(field,False)
 
@@ -579,16 +578,13 @@ class TkViewer(WidgetViewer):
             self.on_open_file(chosen)
 
     def show_enabled( self, action, enabled ):
-        if action == 'write':
-            #(in blue only when there is something to write):
-            self._write.state([ '!disabled' if enabled else 'disabled' ])
-            n = self.v.nused_text(compact = True)
-            self._write.configure(style='Head.Accent.TButton' if enabled else 'Head.TButton',
-                                  text=( f'New MCPL file ({n} particles)...'
-                                         if enabled and n is not None else 'New MCPL file...' ))
-            return
-        self._actions_menu.entryconfigure(self._actions[action],
-                                          state='normal' if enabled else 'disabled')
+        assert action == 'write'#(the only action enabled or not)
+        #(in blue only when there is something to write):
+        self._write.state([ '!disabled' if enabled else 'disabled' ])
+        n = self.v.nused_text(compact = True)
+        self._write.configure(style='Head.Accent.TButton' if enabled else 'Head.TButton',
+                              text=( f'New MCPL file ({n} particles)...'
+                                     if enabled and n is not None else 'New MCPL file...' ))
 
     def show_controls( self, controls ):
         self._controls.show(controls)
@@ -603,7 +599,7 @@ class TkViewer(WidgetViewer):
         self._overview_controls.show(controls)
 
     def show_check( self, field, ok ):
-        if field in ( 'plot', 'groups' ):#(no marks)
+        if field in ( 'plot', 'groups' ):#(no fields, see show_field)
             return
         mark = self._marks[field]
         if ok is None:

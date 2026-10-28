@@ -20,7 +20,8 @@
 ################################################################################
 
 def short_description():
-    return 'Create the font caches of matplotlib and Tk (e.g. before tests in CI)'
+    return ( 'Create the font cache of matplotlib and open a first Tk window'
+             ' (e.g. before tests in CI)' )
 
 def main( parser ):
     parser.init( short_description() )

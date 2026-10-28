@@ -410,7 +410,8 @@ class _ExprEvaluator:
             v = v[:,index]
         factor, dim = _userdata_unit(udinfo[0],field)
         if factor != 1.0:
-            v = v * factor#(e.g. deg in radians)
+            #(e.g. deg in radians, in float64 also for float32 fields):
+            v = ( v.astype(np.float64) if v.dtype.kind == 'f' else v ) * factor
         return _Q(v,dim)
 
     def _wavelength( self ):
@@ -568,7 +569,7 @@ class _ExprEvaluator:
             return self.int_arith(op,a,b,what)
         #(otherwise integers are used as doubles, like in C):
         a, b = self.as_float(a), self.as_float(b)
-        with np.errstate(divide='ignore',invalid='ignore'):
+        with np.errstate(divide='ignore',invalid='ignore',over='ignore'):
             if isinstance(op,(ast.Add,ast.Sub)):
                 x, y, d = self.same(a,b,'arithmetic')
                 return _Q(np.add(x,y) if isinstance(op,ast.Add) else np.subtract(x,y),d)

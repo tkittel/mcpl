@@ -115,13 +115,15 @@ Viewer (-w, --view):
                    the viewer to change them), from:
                    GROUPNAMES.
   -wVIEW, --view=VIEW
-                   The view shown first: overview, or a plot, e.g. -wekin.
+                   The view shown first: overview, overview:GROUP, or a plot,
+                   e.g. -wekin.
   -wFILE.json, --view=FILE.json, --view="{...}"
                    The state of the viewer, saved in the viewer (press v), or
                    as printed when the viewer is closed.
   -t, --term       Show the viewer in the terminal.
   -B, --backend NAME
-                   Plotting backend of the viewer: matplotlib, unicode or ascii.
+                   Plotting backend of the viewer: matplotlib, unicode or
+                   ascii.
   --color=WHEN     Colours in the terminal: auto, always or never (as for -H).
 
 Histogram (-H, --hist HIST):
@@ -352,7 +354,9 @@ def _app_mcpltool(argv):
     if '--full-help' in flags:
         _mcpltool_usage(progname,full=True)
     for name, topic in (('--pick','pick'),('--edit','edit'),('--hist','hist')):
-        if values.get(name,'').strip().lower() == 'help':
+        #(any of the -H strings can be help):
+        given = hists if name == '--hist' else [ values.get(name,'') ]
+        if any( v.strip().lower() == 'help' for v in given ):
             _topic_help(topic)
 
     #The mode:

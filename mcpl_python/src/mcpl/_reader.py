@@ -376,15 +376,10 @@ class MCPLFile:
             if self._edt is not None:
                 b = _EditedParticleBlock(b,self._edt(b))
             return b
-        while True:
-            b = self._read_raw_block() if start < end else None
-            if b is None or b.file_offset >= end:
-                break
+        raw = iter(self._read_raw_block,None) if start < end else ()
+        for b in _blocks_in_range(raw,start,end):
             if self._nonfinite_mask is not None:
                 self._warn_nonfinite()
-            off = b.file_offset
-            #NB: always index, since the block object is reused by the next read:
-            b = b[max(0,start-off):min(len(b),end-off)]
             if self._flt is not None:
                 b = b[self._flt(b)]
             if len(b):
@@ -866,8 +861,8 @@ class MCPLFile:
     def dump_particles(self,limit=10,skip=0,pick=None,_view=None):
         """Dump a list of particles to stdout (like the mcpltool command). The
         limit and skip parameters can be used to respectively limit the
-        number of particles printed and to skip past particles at the head of
-        the file. Use limit=0 to disable the limit. If pick is given (an
+        number of particles printed and to skip past the first particles
+        (after any skip, limit and pick given when opening the file). Use limit=0 to disable the limit. If pick is given (an
         expression or a ParticleFilter), only the picked particles are shown,
         and limit and skip apply to those."""
 
@@ -920,8 +915,8 @@ class MCPLFile:
     def to_scipp(self, *, skip = 0, limit = None, pick = None, coords = None,
                  vectors = False, variances = True, dim = 'particle'):
         """Particles of the file as a scipp DataArray. The particles are read
-        from the start of the file (after any pick and edit given when
-        opening the file), skipping the first skip of them, and picking
+        from the start of the file (after any skip, limit, pick and edit given
+        when opening the file), skipping the first skip of them, and picking
         only those matching pick if given (an expression or a
         ParticleFilter, in which case skip applies to the picked
         particles). At most limit particles are converted: by default at most

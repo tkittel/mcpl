@@ -54,8 +54,9 @@ class MplViewer(ui.KeyViewer):
         canvas = fig.canvas
         mgr = getattr(canvas,'manager',None)
         if mgr is not None and getattr(mgr,'key_press_handler_id',None) is not None:
-            #(the default keys of matplotlib, like s and p, are those of the
-            #viewer, but its keys for log scales are passed on in _on_key):
+            #(the default keys of matplotlib, like s and p, are replaced by
+            #those of the viewer, which also handles the keys of log scales,
+            #see _scale_key):
             canvas.mpl_disconnect(mgr.key_press_handler_id)
         canvas.mpl_connect('key_press_event',self._on_key)
         canvas.mpl_connect('button_press_event',self._on_click)
@@ -270,7 +271,7 @@ class MplViewer(ui.KeyViewer):
         fig = self.fig
         size = 9
         #(width of a character of the monospace font, in figure coordinates):
-        cw = 0.6 * size / 72.0 * fig.dpi / ( fig.get_figwidth() * fig.dpi )
+        cw = 0.6 * size / 72.0 / fig.get_figwidth()
         lh = ( self._bottom - 0.02 ) / self._nlines
         y = self._bottom - 0.01
         def draw( x, parts, target ):

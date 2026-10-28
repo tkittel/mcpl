@@ -71,7 +71,7 @@ _hints = (
       'particle type, as a PDG code (an integer: e.g. pdgcode == 2112, or pdgcode == neutron)' ),
     ( 'fields', 'userflags',
       'user flags (an integer)',
-      'user flags (a 32 bit integer: e.g. userflags & 0x10, or (userflags & 0xff) == 7)' ),
+      'user flags (an unsigned 32-bit integer: e.g. userflags & 0x10, or (userflags & 0xff) == 7)' ),
     ( 'vectors', 'pos',
       'position (x,y,z) (a vector of lengths)',
       'position, the vector (x,y,z) (lengths: e.g. abs(pos) < 1m)' ),
@@ -143,7 +143,7 @@ _hints = (
       'unit of length, the angstrom: 1Aa = 1e-8 cm (e.g. wavelength > 1.8Aa)' ),
     ( 'units', 'nm',
       'length unit, 1e-7 cm',
-      'unit of length: 1nm = 1e-7 cm (e.g. wavelength > 0.18nm)' ),
+      'unit of length: 1nm = 1e-7 cm (e.g. wavelength/nm)' ),
     ( 'units', 'um',
       'length unit, 1e-4 cm (micrometre)',
       'unit of length, the micrometre: 1um = 1e-4 cm (e.g. abs(x) < 50um)' ),
@@ -170,7 +170,7 @@ _hints = (
       'unit of angle: 1rad = 1 (e.g. angle(dir,(0,0,1)) < 0.01rad)' ),
     ( 'functions', 'sqrt(a)',
       'square root',
-      'square root, of a value without unit or with a squared unit (e.g. sqrt(x^2 + y^2) < 1cm; sqrt(ekin) is an error)' ),
+      'square root, of a value without unit or with a squared unit (or half powers of units: e.g. sqrt(x^2 + y^2) < 1cm, or sqrt(ekin)/sqrt(eV))' ),
     ( 'functions', 'abs(a)',
       'absolute value (same unit)',
       'absolute value (same unit as a: e.g. abs(x) < 5cm)' ),
@@ -248,7 +248,7 @@ _hints = (
       'rotate position, direction and polarisation so that the direction of the vector v becomes that of vout, and u that of uout (e.g. rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0)) turns z into x and keeps y; the angles between v and u and between vout and uout must be the same)' ),
     ( 'histoptions', 'bins=N',
       'number of bins',
-      'number of bins (default: chosen from the number of particles, e.g. bins=50)' ),
+      'number of bins, or bins=NX,NY for 2D histograms (default: chosen from the number of particles, e.g. bins=50)' ),
     ( 'histoptions', 'range=LOW:HIGH',
       'range of the histogram',
       'range of the histogram, with units if the expression has units (default: all values, e.g. range=0:10, or range=1meV:10MeV)' ),
@@ -344,7 +344,7 @@ examples = {
             ( 'z += 1cm', 'Move the particles 1 cm along z.' ),
             ( 'weight *= 0.5', 'Halve the weights.' ),
             ( 'wavelength = 1.8Aa',
-              'Give the particles the energy of a wavelength of 1.8 Aa (only for neutrons and gammas).' ),
+              'Give neutrons and gammas the energy of a wavelength of 1.8 Aa (other particles give an error, so pick neutrons first, e.g. -p "pdgcode == neutron").' ),
             ( 'swap(x,y)', 'Swap the x and y coordinates.' ),
             ( 'time += hypot(x,y,z)/(2200m/s)', 'Add the time to fly to the origin at 2200 m/s.' ) ) ),
         ( 'Rotations', None, (
@@ -401,7 +401,7 @@ protection against problems like overflow. The operator / always divides as
 floating point numbers (e.g. 1/2 is 0.5), and // divides non-negative
 integers (e.g. 7//2 is 3).''' ),
     'edit' : ( 'EDIT: statements separated by ";", executed in order, for example:',
-               '''The statements are assignments to fields (=, +=, -=, *= and /=, with values
+               '''The statements are assignments to fields (=, +=, -=, *=, /=, ^=, &= and |=, with values
 in the units of the field, and wavelength = ... changing ekin), assignments
 to variables (other lowercase names, which can be used in later statements),
 and the statements listed below. The expressions are written as for -p (see

@@ -13,5 +13,5 @@ folder at `<reporoot>/devel/bin` (on unix one can inject it into the PATH by
 sourcing the script at `<reporoot>/devel/setup.sh`). With that, one can simply
 launch the tests via the command `mcpldevtool cmake`.
 
-Note that in addition to the tests here, the command `ncdevtool check` provides
+Note that in addition to the tests here, the command `mcpldevtool check` provides
 several fast checks of the repository based on static code inspection.

@@ -1,8 +1,8 @@
-ekin/MeV;bins=20;display_only=ekin < 1MeV (pick None): as picking them: True | title 'only: ekin < 1MeV'
-x/cm : y/cm;bins=8;display_only=pdgcode == neutron (pick None): as picking them: True | title 'only: pdgcode == neutron'
-pdgcode;bar;display_only=ekin > 1MeV (pick None): as picking them: True | title 'only: ekin > 1MeV'
-ekin/MeV;bins=20;display_by=pdgcode;display_only=ekin < 1MeV (pick x > 0): as picking them: True | title 'pick: x > 0\nonly: ekin < 1MeV'
-x : y : z;points=50;display_only=ekin < 1MeV (pick None): as picking them: True | title 'only: ekin < 1MeV'
+ekin/MeV;bins=20;display_only=ekin < 1MeV (pick None): as picking them: True | title 'display_only: ekin < 1MeV'
+x/cm : y/cm;bins=8;display_only=pdgcode == neutron (pick None): as picking them: True | title 'display_only: pdgcode == neutron'
+pdgcode;bar;display_only=ekin > 1MeV (pick None): as picking them: True | title 'display_only: ekin > 1MeV'
+ekin/MeV;bins=20;display_by=pdgcode;display_only=ekin < 1MeV (pick x > 0): as picking them: True | title 'pick: x > 0\ndisplay_only: ekin < 1MeV'
+x : y : z;points=50;display_only=ekin < 1MeV (pick None): as picking them: True | title 'display_only: ekin < 1MeV'
 canonical: x;bins=5;display_only=pdgcode==neutron
 'x;display_only': Histogram option "display_only" needs a value, like display_only=..., in "x;display_only"
 'x;display_only=r = x': Histogram option "display_only" must be a condition as in picks or a particle type (like display_only=ekin > 1MeV or display_only=neutron), in "x;display_only=r = x": Syntax error in expression "r = x", after "r": unexpected "=" (use == for comparisons)
@@ -451,7 +451,7 @@ mcpltool -H x/cm : y/cm;logx=1;equal example.mcpl: exit code 1
    | 
    | Run with "-H help" for how to write histograms
 mcpltool -H x/cm : y/cm : z/cm example.mcpl: exit code 0
-   |            (3D plots are not shown in the terminal, only in windows)
+   |                     (3D plots can only be shown in windows)
 mcpltool -H x : y : z : x example.mcpl: exit code 1
    | ERROR: Histograms are of an expression, or two expressions separated by ":" for 2D histograms (or three for 3D plots), in "x : y : z : x"
    | 
@@ -740,7 +740,7 @@ mcpltool -p help: exit code 0, 196 lines, starting with:
    | PICK: an expression which is true for the particles to use, for example:
    | 
    | Particle types:
-mcpltool --edit=help: exit code 0, 194 lines, starting with:
+mcpltool --edit=help: exit code 0, 197 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    | 
    | Changing values:

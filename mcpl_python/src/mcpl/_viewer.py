@@ -105,6 +105,7 @@ class Viewer(_Output,_Reading):
         #before, and whether a plot of a standard group was copied):
         self._scale_undo = None
         self._seen = -1
+        self._status_updates, self._status_seen, self.plot_changed = 0, 0, True
         self._updates = 0
         self._job = None
         self._wake = threading.Condition(self._lock)

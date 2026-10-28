@@ -77,7 +77,7 @@ class MplViewer(ui.KeyViewer):
 
     def _on_timer( self ):
         if self.v.poll():
-            self.refresh(plot=True)
+            self.refresh(plot=self.v.plot_changed)
 
     #Keys and mouse:
 

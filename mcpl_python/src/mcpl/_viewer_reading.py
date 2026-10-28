@@ -95,10 +95,12 @@ class _Reading:
             time.sleep(0.01)
 
     def poll( self ):
-        """Whether the figures or status changed since the last call"""
+        """Whether the figures or status changed since the last call (and
+        plot_changed whether the figures did, not only the progress)"""
         with self._lock:
-            changed = self._updates != self._seen
-            self._seen = self._updates
+            self.plot_changed = self._updates != self._seen
+            changed = self.plot_changed or self._status_updates != self._status_seen
+            self._seen, self._status_seen = self._updates, self._status_updates
         return changed
 
     def _restart( self ):
@@ -150,6 +152,9 @@ class _Reading:
                 self._constants = constants or {}
             if progress is not None:
                 self._progress = progress
+            if figures is None and counts is None and error is None and constants is None:
+                self._status_updates += 1#(only the progress)
+                return
             if counts is not None:
                 self._counts = counts
             self._error = error
@@ -220,6 +225,7 @@ class _Reading:
                               counts=done[3])
                 self._on_found(done[2])
                 return
+        import time
         def figures( figs ):
             return None if figs is None else { **known, **figs }
         frac = [0.0]
@@ -230,6 +236,7 @@ class _Reading:
         kept, nkept, npreview, n, w = [], 0, 0, 0, 0.0
         points = _update_points()
         nextpoint = next(points)
+        shown = time.monotonic()
         self._publish(gen,figures=figures({}),progress='reading: finding ranges',counts=None)
         for b in self._blocks(f,settings,gen,progress):
             comp.add1(b)
@@ -246,6 +253,10 @@ class _Reading:
                 npreview = nkept
                 self._publish(gen,figures=figures(figs),
                               progress=f'reading: finding ranges ({100*frac[0]:.0f}%)')
+                shown = time.monotonic()
+            elif time.monotonic() - shown > 0.25:
+                self._publish(gen,progress=f'reading: finding ranges ({100*frac[0]:.0f}%)')
+                shown = time.monotonic()
         counts = ( n, self._range_counts[0], w, self._range_counts[1] )
         if n == 0:
             self._publish(gen,figures={},progress='',counts=counts,
@@ -255,8 +266,11 @@ class _Reading:
         comp.start2()
         points = _update_points()
         nextpoint = next(points)
+        #(the progress of the second pass is that of the particles, which can
+        #come from the cache, not the file):
         m = 0
-        self._publish(gen,progress='reading: 0% of particles',counts=counts)
+        stage = lambda : f'reading: filling the plots ({100*m/n:.0f}% of particles)'
+        self._publish(gen,progress=stage(),counts=counts)
         for b in self._blocks(f,settings,gen,progress):
             comp.add2(b)
             m += len(b)
@@ -264,7 +278,11 @@ class _Reading:
                 while m >= nextpoint:
                     nextpoint = next(points)
                 self._publish(gen,figures=figures(comp.figures()),constants=comp.constants(),
-                              progress=f'reading: {100*frac[0]:.0f}% of particles')
+                              progress=stage())
+                shown = time.monotonic()
+            elif time.monotonic() - shown > 0.25:
+                self._publish(gen,progress=stage())
+                shown = time.monotonic()
         figs, found = figures(comp.figures()), comp.found()
         self._publish(gen,figures=figs,constants=found['constants'],progress='',counts=counts)
         with self._lock:
@@ -460,11 +478,15 @@ def _range_blocks( f, blocks, settings, progress, counts, cancelled ):
     from ._reader import _blocks_in_range, _particle_range
     skip, end = _particle_range(f.nparticles,settings.skip,settings.limit or None)
     counts[:] = [ end - skip, 0.0 ]
+    #(the progress is counted, as blocks from the cache do not know their
+    #position in the file, see _Cache):
+    nread = 0
     for b in _blocks_in_range(blocks,skip,end):
         if cancelled():
             raise _Cancelled()
         counts[1] += float(b.weight.sum())
-        progress( ( b.file_offset + len(b) - skip ) / max( 1, end - skip ) )
+        nread += len(b)
+        progress( nread / max( 1, end - skip ) )
         if settings.pick is not None:
             b = b[settings.pick(b)]
         if not len(b):

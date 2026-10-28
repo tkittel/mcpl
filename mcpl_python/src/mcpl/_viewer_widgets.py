@@ -247,11 +247,13 @@ class WidgetViewer:
         changed = self.v.poll()
         if not ( changed or self._plot_pending ):
             return
+        #(updates of only the progress do not draw the plot again):
+        new = self.v.plot_changed or self._plot_pending
         reading = self.v.reading
         wait = max( 0.5, 3 * self._draw_time )
         late = time.monotonic() - self._drawn_at >= wait
-        self.refresh(plot = late or not reading)
-        self._plot_pending = reading and not late
+        self.refresh(plot = new and ( late or not reading ))
+        self._plot_pending = new and reading and not late
 
     def on_close( self ):
         if not self.closed:

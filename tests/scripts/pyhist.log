@@ -282,7 +282,7 @@ histogram2d {'bins': [3]}: no error
 histogram2d {'xrange': (1, 0)}: The xrange must be given as xrange=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in xrange=0cm:10cm)
 histogram2d {'yrange': 'a'}: The yrange must be given as yrange=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in yrange=0cm:10cm)
 bins as a numpy integer, and range as a list: 4 [-1.0, 1.0]
-plot_stats: plot_stats is no longer available: use mcpl.histogram(FILE,EXPR).plot() for plots of the particles
+plot_stats: plot_stats is no longer available: use mcpl.view(FILE) for an interactive overview of a file, or mcpl.histogram(FILE,EXPR).plot() for single plots
 Figure 1 (1x1): None
   Panel None xlabel='ekin/MeV' ylabel='weights per bin' logx logy xlim=[0.00139345,2409.78]
     StepHist label='pick: pdgcode == neutron' color=0 bins=10 edges=[0.00139345,2409.78] sum=726 max=258 nonzero_bins=10
@@ -606,7 +606,7 @@ mcpltool -H x/cm -t -o a.txt example.mcpl: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool -S -o stats.txt -B test -p pdgcode == gamma example.mcpl: exit code 1
-   | ERROR: -o can only be used with -H (-S only prints text, for plots use -H).
+   | ERROR: -o can only be used with -H (-S only prints text, for plots use -H, or -w for the viewer).
    | 
    | Run with -h or --help for usage information
 mcpltool -S -s1000 -E x = 1cm example.mcpl: exit code 0
@@ -680,7 +680,7 @@ mcpltool -p x > 0 -p x < 1cm example.mcpl: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool --pdf example.mcpl: exit code 1
-   | ERROR: --pdf is no longer supported as an option (a similar option now is: -H HIST -o FILE.pdf)
+   | ERROR: --pdf is no longer supported as an option (similar options now are -w, and -H HIST -o FILE.pdf)
    | 
    | Run with -h or --help for usage information
 mcpltool --gui example.mcpl: exit code 1
@@ -692,11 +692,11 @@ mcpltool --select x > 0 example.mcpl: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool -S -B test example.mcpl: exit code 1
-   | ERROR: -B can only be used with -H (-S only prints text, for plots use -H).
+   | ERROR: -B can only be used with -H or -w (-S only prints text, for plots use -H, or -w for the viewer).
    | 
    | Run with -h or --help for usage information
 mcpltool -S -t example.mcpl: exit code 1
-   | ERROR: -t can not be used without -H.
+   | ERROR: -t can not be used without -H or -w.
    | 
    | Run with -h or --help for usage information
 mcpltool -S -H x/cm example.mcpl: exit code 1
@@ -716,7 +716,7 @@ mcpltool --text example.mcpl hist.txt: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool -t example.mcpl: exit code 1
-   | ERROR: -t can not be used without -H (did you mean --text?).
+   | ERROR: -t can not be used without -H or -w (did you mean --text?).
    | 
    | Run with -h or --help for usage information
 mcpltool -j -H x/cm example.mcpl: exit code 1
@@ -767,7 +767,7 @@ mcpltool --edit=help: exit code 0, 202 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    | 
    | Changing values:
-mcpltool -H help example.mcpl: exit code 0, 79 lines, starting with:
+mcpltool -H help example.mcpl: exit code 0, 80 lines, starting with:
    | HIST: what to plot, an expression of the particles (written as for -p),
    | or two separated by ":" for a 2D histogram (or three for a 3D plot of a
    | sample of the particles, in windows), followed by options separated by ";".

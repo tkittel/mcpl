@@ -557,15 +557,15 @@ mcpltool -pgamma -j a1.mcpl: exit code 1
    | 
    | Run with "-p help" for how to pick particles with expressions
 mcpltool --repair --pick x>1cm a1.mcpl: exit code 1
-   | ERROR: -p can only be used when showing particles, or with -S, -H or -e.
+   | ERROR: -p can only be used when showing particles, or with -S, -w, -H or -e.
    | 
    | Run with -h or --help for usage information
 mcpltool --repair -pgamma a1.mcpl: exit code 1
-   | ERROR: -p can only be used when showing particles, or with -S, -H or -e.
+   | ERROR: -p can only be used when showing particles, or with -S, -w, -H or -e.
    | 
    | Run with -h or --help for usage information
 mcpltool -p22 --merge out.mcpl a1.mcpl a2.mcpl: exit code 1
-   | ERROR: -p can only be used when showing particles, or with -S, -H or -e.
+   | ERROR: -p can only be used when showing particles, or with -S, -w, -H or -e.
    | 
    | Run with -h or --help for usage information
 mcpltool --extract -p0 a1.mcpl out.mcpl: exit code 1

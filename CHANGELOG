@@ -1,4 +1,12 @@
 v2.2.9  (work in progress)
+      * New viewer: mcpltool -w FILE (or mcpl.view(FILE) in Python) shows
+        overviews and plots of the particles, in a window or in the
+        terminal, where the particles can be picked and edited, and written
+        to a new file. The plots are in groups for some uses (e.g. -wbeamz
+        for a beam along z), each with an overview. In a window, an align
+        helper adds edits turning the mean direction of the particles into a
+        given direction, or moving their mean position to a point. New extra:
+        "curses".
       * Python fixes: MCPLFile closes the file of gzipped files, dump_file
         closes the file it opened, a plain 0 in hypot, min, max and clamp has
         the units of the other values, histogram() checks its bins and range,
@@ -456,7 +464,7 @@ v2.2.9  (work in progress)
       * mcpltool can now pick and edit particles with expressions, with the
         new -p (--pick) and -E (--edit) options, e.g. mcpltool -e -p "pdgcode
         == neutron" -E "wavelength = 1.8Aa" FILE OUT.mcpl.gz. They can be used
-        when showing particles, and with -S, -H and -e, as can -l and -s,
+        when showing particles, and with -S, -w, -H and -e, as can -l and -s,
         which choose the range of particles in the file before -p and -E are
         applied. Like with -l and -s, stat:sum entries are marked as not
         available (-1) when -E modifies weights, unless the new
@@ -470,8 +478,9 @@ v2.2.9  (work in progress)
         logo (with the show and save functions, and available_backends to list
         the available ones).
       * plot_stats is removed: it gives an error saying what to use instead
-        (mcpl.histogram), and mcpltool -S only prints the summary of the
-        particles. The --pdf and --gui options are removed.
+        (the viewer, mcpl.view, or mcpl.histogram), and mcpltool -S only
+        prints the summary of the particles. The --pdf and --gui options are
+        removed (use -w or -H instead).
       * New histogram API: histograms of values given by expressions, e.g.
         mcpl.histogram(FILE,"ekin/eV",lethargy=True).plot(), with options for
         picking particles, logarithmic axes, separate curves for each particle

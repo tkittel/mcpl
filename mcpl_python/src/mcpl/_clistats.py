@@ -53,14 +53,22 @@ def _plot_backend( outfn, backend, terminal, color = None ):
         bk.check_format(outfn)
         return bk
     cls = _show_backend(backend,terminal)
-    opts = {}
-    if color is not None and not isinstance(cls,PlotBackend):
-        if cls.kind == 'terminal' and f'{cls.name}_color' in _option_names(cls):
-            opts[f'{cls.name}_color'] = color
-        elif backend is not None:
-            raise MCPLError(f'--color can not be used with the {cls.name}'
-                            ' plotting backend (only for plots in the terminal)')
-    return _create(cls,**opts)
+    return _create(cls,**_color_options(cls,backend,color))
+
+def _color_options( cls, backend, color ):
+    """Options of the backend (class) for the --color setting (None if not
+    given), for plots in the terminal (also those of the viewer). An error if
+    the backend was chosen (backend is not None) and is not for the
+    terminal."""
+    from ._plotbackend import PlotBackend
+    if color is None or isinstance(cls,PlotBackend):
+        return {}
+    if cls.kind == 'terminal' and f'{cls.name}_color' in _option_names(cls):
+        return { f'{cls.name}_color' : color }
+    if backend is not None:
+        raise MCPLError(f'--color can not be used with the {cls.name}'
+                        ' plotting backend (only for plots in the terminal)')
+    return {}
 
 def _option_names( cls ):
     import inspect

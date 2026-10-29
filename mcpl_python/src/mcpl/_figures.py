@@ -74,6 +74,25 @@ class Text:
     def __init__( self, text ):
         self.text = text
 
+class Correlation:
+    """A correlation coefficient (from -1 to 1, or None if not known) shown in
+    a panel, as in the correlation plots of the viewer: the number, on a
+    background tinted from blue (-1) to red (1)."""
+    def __init__( self, value ):
+        self.value = value
+
+    @property
+    def text( self ):
+        if self.value is None:
+            return ''
+        v = round(self.value,2)
+        return f'{v:+.2f}' if v else '0.00'#(not -0.00)
+
+class NewPlot:
+    """The place of a new plot in the overview of the custom plots of the
+    viewer (a big "+" with the text), which starts a new plot when clicked"""
+    text = 'Add new plot'
+
 class Panel:
     """One plot (a set of axes) with items like StepHist objects. Items with
     labels are shown in a legend. The zlabel is that of the z axis of 3D
@@ -120,6 +139,9 @@ class Figure:
         self.title = title
         self.panels = list(panels or [])
         self.nrows, self.ncols = nrows, ncols
+        #(internal: whether it is a correlation plot of the viewer, whose
+        #panels share their axes, see _viewer_overviews.overview_figure):
+        self._correlation_plot = False
     def add( self, panel ):
         """Add a panel to the figure, and return it"""
         self.panels.append(panel)

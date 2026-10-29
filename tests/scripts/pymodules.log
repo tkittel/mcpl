@@ -1,9 +1,9 @@
 Modules of the mcpl package and their imports from the package (in parentheses: only inside functions, in brackets: by name):
-  __init__             <- _blocks, _common, _messages, _reader, [_ascii], [_cli], [_expressions], [_fileops], [_histogram], [_stats], [_statsum], [_writer], [constants], [plotting]
+  __init__             <- _blocks, _common, _messages, _reader, [_ascii], [_cli], [_expressions], [_fileops], [_histogram], [_stats], [_statsum], [_viewer], [_writer], [constants], [plotting]
   __main__             <- _cli
   _ascii               <- _reader
   _blocks              <- _common, _numpy, (_physics)
-  _cli                 <- _common, _messages, _reader, (_ascii), (_clistats), (_examples), (_expressions), (_exprhelp), (_extract), (_fileops), (_histogram), (_histstring), (_particles)
+  _cli                 <- _common, _messages, _reader, (_ascii), (_clistats), (_examples), (_expressions), (_exprhelp), (_extract), (_fileops), (_histogram), (_histstring), (_particles), (_plotregistry), (_stdviews), (_viewer), (_viewer_ui)
   _clistats            <- _common, _reader, (_histogram), (_histstring), (_plotbackend), (_plotregistry), (_stats), (plotting)
   _common              <- -
   _examples            <- _common, _messages, _numpy, (_writer)
@@ -35,18 +35,38 @@ Modules of the mcpl package and their imports from the package (in parentheses: 
   _scipp               <- _common, _messages, _numpy, (_userdata)
   _stats               <- _common, _messages, _numpy, _physics, _reader, (_expressions)
   _statsum             <- _common
+  _stdviews            <- -
   _termcolor           <- _common
+  _thumbnails          <- _numpy, (_figures)
   _userdata            <- _common, _numpy
+  _viewer              <- _common, _histstring, _stdviews, _viewer_groups, _viewer_output, _viewer_overviews, _viewer_reading, _viewer_ui, (_exprcore), (_expressions), (_exprhelp), (_exprsyntax), (_messages), (_plotregistry), (_reader), (_userdata), [_viewer_curses], [_viewer_tk]
+  _viewer_align        <- _common, _numpy, (_exprrotation), (_exprunits), (_particles)
+  _viewer_code         <- (_exprcore), (_expressions), (_exprrotation), (_exprsyntax), (_exprunits), (_extract)
+  _viewer_curses       <- _common, _viewer_ui, (_plotbackend_text), (_plotregistry), (_termcolor)
+  _viewer_figure       <- _plotbackend_mpl
+  _viewer_groups       <- _stdviews, _viewer_overviews, (_exprcore), (_histstring), (_particles)
+  _viewer_output       <- _common, _stdviews, _viewer_groups, _viewer_ui, (_extract), (_messages), (_reader), (_viewer_code)
+  _viewer_overviews    <- (_figures), (_histstring), (_numpy)
+  _viewer_reading      <- _common, _viewer_ui, (_blocks), (_exprcore), (_histogram), (_histstring), (_numpy), (_reader), (_stdviews), (_viewer_overviews), (plotting)
+  _viewer_tk           <- _viewer_tkbase, _viewer_tkcards, _viewer_tkcontrols, _viewer_tkwindows, _viewer_ui, _viewer_widgets, (_common), (_logo), (_messages), (_viewer_figure)
+  _viewer_tkbase       <- _viewer_ui
+  _viewer_tkcards      <- _stdviews, _viewer_tkbase, _viewer_ui
+  _viewer_tkcontrols   <- _viewer_tkbase, _viewer_ui
+  _viewer_tkwindows    <- _common, _viewer_tkbase, _viewer_ui, (_exprhelp), (_viewer_align), (_viewer_code)
+  _viewer_ui           <- _helptext, _stdviews, (_common)
+  _viewer_widgets      <- _common, _stdviews, _viewer_ui, (_exprhelp), (_histstring), (_particles), (_thumbnails), (_viewer_figure), (plotting)
   _writer              <- _blocks, _common, _messages, _numpy, _reader, _records, (_expressions), (_statsum), (_userdata)
   constants            <- -
   mcpl                 <- _ascii, _blocks, _cli, _common, _reader, _stats, _statsum
   plotting             <- _figures, _plotbackend, _plotregistry
 The imports have no cycles.
 numpy is imported by: _numpy
-matplotlib is imported by: _plotbackend_mpl
+matplotlib is imported by: _plotbackend_mpl, _thumbnails, _viewer_figure, _viewer_tk
+tkinter is imported by: _viewer_tk, _viewer_tkbase
 scipp is imported by: _scipp
-matplotlib, scipp are only imported inside functions
-mcpl.__all__ has 32 names, provided by:
+curses is imported by: _viewer_curses
+matplotlib, scipp, curses are only imported inside functions
+mcpl.__all__ has 33 names, provided by:
   _ascii               : convert2ascii
   _blocks              : MCPLParticle, MCPLParticleBlock
   _cli                 : app_mcpltool, app_pymcpltool
@@ -58,4 +78,5 @@ mcpl.__all__ has 32 names, provided by:
   _reader              : MCPLFile, dump_file
   _stats               : collect_stats, dump_stats, plot_stats
   _statsum             : encode_stat_sum, is_valid_stat_sum_key
+  _viewer              : view
   _writer              : MCPLOutFile, gzip_file

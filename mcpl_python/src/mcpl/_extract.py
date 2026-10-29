@@ -19,8 +19,8 @@
 ##                                                                            ##
 ################################################################################
 
-"""Extracting particles into a new file, as with mcpltool -e, and the output
-file names of mcpltool."""
+"""Extracting particles into a new file, as with mcpltool -e (also used by the
+viewer), and the output file names of mcpltool."""
 
 __all__ = []
 
@@ -36,6 +36,11 @@ def _shell_arg( expression ):
     #(enough for sh, bash, zsh, fish, tcsh, cmd and PowerShell, since the
     #characters which are special inside double quotes are not allowed)
     return f'"{expression}"'
+
+def _shell_path( filename ):
+    """The filename as a command-line argument (in double quotes if it has
+    spaces)"""
+    return _shell_arg(filename) if ' ' in filename else filename
 
 def _range_options( skip, limit, pick, edit ):
     """The options -l, -s, -p and -E of mcpltool for the range of particles

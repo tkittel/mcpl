@@ -44,6 +44,7 @@ classifiers = [
 #above):
 plot = [ 'mcpl-python[plot]' ]
 all = [ 'mcpl-python[all]' ]
+curses = [ 'mcpl-python[curses]' ]
 scipp = [ 'mcpl-python[scipp]' ]
 #Everything needed for MCPL development:
 devel = [ 'PyYAML>=6.0.0', 'matplotlib>=3.6', 'numpy>=1.22',

@@ -36,7 +36,9 @@ from typing import ClassVar
 
 from ._figures import (
     Bars,
+    Correlation,
     Hist2D,
+    NewPlot,
     Scatter3D,
     StepHist,
     Text,
@@ -83,10 +85,12 @@ _unicode = _Chars(
 #Bits of the dots of braille characters (U+2800 + bits), for the left and
 #right columns of dots, from the top:
 _braille_bits = ( ( 0x01, 0x02, 0x04, 0x40 ), ( 0x08, 0x10, 0x20, 0x80 ) )
-#Other Unicode characters drawn: braille, upper and lower half blocks, and
-#heavy horizontal and triple dash horizontal (for legends):
+#Other Unicode characters drawn (also by the viewer): braille, upper and lower
+#half blocks, heavy horizontal and triple dash horizontal (for legends), box
+#drawing (light down and right, down and left, up and left) and a small
+#right-pointing triangle:
 _unicode_other = ( ''.join( chr(0x2800+i) for i in range(256) )
-                   + '\u2580\u2584\u2501\u2505' )
+                   + '\u2580\u2584\u2501\u2505\u250c\u2510\u2518\u25b8' )
 #Characters between the markers along curves of braille dots without colour:
 _marker_step = 8
 
@@ -240,6 +244,10 @@ class _TextBackend(PlotBackend):
                 out += self._draw_bars(panel,item)
             elif isinstance(item,Text):
                 out += [ _center(line,self._width) for line in item.text.split('\n') ]
+            elif isinstance(item,Correlation):
+                out.append(_center(f'correlation coefficient: {item.text}',self._width))
+            elif isinstance(item,NewPlot):
+                out.append(_center(f'+ {item.text}',self._width))
         if any( isinstance(i,Scatter3D) for i in panel.items ):
             out.append(_center('(3D plots can only be shown in windows)',self._width))
             return out

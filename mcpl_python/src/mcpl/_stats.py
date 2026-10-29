@@ -367,9 +367,10 @@ _freq_alt_descr =  {'pdgcode': _pdg_database,
 
 def plot_stats(*args, **kwargs):
     """No longer available: raises MCPLError, which tells what to use instead
-    (mcpl.histogram)."""
-    raise MCPLError('plot_stats is no longer available: use'
-                    ' mcpl.histogram(FILE,EXPR).plot() for plots of the particles')
+    (mcpl.view or mcpl.histogram)."""
+    raise MCPLError('plot_stats is no longer available: use mcpl.view(FILE) for an'
+                    ' interactive overview of a file, or mcpl.histogram(FILE,EXPR).plot()'
+                    ' for single plots')
 
 def dump_stats(stats):
     """Format and print provided statistics object to stdout. The stats object is

@@ -1,0 +1,615 @@
+  0: 0 | compact: 0
+  999: 999 | compact: 999
+  1006: 1,006 | compact: 1,006
+  123456: 123,456 | compact: 123,456
+  1000000: 1,000,000 | compact: 1e6
+  1006000: 1,006,000 | compact: 1.006e6
+  1234567: 1,234,567 | compact: 1,234,567
+  2500000: 2,500,000 | compact: 2.5e6
+  1000000000: 1,000,000,000 | compact: 1e9
+  1000000.0: 1,000,000
+  726.0: 726
+  0.5: 0.5
+  1.5e-06: 1.5e-06
+  123456.789: 123457
+  count '1e6': 1000000
+  count '1,000': 1000
+  count '1,000,000': 1000000
+  count '10,00': None
+  count '1.5e3': 1500
+  count '1.5': None
+  count '-3': -3
+  count 'x': None
+  skip '1e2': (True, '')
+  limit '1,000': (True, '')
+  skip '1.5': (False, 'Skip must be a number of particles')
+cache: {'nrange': 1006, 'size': 44.0, 'needed': 44264.0, 'limit': 500000000.0, 'fits': True, 'nused': 1006, 'cached': 44264.0}
+with a lower limit: {'limit': 13200.0, 'fits': False, 'nused': 300, 'cached': 13200.0}
+  pick '', skip '': 1,006 particles, Σw ≈ 1,006 | as the first 300 particles of the range: True | nused: 1006
+  pick 'ekin < 1MeV', skip '': ≈647/1,006 particles (64.3%), Σw ≈ 647 (64.3%) | as the first 300 particles of the range: True | nused: 647
+  pick '', skip '100': 906 particles, Σw ≈ 906 | as the first 300 particles of the range: True | nused: 906
+no cache: {'limit': None, 'fits': True, 'nused': 906, 'cached': 0}
+  pick '', skip '100': 906 particles, Σw = 906 | as the all particles of the range: True | nused: 906
+  new files get all particles of the range: MCPL: Successfully extracted 906 / 1006 particles from example.mcpl into cached.mcpl
+  blocks of 150 to 1006: from 100 to 1000, kept: 100 to 400
+  blocks of 150 to 1006: from 100 to 1000, kept: 100 to 400
+  blocks of 150 to 250: from 100 to 200, kept: 100 to 400
+  blocks of 0 to 1006: from 0 to 1000, kept: 0 to 300
+  with a lower limit, kept: 0 to 100
+skip=0 limit=None pick=None edit=None:
+   example.mcpl: 1,006 particles, Σw = 1,006
+   22 views, same figures as mcpltool -H: True
+skip=0 limit=None pick='pdgcode == neutron' edit=None:
+   example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   22 views, same figures as mcpltool -H: True
+skip=100 limit=500 pick='ekin > 1MeV' edit='z += 1m':
+   example.mcpl: 196/500 particles (39.2%), Σw = 196 (39.2%)
+   22 views, same figures as mcpltool -H: True
+skip=0 limit=None pick='mod(fileidx,3) == 0' edit='weight *= 2':
+   example.mcpl: 336/1,006 particles (33.4%), Σw = 672 (66.8%)
+   22 views, same figures as mcpltool -H: True
+The command and code of plots, and of writing files:
+  mcpltool -H "ekin;logx" example.mcpl  (code: command, python)
+     python | import mcpl
+     python | f = mcpl.MCPLFile( 'example.mcpl' )
+     python | h = mcpl.histogram( f, 'ekin;logx' )
+     python | h.plot()
+  mcpltool -H "x" -H "y : z;bins=10" example.mcpl  (code: command, python)
+     python | import mcpl
+     python | f = mcpl.MCPLFile( 'example.mcpl' )
+     python | hs = [ mcpl.histogram( f, p ) for p in (
+     python |     'x',
+     python |     'y : z;bins=10',
+     python | ) ]
+     python | mcpl.plot_histograms( hs )
+  mcpltool -e example.mcpl by_python.mcpl  (code: command, python, cpp, c)
+     python | import mcpl
+     python | fin = mcpl.MCPLFile( 'example.mcpl' )
+     python | with mcpl.MCPLOutFile( 'by_python.mcpl' ) as fout:
+     python |     fout.transfer_metadata( fin )  # copy the header
+     python |     for block in fin.particle_blocks:
+     python |         fout.add_particles( block )
+  same figures: True, same particles: True
+  mcpltool -p "pdgcode == neutron" -E "z += 1m;weight *= 2" -H "ekin;logx" example.mcpl  (code: command, python)
+     python | import mcpl
+     python | f = mcpl.MCPLFile( 'example.mcpl', pick = 'pdgcode == neutron', edit = 'z += 1m;weight *= 2' )
+     python | h = mcpl.histogram( f, 'ekin;logx' )
+     python | h.plot()
+  mcpltool -p "pdgcode == neutron" -E "z += 1m;weight *= 2" -H "x" -H "y : z;bins=10" example.mcpl  (code: command, python)
+     python | import mcpl
+     python | f = mcpl.MCPLFile( 'example.mcpl', pick = 'pdgcode == neutron', edit = 'z += 1m;weight *= 2' )
+     python | hs = [ mcpl.histogram( f, p ) for p in (
+     python |     'x',
+     python |     'y : z;bins=10',
+     python | ) ]
+     python | mcpl.plot_histograms( hs )
+  mcpltool -e -p "pdgcode == neutron" -E "z += 1m;weight *= 2" example.mcpl by_python.mcpl  (code: command, python, cpp, c)
+     python | import mcpl
+     python | fin = mcpl.MCPLFile( 'example.mcpl', pick = 'pdgcode == neutron', edit = 'z += 1m;weight *= 2' )
+     python | with mcpl.MCPLOutFile( 'by_python.mcpl' ) as fout:
+     python |     fout.transfer_metadata( fin )  # copy the header
+     python |     for block in fin.particle_blocks:
+     python |         fout.add_particles( block )
+        cpp | #include "mcplcpp.h"
+        cpp | 
+        cpp | int main()
+        cpp | {
+        cpp |   mcpl::MCPLFile fin( "example.mcpl" );
+        cpp |   mcpl::MCPLOutFile fout( "by_python.mcpl" );
+        cpp |   fout.transfer_metadata( fin );  // copy the header
+        cpp |   for ( auto p : fin ) {
+        cpp |     // the pick: "pdgcode == neutron"
+        cpp |     if ( !( p.pdgcode() == 2112 ) )
+        cpp |       continue;
+        cpp |     mcpl_particle_t q = p.c_struct();
+        cpp |     // the edit: "z += 1m;weight *= 2"
+        cpp |     q.position[2] += 100.0;
+        cpp |     q.weight *= 2;
+        cpp |     fout.add( q );
+        cpp |   }
+        cpp |   fout.close();
+        cpp | }
+          c | #include "mcpl.h"
+          c | 
+          c | int main( void )
+          c | {
+          c |   mcpl_file_t fin = mcpl_open_file( "example.mcpl" );
+          c |   mcpl_outfile_t fout = mcpl_create_outfile( "by_python.mcpl" );
+          c |   mcpl_transfer_metadata( fin, fout );  /* copy the header */
+          c |   const mcpl_particle_t * p;
+          c |   while ( ( p = mcpl_read( fin ) ) ) {
+          c |     /* the pick: "pdgcode == neutron" */
+          c |     if ( !( p->pdgcode == 2112 ) )
+          c |       continue;
+          c |     mcpl_particle_t q = *p;
+          c |     /* the edit: "z += 1m;weight *= 2" */
+          c |     q.position[2] += 100.0;
+          c |     q.weight *= 2;
+          c |     mcpl_add_particle( fout, &q );
+          c |   }
+          c |   mcpl_close_outfile( fout );
+          c |   mcpl_close_file( fin );
+          c |   return 0;
+          c | }
+  same figures: True, same particles: True
+  mcpltool -l300 -s100 -p "ekin > 1MeV" -H "ekin;logx" example.mcpl  (code: command, python)
+     python | import mcpl
+     python | f = mcpl.MCPLFile( 'example.mcpl', skip = 100, limit = 300, pick = 'ekin > 1MeV' )
+     python | h = mcpl.histogram( f, 'ekin;logx' )
+     python | h.plot()
+  mcpltool -l300 -s100 -p "ekin > 1MeV" -H "x" -H "y : z;bins=10" example.mcpl  (code: command, python)
+     python | import mcpl
+     python | f = mcpl.MCPLFile( 'example.mcpl', skip = 100, limit = 300, pick = 'ekin > 1MeV' )
+     python | hs = [ mcpl.histogram( f, p ) for p in (
+     python |     'x',
+     python |     'y : z;bins=10',
+     python | ) ]
+     python | mcpl.plot_histograms( hs )
+  mcpltool -l300 -s100 -p "ekin > 1MeV" -H "ekin;logx" example.mcpl  (code: command, python)
+     python | import mcpl
+     python | f = mcpl.MCPLFile( 'example.mcpl', skip = 100, limit = 300, pick = 'ekin > 1MeV' )
+     python | h = mcpl.histogram( f, 'ekin;logx' )
+     python | h.plot()
+  mcpltool -e -l300 -s100 -p "ekin > 1MeV" example.mcpl by_python.mcpl  (code: command, python, cpp, c)
+     python | import mcpl
+     python | fin = mcpl.MCPLFile( 'example.mcpl', skip = 100, limit = 300, pick = 'ekin > 1MeV' )
+     python | with mcpl.MCPLOutFile( 'by_python.mcpl' ) as fout:
+     python |     fout.transfer_metadata( fin )  # copy the header
+     python |     for block in fin.particle_blocks:
+     python |         fout.add_particles( block )
+        cpp | #include "mcplcpp.h"
+        cpp | 
+        cpp | int main()
+        cpp | {
+        cpp |   mcpl::MCPLFile fin( "example.mcpl" );
+        cpp |   mcpl::MCPLOutFile fout( "by_python.mcpl" );
+        cpp |   fout.transfer_metadata( fin );  // copy the header
+        cpp |   fin.seek( 100 );
+        cpp |   std::uint64_t n = 0;
+        cpp |   for ( auto p : fin ) {
+        cpp |     if ( n++ == 300 )
+        cpp |       break;
+        cpp |     // the pick: "ekin > 1MeV"
+        cpp |     if ( !( p.ekin() > 1.0 ) )
+        cpp |       continue;
+        cpp |     fout.transfer_last_read_particle( fin );
+        cpp |   }
+        cpp |   fout.close();
+        cpp | }
+          c | #include "mcpl.h"
+          c | 
+          c | int main( void )
+          c | {
+          c |   mcpl_file_t fin = mcpl_open_file( "example.mcpl" );
+          c |   mcpl_outfile_t fout = mcpl_create_outfile( "by_python.mcpl" );
+          c |   mcpl_transfer_metadata( fin, fout );  /* copy the header */
+          c |   mcpl_seek( fin, 100 );
+          c |   const mcpl_particle_t * p;
+          c |   for ( uint64_t n = 0; n < 300 && ( p = mcpl_read( fin ) ); ++n ) {
+          c |     /* the pick: "ekin > 1MeV" */
+          c |     if ( !( p->ekin > 1.0 ) )
+          c |       continue;
+          c |     mcpl_transfer_last_read_particle( fin, fout );
+          c |   }
+          c |   mcpl_close_outfile( fout );
+          c |   mcpl_close_file( fin );
+          c |   return 0;
+          c | }
+  same figures: True, same particles: True
+pick 'pdgcode == neutron' in c: p->pdgcode == 2112  []
+pick 'pdgcode == neutron' in cpp: p.pdgcode() == 2112  []
+pick 'abs(pdgcode) in (electron,muon) or ekin < 25meV and hypot(x,y) < 5cm' in c: ( abs( p->pdgcode ) == 11 || abs( p->pdgcode ) == 13 ) || ( p->ekin < 2.5e-08 && hypot( p->position[0], p->position[1] ) < 5.0 )  ['math.h', 'stdlib.h']
+pick 'abs(pdgcode) in (electron,muon) or ekin < 25meV and hypot(x,y) < 5cm' in cpp: ( std::abs( p.pdgcode() ) == 11 || std::abs( p.pdgcode() ) == 13 ) || ( p.ekin() < 2.5e-08 && std::hypot( p.x(), p.y() ) < 5.0 )  ['cmath', 'cstdlib']
+pick 'pdgcode not in (22,2112)' in c: p->pdgcode != 22 && p->pdgcode != 2112  []
+pick 'pdgcode not in (22,2112)' in cpp: p.pdgcode() != 22 && p.pdgcode() != 2112  []
+pick '(userflags & 0xff) == 0 and not ekin > 1MeV' in c: ( p->userflags & 255 ) == 0 && !( p->ekin > 1.0 )  []
+pick '(userflags & 0xff) == 0 and not ekin > 1MeV' in cpp: ( p.userflags() & 255 ) == 0 && !( p.ekin() > 1.0 )  []
+pick '0cm < x < 2cm' in c: 0.0 < p->position[0] && p->position[0] < 2.0  []
+pick '0cm < x < 2cm' in cpp: 0.0 < p.x() && p.x() < 2.0  []
+pick 'ekin/MeV > 0.5 and uz > 0.9' in c: p->ekin > 0.5 && p->direction[2] > 0.9  []
+pick 'ekin/MeV > 0.5 and uz > 0.9' in cpp: p.ekin() > 0.5 && p.uz() > 0.9  []
+pick 'sqrt(x^2+y^2) < 3cm' in c: sqrt( pow( p->position[0], 2 ) + pow( p->position[1], 2 ) ) < 3.0  ['math.h']
+pick 'sqrt(x^2+y^2) < 3cm' in cpp: std::sqrt( std::pow( p.x(), 2 ) + std::pow( p.y(), 2 ) ) < 3.0  ['cmath']
+pick '-x > 1mm' in c: -p->position[0] > 0.1  []
+pick '-x > 1mm' in cpp: -p.x() > 0.1  []
+pick 'pdgcode/2 > 1000' in c: (double)p->pdgcode / 2 > 1000  []
+pick 'pdgcode/2 > 1000' in cpp: static_cast<double>( p.pdgcode() ) / 2 > 1000  []
+pick 'abs(pdgcode)//1000 == 2' in c: abs( p->pdgcode ) / 1000 == 2  ['stdlib.h']
+pick 'abs(pdgcode)//1000 == 2' in cpp: std::abs( p.pdgcode() ) / 1000 == 2  ['cstdlib']
+pick 'userflags//2 == 7/2' in c: p->userflags / 2 == 3.5  []
+pick 'userflags//2 == 7/2' in cpp: p.userflags() / 2 == 3.5  []
+pick 'x // 1cm > 0' in c: None  []
+pick 'x // 1cm > 0' in cpp: None  []
+pick 'angle(dir,(0,0,1)) < 1deg' in c: None  []
+pick 'angle(dir,(0,0,1)) < 1deg' in cpp: None  []
+pick 'wavelength > 1.8Aa' in c: None  []
+pick 'wavelength > 1.8Aa' in cpp: None  []
+pick 'mod(fileidx,10) == 0' in c: None  []
+pick 'mod(fileidx,10) == 0' in cpp: None  []
+pick 'pos.z > 1cm and dir.at(2) > 0' in c: p->position[2] > 1.0 && p->direction[2] > 0  []
+pick 'pos.z > 1cm and dir.at(2) > 0' in cpp: p.z() > 1.0 && p.uz() > 0  []
+edit 'z += 1m;weight *= 0.5': ['q.position[2] += 100.0;', 'q.weight *= 0.5;']
+edit 'x = 2*y;ekin = ekin/2': ['q.position[0] = 2 * q.position[1];', 'q.ekin /= 2;']
+edit 'time = time + 1ms*abs(x)/1cm': ['q.time += fabs( q.position[0] );']
+edit 'rotate_z(90deg)': ['{', '  double tmp = q.position[0];', '  q.position[0] = 0.0 - q.position[1];', '  q.position[1] = tmp + 0.0;', '}', '{', '  double tmp = q.direction[0];', '  q.direction[0] = 0.0 - q.direction[1];', '  q.direction[1] = tmp + 0.0;', '}', '{', '  double tmp = q.polarisation[0];', '  q.polarisation[0] = 0.0 - q.polarisation[1];', '  q.polarisation[1] = tmp + 0.0;', '}']
+edit 'rotate_y(-90deg)': ['{', '  double tmp = q.position[2];', '  q.position[2] = q.position[0] + 0.0;', '  q.position[0] = 0.0 - tmp;', '}', '{', '  double tmp = q.direction[2];', '  q.direction[2] = q.direction[0] + 0.0;', '  q.direction[0] = 0.0 - tmp;', '}', '{', '  double tmp = q.polarisation[2];', '  q.polarisation[2] = q.polarisation[0] + 0.0;', '  q.polarisation[0] = 0.0 - tmp;', '}']
+edit 'rotate_x(30deg)': ['{', '  double tmp = q.position[1];', '  q.position[1] = 0.8660254037844387 * tmp - 0.49999999999999994 * q.position[2] + 0.0;', '  q.position[2] = 0.49999999999999994 * tmp + 0.8660254037844387 * q.position[2] + 0.0;', '}', '{', '  double tmp = q.direction[1];', '  q.direction[1] = 0.8660254037844387 * tmp - 0.49999999999999994 * q.direction[2] + 0.0;', '  q.direction[2] = 0.49999999999999994 * tmp + 0.8660254037844387 * q.direction[2] + 0.0;', '}', '{', '  double tmp = q.polarisation[1];', '  q.polarisation[1] = 0.8660254037844387 * tmp - 0.49999999999999994 * q.polarisation[2] + 0.0;', '  q.polarisation[2] = 0.49999999999999994 * tmp + 0.8660254037844387 * q.polarisation[2] + 0.0;', '}']
+edit 'swap(x,y)': ['{', '  double tmp = q.position[0];', '  q.position[0] = q.position[1];', '  q.position[1] = tmp;', '}']
+edit 'swap(pdgcode,userflags)': None
+edit 'rotate_z(x/cm*1deg)': None
+edit 'ux = 1': ['q.direction[0] = 1;']
+edit 'a = 2*x;y = a': None
+edit 'rotate_around((0,0,1),90deg)': ['{', '  double t0 = q.position[0], t1 = q.position[1], t2 = q.position[2];', '  q.position[0] = 0.0 - t1;', '  q.position[1] = t0 + 0.0;', '  q.position[2] = t2 + 0.0;', '}', '{', '  double t0 = q.direction[0], t1 = q.direction[1], t2 = q.direction[2];', '  q.direction[0] = 0.0 - t1;', '  q.direction[1] = t0 + 0.0;', '  q.direction[2] = t2 + 0.0;', '}', '{', '  double t0 = q.polarisation[0], t1 = q.polarisation[1], t2 = q.polarisation[2];', '  q.polarisation[0] = 0.0 - t1;', '  q.polarisation[1] = t0 + 0.0;', '  q.polarisation[2] = t2 + 0.0;', '}']
+edit 'rotate_frame((0,0,1),(1,1,0),(0,1,0),(0,0,1))': ['{', '  double t0 = q.position[0], t1 = q.position[1], t2 = q.position[2];', '  q.position[0] = 0.0 - 0.7071067811865475 * t0 + 0.7071067811865475 * t2;', '  q.position[1] = 0.7071067811865475 * t0 + 0.7071067811865475 * t2 + 0.0;', '  q.position[2] = t1 + 0.0;', '}', '{', '  double t0 = q.direction[0], t1 = q.direction[1], t2 = q.direction[2];', '  q.direction[0] = 0.0 - 0.7071067811865475 * t0 + 0.7071067811865475 * t2;', '  q.direction[1] = 0.7071067811865475 * t0 + 0.7071067811865475 * t2 + 0.0;', '  q.direction[2] = t1 + 0.0;', '}', '{', '  double t0 = q.polarisation[0], t1 = q.polarisation[1], t2 = q.polarisation[2];', '  q.polarisation[0] = 0.0 - 0.7071067811865475 * t0 + 0.7071067811865475 * t2;', '  q.polarisation[1] = 0.7071067811865475 * t0 + 0.7071067811865475 * t2 + 0.0;', '  q.polarisation[2] = t1 + 0.0;', '}']
+edit 'rotate_around(dir,10deg)': None
+edit 'rotate_around((0,0,-(1)),90deg)': ['{', '  double t0 = q.position[0], t1 = q.position[1], t2 = q.position[2];', '  q.position[0] = t1 + 0.0;', '  q.position[1] = 0.0 - t0;', '  q.position[2] = t2 + 0.0;', '}', '{', '  double t0 = q.direction[0], t1 = q.direction[1], t2 = q.direction[2];', '  q.direction[0] = t1 + 0.0;', '  q.direction[1] = 0.0 - t0;', '  q.direction[2] = t2 + 0.0;', '}', '{', '  double t0 = q.polarisation[0], t1 = q.polarisation[1], t2 = q.polarisation[2];', '  q.polarisation[0] = t1 + 0.0;', '  q.polarisation[1] = 0.0 - t0;', '  q.polarisation[2] = t2 + 0.0;', '}']
+edit 'x = pos.y': ['q.position[0] = q.position[1];']
+edit 'pos += (0,0,1m)': None
+edit 'userflags //= 2': ['q.userflags /= 2;']
+edit 'userflags /= 2': None
+edit 'pdgcode = 7//2': ['q.pdgcode = 3;']
+edit 'weight = userflags/2': ['q.weight = (double)q.userflags / 2;']
+cpp with userdata: ['mcpl::MCPLOutFile fout( "out.mcpl" );', 'fout.transfer_metadata( fin );  // copy the header', 'auto out = fout.new_particle();', 'out.c_struct() = p.c_struct();', 'std::copy( p.raw_userdata(), p.raw_userdata() + p.userdata_size(),', 'out.raw_userdata() );  // (the userdata)', 'mcpl_particle_t & q = out.c_struct();', 'fout.add( out );', 'fout.close();']
+c with userdata: ['mcpl_outfile_t fout = mcpl_create_outfile( "out.mcpl" );', 'mcpl_add_particle_with_userdata( fout, &q, mcpl_last_read_userdata( fin ) );']
+highlighted command: option[-e] option[-s5] option[-p] string["pdgcode == neutron"]
+highlighted python: keyword[import] string['example.mcpl'] number[5] string['pdgcode == neutron'] keyword[with] string['out.mcpl'] keyword[as] comment[# copy the header] keyword[for] keyword[in]
+highlighted cpp: preprocessor[#include] string["mcplcpp.h"] keyword[int] string["example.mcpl"] string["out.mcpl"] comment[// copy the header] number[5] keyword[for] keyword[auto] comment[// the pick: "pdgcode == neutron"] keyword[if] number[2112] keyword[continue]
+highlighted c: preprocessor[#include] string["mcpl.h"] keyword[int] keyword[void] string["example.mcpl"] string["out.mcpl"] comment[/* copy the header */] number[5] keyword[const] keyword[while] comment[/* the pick: "pdgcode == neutron" */] keyword[if] number[2112] keyword[continue] keyword[return] number[0]
+toggle logx: (True, 'linear x (was auto)') custom:ekin;logy
+toggle logx: (True, 'x axis as before') plot:ekin;logx=auto;logy
+toggle logx: (True, 'linear x (was auto)') custom:ekin;logy
+toggle logy: (True, 'linear y') custom:ekin
+toggle logx: (True, 'log x') custom:ekin;logx
+after another change: (True, 'linear x (was auto)') (True, 'x axis as before') custom:ekin;logx=auto
+title after 'wavelength': None
+title after 'wavelength/nm': None
+title after 'ekin/MeV': None
+without a title: None Position y
+absent: ['Polarisation x', 'Polarisation y', 'Polarisation z', 'User flags']
+limit 1e9: read again: False
+limit 500: read again: True
+limit all: read again: True
+skip 2000: read again: True
+skip 3000: read again: False
+completions of 'userd': ['userdata.nscat', 'userdata.temp', 'userdata.dir.at(']
+completions of 'x > 0cm and userdata.': ['nscat', 'temp', 'dir.at(']
+completions of 'userdata.t': ['temp']
+completions of 'userdata.d': ['dir.at(']
+check of 'userdata.nscat > 0': (True, '')
+check of 'userdata.nope > 0': (False, 'No userdata field "nope" (the fields are: nscat, temp, dir), in "userdata.nope > 0"')
+check of 'userdata.dir > 0': (False, 'The userdata field "dir" has 3 values per particle (use userdata.dir.at(0) to userdata.dir.at(2)), in "userdata.dir > 0"')
+check of 'userdata.dir.at(2) > 0': (True, '')
+check of 'userdata.dir.at(3) > 0': (False, 'The userdata field "dir" has 3 values per particle (use userdata.dir.at(0) to userdata.dir.at(2)), in "userdata.dir.at(3) > 0"')
+check of 'userdata.nscat.at(0) > 0': (False, 'The userdata field "nscat" has one value per particle (use userdata.nscat), in "userdata.nscat.at(0) > 0"')
+without userdata: (False, 'There are no userdata fields in this file, in "userdata.nscat;bar"') (False, 'There are no userdata fields in this file, in "x > 0cm and userdata."') userdata.  there are no userdata fields in this file
+settings: {'fields': {'display_only': 2112, 'display_by': 'single'}, 'correlations': {'variables': ['x', 'y']}} | for another file: {'fields': {'display_by': 'single'}}
+for example.mcpl (particles True): pick '', edit '', skip '', 19 views, message 'Not kept for this file: the pick and edit (There are no userdata fields in this file, in "userdata.nscat > 0")'
+for ud_viewer.mcpl (particles True): pick 'userdata.nscat > 0', edit 'z += 1m', skip '', 24 views, message ''
+for ud_viewer.mcpl (particles False): pick '', edit '', skip '', 24 views, message ''
+views: plot:ekin;logx=auto;logy, plot:ekin;lethargy;logy, plot:wavelength;logx, plot:time;logx=auto;logy, plot:pdgcode;bar;logy=auto, plot:x, plot:y, plot:z, plot:ux, plot:uy, plot:uz, plot:weight;logx=auto;logy;unweighted, plot:polx, plot:poly, plot:polz, plot:userflags;bar;logy=auto
+check('skip','10'): (True, '')
+check('skip','x'): (False, 'Skip must be a number of particles')
+check('limit','all'): (True, '')
+check('limit','-5'): (False, 'Limit must be a number of particles (or all)')
+check('limit',' 1e6 '): (True, '')
+check('limit','2.5e3'): (True, '')
+check('limit','1.5'): (False, 'Limit must be a number of particles (or all)')
+check('limit','1e400'): (False, 'Limit must be a number of particles (or all)')
+check('limit','nan'): (False, 'Limit must be a number of particles (or all)')
+check('pick','pdgcode == neutron'): (True, '')
+check('pick','x > 1'): (False, 'Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 1"')
+check('pick','x > 0 && y > 0'): (False, 'Use "and" instead of "&&" in expressions (e.g. "x > 0 and y > 0"), in expression "x > 0 && y > 0"')
+check('edit','z += 1cm;weight *= 0.5'): (True, '')
+check('edit','x = 2'): (False, 'Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x = 2"')
+check('edit','fileidx = 1'): (False, 'fileidx (the position of the particles in the file) can not be changed, in "fileidx = 1"')
+check('plot','ekin/MeV;logx=1'): (True, '')
+check('plot','ekin'): (True, '')
+check('plot','ekin/MeV;print=1'): (False, 'The histogram option print can not be used in the viewer')
+check('plot',''): (False, 'Give an expression to plot, e.g. ekin/MeV')
+check('plot','x/cm : y/cm;range=1:2'): (False, 'Histogram option "range" can only be used for 1D histograms (use xrange and yrange), in "x/cm : y/cm;range=1:2"')
+complete('pick','pdgcode == neu'): (11, [('neutron', 'PDG code 2112')])
+complete('pick','ek'): (0, [('ekin', 'kinetic energy (an energy)')])
+complete('pick','sq'): (0, [('sqrt(', 'square root')])
+complete('edit','rot'): (0, [('rotate_x(', 'rotate around the x axis'), ('rotate_y(', 'rotate around the y axis'), ('rotate_z(', 'rotate around the z axis'), ('rotate_around(', 'rotate around the axis (a vector)'), ('rotate_frame(', 'rotate v to vout and u to uout')])
+complete('plot','ekin/MeV;lo'): (9, [('logx=', 'logarithmic x axis'), ('logy=', 'logarithmic y axis'), ('logz=', 'logarithmic colour scale')])
+complete('plot','hyp'): (0, [('hypot(', 'sqrt(a^2+b^2+...) (same unit)')])
+complete('skip','1'): (1, [])
+hint('ekin > 1MeV',2): ekin  kinetic energy (an energy)
+hint('pdgcode == gamma',None): gamma  PDG code 22
+hint('x',None): x  x coordinate of the position (a length)
+hint('1 + 2',None): None
+hint line while editing plot with '': ('Give an expression to plot, e.g. ekin/MeV  (Tab: complete)', 'error')
+hint line while editing plot with 'ek': ('Unknown name "ek" in expression "ek" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)  (Tab: complete)', 'error')
+hint line while editing plot with 'ekin/MeV': ('hint: MeV  energy unit  (Tab: complete)', 'dim')
+hint line while editing skip with 'x': ('Skip must be a number of particles', 'error')
+completions of "e": ['ekin', 'electron', 'eV', 'exp('] chosen: eV | list line: ekin  electron  [eV]  exp( | popup line: Up/Down: choose   Enter or Tab: insert   Esc: close
+Enter inserts it: None 'eV' completions left: []
+Up from the first wraps to: atan2( | Esc closes without inserting: None '' []
+unknown view: Unknown groups of plots or view "foo" (groups: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
+invalid pick: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 1"
+view shown first: ('plot:ekin;logx=auto;logy', 'ekin;logx=auto;logy')
+('example.mcpl: 1,006 particles, Σw = 1,006', '')
+set('pick','pdgcode == gamma'): True, ('example.mcpl: 239/1,006 particles (23.8%), Σw = 239 (23.8%)', '')
+set('skip','1000'): True, ('example.mcpl: 0/6 particles (0.0%), Σw = 0 (0.0%)', 'error: no particles picked')
+set('limit','3'): True, ('example.mcpl: 0/3 particles (0.0%), Σw = 0 (0.0%)', 'error: no particles picked')
+set('pick','x > 1km'): True, ('example.mcpl: 0/3 particles (0.0%), Σw = 0 (0.0%)', 'error: no particles picked')
+set('pick',''): True, ('example.mcpl: 3 particles, Σw = 3', '')
+set('skip','0'): True, ('example.mcpl: 3 particles, Σw = 3', '')
+set('limit',''): True, ('example.mcpl: 1,006 particles, Σw = 1,006', '')
+views after adding plots: ['custom:time/ms;logx=1', 'custom:ekin/MeV'] current: custom:time/ms;logx=1
+limit 1e3: 1e3 mcpltool --view="{'custom':['time/ms;logx=1','ekin/MeV'],'view':'time/ms;logx=1'}" -l1000 example.mcpl
+history of pick: ['pdgcode == gamma', 'x > 1km']
+command view: mcpltool --view="{'custom':['time/ms;logx=1','ekin/MeV'],'view':'time/ms;logx=1'}" example.mcpl
+command extract: mcpltool -e example.mcpl example_selected.mcpl.gz
+commands of the overview: {'view': 'mcpltool --view="{\'custom\':[\'time/ms;logx=1\',\'ekin/MeV\']}" example.mcpl', 'extract': 'mcpltool -e example.mcpl example_selected.mcpl.gz'}
+same pick, written differently: (True, '') restarted: False 'pdgcode==neutron'
+limit 1e3 then 1000: (True, '') (True, '') restarts: 1
+same plot, written differently: (True, '') plots: ['ekin;logx=auto;logy', 'ekin;lethargy;logy', 'wavelength;logx', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'weight;logx=auto;logy;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'ekin/MeV;logx=1;bins=50'] current: custom:ekin/MeV;logx=1;bins=50
+changed to the same plot: (True, '') plots: ['ekin;logx=auto;logy', 'ekin;lethargy;logy', 'wavelength;logx', 'time;logx=auto;logy', 'pdgcode;bar;logy=auto', 'x', 'y', 'z', 'ux', 'uy', 'uz', 'weight;logx=auto;logy;unweighted', 'polx', 'poly', 'polz', 'userflags;bar;logy=auto', 'ekin/MeV;logx=1;bins=50']
+unchanged: (True, '') ['custom:time/ms;logx=1', 'custom:ekin/MeV'] current: custom:ekin/MeV
+change to keV: (True, '') ['custom:time/ms;logx=1', 'custom:ekin/keV'] current: custom:ekin/keV
+change to an existing plot: (True, '') ['plot:userflags;bar;logy=auto', 'custom:time/ms;logx=1']
+invalid change: (False, 'Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)')
+unknown plot: (False, 'No plot "nope"')
+remove: (True, '') ['plot:userflags;bar;logy=auto'] current: plot:userflags;bar;logy=auto
+group spectra: Spectra, 5 plots in 2x3
+group fields: Fields, 13 plots in 3x5
+group geometry: Geometry, 6 plots in 2x3
+group beamz: Z beam profile, 7 plots in 2x4
+group beamx: X beam profile, 7 plots in 2x4
+group beamy: Y beam profile, 7 plots in 2x4
+group 3d: 3D, 2 plots in 1x2
+group correlations: Correlations, 45 plots in 9x9 (correlation plot)
+default groups: spectra, fields
+-wbeamz: beamz ['beamz'] ['overview:beamz', 'plot:x : y'] | state: {'groups': ['beamz'], 'custom': ['x;bins=5']} | command: mcpltool --view="{'groups':['beamz'],'custom':['x;bins=5']}" example.mcpl
+changed: (True, '') custom:x/mm : y/mm Beam profile (??) Custom | still there: True | state: {'groups': ['beamz'], 'custom': ['x;bins=5', {'title': 'Beam profile (??)', 'plot': 'x/mm : y/mm'}], 'view': 'x/mm : y/mm'}
+removing a standard plot: (False, 'The plots of the standard groups are not removed (the groups are shown or hidden as a whole, see the groups of plots)')
+removing a custom plot: (True, '') ['x;bins=5']
+changed to a plot of another group: (True, '') custom:ekin Custom ['x;bins=5', 'ekin']
+again, a setting: (True, '') custom:x;bins=20 ['x;bins=5', 'ekin', 'x;bins=20']
+the custom one: (True, '') custom:ekin;logy ['x;bins=5', 'ekin;logy', 'x;bins=20'] | state: {'custom': ['x;bins=5', 'ekin;logy', 'x;bins=20'], 'view': 'ekin;logy'}
+check: (False, 'Unknown groups of plots "beam" (give groups separated by commas: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations)') (True, '') (True, '') (True, '')
+completions: (0, [('beamz', 'Z beam profile'), ('beamx', 'X beam profile'), ('beamy', 'Y beam profile')]) (8, [('beamz', 'Z beam profile'), ('beamx', 'X beam profile'), ('beamy', 'Y beam profile')]) | hint: beamx  X beam profile beamx  X beam profile
+switched: (True, '') ['beamx', 'correlations'] ['overview:beamx', 'plot:y : z'] custom plot kept: x;bins=20 | state: {'groups': ['beamx', 'correlations'], 'custom': ['x;bins=5', 'ekin;logy', 'x;bins=20']}
+group shown: True ['beamx', '3d', 'correlations'] again: False | hidden: True ['3d', 'correlations'] | state: {'groups': ['3d', 'correlations'], 'custom': ['x;bins=5', 'ekin;logy', 'x;bins=20']}
+opened with the command: same state: True
+opened with the state as a dict: same state: True
+titles: (True, '') (False, 'The plots of the standard groups keep their titles (a changed plot is copied into the custom group, with its own title)') (False, 'The title must be a text on one line') (False, 'The plots of the standard groups keep their titles (a changed plot is copied into the custom group, with its own title)')
+info of a changed custom plot: {'title': 'Radius (??)', 'name': 'Radius (??)', 'plot': 'hypot(x,y)/mm', 'group': 'Custom', 'badges': [], 'constant': None, 'absent': False}
+info of a standard plot: {'title': None, 'name': 'Polarisation x', 'plot': 'polx', 'group': 'Fields', 'badges': [], 'constant': '0', 'absent': True}
+moved: True ['uz;bins=20', 'hypot(x,y)/mm'] | a standard plot: False
+state: {'custom': ['uz;bins=20', {'title': 'Radius (??)', 'plot': 'hypot(x,y)/mm'}], 'view': 'hypot(x,y)/mm'}
+opened with it: same state: True
+view "{'custom':[{'title':'A'}]}": The viewer state "{'custom':[{'title':'A'}]}" is not valid: in the custom plots, a plot without its histogram string ("plot")
+view "{'custom':[{'plot':'x','color':'red'}]}": The viewer state "{'custom':[{'plot':'x','color':'red'}]}" is not valid: in the custom plots, unknown entry "color" of a plot (the entries are: plot, title)
+view "{'custom':[3]}": The viewer state "{'custom':[3]}" is not valid: in the custom plots, a plot must be a histogram string, or a JSON object with it as "plot", and optionally a "title"
+view "{'custom':[{'plot':'x','title':''}]}": The viewer state "{'custom':[{'plot':'x','title':''}]}" is not valid: in the custom plots, the title of a plot must be a text on one line
+view "{'custom':{}}": The viewer state "{'custom':{}}" is not valid: custom must be a list of plots
+view "{'groups':'nope'}": The viewer state "{'groups':'nope'}" is not valid: groups must be a list of the groups of plots (spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations)
+view "{'groups':3}": The viewer state "{'groups':3}" is not valid: groups must be a list of the groups of plots (spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations)
+view "{'groups':['fields','nope']}": The viewer state "{'groups':['fields','nope']}" is not valid: groups must be a list of the groups of plots (spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations)
+state at the start: {} | command: mcpltool -w example.mcpl
+move up: True again: False down: True | current: custom:uz;bins=20 ['hypot(x,y)/cm', 'uz;bins=20']
+move the overview: False
+move a standard plot: False
+state: {'limit': 500, 'pick': 'pdgcode != gamma', 'custom': ['uz;bins=20', 'ekin/keV;logy=1'], 'view': 'userflags;bar;logy=auto'}
+state without the options: {'custom': ['uz;bins=20', 'ekin/keV;logy=1'], 'view': 'userflags;bar;logy=auto'}
+command: mcpltool --view="{'custom':['uz;bins=20','ekin/keV;logy=1'],'view':'userflags;bar;logy=auto'}" -l500 -p "pdgcode != gamma" example.mcpl
+opened with the command: same state: True | current: plot:userflags;bar;logy=auto
+suggested state file: example_viewer.json
+save: (True, 'Saved the viewer state in example_viewer.json')
+save again: (False, 'The file example_viewer.json already exists')
+suggested state file now: example_viewer2.json
+saved: True
+opened from the file: same state: True
+arguments after the state: 7 x;bins=5
+dry run: (True, 'Dry run: the viewer state was not saved in dry.json') False
+view 'x': plot:x
+view ' x ': plot:x
+view 'overview': overview:spectra
+view 'overview:fields': overview:fields
+view 'pdgcode;bar = auto ; logy=auto': plot:pdgcode;bar;logy=auto
+view "{'foo':1}": The viewer state "{'foo':1}" is not valid: unknown entry "foo" (the entries are: skip, limit, pick, edit, groups, custom, settings, view)
+view '{"limit":"a"}': The viewer state "{"limit":"a"}" is not valid: limit must be a number
+view '{bad': The viewer state "{bad" is not valid JSON (Expecting property name enclosed in double quotes: line 1 column 2 (char 1))
+view '[1]': Unknown groups of plots or view "[1]" (groups: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
+view 'nope.json': Can not read the viewer state from nope.json ([Errno 2] No such file or directory: 'nope.json')
+view 'nope': Unknown groups of plots or view "nope" (groups: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
+view 'overview:nope': Unknown groups of plots or view "overview:nope" (groups: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
+align: 2403 particles, neutron 100%, position (3.002553, -0.998609, 5.013888), direction (0.279722, -0.188441, 0.941406), spread 3.749 deg
+align (0, 0, 1) keeping None around mean, to None in xyz: 327 characters, position (3.002553, -0.998609, 5.013888), direction (0, 0, 1.000000), as applied: True
+align (0, 0, 1) keeping (0, 1, 0) around mean, to None in xyz: 292 characters, position (3.002553, -0.998609, 5.013888), direction (0, 0, 1.000000), as applied: True
+align (1, 1, 0) keeping (0, 0, 1) around (0, 0, 0), to None in xyz: 183 characters, position (3.463974, 4.665159, -1.178474), direction (0.707107, 0.707107, 0), as applied: True
+align (0, 0, -1) keeping None around (1, 2, 3), to (0, 0, 0) in xy: 265 characters, position (0, 0, -0.021105), direction (0, 0, -1.000000), as applied: True
+align None keeping None around mean, to (10, 0, 0) in xyz: 70 characters, position (10.000000, 0, 0), direction (0.279722, -0.188441, 0.941406), as applied: True
+align [-1.  0.  0.] keeping [0. 1. 0.] around mean, to (0, 0, 0) in xyz: 222 characters, position (0, 0, 0), direction (-1.000000, 0, 0), as applied: True
+kept axis after: (0, 0.982085, -0.188441) | in the plane of y and z: True
+align ((0, 0, 1), (0.3, -0.2, 1.0)): no error
+align ((0, 0, 1), (0, 0, 2)): The axis to keep must not be along the mean direction or the target direction
+align (None, None): Nothing to do: choose a target direction or a point to move to
+align ((0, 0, 0), None): The target direction must not be zero
+vector '+y': The point must be three lengths, as in (0,0,1m) (or numbers in cm, as in (0,0,100)), not "+y"
+vector '(0,0,1m)': [0.0, 0.0, 100.0]
+vector '(1,2,3)': [1.0, 2.0, 3.0]
+vector '1, 2, 3': [1.0, 2.0, 3.0]
+vector '(1,2)': The point must be three lengths, as in (0,0,1m) (or numbers in cm, as in (0,0,100)), not "(1,2)"
+vector 'z': The point must be three lengths, as in (0,0,1m) (or numbers in cm, as in (0,0,100)), not "z"
+vector '(1,2,3)cm': [1.0, 2.0, 3.0]
+numbers: ['1', '0', '0', '0.1', '0.3333333333333333', '1', '2.5e-07']
+suggested name: example_selected.mcpl.gz
+dry run: MCPL: Would extract 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz
+files after the dry run: []
+written: MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl.gz
+next suggested name: example_selected2.mcpl.gz
+next suggested name: example_selected3.mcpl.gz
+existing file: The file example_selected.mcpl.gz already exists
+written file: 726 particles, comments: 'mcpltool: extracted particles with -p "pdgcode == neutron" -E "z += 1m"'
+To open the viewer like this again:
+  mcpltool -w -p "pdgcode == neutron" -E "z += 1m" example.mcpl
+To write these particles to a new file:
+  mcpltool -e -p "pdgcode == neutron" -E "z += 1m" example.mcpl example_selected3.mcpl.gz
+without pick and edit:
+To open the viewer like this again:
+  mcpltool -w -l100 example.mcpl
+To write these particles to a new file:
+  mcpltool -e -l100 example.mcpl example_selected3.mcpl.gz
+==> keys ['WAIT', 'p', 'p', 'd', 'g', 'c', 'o', 'd', 'e', ' ', '=', '=', ' ', 'n', 'e', 'u', 'Tab', 'Enter', 'WAIT', 'Down', 'Down', 'Down', 'WAIT']:
+   |                             example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   |   ekin;logx=auto;logy
+   |   ekin;lethargy;logy                                     pick: pdgcode == neutron
+   |   wavelength;logx           (weights per bin)
+   | ▸ time;logx=auto;logy             54 ┤                       ▁█▇   ▂▂▃▃▃▄▄▅▅▄
+   |   pdgcode;bar;logy=auto (a           │                       ███  ▄██████████▇▇▇▇▇▇▆▂
+   |   x                                  │           ▃▃  ▁▃▃▁    ███▅▅███████████████████    ▁▂▂
+   |   y                                  │           ██▇▇█████▇▄▄████████████████████████▇▇█████
+   |   z (all 20 cm)                      │     ▂▄   ████████████████████████████████████████████▄
+   |   ux                                 │   ▂▂██▇  █████████████████████████████████████████████
+   |   uy                                 │▂▂▅█████  █████████████████████████████████████████████▅▅
+   |   uz                                 │████████  ███████████████████████████████████████████████
+   |   weight;logx=auto;logy;un           │█████████████████████████████████████████████████████████
+   |   polx (all 0, absent)               │█████████████████████████████████████████████████████████▄▂
+   |   poly (all 0, absent)               │███████████████████████████████████████████████████████████▆
+   |   polz (all 0, absent)               │████████████████████████████████████████████████████████████▅▅
+   |   userflags;bar;logy=auto            │██████████████████████████████████████████████████████████████
+   |                                      │██████████████████████████████████████████████████████████████
+   |                                      │██████████████████████████████████████████████████████████████
+   |                                      │██████████████████████████████████████████████████████████████
+   |                                      │██████████████████████████████████████████████████████████████
+   |                                      │██████████████████████████████████████████████████████████████
+   |                                      │██████████████████████████████████████████████████████████████▄
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                               0.1852 ┤███████████████████████████████████████████████████████████████  █████
+   |                                      └┬────────────────────────────────────────────────────────────────────┬
+   |                                      7.291e-10                      3.479e-08                       1.66e-06
+   |                                                                      time [s]
+   | 
+   |  Skip: [0]  Limit: [all]  Plot groups: [spectra,fields]
+   |  Pick: [pdgcode == neutron]
+   |  Edit: [no changes]
+   |  Add plot: [e.g. hypot(x,y)/cm;logy]
+   | 
+   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]  [GUI viewer]
+==> keys ['WAIT', 'e', 'x', ' ', '=', ' ', '2', 'WAIT']:
+   |                             example.mcpl: 1,006 particles, Σw = 1,006
+   | ▸ ekin;logx=auto;logy
+   |   ekin;lethargy;logy        (weights per bin)
+   |   wavelength;logx                106 ┤                       ⢠⠤⠴⠒⠒⠋⠉⢧
+   |   time;logx=auto;logy                │                   ⣀⣀⡖⠒⠋      ⢸
+   |   pdgcode;bar;logy=auto              │                  ⢀⡇          ⠘⠒⢲
+   |   x                                  │                  ⢸           ⣀⣀⣸⡄
+   |   y                                  │                  ⢸       ⣀⣀⡏⠉⠁ ⠸⡧⠤⡄
+   |   z (all 20 cm)                      │                ⢀⣀⣸      ⢀⡇      ⠉⠉⡇
+   |   ux                                 │                ⡼        ⢸         ⣇⣀⡀
+   |   uy                                 │              ⡏⠉⠁        ⢸         ⡇ ⢳⣀⣀
+   |   uz                                 │              ⡇          ⢸         ⣇⣀⡞⠒⢺
+   |   weight;logx=auto;logy;un           │              ⡇        ⢸⠉⠉             ⢸⡄   ⢰⠒⢲
+   |   polx (all 0, absent)               │              ⡇        ⢸               ⠈⡇   ⣸ ⠈⠧⠤⡄
+   |   poly (all 0, absent)               │           ⢀⡤⠤⠇        ⢸                ⠯⠭⡧⠤⠇    ⡇
+   |   polz (all 0, absent)               │         ⢠⠤⠼           ⢸                  ⡇      ⠉⠉⢧
+   |   userflags;bar;logy=auto            │         ⢸             ⡼                  ⡇        ⠘⠒⢲
+   |                                      │         ⢸             ⡇                  ⡇          ⢸
+   |                                      │         ⣸             ⡇                  ⡇          ⠘⡆
+   |                                      │         ⡇             ⡇         ⡤⠤⡄      ⡇           ⠧⠤⡄    ⡤⠤     ⡤⠤
+   |                                      │         ⡇             ⡇        ⢰⠃ ⡇      ⡇             ⡇   ⢰⠃      ⡇
+   |                                      │⠤⠤⡄    ⠤⠤⠇             ⡇  ⡤⠤  ⢠⠤⠼⡤⠤⠧⠤⡤⠤⢤  ⠧⠤⠤⠤⠤⠤⠤     ⡤⠤⠧⠤⣤⠤⠼      ⠠⠇
+   |                                      │  ⡇                    ⡇  ⡇   ⢸ ⢰⠃   ⢳ ⢸              ⡇   ⢻
+   |                                      │  ⠇                    ⡇ ⠠⠇   ⢸ ⢸    ⢸ ⠸⡄            ⠠⠇   ⢸
+   |                                      │                ⢀⣀⣀  ⣀⣀⡇      ⢸⣀⣸    ⢸⣀⣀⣇⣀⣀⣀⡀  ⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣸⣀⣀⣀⣀⣀⣀⡀
+   |                                      │                ⢸ ⢸    ⡇      ⢸             ⡇  ⡇   ⣿ ⢸⡇   ⣿      ⡇
+   |                                      │                ⢸ ⢸    ⡇      ⣸             ⡇ ⢀⡇   ⣿ ⢸⡇   ⣿      ⡇
+   |                                      │                ⢸ ⢸           ⢸                    ⢸ ⢸
+   |                                      │                ⢸ ⢸           ⢸                    ⢸ ⢸
+   |                               0.3333 ┤                ⣸ ⢸           ⣸                    ⣸ ⢸
+   |                                      └┬────────────────────────────────────────────────────────────────────┬
+   |                                      1393                           3.681e+06                      9.725e+09
+   |                                                                     ekin [eV]
+   |                             ━━ n (2112)    ━━ γ (22)      ━━ e⁻ (11)     ━━ p (2212)    ━━ e⁺ (-11)
+   |                             ━━ π⁺ (211)    ━━ π⁻ (-211)   ━━ νμ (14)
+   |  Skip: [0]  Limit: [all]  Plot groups: [spectra,fields]
+   |  Pick: [all particles]
+   |  Edit: [no changes]
+   |  Add plot: [e.g. hypot(x,y)/cm;logy]
+   | 
+   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]  [GUI viewer]
+Figure 1 (1x1): None
+  Panel None xlabel='ekin [eV]' ylabel='weights per bin' logx logy xlim=[1393.45,9.72496e+09]
+    StepHist label='n (2112)' color=0 bins=30 edges=[1393.45,9.72496e+09] sum=726 max=106 nonzero_bins=26
+    StepHist label='γ (22)' color=8 bins=30 edges=[1393.45,9.72496e+09] sum=239 max=46 nonzero_bins=13
+    StepHist label='e⁻ (11)' color=1 bins=30 edges=[1393.45,9.72496e+09] sum=15 max=3 nonzero_bins=10
+    StepHist label='p (2212)' color=4 bins=30 edges=[1393.45,9.72496e+09] sum=10 max=3 nonzero_bins=4
+    StepHist label='e⁺ (-11)' color=3 bins=30 edges=[1393.45,9.72496e+09] sum=8 max=2 nonzero_bins=5
+    StepHist label='π⁺ (211)' color=2 bins=30 edges=[1393.45,9.72496e+09] sum=5 max=1 nonzero_bins=5
+    StepHist label='π⁻ (-211)' color=7 bins=30 edges=[1393.45,9.72496e+09] sum=2 max=1 nonzero_bins=2
+    StepHist label='νμ (14)' color=9 bins=30 edges=[1393.45,9.72496e+09] sum=1 max=1 nonzero_bins=1
+==> keys ['WAIT', 'a', 'h', 'y', 'p', 'o', 't', '(', 'x', ',', 'y', ')', '/', 'c', 'm', ';', 'l', 'o', 'Tab', 'y', '=', '1', 'Enter', 'WAIT']:
+   views: custom:hypot(x,y)/cm;logy=1 current: custom:hypot(x,y)/cm;logy=1
+==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'k', 'e', 'V', 'Enter', 'WAIT']:
+   changed with Enter: custom:ekin/keV current: custom:ekin/keV
+==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Enter', 'WAIT']:
+   Enter twice keeps the plot: custom:ekin/MeV current: custom:ekin/MeV
+   Enter on an added plot, editing: 'ekin/MeV' | hint line when emptied: ('Enter: remove this plot   Esc: cancel', 'dim') True
+==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Enter', 'WAIT']:
+   removed with an empty text: plot:userflags;bar;logy=auto current: plot:userflags;bar;logy=auto
+   Enter on another view, editing: True
+==> keys ['WAIT', 'h']:
+==> keys ['WAIT', 'Down', 'Down', 'MoveUp', 'WAIT']:
+   moved up: ['ekin;logx=auto;logy', 'ekin;lethargy;logy', 'wavelength;logx'] current: plot:wavelength;logx
+==> keys ['WAIT', 'Down', 'o', 'g', 'WAIT']:
+   o shows the plot in a window: gui_plot ekin [eV] | the plot shown: plot:ekin;lethargy;logy
+   g opens the viewer in a window: gui_viewer True | messages: ['The viewer is opened in a GUI window']
+==> keys ['WAIT', 'O']:
+   without a display: Not shown: The matplotlib plotting backend can not show plots here
+==> keys ['WAIT', 'l', 'WAIT', 'k', 'Down', 'WAIT', 'K', 'WAIT']:
+   l and k: ['plot:ekin;logx=auto;logy', 'plot:ekin;lethargy;logy', 'plot:wavelength;logx']
+   the figure: logx
+==> keys ['WAIT', 'hold', 'l', 'k', 'unhold', 'WAIT']:
+   k before the changed plot is drawn: The plot is not drawn yet (try again when it is)
+   c shows the collections: ['spectra', 'fields', 'geometry', 'beamz', 'beamx', 'beamy', '3d', 'correlations'] chosen: geometry | key hint: Up/Down: choose   Enter: apply   Esc: cancel
+==> keys ['WAIT', 'C', 'Down', 'Down', 'WAIT']:
+   the menu on the screen: ['13│beamy         Y beam profile│.681e+06                      9.725e+09', 'Up/Down: choose   Enter: apply   Esc: cancel']
+==> keys ['WAIT', 'c', 'Down', 'Down', 'Enter', 'WAIT']:
+   c changes the groups: geometry plot:x : y
+==> keys ['WAIT', 'c', 'Down', 'Esc', 'WAIT']:
+   Esc keeps the groups: spectra,fields
+==> keys ['WAIT', 'v', 'Enter', 'WAIT']:
+   v saves the state in: ['example_viewer2.json']
+==> keys ['WAIT', 's', '1', '2', 'Esc', 'i', '5', '0', 'Enter', 'WAIT', 'p', 'Up', 'Esc']:
+   skip, limit: '' '50' example.mcpl: 50 particles, Σw = 50
+==> keys ['WAIT', ('Mouse', 2, 3, True), 'WAIT']:
+   view after clicking on line 3: plot:wavelength;logx
+==> keys ['WAIT', 'p', 'x', 'Ctrl-C', 'p', 'y']:
+   Ctrl-C quits like q, while editing a field: '' running: False
+==> keys ['WAIT', 'a', 'e', 'Tab', 'Down']:
+   popup of the completions:
+   | ┌──────────────────────────────────────┐
+   | │ekin      kinetic energy (an energy)  │
+   | │electron  PDG code 11                 │
+   | │eV        energy unit, 1e-6 MeV       │
+   | │exp(      exponential (a without unit)│
+   | └──────────────────────────────────────┘
+==> keys ['WAIT', 'p', 'p', 'd', 'g', 'c', 'o', 'd', 'e', ' ', '=', '=', ' ', 'n', 'e', 'u', 'WAIT']:
+   ascii backend, only ASCII characters: True | selected view: ['> pdgcode;bar;logy=auto         e- (11) (1.49%) |####################### 15']
+ANSI segments: [('ab', None, None), ('cd', 1, None), ('e', None, None), ('f', 2, 1)]
+mcpltool -w -S: exit code 1
+   | ERROR: -w and -S can not be used together.
+mcpltool -w -o x.pdf: exit code 1
+   | ERROR: -o can only be used with -H.
+mcpltool -H x/cm -H y/cm: exit code 0
+   | (weights per bin)
+mcpltool -w -B ascii: exit code 1
+   | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
+mcpltool --view=foo: exit code 1
+   | ERROR: Unknown groups of plots or view "foo" (groups: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
+mcpltool -w --color=always: exit code 1
+   | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
+mcpltool -w -p x > 1: exit code 1
+   | ERROR: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 1"
+mcpltool -wekin -w: exit code 1
+   | ERROR: -w specified more than once
+mcpltool -w with two files: ERROR: The viewer shows one file (-w can only be used with one file).

@@ -131,10 +131,16 @@ def markers( info ):
         res.append( f'python_version >= "{minpy}"' )
     for system in info.get('unavailable_on',[]):
         res.append( f'platform_system != "{system}"' )
+    only = info.get('only_on',[])
+    if only:
+        m = ' or '.join( f'platform_system == "{system}"' for system in only )
+        res.append( f'( {m} )' if len(only) > 1 else m )
     return res
 
 def create_py_spec(info):
     pn = info['pypi_pkgname']
+    if not pn:
+        return None#(no pip package, see _prepare_data_and_check_errors)
     min_v = info.get('min_version')
     max_v = info.get('max_version')
     assert not (min_v and max_v)
@@ -173,6 +179,8 @@ def install_needed( info, pyversion = None, system = None ):
     pystd = info.get('in_pystdlib_from')
     if pystd and pyversion >= vtuple(pystd):
         return False#(not needed)
+    if info.get('only_on') and system not in info['only_on']:
+        return False
     return system not in info.get('unavailable_on',[])
 
 def _prepare_data_and_check_errors( rawdata ):
@@ -232,7 +240,8 @@ def _prepare_data_and_check_errors( rawdata ):
     #Then dependencies:
     known_keys = { 'min_version', 'max_version', 'import_check', 'cmd_check',
                    'pypi_pkgname', 'conda_pkgname', 'in_pystdlib_from',
-                   'min_python', 'unavailable_on', 'freebsd_pkgname' }
+                   'min_python', 'unavailable_on', 'only_on',
+                   'freebsd_pkgname', 'check_code' }
     for depname,info in rawdata['dependencies'].items():
         check_name_ok(depname)
         if depname not in all_deps_used:
@@ -244,18 +253,22 @@ def _prepare_data_and_check_errors( rawdata ):
         for k in ['import_check','pypi_pkgname','conda_pkgname']:
             if k not in info:
                 info[k] = depname
+        #(conda_pkgname null: not available on conda-forge, so it is left out
+        #of the conda environment files; pypi_pkgname null: no pip package, like
+        #parts of Python which not all installations have, so it is left out
+        #of pyproject.toml and requirements files)
         if 'min_version' in info and 'max_version' in info:
             raise SystemExit('dependencies: both min and max versions '
                              f'specified for "{depname}" (this is currently'
                              ' not supported by our infrastructure)')
-        if not isinstance(info.get('unavailable_on',[]),list):
-            raise SystemExit(f'dependencies: unavailable_on of "{depname}"'
-                             ' must be a list')
+        for k in ('unavailable_on','only_on'):
+            if not isinstance(info.get(k,[]),list):
+                raise SystemExit(f'dependencies: {k} of "{depname}" must be a list')
 
     #add derived info:
     for depname,info in rawdata['dependencies'].items():
         info['py_spec'] = create_py_spec(info)
-        info['conda_spec'] = create_conda_spec(info)
+        info['conda_spec'] = create_conda_spec(info) if info['conda_pkgname'] else None
 
     return '',rawdata
 
@@ -290,7 +303,8 @@ def _produce_expected_deplists_for_env_files(db):
 
 def produce_expected_requirements_txt_files(db):
     def content( deplist ):
-        lines = [ db['dependencies'][dep]['py_spec'] for dep in set(deplist) ]
+        lines = [ db['dependencies'][dep]['py_spec'] for dep in set(deplist)
+                  if db['dependencies'][dep]['py_spec'] ]
         return '\n'.join(sorted(lines)+[''])
     name2deplist = _produce_expected_deplists_for_env_files(db)
     return { f'requirements_{n}.txt' : content(d)
@@ -313,7 +327,8 @@ def produce_expected_conda_yml_files(db):
         #(without the tools, which are already there):
         names = { t.split()[0] for t in tools }
         for dep in sorted(set( deplist ) - names ):
-            lines.append(db['dependencies'][dep]['conda_spec'])
+            if db['dependencies'][dep]['conda_spec']:
+                lines.append(db['dependencies'][dep]['conda_spec'])
         res = _conda_yml_init.replace('<<NAME>>',name)
         for line in lines:
             res += f'  - {line}\n'
@@ -337,6 +352,9 @@ def produce_expected_testdeps_cmake(db):
     for depname, info in sorted(db['dependencies'].items()):
         if info.get('in_pystdlib_from'):
             pass#(mctools_testutils.cmake knows how to check for these)
+        elif info.get('check_code'):
+            lines.append( f'set( MCTOOLS_TESTDEP_{depname}_PYCODE'
+                          f' "{info["check_code"]}" )' )
         elif info.get('import_check'):
             lines.append( f'set( MCTOOLS_TESTDEP_{depname}_IMPORT'
                           f' "{info["import_check"]}" )' )
@@ -345,6 +363,9 @@ def produce_expected_testdeps_cmake(db):
                           f' "{info["cmd_check"]}" )' )
         minpy = info.get('min_python')
         systems = info.get('unavailable_on',[])
+        if info.get('only_on'):
+            systems = sorted( set(systems) | ( { 'Linux', 'Darwin', 'FreeBSD',
+                                                 'Windows' } - set(info['only_on']) ) )
         if minpy:
             lines.append( f'set( MCTOOLS_TESTDEP_{depname}_MINPYTHON "{minpy}" )' )
         if systems:
@@ -365,7 +386,7 @@ def minversion_reqs( db ):
     res = []
     for dep in sorted(deps):
         info = db['dependencies'][dep]
-        if not install_needed(info):
+        if not install_needed(info) or not info['pypi_pkgname']:
             continue
         assert info.get('min_version'), f'no min_version for {dep}'
         res.append( f'{info["pypi_pkgname"]}=={info["min_version"]}.*' )

@@ -37,6 +37,7 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   PROGNAME [options] FILE                  Show the header and first particles
   PROGNAME -S [options] FILE               Summary of the particles
+  PROGNAME -w [options] FILE               View the particles interactively
   PROGNAME -H HIST [options] FILE [...]    Histograms
   PROGNAME -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
   PROGNAME -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
@@ -68,6 +69,7 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   PROGNAME [options] FILE                  Show the header and first particles
   PROGNAME -S [options] FILE               Summary of the particles
+  PROGNAME -w [options] FILE               View the particles interactively
   PROGNAME -H HIST [options] FILE [...]    Histograms
   PROGNAME -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
   PROGNAME -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
@@ -78,7 +80,7 @@ Usage:
   PROGNAME --create-examples[=N]           Create example files
   PROGNAME -v | -h | --full-help
 
-Particles (when showing particles, and with -S, -H and -e):
+Particles (when showing particles, and with -S, -w, -H and -e):
   -lN, -sN         Use only N particles (all with -l0), or skip the first N
                    particles in the file. Without -l, at most 10 particles are
                    shown when showing particles.
@@ -91,6 +93,28 @@ Showing particles:
   -j, --justhead   Show just the header.
   -n, --nohead     Show just the particles.
   -bKEY            Write the blob stored under KEY to standard output.
+
+Viewer (-w, --view):
+  Shows an overview and plots of the particles (histograms as for -H, which
+  can be changed, reordered and removed in the viewer, and further ones added,
+  also with -H, given more than once), in a window with matplotlib, or else in
+  the terminal. -l, -s, -p and -E can be changed in the viewer, and the
+  particles can be written to a new file (press h for help).
+  -wGROUPS, --view=GROUPS
+                   Show these groups of plots, separated by commas (press c in
+                   the viewer to change them), from:
+                   GROUPNAMES.
+  -wVIEW, --view=VIEW
+                   The view shown first: overview, overview:GROUP, or a plot,
+                   e.g. -wekin.
+  -wFILE.json, --view=FILE.json, --view="{...}"
+                   The state of the viewer, saved in the viewer (press v), or
+                   as printed when the viewer is closed.
+  -t, --term       Show the viewer in the terminal.
+  -B, --backend NAME
+                   Plotting backend of the viewer: matplotlib, unicode or
+                   ascii.
+  --color=WHEN     Colours in the terminal: auto, always or never (as for -H).
 
 Histogram (-H, --hist HIST):
   HIST is an expression with options, e.g.
@@ -151,8 +175,10 @@ def _mcpltool_usage(progname,errmsg=None,full=False,option=None):
         print(_option_help.get(option,"Run with -h or --help for usage information"))
         sys.exit(1)
     msg = _full_help if full else _short_help
+    from ._stdviews import _groups
     print(msg.strip().replace('PROGNAME',progname)
-          .replace('PROGPADS',' '*len(progname)))
+          .replace('PROGPADS',' '*len(progname))
+          .replace('GROUPNAMES',', '.join(_groups)))
     sys.exit(0)
 
 def _topic_help(topic):
@@ -185,7 +211,7 @@ _flag_opts = { '--stats' : '-S', '--extract' : '-e', '--merge' : '-m',
                '--traceback' : None }
 #Options of earlier versions, which are removed:
 _removed_opts = {
-    '--pdf' : 'a similar option now is: -H HIST -o FILE.pdf',
+    '--pdf' : 'similar options now are -w, and -H HIST -o FILE.pdf',
     '--gui' : 'use -w instead',
 }
 
@@ -235,7 +261,8 @@ def _app_mcpltool(argv):
     #name), -l, -s and -b, and the list of files:
     flags, values, filelist = set(), {}, []
     opt_limit = opt_skip = opt_blobkey = None
-    hists = []#(all -H strings, since there can be several)
+    opt_view = None#(the view shown first with -w, '' for the default)
+    hists = []#(all -H strings, since there can be several, also for the viewer)
     longtoshort = { v : k for k,v in _value_opts.items() }
     def set_value(name, value):
         if name == '--hist':
@@ -254,7 +281,12 @@ def _app_mcpltool(argv):
             if name in _removed_opts:
                 bad(f"{name} is no longer supported as an option"
                     f" ({_removed_opts[name]})")
-            if name in _value_opts.values() or name in _long_value_opts:
+            if name == '--view':
+                #(with an optional value, which must be attached):
+                if opt_view is not None:
+                    bad("-w specified more than once")
+                opt_view = value if eq else ''
+            elif name in _value_opts.values() or name in _long_value_opts:
                 if not eq:
                     if not args:
                         bad(f"Missing argument for {name}")
@@ -278,6 +310,10 @@ def _app_mcpltool(argv):
                     a = ''
                 elif f'-{f}' in short_flags:
                     flags.add(short_flags[f'-{f}'])
+                elif f == 'w':
+                    if opt_view is not None:
+                        bad("-w specified more than once")
+                    opt_view, a = a, ''
                 elif f == 'b':
                     if opt_blobkey is not None:
                         bad("-b specified more than once")
@@ -314,13 +350,17 @@ def _app_mcpltool(argv):
             _topic_help(topic)
 
     #The mode:
+    #(with -w, -H adds plots to the viewer):
     modes = [ m for m in ('--stats','--hist','--extract','--merge',
                           '--forcemerge','--repair','--text','--version')
-              if m in flags or m in values ]
+              if ( m in flags or m in values )
+              and not ( m == '--hist' and opt_view is not None ) ]
+    if opt_view is not None:
+        modes.insert(0,'--view')
     modenames = { 'dump' : 'when showing particles', '--stats' : '-S',
                   '--hist' : '-H', '--extract' : '-e', '--merge' : '-m',
                   '--forcemerge' : '--forcemerge', '--repair' : '-r',
-                  '--text' : '--text', '--version' : '-v' }
+                  '--text' : '--text', '--version' : '-v', '--view' : '-w' }
     if len(modes) > 1:
         bad(f"{modenames[modes[0]]} and {modenames[modes[1]]} can not be used"
             " together.")
@@ -335,7 +375,7 @@ def _app_mcpltool(argv):
             if 'dump' in okmodes:
                 w = modenames['dump'] + ( f', or {w}' if w else '' )
             bad(msg or f"{optname} can only be used {w}{hint}.")
-    datamodes = ('dump','--stats','--hist','--extract')
+    datamodes = ('dump','--stats','--view','--hist','--extract')
     allowed('-l',datamodes,opt_limit is not None)
     allowed('-s',datamodes,opt_skip is not None)
     allowed('-p',datamodes,'--pick' in values)
@@ -344,13 +384,15 @@ def _app_mcpltool(argv):
     allowed('-n',('dump',),'--nohead' in flags)
     allowed('-b',('dump',),opt_blobkey is not None)
     #(-t was the short form of --text in earlier versions, as in -t FILE OUT):
-    allowed('-t',('--hist',),'--term' in flags,
-            msg = "-t can not be used without -H" + ( " (did you mean --text?)."
-                                                       if mode == 'dump' else "." ))
-    stats_hint = ' (-S only prints text, for plots use -H)' if mode == '--stats' else ''
+    allowed('-t',('--hist','--view'),'--term' in flags,
+            msg = "-t can not be used without -H or -w" + ( " (did you mean --text?)."
+                                                            if mode == 'dump' else "." ))
+    #(-S had plots with -o and -B in earlier versions):
+    stats_hint = ( ' (-S only prints text, for plots use -H, or -w for the viewer)'
+                   if mode == '--stats' else '' )
     allowed('-o',('--hist',),'--output' in values,hint=stats_hint)
-    allowed('-B',('--hist',),'--backend' in values,hint=stats_hint)
-    allowed('--color',('--hist',),'--color' in values)
+    allowed('-B',('--hist','--view'),'--backend' in values,hint=stats_hint)
+    allowed('--color',('--hist','--view'),'--color' in values)
     if values.get('--color',"auto") not in ('auto','always','never'):
         bad("--color must be auto, always or never.")
     if '--color' in values and '--output' in values:
@@ -412,6 +454,11 @@ def _app_mcpltool(argv):
                           bool(flags & {'--no-comment','--preventcomment'}),
                           '--keep-statsum' in flags,opt_dryrun,bad)
         _mcpltool_dryrun_note(opt_dryrun)
+        sys.exit(0)
+
+    if mode == '--view':
+        _mcpltool_view(progname,filelist,opt_view,opt_skip,opt_limit,values,
+                       hists,'--term' in flags,opt_dryrun,bad)
         sys.exit(0)
 
     if mode == '--hist':
@@ -541,6 +588,28 @@ def _mcpltool_merge(filelist, opt_forcemerge, opt_inplace, opt_keepuserflags,
         out = merge_files(outfn,filelist[1:],dry_run=dry_run)
     if out is not None:
         _mcpltool_close(out,attempt_gzip)
+
+def _mcpltool_view(progname, filelist, view, skip, limit, values, hists,
+                   terminal, dry_run, bad):
+    from ._clistats import _color_options
+    from ._plotregistry import _create
+    from ._viewer import Viewer, _run_viewer, _viewer_backend
+    from ._viewer_ui import closing_text
+    if not filelist:
+        bad("No input file specified")
+    if len(filelist) > 1:
+        bad("The viewer shows one file (-w can only be used with one file).")
+    try:
+        v = Viewer(filelist[0],skip=skip or 0,limit=limit,
+                   pick=values.get('--pick'),edit=values.get('--edit'),
+                   plots=hists,view=view or None,dry_run=dry_run,
+                   progname=progname)
+        cls = _viewer_backend(values.get('--backend'),terminal)
+        _run_viewer(v,_create(cls,**_color_options(cls,values.get('--backend'),
+                                                   values.get('--color'))))
+    except MCPLError as e:
+        bad(str(e))
+    print(closing_text(v))
 
 def main():
     """This function simply calls app_mcpltool(), but any raised MCPLError

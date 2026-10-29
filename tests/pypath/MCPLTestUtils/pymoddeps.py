@@ -57,6 +57,7 @@ def imports_of( path ):
 #Modules imported by name (with importlib), from the tables of these variables
 #(the values are names of modules, optionally followed by ":" and a name):
 imports_by_name = { '__init__' : ( '_on_demand', ),
+                    '_viewer' : ( '_frontends', ),
                     '_plotregistry' : ( '_registry', '_hidden' ) }
 
 def imported_by_name( path, variables ):

@@ -413,7 +413,8 @@ or two separated by ":" for a 2D histogram (or three for a 3D plot of a
 sample of the particles, in windows), followed by options separated by ";".
 For example:''',
                '''The plots are shown in a window, or in the terminal (with -t), or saved in a
-file (with -o FILE). -H can be given several times, for several plots.''' ),
+file (with -o FILE). -H can be given several times, for several plots, and
+with -w it adds plots to the viewer.''' ),
 }
 
 #(the end of the help texts, if any):

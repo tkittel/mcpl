@@ -234,7 +234,7 @@ mcpltool -jd a1.mcpl: exit code 0
    |     Storage            : 36 bytes/particle
    | 
 mcpltool -d --stats -o s.pdf a1.mcpl: exit code 1
-   | ERROR: -o can only be used with -H (-S only prints text, for plots use -H).
+   | ERROR: -o can only be used with -H (-S only prints text, for plots use -H, or -w for the viewer).
    | 
    | Run with -h or --help for usage information
 mcpltool --dry-run --hist ekin/MeV --output h.txt a1.mcpl: exit code 1

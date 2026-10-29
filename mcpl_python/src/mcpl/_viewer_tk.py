@@ -91,6 +91,7 @@ class TkViewer(WindowFrontend):
         #the widgets call):
         fig = Figure(figsize=(10,6),dpi=100)
         self.logic = WindowLogic(viewer,self,fig)
+        self._tick_id = None#(the next call of _tick, see close_window)
         self.root = root
         root.title(f'MCPL viewer: {viewer.filename}')#(see show_title)
         #(1400x900, or less to fit on the screen, with room for the menu bars,
@@ -773,6 +774,10 @@ class TkViewer(WindowFrontend):
     def close_window( self ):
         tk, _ttk = tk_modules()
         self.logic.on_close()
+        #(the next call of _tick would come after the window is gone):
+        if self._tick_id is not None:
+            self.root.after_cancel(self._tick_id)
+            self._tick_id = None
         try:
             self.root.destroy()
         except tk.TclError:#(already destroyed)
@@ -781,9 +786,12 @@ class TkViewer(WindowFrontend):
     #Events of Tk and matplotlib:
 
     def _tick( self ):
+        """Calls the on_timer method of the logic every 0.2 s, until the
+        viewer is closed"""
+        self._tick_id = None
         self.logic.on_timer()
         if not self.logic.closed:
-            self.root.after(200,self._tick)
+            self._tick_id = self.root.after(200,self._tick)
 
     def _on_title_enter( self, w ):
         self.logic.on_title(self._text(w))
@@ -1076,7 +1084,7 @@ def run_viewer( viewer, root ):
                         ' (use a Python with a newer Tk, e.g. from conda-forge or python.org)')
     tv = TkViewer(viewer,root)
     tv.logic.start()
-    root.after(200,tv._tick)
+    tv._tick()
     try:
         run_with_ctrl_c(root.mainloop,tv.close_window)
     finally:

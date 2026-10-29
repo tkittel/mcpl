@@ -80,3 +80,8 @@ x range of another plot, not zoomed: True
 while writing: Writing written_by_tk.mcpl.gz ... ["('disabled',)", "('disabled',)"]
 written: True | window closed: True | status: example.mcpl: 1,006 particles
 closed: True
+To open the viewer like this again:
+  mcpltool -wspectra -p "pdgcode == gamma" example.mcpl
+To write these particles to a new file:
+  mcpltool -e -p "pdgcode == gamma" example.mcpl example_selected.mcpl.gz
+mcpltool -w ended with exit code 0

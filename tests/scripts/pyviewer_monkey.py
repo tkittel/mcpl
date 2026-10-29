@@ -80,7 +80,7 @@ def catch_mpl():
         'matplotlib callback',''.join(traceback.format_exception(e)))
 catch_mpl()
 tv.logic.start()
-root.after(200,tv._tick)
+tv._tick()
 
 def pump( seconds ):
     end = time.monotonic() + seconds

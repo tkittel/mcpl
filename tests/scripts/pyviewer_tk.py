@@ -33,6 +33,7 @@ import shutil
 import time
 import tkinter
 
+import mcpldev
 import mcpldev._viewer_tk as viewer_tk
 from mcpldev._viewer import Viewer
 from mcpldev._viewer_tk import TkViewer, _root
@@ -52,7 +53,7 @@ print('Tk 8.6 or later:', tkinter.TkVersion >= 8.6)
 v = Viewer('example.mcpl')
 tv = TkViewer(v,root)
 tv.logic.start()
-root.after(200,tv._tick)
+tv._tick()
 
 def pump( seconds = 0.3 ):
     """Let Tk handle events and the viewer update the window"""
@@ -382,3 +383,17 @@ print('written:', pathlib.Path('written_by_tk.mcpl.gz').exists(),
 
 tv.close_window()
 print('closed:', tv.logic.closed)
+
+#The viewer as started by mcpltool -w (and mcpl.view), here with a window
+#which is closed after a while, after which the commands doing the same are
+#printed:
+def root_closing_soon():
+    #(closed as by the user, with the handler of closing the window):
+    r = _root()
+    r.after(2000,lambda : r.tk.eval(r.protocol('WM_DELETE_WINDOW')))
+    return r
+viewer_tk._root = root_closing_soon
+try:
+    mcpldev.app_mcpltool(['mcpltool','-wspectra','-p','pdgcode == gamma','example.mcpl'])
+except SystemExit as e:
+    print('mcpltool -w ended with exit code', e.code)

@@ -61,7 +61,7 @@ def test_figures():
                                      (0,None,'mod(fileidx,3) == 0','weight *= 2') ):
         v = Viewer(ex,skip=skip,limit=limit,pick=pick,edit=edit,
                    plots=_plots)
-        v.multi_overview = True#(as in the matplotlib window)
+        v.multi_overview = True#(as in the window)
         v.start()
         v.wait()
         keys = [ k for k, _ in v.views ]

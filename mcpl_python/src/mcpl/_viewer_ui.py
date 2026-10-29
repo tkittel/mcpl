@@ -322,11 +322,6 @@ choose one, Enter or Tab inserts it, and Esc closes them.''' ),
 )
 help_text = plain_text(help_blocks)
 
-#Shown in Jupyter without the ipympl backend of matplotlib:
-no_widget_text = ( 'For interactive plots (zoom, pan, and clicking the plots of'
-                   ' the overview), install ipympl and run %matplotlib widget'
-                   ' before mcpl.view.' )
-
 def closing_text( viewer ):
     """What is printed when the viewer is closed: the commands doing the same
     (writing the particles only if they are not just those of the file, see

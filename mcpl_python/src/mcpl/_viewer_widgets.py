@@ -46,9 +46,8 @@ def _axes_problem( axes ):
 
 
 class Card:
-    """A card of the list of views of the viewers with windows (see
-    WindowLogic.cards), which the front ends show as far as they can: the
-    name, the group (if grouped, else it is shown without a group header),
+    """A card of the list of views of the viewer in a window (see
+    WindowLogic.cards), which the front end shows: the name, the group (if grouped, else it is shown without a group header),
     the badges of the options of the plot, a short status for
     compact cards (e.g. "all 0" for fields with one value, or "not in this
     file"), the problem of a plot which failed, and whether it has an image
@@ -60,7 +59,7 @@ class Card:
     card of an inactive group (inactive, see WindowLogic.cards). The key is
     that of the view, or starts with info: for cards which are not views.
     The title (if given) and the plot (histogram string) of plots are not
-    used by the front ends, but by tests."""
+    used by the front end, but by tests."""
     __slots__ = (
         'badges',
         'draggable',

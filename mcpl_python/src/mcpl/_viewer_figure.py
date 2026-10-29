@@ -98,8 +98,7 @@ def after_event( canvas, fct, *args ):
     """Call fct(*args) after the event being handled (e.g. a click which
     changes the plots, which could otherwise remove 3D plots which still get
     the event), with a timer of the canvas (or at once, for canvases without
-    timers, e.g. those of files, or whose timers can not run, e.g. those of
-    ipympl outside of Jupyter, without tornado)"""
+    timers, e.g. those of files)"""
     from matplotlib.backend_bases import TimerBase
     canvas._mcpl_timer = None#(the timer, kept until it is done)
     timer = canvas.new_timer(interval = 1)
@@ -108,12 +107,7 @@ def after_event( canvas, fct, *args ):
         return
     timer.single_shot = True
     timer.add_callback(fct,*args)
-    try:
-        timer.start()
-    except ImportError:
-        timer._timer_stop = lambda : None#(which would fail again when it is deleted)
-        fct(*args)
-        return
+    timer.start()
     canvas._mcpl_timer = timer
 
 def _remove_axes( ax ):
@@ -130,21 +124,18 @@ def _remove_axes( ax ):
 
 class FigurePane:
     """The plot of a view of a viewer (see mcpl._viewer.Viewer) in a box of a
-    matplotlib figure, for the viewers with matplotlib figures (in a window,
-    in Jupyter with ipympl, and with Tk). It is only drawn again when the
-    figure of the view changed, keeps the zoom when the same view is drawn
-    again, and knows the plots of the overview (which can be clicked). The box
+    matplotlib figure, for the viewer in a window (see _viewer_widgets and
+    _viewer_tk). It is only drawn again when the figure of the view changed,
+    keeps the zoom when the same view is drawn again, and knows the plots of
+    the overview (which can be clicked). The box
     is (left, right, bottom, top) in figure coordinates, with title_space less
-    at the top for plots with a title, which is drawn at title_y. The font size
-    of the plots is fontsize (or overview_fontsize for several plots), if
-    given, and with scale_fonts smaller in small boxes (see _font_scale)."""
+    at the top for plots with a title, which is drawn at title_y. The fonts
+    are those of matplotlib, with scale_fonts smaller in small boxes (see
+    _font_scale)."""
     def __init__( self, fig, box, title_space = 0.05, title_y = None,
-                  title_size = 10, fontsize = None, overview_fontsize = None,
                   scale_fonts = False ):
         self.fig, self._box = fig, box
         self._title_space, self._title_y = title_space, title_y
-        self._title_size = title_size
-        self._fontsize, self._overview_fontsize = fontsize, overview_fontsize
         self.axes = []#(all axes of the plot, also those of colour bars)
         self._title = None
         self._key = self._figure = None#(the view and figure drawn)
@@ -189,10 +180,8 @@ class FigurePane:
         left, right, bottom, top = self._box
         if figure.title:
             top -= self._title_space
-        several = len(figure.panels) > 1
         import matplotlib
-        size = ( self._overview_fontsize if several and self._overview_fontsize
-                 else self._fontsize ) or matplotlib.rcParams['font.size']
+        size = matplotlib.rcParams['font.size']
         self.axes = draw_in_box(self.fig,figure,left,right,bottom,top,fontsize = size * scale)
         if key == old_key:
             keep_zoom(old_axes,self.axes)
@@ -200,7 +189,7 @@ class FigurePane:
             y = self._title_y if self._title_y is not None else self._box[3]
             #(long titles are wrapped, within narrow windows):
             self._title = self.fig.text(0.5*(left+right),y,figure.title,ha='center',
-                                        va='top',size=self._title_size * scale,wrap=True)
+                                        va='top',size=10 * scale,wrap=True)
         #(the first axes are those of the plots, in order, see draw_in):
         self._panels = ( [ ( ax, k ) for ax, k in zip(self.axes,viewer.overview_keys(key))
                            if k is not None ] if key.startswith('overview:') else [] )

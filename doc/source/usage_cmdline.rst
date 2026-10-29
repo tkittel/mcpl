@@ -254,7 +254,7 @@ so that changes do not read the file again. The button at the right of the name
 of the file shows the memory used, in red when not all particles fit, and then
 the plots use only the first particles, those which fit (counted before the
 pick; new files always get all particles). The numbers of picked particles are
-then estimated for all particles (marked with ≈). Its menu says how many
+then estimated for all particles (marked with |approx|). Its menu says how many
 particles each amount of memory gives, or turns the cache off. In both
 viewers, the plots can be changed (Enter),
 reordered (Shift+Up or Shift+Down) and removed, further ones added (``a``, or
@@ -310,3 +310,5 @@ used in the same way, but can not show statistics or histograms, nor pick or
 edit particles with expressions (only particles of one type, with
 ``-pPDGCODE``), and some options (like ``--dry-run``) are only available in
 ``mcpltool``. Its options are listed by ``mcpltool-c --help``.
+
+.. |approx| unicode:: U+2248

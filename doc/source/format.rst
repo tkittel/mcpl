@@ -191,7 +191,7 @@ Comments starting with ``stat:`` are reserved: comments starting with
 ``stat:sum:`` follow the :doc:`stat:sum convention <format_statsum>`, and
 other comments starting with ``stat:`` are reserved for future use.
 
-Implementations may refuse to read or write headers larger than 1.9 GB (1.9·10⁹
+Implementations may refuse to read or write headers larger than 1.9 GB (1.9\ |middot|\ 10\ :sup:`9`
 bytes), or those which have a combined number of comments and blobs above 1000000.
 
 .. _format-particles:
@@ -537,6 +537,7 @@ Additionally, note that any MCPL comment starting with the 5 characters
 ``stat:`` is considered to be reserved for future usage.
 
 .. |times| unicode:: U+00D7
+.. |middot| unicode:: U+00B7
 
 .. toctree::
    :hidden:

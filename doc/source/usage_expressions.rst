@@ -445,14 +445,12 @@ on or off are given as 1 or 0, as in ``logy=0``, and alone they are on, as in
 |                                      | ``logx``).                           |
 +--------------------------------------+--------------------------------------+
 | ``display_by=EXPR``                  | A curve for each value of the        |
-|                                      | expression, by default ``pdgcode``   |
-|                                      | (a curve for each particle type),    |
-|                                      | e.g. ``display_by=x > 0cm``, or one  |
-|                                      | curve with ``display_by=single``.    |
-+--------------------------------------+--------------------------------------+
-| ``groups=N``                         | The number of curves of              |
-|                                      | ``display_by`` (default 8), the      |
-|                                      | others are combined into one.        |
+|                                      | expression (at most 8, the others    |
+|                                      | are combined into one), by default   |
+|                                      | ``pdgcode`` (a curve for each        |
+|                                      | particle type), e.g.                 |
+|                                      | ``display_by=x > 0cm``, or one curve |
+|                                      | with ``display_by=single``.          |
 +--------------------------------------+--------------------------------------+
 | ``display_only=COND``                | Only show the particles for which    |
 |                                      | the condition is true, of those      |

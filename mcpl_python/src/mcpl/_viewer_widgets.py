@@ -19,10 +19,12 @@
 ##                                                                            ##
 ################################################################################
 
-"""The common part of the viewers with the widgets of a GUI toolkit (Tk, see
-_viewer_tk): what happens when the fields, the views and the actions are
-used, independent of the toolkit. The plot is a matplotlib figure, embedded
-in the window by the toolkit."""
+"""The viewer in a window, independent of the GUI toolkit (Tk, see _viewer_tk):
+what happens when the fields, the views and the actions are used
+(WindowLogic), and what the toolkit must show (WindowFrontend). The logic is
+tested without a display, with a front end which prints what it is asked to
+show (see the test pyviewer_widgets). The plot is a matplotlib figure,
+embedded in the window by the toolkit."""
 
 __all__ = []
 
@@ -45,17 +47,17 @@ def _axes_problem( axes ):
 
 class Card:
     """A card of the list of views of the viewers with windows (see
-    WidgetViewer.cards), which the front ends show as far as they can: the
+    WindowLogic.cards), which the front ends show as far as they can: the
     name, the group (if grouped, else it is shown without a group header),
     the badges of the options of the plot, a short status for
     compact cards (e.g. "all 0" for fields with one value, or "not in this
     file"), the problem of a plot which failed, and whether it has an image
-    (see WidgetViewer.thumbnail), can be selected (shown), dragged (moved)
-    and removed (see WidgetViewer.on_remove, with remove_text saying what
+    (see WindowLogic.thumbnail), can be selected (shown), dragged (moved)
+    and removed (see WindowLogic.on_remove, with remove_text saying what
     that does, if not just removing the card), whether it is shown also
     when its group is folded (pinned), whether it is the overview of its
     group (overview, shown differently from the plots), and whether it is the
-    card of an inactive group (inactive, see WidgetViewer.cards). The key is
+    card of an inactive group (inactive, see WindowLogic.cards). The key is
     that of the view, or starts with info: for cards which are not views.
     The title (if given) and the plot (histogram string) of plots are not
     used by the front ends, but by tests."""
@@ -107,37 +109,11 @@ class Card:
     def __repr__( self ):
         return f'Card({self.key!r}, {self.name!r})'
 
-class WidgetViewer:
-    """The viewer in a window with the widgets of a GUI toolkit. A subclass
-    for the toolkit creates the widgets (the cards of the views, the status,
-    the plot, the fields of the shown plot: title, axes, settings and plot
-    expression, the settings of overviews, the fields of skip, limit, pick
-    and edit, a line for messages, and the actions), implements the methods
-    marked as such below, and calls the on_* methods when they are used. The
-    viewer core is v, and fig is the matplotlib figure of the plot."""
-
-    def __init__( self, viewer, fig ):
-        from ._viewer_figure import FigurePane
-        self.fig = fig
-        self._attach(viewer)
-        #(with smaller fonts in small windows, e.g. on laptops):
-        self.pane = FigurePane(fig,( 0.08, 0.98, 0.11, 0.93 ),title_space=0.05,
-                               title_y=0.98,scale_fonts=True)
-        self._histories = {}#field -> ui.History, while it is edited
-        self._thumbnails = {}#view key -> (figure, PNG data, time)
-        self._removed = set()#(the cards removed which are not views, see cards)
-        self._new_plot = None#(the title of a new plot, while it has no axes, see on_new_plot)
-        self._empty = None#(the view and message shown instead of its plot, see refresh)
-        #(when the plot was drawn, how long it took, and whether a newer figure
-        #is not drawn yet, see on_timer):
-        self._drawn_at, self._draw_time, self._plot_pending = 0.0, 0.0, False
-        self.closed = False
-        #(whether the group of the shown view is expanded, see folded_groups;
-        #not at the start, when all groups are folded):
-        self._expanded = False
-        self._browsed = None#(the title of the group of the card chosen last)
-
-    #To implement for the toolkit:
+class WindowFrontend:
+    """The front end of the viewer in a window (with the widgets of a GUI
+    toolkit, see _viewer_tk), which shows what WindowLogic asks it to with
+    these methods, and calls the on_* methods of WindowLogic when its widgets
+    are used. The methods without a default must be implemented."""
 
     def show_views( self, cards ):
         """Show the views as cards (see cards()), with the one shown (see
@@ -212,6 +188,41 @@ class WidgetViewer:
         """Show the help of the viewer (ui.help_blocks)"""
         raise NotImplementedError
 
+    def close_window( self ):
+        """Close the window (on_close is then called)"""
+        raise NotImplementedError
+
+class WindowLogic:
+    """The logic of the viewer in a window, for the viewer core v: the front
+    end (see WindowFrontend) creates the widgets (the cards of the views, the
+    status, the plot, the fields of the shown plot: title, axes, settings and
+    plot expression, the settings of overviews, the fields of skip, limit,
+    pick and edit, a line for messages, and the actions), shows what this
+    asks it to, and calls the on_* methods when its widgets are used. fig is
+    the matplotlib figure of the plot."""
+
+    def __init__( self, viewer, frontend, fig ):
+        from ._viewer_figure import FigurePane
+        self.frontend = frontend
+        self.fig = fig
+        self._attach(viewer)
+        #(with smaller fonts in small windows, e.g. on laptops):
+        self.pane = FigurePane(fig,( 0.08, 0.98, 0.11, 0.93 ),title_space=0.05,
+                               title_y=0.98,scale_fonts=True)
+        self._histories = {}#field -> ui.History, while it is edited
+        self._thumbnails = {}#view key -> (figure, PNG data, time)
+        self._removed = set()#(the cards removed which are not views, see cards)
+        self._new_plot = None#(the title of a new plot, while it has no axes, see on_new_plot)
+        self._empty = None#(the view and message shown instead of its plot, see refresh)
+        #(when the plot was drawn, how long it took, and whether a newer figure
+        #is not drawn yet, see on_timer):
+        self._drawn_at, self._draw_time, self._plot_pending = 0.0, 0.0, False
+        self.closed = False
+        #(whether the group of the shown view is expanded, see folded_groups;
+        #not at the start, when all groups are folded):
+        self._expanded = False
+        self._browsed = None#(the title of the group of the card chosen last)
+
     def help_topics( self ):
         """The topics of the help menu of the viewers with windows, as (label,
         title, blocks, see _helptext): the viewer, the expressions of picks, edits and plots (as
@@ -224,16 +235,12 @@ class WidgetViewer:
                  ( 'About data caching', 'Data caching', ui.cache_blocks ),
                  ( 'About MCPL', 'About MCPL', ui.about_blocks() ) ]
 
-    def close_window( self ):
-        """Close the window (on_close is then called)"""
-        raise NotImplementedError
-
     #Called by the toolkit:
 
     def start( self ):
         self.v.start()
         for field, *_ in ui.fields:
-            self.show_field(field,self.v.field_text(field))
+            self.frontend.show_field(field,self.v.field_text(field))
         self.refresh()
 
     def on_timer( self ):
@@ -324,7 +331,7 @@ class WidgetViewer:
             self.v.select_key(key)
             self.refresh()
         elif self.pane.on_colour_bar(event) and self.colour_bar_menu():
-            self.show_colour_bar_menu(self.colour_bar_menu())
+            self.frontend.show_colour_bar_menu(self.colour_bar_menu())
 
     #The particles kept in memory (see Viewer.cache_info and the texts in
     #_viewer_ui):
@@ -332,7 +339,7 @@ class WidgetViewer:
     def on_cache_limit( self, limit ):
         """Set the cache limit (bytes, or None for no cache, see ui.cache_menu)"""
         self.v.set_cache_limit(limit)
-        self.show_line(ui.cache_line(self.v.cache_info()),'normal')
+        self.frontend.show_line(ui.cache_line(self.v.cache_info()),'normal')
         self.refresh(plot = False)
 
     def colour_bar_menu( self ):
@@ -355,7 +362,7 @@ class WidgetViewer:
         key = self._shown_key()
         if key is not None:
             ok, msg = self.v.set_title(key,text)
-            self.show_line(msg,'normal' if ok else 'error')
+            self.frontend.show_line(msg,'normal' if ok else 'error')
             self.refresh(plot = False)
 
     def on_show_group( self, key, shown = True ):
@@ -364,11 +371,11 @@ class WidgetViewer:
         try:
             changed = self.v.show_group(key,shown)
         except MCPLError as e:
-            self.show_line(str(e),'error')
+            self.frontend.show_line(str(e),'error')
             return
         if changed:
             title = { k : t for k, t, _ in self.v.group_list() }[key]
-            self.show_line(f'{"Activated" if shown else "Deactivated"}: the group {title}','normal')
+            self.frontend.show_line(f'{"Activated" if shown else "Deactivated"}: the group {title}','normal')
             if shown:
                 self._expanded = True#(the group shown is expanded, see folded_groups)
                 self.v.select_key(f'overview:{key}')
@@ -386,7 +393,7 @@ class WidgetViewer:
         if key in plots and ( target is None or target in plots ):
             self.v.move_to(key[7:],0 if target is None else plots.index(target))
         else:
-            self.show_line('Only the custom plots are reordered','error')
+            self.frontend.show_line('Only the custom plots are reordered','error')
         self.refresh(plot = False)
 
     #The settings of the shown plot and of overviews:
@@ -514,16 +521,16 @@ class WidgetViewer:
         if name == 'most':
             value = self.v.most_correlated(key) if shown == ui.most_correlated else None
             if value is None and shown == ui.most_correlated:
-                self.show_line('The correlations are known when the file is read','error')
+                self.frontend.show_line('The correlations are known when the file is read','error')
             elif value is not None and len(value) < 2:
-                self.show_line('Fewer than two of the variables have more than one value','error')
+                self.frontend.show_line('Fewer than two of the variables have more than one value','error')
             else:
                 try:
                     self.v.set_group_setting(key,'variables',value)
-                    self.show_line(f'Variables: {", ".join(self.v.group_setting(key,"variables"))}',
+                    self.frontend.show_line(f'Variables: {", ".join(self.v.group_setting(key,"variables"))}',
                                    'normal')
                 except MCPLError as e:#(e.g. when only one of them varies)
-                    self.show_line(str(e),'error')
+                    self.frontend.show_line(str(e),'error')
             self.refresh()
             return
         controls = { n : ( texts, now ) for n, _, texts, now in self.overview_controls() }
@@ -537,7 +544,7 @@ class WidgetViewer:
         try:
             self.v.set_group_setting(key,name,value)
         except MCPLError as e:
-            self.show_line(str(e),'error')
+            self.frontend.show_line(str(e),'error')
         self.refresh()
 
     def _shown_group( self ):
@@ -551,7 +558,7 @@ class WidgetViewer:
             return
         done, msg, replot = ui.apply_text(self.v,'plot',self._option(plot,name,shown),
                                           replaces = self._shown_key())
-        self.show_line(msg,'normal' if done else 'error')
+        self.frontend.show_line(msg,'normal' if done else 'error')
         self.refresh(plot = replot)
 
     def on_control_edited( self, name, text ):
@@ -564,7 +571,7 @@ class WidgetViewer:
         _, hint, field = ui.written_options[name]
         text = text.strip()
         if not text:
-            self.show_line(hint,'dim')
+            self.frontend.show_line(hint,'dim')
             return
         try:
             ok, msg = ui.check_text(self.v,'plot',self._option(plot,name,text),
@@ -577,11 +584,11 @@ class WidgetViewer:
             msg = msg if ok_field else msg_field
         hint = self.v.hint(field,text)
         if not ok and msg:
-            self.show_line(msg,'error')
+            self.frontend.show_line(msg,'error')
         elif hint:
-            self.show_line('hint: ' + hint,'dim')
+            self.frontend.show_line('hint: ' + hint,'dim')
         else:
-            self.show_line('Enter: apply   Esc: cancel','dim')
+            self.frontend.show_line('Enter: apply   Esc: cancel','dim')
 
     def compose( self, x, y = '', z = '', settings = () ):
         """A plot string from the quantities x, y and z (names of
@@ -604,7 +611,7 @@ class WidgetViewer:
         ok, msg = self.v.set('plot',plot)
         if ok and title.strip() and len(self.v.views) > new:
             self.v.set_title(self.v.current_key,title)
-        self.show_line(msg,'normal' if ok else 'error')
+        self.frontend.show_line(msg,'normal' if ok else 'error')
         self.refresh()
         return ok
 
@@ -631,8 +638,8 @@ class WidgetViewer:
         on_axes), and given up when another view is shown"""
         self._new_plot = ''#(its title, see on_title)
         self.refresh()
-        self.focus_field('x_axis')
-        self.show_line('Choose or type what to plot on the X axis (and on the Y and Z axes for'
+        self.frontend.focus_field('x_axis')
+        self.frontend.show_line('Choose or type what to plot on the X axis (and on the Y and Z axes for'
                        ' 2D histograms and 3D plots)','dim')
 
     def on_axes( self, x, y = '', z = '' ):
@@ -644,13 +651,13 @@ class WidgetViewer:
         from ._histstring import _hist_join, _hist_parts
         x, y, z = ( a.strip() for a in ( x, y, z ) )
         if not x:
-            self.show_line('Choose or type what to plot on the X axis','error')
+            self.frontend.show_line('Choose or type what to plot on the X axis','error')
             return False
         problem = _axes_problem(( x, y, z ))
         if problem:
-            self.show_line(problem,'error')
+            self.frontend.show_line(problem,'error')
             return False
-        self.show_pending('axes',False)
+        self.frontend.show_pending('axes',False)
         if self._new_plot is not None:
             title, self._new_plot = self._new_plot, None
             return self.on_add_plot(self.compose(x,y,z),title)
@@ -662,7 +669,7 @@ class WidgetViewer:
         if not self.v.check('plot',new)[0] and self.v.check('plot',exprs)[0]:
             new = exprs#(options which can not be used for the new axes, e.g. logx in 2D)
         done, msg, replot = ui.apply_text(self.v,'plot',new,replaces = self._shown_key())
-        self.show_line(msg,'normal' if done else 'error')
+        self.frontend.show_line(msg,'normal' if done else 'error')
         self.refresh(plot = replot)
         return done
 
@@ -672,21 +679,21 @@ class WidgetViewer:
         enabled while they differ from those of the shown plot (or for a new
         plot)"""
         x, y, z = ( a.strip() for a in ( x, y, z ) )
-        self.show_pending('axes',bool(x) and ( self._new_plot is not None
+        self.frontend.show_pending('axes',bool(x) and ( self._new_plot is not None
                                                or ( x, y, z ) != self.axis_texts() ))
         if not x:
-            self.show_check('axes',None)
-            self.show_line('Choose or type what to plot on the X axis (and on the Y and Z axes'
+            self.frontend.show_check('axes',None)
+            self.frontend.show_line('Choose or type what to plot on the X axis (and on the Y and Z axes'
                            ' for 2D histograms and 3D plots), and press Enter','dim')
             return
         problem = _axes_problem(( x, y, z ))
         if problem:
-            self.show_check('axes',False)
-            self.show_line(problem,'error')
+            self.frontend.show_check('axes',False)
+            self.frontend.show_line(problem,'error')
             return
         ok, msg = self.v.check('plot',self.compose(x,y,z))
-        self.show_check('axes',ok)
-        self.show_line(msg if not ok else 'Enter: show this   Esc: cancel',
+        self.frontend.show_check('axes',ok)
+        self.frontend.show_line(msg if not ok else 'Enter: show this   Esc: cancel',
                        'error' if not ok else 'dim')
 
     def plot_code( self ):
@@ -813,16 +820,16 @@ class WidgetViewer:
         else:
             ok, msg = ui.check_text(self.v,field,text)
             hint = self.v.hint(field,text)
-        self.show_check(field,ok)
-        self.show_pending(field,self._is_pending(field,text))
+        self.frontend.show_check(field,ok)
+        self.frontend.show_pending(field,self._is_pending(field,text))
         if not ok and msg:
-            self.show_line(msg,'error')
+            self.frontend.show_line(msg,'error')
         elif hint:
-            self.show_line('hint: ' + hint,'dim')
+            self.frontend.show_line('hint: ' + hint,'dim')
         elif field == 'shown_plot' and not text.strip():
-            self.show_line('Enter: remove this plot   Esc: cancel','dim')
+            self.frontend.show_line('Enter: remove this plot   Esc: cancel','dim')
         else:
-            self.show_line(ui.field_hint('plot' if field == 'shown_plot' else field,self.v),'dim')
+            self.frontend.show_line(ui.field_hint('plot' if field == 'shown_plot' else field,self.v),'dim')
 
     def _is_pending( self, field, text ):
         """Whether the text of the field differs from what was applied"""
@@ -852,8 +859,8 @@ class WidgetViewer:
                 self._new_plot = title#(still to be made)
                 self.refresh(plot = False)
                 return False
-            self.show_check(field,None)
-            self.show_pending(field,False)
+            self.frontend.show_check(field,None)
+            self.frontend.show_pending(field,False)
             return True
         if field == 'shown_plot':
             done, msg, replot = ui.apply_text(self.v,'plot',text,replaces = self._shown_key())
@@ -861,25 +868,25 @@ class WidgetViewer:
             done, msg, replot = ui.apply_text(self.v,field,text)
         if done:
             self._histories.pop(field,None)
-            self.show_check(field,None)
-            self.show_pending(field,False)
+            self.frontend.show_check(field,None)
+            self.frontend.show_pending(field,False)
             if field != 'shown_plot':
                 #(the added plot is shown, so the field is emptied):
-                self.show_field(field,'' if field == 'plot' else self.v.field_text(field))
-        self.show_line(msg,'normal' if done else 'error')
+                self.frontend.show_field(field,'' if field == 'plot' else self.v.field_text(field))
+        self.frontend.show_line(msg,'normal' if done else 'error')
         self.refresh(plot = replot)
         return done
 
     def on_field_cancel( self, field ):
         """The editing of the field is cancelled (Esc): its text is restored"""
         self._histories.pop(field,None)
-        self.show_check(field,None)
-        self.show_pending(field,False)
-        self.show_line('','normal')
+        self.frontend.show_check(field,None)
+        self.frontend.show_pending(field,False)
+        self.frontend.show_line('','normal')
         if field == 'shown_plot':
             self.refresh(plot = False)
         else:
-            self.show_field(field,'' if field == 'plot' else self.v.field_text(field))
+            self.frontend.show_field(field,'' if field == 'plot' else self.v.field_text(field))
 
     def on_history( self, field, delta ):
         """The text after moving delta in the earlier texts of the field (Up and
@@ -915,19 +922,19 @@ class WidgetViewer:
             self.on_move( -1 if action == 'move_up' else 1 )
         elif action == 'change':
             if self._shown_plot() is not None:
-                self.focus_field('shown_plot')
+                self.frontend.focus_field('shown_plot')
         elif action == 'plot':
             self.on_new_plot()
         elif action == 'write' and not self.v.changes_particles:
-            self.show_line(self.v.nothing_to_write,'error')
+            self.frontend.show_line(self.v.nothing_to_write,'error')
         elif action in ui.file_prompts:
-            self.ask_file(action)
+            self.frontend.ask_file(action)
         elif action == 'help':
-            self.show_help()
+            self.frontend.show_help()
         elif action == 'quit':
-            self.close_window()
+            self.frontend.close_window()
         else:
-            self.focus_field(action)
+            self.frontend.focus_field(action)
 
     def hover_text( self, name ):
         """The text of the status line while the mouse is over the field or
@@ -951,16 +958,16 @@ class WidgetViewer:
         try:
             new, msg = self.v.for_file(filename,particles)
         except MCPLError as e:
-            self.show_line(f'Not opened: {e}','error')
+            self.frontend.show_line(f'Not opened: {e}','error')
             return False
         self.v.stop()
         self._attach(new)
         self._thumbnails = {}
         self._plot_pending = False
         self.pane.clear()
-        self.show_title(new.filename)
+        self.frontend.show_title(new.filename)
         self.start()
-        self.show_line(msg,'error' if msg else 'normal')
+        self.frontend.show_line(msg,'error' if msg else 'normal')
         return True
 
     def on_remove( self, key = None ):
@@ -975,7 +982,7 @@ class WidgetViewer:
         if ui.group_of(key) is not None:
             #(the overview of a group hides the group):
             if ui.group_of(key) == custom_key:
-                self.show_line('The custom plots are removed one by one','error')
+                self.frontend.show_line('The custom plots are removed one by one','error')
                 return
             self.on_show_group(ui.group_of(key),False)
             return
@@ -984,11 +991,11 @@ class WidgetViewer:
             self.refresh(plot = False)
             return
         if ui.plot_of(key) is None:
-            self.show_line('Choose a plot to remove it','error')
+            self.frontend.show_line('Choose a plot to remove it','error')
             return
         name = self.v.plot_info(key)['name']
         ok, msg = self.v.change_plot(key,'')
-        self.show_line(f'Removed the plot "{name}"' if ok else msg,'normal' if ok else 'error')
+        self.frontend.show_line(f'Removed the plot "{name}"' if ok else msg,'normal' if ok else 'error')
         self.refresh()
 
     def on_scale_key( self, key, view = None ):
@@ -996,7 +1003,7 @@ class WidgetViewer:
         of the view with the key view (e.g. a plot of the overview under the
         mouse)"""
         ok, msg = self.v.toggle_scale(ui.scale_keys[key.lower()],view)
-        self.show_line(msg,'normal' if ok else 'error')
+        self.frontend.show_line(msg,'normal' if ok else 'error')
         self.refresh()
 
     def on_action( self, action ):
@@ -1007,7 +1014,7 @@ class WidgetViewer:
         """The file name asked for by ask_file (None if cancelled)"""
         if filename:
             done, msg, _ = ui.apply_text(self.v,action,filename)
-            self.show_line(msg,'normal' if done else 'error')
+            self.frontend.show_line(msg,'normal' if done else 'error')
             self.refresh(plot = False)
 
     def suggested_filename( self, action ):
@@ -1042,21 +1049,21 @@ class WidgetViewer:
     def refresh( self, plot = True ):
         """Show the views, the status and (if plot is set) the plot"""
         v = self.v
-        self.show_views(self.cards())
-        self.show_status(*v.status_lines())
+        self.frontend.show_views(self.cards())
+        self.frontend.show_status(*v.status_lines())
         shown = self._shown_plot()
         if self._new_plot is not None:
-            self.show_plot_field('',self._new_plot,( '', '', '' ))
+            self.frontend.show_plot_field('',self._new_plot,( '', '', '' ))
         else:
-            self.show_plot_field(shown,v.plot_info(self._shown_key())['title'] if shown else None,
+            self.frontend.show_plot_field(shown,v.plot_info(self._shown_key())['title'] if shown else None,
                                  self.axis_texts())
-        self.show_controls(self.plot_controls())
-        self.show_overview_controls(self.overview_controls())
-        self.show_enabled('write',self.v.changes_particles)
+        self.frontend.show_controls(self.plot_controls())
+        self.frontend.show_overview_controls(self.overview_controls())
+        self.frontend.show_enabled('write',self.v.changes_particles)
         if plot and self._new_plot is not None:
             self.pane.clear()
             self.pane.show_message(ui.new_plot_hints,left = True)
-            self.draw_plot()
+            self.frontend.draw_plot()
         elif plot and v.figure() is None and not v.reading:
             #(nothing to show, e.g. when no particles are picked: said in the
             #plot, instead of keeping the plot drawn before):
@@ -1065,13 +1072,13 @@ class WidgetViewer:
                 self._empty = ( v.current_key, message )
                 self.pane.clear()
                 self.pane.show_message(message)
-                self.draw_plot()
+                self.frontend.draw_plot()
         elif plot:
             import time
             self._empty = None
             t = time.monotonic()
             if self.pane.show(v):
-                self.draw_plot()
+                self.frontend.draw_plot()
                 self._drawn_at = time.monotonic()
                 self._draw_time = self._drawn_at - t
 

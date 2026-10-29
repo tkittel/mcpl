@@ -59,7 +59,7 @@ def tint( part, name ):
             w.configure(style=f'{name}.TLabel')
 
 class Controls:
-    """The settings of a plot (see WidgetViewer.plot_controls): a menu or a
+    """The settings of a plot (see WindowLogic.plot_controls): a menu or a
     text field for each, in a row, which call on_change(option, shown text)
     when changed (with Enter, for the text fields). The row is made again
     when the kind of plot changes. The menus of ui.written_options have a
@@ -159,7 +159,7 @@ class Controls:
         self._on_edit(name,'')
 
 class OverviewControls:
-    """The settings of an overview (see WidgetViewer.overview_controls): a menu,
+    """The settings of an overview (see WindowLogic.overview_controls): a menu,
     toggle buttons (for the variables) or a button for each, in rows as wide
     as the window, which call on_change(name, shown text) when changed (for
     toggles, the text of the toggle). They are made again when the choices

@@ -24,7 +24,7 @@ which are shown (see _stdviews), with their fixed plots, and the custom
 group, with the plots which were added (and the copies of standard plots
 which were changed). Each group has its overview (see _viewer_overviews).
 A plot in several standard groups is one view, with a card in each (see
-_viewer_widgets.WidgetViewer.cards), and the custom plots (which are always
+_viewer_widgets.WindowLogic.cards), and the custom plots (which are always
 shown) are the only ones which can be reordered, given titles and removed."""
 
 __all__ = []

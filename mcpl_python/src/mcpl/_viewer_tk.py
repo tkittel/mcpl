@@ -51,7 +51,7 @@ from ._viewer_tkwindows import (
     WriteWindow,
 )
 from ._viewer_ui import card_colors, colors, part_colors
-from ._viewer_widgets import WidgetViewer, run_with_ctrl_c
+from ._viewer_widgets import WindowFrontend, WindowLogic, run_with_ctrl_c
 
 #Tk key names, as names of _viewer_ui (the others are characters):
 _keymap = { 'Return' : 'Enter', 'KP_Enter' : 'Enter', 'Escape' : 'Esc', 'Delete' : 'Delete',
@@ -78,7 +78,7 @@ def _key_name( event ):
         return None if event.state & mods else event.char
     return name
 
-class TkViewer(WidgetViewer):
+class TkViewer(WindowFrontend):
     """The viewer in the Tk window root"""
     def __init__( self, viewer, root ):
         tk, ttk = tk_modules()
@@ -87,6 +87,10 @@ class TkViewer(WidgetViewer):
             NavigationToolbar2Tk,
         )
         from matplotlib.figure import Figure
+        #(the logic of the viewer, which this shows, and whose on_* methods
+        #the widgets call):
+        fig = Figure(figsize=(10,6),dpi=100)
+        self.logic = WindowLogic(viewer,self,fig)
         self.root = root
         root.title(f'MCPL viewer: {viewer.filename}')#(see show_title)
         #(1400x900, or less to fit on the screen, with room for the menu bars,
@@ -183,7 +187,7 @@ class TkViewer(WidgetViewer):
         for action, label, keys, kpos in ui.actions:
             if action not in ( 'write', 'help' ):#(help has its own menu)
                 menu.add_command(label=label,underline=kpos,accelerator=keys[0],
-                                 command=lambda a=action : self.on_action(a))
+                                 command=lambda a=action : self.logic.on_action(a))
         self._cards = CardList(left,self)
         self._hover(self._cards.canvas,'views')
         #The status and the plot (on the right):
@@ -214,7 +218,7 @@ class TkViewer(WidgetViewer):
         self._plot_fields = fields#(not shown for views which are not plots)
         #(the settings of overviews, shown instead of the fields, see
         #show_overview_controls):
-        self._overview_controls = OverviewControls(part,self.on_overview_control,'Plot')
+        self._overview_controls = OverviewControls(part,self.logic.on_overview_control,'Plot')
         plot = tk.Frame(part,name='plotbox',background=bg)
         self._plotbox = plot
         plot.pack(fill='both',expand=True,pady=(0,4))
@@ -222,7 +226,6 @@ class TkViewer(WidgetViewer):
         #matplotlib draws its icons on their background):
         for option in ( 'background', 'highlightBackground', 'activeBackground' ):
             root.option_add(f'*plotbox*{option}',bg)
-        fig = Figure(figsize=(10,6),dpi=100)
         self.canvas = FigureCanvasTkAgg(fig,master=plot)
         self.toolbar = NavigationToolbar2Tk(self.canvas,plot,pack_toolbar=False)
         self.toolbar.update()
@@ -230,7 +233,6 @@ class TkViewer(WidgetViewer):
         #(the plot fills the space left, so it asks for little):
         self.canvas.get_tk_widget().configure(width=400,height=300)
         self.canvas.get_tk_widget().pack(side='top',fill='both',expand=True)
-        super().__init__(viewer,fig)
         #(the help, above the cards):
         self._help_menu(self._top_row)
         self.canvas.mpl_connect('button_press_event',self._on_mpl_click)
@@ -301,7 +303,7 @@ class TkViewer(WidgetViewer):
         #window with the name of the file and the code):
         self._write = ttk.Button(grid,text='New MCPL file...',
                                  style='Head.Accent.TButton',takefocus=0,
-                                 command=lambda : self.on_action('write'))
+                                 command=lambda : self.logic.on_action('write'))
         #(below skip and limit, from the start of the one to the end of the other):
         self._write.grid(row=len(rows)-1,column=cols['skip'],
                          columnspan=cols['limit']+2-cols['skip'],sticky='ew',padx=(12,0))
@@ -341,7 +343,7 @@ class TkViewer(WidgetViewer):
         self._help_choices = menu
 
     def _add_help_topics( self, menu ):
-        topics = self.help_topics()
+        topics = self.logic.help_topics()
         #(w for the viewer, as for mcpltool -w):
         for ( label, title, text ), pos in zip(topics,mnemonics([ t[0] for t in topics ],
                                                                 { 'The viewer' : 'w' })):
@@ -357,11 +359,11 @@ class TkViewer(WidgetViewer):
         menu = tk.Menu(bar,tearoff=0)
         menu.add_command(label='Open MCPL file...',command=self._ask_open,
                          accelerator=shortcut_name('O',root))
-        menu.add_command(label='New MCPL file...',command=lambda : self.on_action('write'))
+        menu.add_command(label='New MCPL file...',command=lambda : self.logic.on_action('write'))
         for action, label, _keys, _kpos in ui.actions:
             #(Quit is in the menu of the application):
             if action not in ( 'write', 'help', 'quit' ):
-                menu.add_command(label=label,command=lambda a=action : self.on_action(a))
+                menu.add_command(label=label,command=lambda a=action : self.logic.on_action(a))
         bar.add_cascade(label='File',menu=menu)
         self._bar_file = menu
         #(the name help makes it the help menu of macOS, with its search field):
@@ -378,15 +380,15 @@ class TkViewer(WidgetViewer):
         tk, ttk = tk_modules()
         #(the buttons at the right of the header):
         b = ttk.Button(head,text='+  New plot',style='Head.Accent.TButton',takefocus=0,
-                       command=self.on_new_plot)
+                       command=self.logic.on_new_plot)
         b.pack(side='right',padx=(6,0))
         self._hover(b,'new_plot')
         self._remove = ttk.Button(head,text='Remove plot',style='Head.TButton',takefocus=0,
-                                  command=self.on_remove)
+                                  command=self.logic.on_remove)
         self._remove.pack(side='right',padx=(6,0))
         self._code = ttk.Button(head,text='</>  Plot code',style='Head.TButton',takefocus=0,
                                 command=lambda : CodeWindow(self,'Code of the plot',
-                                                             self.plot_code()))
+                                                             self.logic.plot_code()))
         self._code.pack(side='right')
         #(the title, in the header):
         ttk.Label(head,text='Title:',style='Plot.TLabel').pack(side='left',padx=(16,4))
@@ -417,7 +419,7 @@ class TkViewer(WidgetViewer):
             w.pack(side='left')
             w.bind('<<ComboboxSelected>>',lambda _e, w=w : self._on_axis_chosen(w))
             w.bind('<KeyRelease>',lambda e, w=w : self._on_axis_key(w,e))
-            on_paste(w,lambda : self.on_axes_edited(*self._axis_texts()))
+            on_paste(w,lambda : self.logic.on_axes_edited(*self._axis_texts()))
             bind_enter(w,lambda w=w : self._on_axes_enter(w))
             w.bind('<Escape>',lambda _e : self._on_axis_escape())
             #(Tab completes the expressions, as in the other fields, and Up and
@@ -466,7 +468,7 @@ class TkViewer(WidgetViewer):
         frame.pack(fill='x',pady=1)
         self._settings_row = frame
         ttk.Label(frame,text='Settings:',**row_label).pack(side='left',padx=(0,4))
-        self._controls = Controls(frame,self.on_control,self.on_control_edited,
+        self._controls = Controls(frame,self.logic.on_control,self.logic.on_control_edited,
                                    self._bind_written,style = 'Plot')
         self._controls.frame.pack(side='left',fill='x',expand=True)
 
@@ -498,14 +500,14 @@ class TkViewer(WidgetViewer):
         if event.keysym in command_keys:
             return
         self._close_popup()
-        self.on_control_edited(name,w.get())
+        self.logic.on_control_edited(name,w.get())
 
     def _on_written_enter( self, w, name ):
         if self._popup is not None:
             self._insert_choice(w)
             return 'break'
         self.canvas.get_tk_widget().focus_set()
-        self.on_control(name,w.get())
+        self.logic.on_control(name,w.get())
         return 'break'
 
     def _on_written_escape( self ):
@@ -514,14 +516,14 @@ class TkViewer(WidgetViewer):
             return 'break'
         self.canvas.get_tk_widget().focus_set()
         self.show_line('','dim')
-        self.refresh(plot = False)
+        self.logic.refresh(plot = False)
         return 'break'
 
     def _on_axis_key( self, w, event ):
         if event.keysym in command_keys:
             return
         self._close_popup()
-        self.on_axes_edited(*self._axis_texts())
+        self.logic.on_axes_edited(*self._axis_texts())
 
     def _on_axis_escape( self ):
         if self._popup is not None:
@@ -533,7 +535,7 @@ class TkViewer(WidgetViewer):
         if self._popup is not None and w is not None:
             self._insert_choice(w)
             return 'break'
-        if self.on_axes(*self._axis_texts()):
+        if self.logic.on_axes(*self._axis_texts()):
             self.show_check('axes',None)
             self.canvas.get_tk_widget().focus_set()
         return 'break'
@@ -553,9 +555,9 @@ class TkViewer(WidgetViewer):
         if key.lower() in self._menu_keys:
             self._menu_keys[key.lower()].event_generate('<<Invoke>>')
             return
-        super().on_key(key)
+        self.logic.on_key(key)
 
-    #Implementation of WidgetViewer:
+    #Implementation of WindowFrontend:
 
     def show_views( self, cards ):
         self._cards.show(cards)
@@ -563,7 +565,7 @@ class TkViewer(WidgetViewer):
     def show_status( self, first, second ):
         #(the numbers of the particles used are shown with the pick and edit,
         #and on the button writing them):
-        v = self.v
+        v = self.logic.v
         self._status[0].configure(text=v.file_text())
         self._status[1].configure(text=second)
         self._counts.configure(text=v.counts_text() or '')
@@ -597,7 +599,7 @@ class TkViewer(WidgetViewer):
         if focus_of(self.root) not in self._axes:
             self.show_pending('axes',False)#(the axes are those of the plot)
         #(only custom plots can be removed, or a new plot given up):
-        removable = self._new_plot is not None or ( text is not None and self.v.is_custom(text) )
+        removable = self.logic._new_plot is not None or ( text is not None and self.logic.v.is_custom(text) )
         self._remove.configure(state='normal' if removable else 'disabled')
         #(the fields are only shown for plots, so the overview gets more room):
         if text is None:
@@ -605,7 +607,7 @@ class TkViewer(WidgetViewer):
         elif not self._plot_fields.winfo_manager():
             self._plot_fields.pack(side='bottom',fill='x',before=self._plotbox)
         #(a new plot has no code yet):
-        self._code.configure(state='disabled' if self._new_plot is not None else 'normal')
+        self._code.configure(state='disabled' if self.logic._new_plot is not None else 'normal')
 
     def show_line( self, text, style ):
         self._line.configure(text=text,foreground=colors.get(style,colors['normal']))
@@ -618,11 +620,11 @@ class TkViewer(WidgetViewer):
         import os
         from tkinter import filedialog
         chosen = filedialog.askopenfilename(parent=self.root,title='Open an MCPL file',
-                                            initialdir=os.path.dirname(os.path.abspath(self.v.filename)),
+                                            initialdir=os.path.dirname(os.path.abspath(self.logic.v.filename)),
                                             filetypes=[ ( 'MCPL files', '*.mcpl *.mcpl.gz' ),
                                                         ( 'All files', '*' ) ])
         if chosen:
-            self.on_open_file(chosen)
+            self.logic.on_open_file(chosen)
 
     def show_enabled( self, action, enabled ):
         assert action == 'write'#(the only action enabled or not)
@@ -630,7 +632,7 @@ class TkViewer(WidgetViewer):
         self._write.state([ '!disabled' if enabled else 'disabled' ])
         if getattr(self,'_bar_file',None) is not None:#(the menu bar on macOS)
             self._bar_file.entryconfigure(1,state='normal' if enabled else 'disabled')
-        n = self.v.nused_text(compact = True)
+        n = self.logic.v.nused_text(compact = True)
         self._write.configure(style='Head.Accent.TButton' if enabled else 'Head.TButton',
                               text=( f'New MCPL file ({n} particles)...'
                                      if enabled and n is not None else 'New MCPL file...' ))
@@ -664,7 +666,7 @@ class TkViewer(WidgetViewer):
         menu._used = tk_modules()[0].StringVar(menu,value='')
         menu.add_command(label=ui.cache_menu_title,state='disabled')
         menu.add_separator()
-        for i, ( label, limit, used, fits ) in enumerate(ui.cache_menu(self.v.cache_info())):
+        for i, ( label, limit, used, fits ) in enumerate(ui.cache_menu(self.logic.v.cache_info())):
             if used:
                 menu._used.set(str(i))
             #(marked also with a symbol for all or a part of the particles in
@@ -673,7 +675,7 @@ class TkViewer(WidgetViewer):
             menu.add_radiobutton(label=mark + label,
                                  value=str(i),variable=menu._used,
                                  foreground=colors['ok' if fits else 'error'],
-                                 command=lambda x=limit : self.on_cache_limit(x))
+                                 command=lambda x=limit : self.logic.on_cache_limit(x))
         #(the help about the cache, as in the help menu):
         menu.add_separator()
         menu.add_command(label='About caching',
@@ -686,7 +688,7 @@ class TkViewer(WidgetViewer):
         menu._used = tk.StringVar(menu,value=next( ( s for _, u, s in entries if u ), '' ))
         for label, _used, shown in entries:
             menu.add_radiobutton(label=label,value=shown,variable=menu._used,
-                                 command=lambda s=shown : self.on_control('logz',s))
+                                 command=lambda s=shown : self.logic.on_control('logz',s))
         x, y = self.root.winfo_pointerxy()
         menu.tk_popup(x,y)
 
@@ -730,20 +732,20 @@ class TkViewer(WidgetViewer):
         w = self._entries[field]
         w.focus_set()
         w.icursor('end')
-        self.on_field_edited(field,self._text(w))
+        self.logic.on_field_edited(field,self._text(w))
 
     def ask_file( self, action ):
         if action == 'write':
             WriteWindow(self)
             return
-        self.ask_file_name(action,lambda name : self.on_file(action,name))
+        self.ask_file_name(action,lambda name : self.logic.on_file(action,name))
 
     def ask_file_name( self, action, then ):
         """Ask for the name of the file in a file dialog, and call then with it
         (None if cancelled)"""
         import os
         from tkinter import filedialog
-        name = self.suggested_filename(action)
+        name = self.logic.suggested_filename(action)
         title = 'Write the particles to' if action == 'write' else 'Save the viewer state in'
         chosen = filedialog.asksaveasfilename(parent=self.root,title=title,
                                               initialdir=os.path.dirname(os.path.abspath(name)),
@@ -770,7 +772,7 @@ class TkViewer(WidgetViewer):
 
     def close_window( self ):
         tk, _ttk = tk_modules()
-        self.on_close()
+        self.logic.on_close()
         try:
             self.root.destroy()
         except tk.TclError:#(already destroyed)
@@ -779,19 +781,19 @@ class TkViewer(WidgetViewer):
     #Events of Tk and matplotlib:
 
     def _tick( self ):
-        self.on_timer()
-        if not self.closed:
+        self.logic.on_timer()
+        if not self.logic.closed:
             self.root.after(200,self._tick)
 
     def _on_title_enter( self, w ):
-        self.on_title(self._text(w))
+        self.logic.on_title(self._text(w))
         self.canvas.get_tk_widget().focus_set()
         return 'break'
 
     def _on_title_escape( self ):
         self.show_check('axes',None)
         self.canvas.get_tk_widget().focus_set()
-        self.refresh(plot = False)
+        self.logic.refresh(plot = False)
         return 'break'
 
     def _on_title_focus( self, w ):
@@ -802,7 +804,7 @@ class TkViewer(WidgetViewer):
 
     def _hover( self, widget, name ):
         """Show the shortcut of the field or action under the mouse"""
-        widget.bind('<Enter>',lambda _e : self._statusbar.configure(text=self.hover_text(name)),'+')
+        widget.bind('<Enter>',lambda _e : self._statusbar.configure(text=self.logic.hover_text(name)),'+')
         widget.bind('<Leave>',lambda _e : self._statusbar.configure(text=''),'+')
 
     def _on_root_key( self, event ):
@@ -828,7 +830,7 @@ class TkViewer(WidgetViewer):
         #(l and k change the log scales of the plot, or of the plot of the
         #overview under the mouse):
         if event.key.lower() in ui.scale_keys:
-            self.on_scale_key(event.key,self.pane.view_at(event))
+            self.logic.on_scale_key(event.key,self.logic.pane.view_at(event))
             return
         from ._viewer_figure import key_name
         k = key_name(event.key)
@@ -839,7 +841,7 @@ class TkViewer(WidgetViewer):
         from ._viewer_figure import after_event
         self.canvas.get_tk_widget().focus_set()
         if not self.toolbar.mode:#(not while zooming or panning)
-            after_event(self.canvas,self.on_click,event)
+            after_event(self.canvas,self.logic.on_click,event)
 
     #The text fields:
 
@@ -867,7 +869,7 @@ class TkViewer(WidgetViewer):
         w = self._entries[field]
         self._set_text(w,text)
         w.icursor('end')
-        self.on_field_edited(field,text)
+        self.logic.on_field_edited(field,text)
         def focus():
             self.root.focus_force()
             w.focus_set()
@@ -876,7 +878,7 @@ class TkViewer(WidgetViewer):
 
     def _bind_entry( self, w, field ):
         w.bind('<KeyRelease>',lambda e : self._on_entry_key(w,field,e))
-        on_paste(w,lambda : self.on_field_edited(field,self._text(w)))
+        on_paste(w,lambda : self.logic.on_field_edited(field,self._text(w)))
         bind_enter(w,lambda : self._on_entry_enter(w,field))
         w.bind('<Escape>',lambda _e : self._on_entry_escape(field))
         w.bind('<Up>',lambda _e : self._on_entry_updown(w,field,-1))
@@ -900,7 +902,7 @@ class TkViewer(WidgetViewer):
     def _on_entry_focus( self, w, field ):
         if self._grey.showing(w):
             self._set_text(w,'')
-        self.on_field_edited(field,self._text(w))
+        self.logic.on_field_edited(field,self._text(w))
 
     def _on_entry_unfocus( self, w ):
         self._close_popup()
@@ -916,20 +918,20 @@ class TkViewer(WidgetViewer):
         def check():
             new = focus_of(self.root)
             if new is not None and new is not w and new.winfo_toplevel() is self.root:
-                self.on_field_unfocused(field,text)
+                self.logic.on_field_unfocused(field,text)
         self.root.after_idle(check)
 
     def _on_entry_key( self, w, field, event ):
         if event.keysym in command_keys:
             return
         self._close_popup()
-        self.on_field_edited(field,self._text(w))
+        self.logic.on_field_edited(field,self._text(w))
 
     def _on_entry_enter( self, w, field ):
         if self._popup is not None:
             self._insert_choice(w)
             return 'break'
-        if self.on_field_apply(field,self._text(w)):
+        if self.logic.on_field_apply(field,self._text(w)):
             self.canvas.get_tk_widget().focus_set()
         return 'break'
 
@@ -937,7 +939,7 @@ class TkViewer(WidgetViewer):
         if self._popup is not None:
             self._close_popup()
             return 'break'
-        self.on_field_cancel(field)
+        self.logic.on_field_cancel(field)
         self.canvas.get_tk_widget().focus_set()
         return 'break'
 
@@ -950,11 +952,11 @@ class TkViewer(WidgetViewer):
             lb.selection_set(i)
             lb.see(i)
             return 'break'
-        text = self.on_history(field,delta)
+        text = self.logic.on_history(field,delta)
         if text is not None:
             w.delete(0,'end')
             w.insert(0,text)
-            self.on_field_edited(field,text)
+            self.logic.on_field_edited(field,text)
         return 'break'
 
     def _on_entry_tab( self, w, field ):
@@ -963,7 +965,7 @@ class TkViewer(WidgetViewer):
             return 'break'
         if ( field in ui.completing_fields or field in ui.written_options
              or field in ( 'shown_plot', 'axis' ) ):
-            text, cursor, choices, start = self.on_complete(field,self._text(w),w.index('insert'))
+            text, cursor, choices, start = self.logic.on_complete(field,self._text(w),w.index('insert'))
             w.delete(0,'end')
             w.insert(0,text)
             w.icursor(cursor)
@@ -975,11 +977,11 @@ class TkViewer(WidgetViewer):
     def _edited( self, w, field ):
         """The text of the field (or of an axis) was changed"""
         if field == 'axis':
-            self.on_axes_edited(*self._axis_texts())
+            self.logic.on_axes_edited(*self._axis_texts())
         elif field in ui.written_options:
-            self.on_control_edited(field,w.get())
+            self.logic.on_control_edited(field,w.get())
         else:
-            self.on_field_edited(field,self._text(w))
+            self.logic.on_field_edited(field,self._text(w))
 
     def _open_popup( self, w, field, start, choices ):
         """The completions in a list below the field (Up and Down choose one,
@@ -1073,9 +1075,9 @@ def run_viewer( viewer, root ):
         raise MCPLError(f'The viewer needs Tk 8.6 or later, but this Python has Tk {tk.TkVersion}'
                         ' (use a Python with a newer Tk, e.g. from conda-forge or python.org)')
     tv = TkViewer(viewer,root)
-    tv.start()
+    tv.logic.start()
     root.after(200,tv._tick)
     try:
         run_with_ctrl_c(root.mainloop,tv.close_window)
     finally:
-        tv.on_close()
+        tv.logic.on_close()

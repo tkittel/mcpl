@@ -907,7 +907,7 @@ def _auto_title( plot ):
         return None
     try:
         node = _Expr(exprs[0]).tree.body
-    except MCPLError:#(e.g. while a plot is written, see WidgetViewer.compose)
+    except MCPLError:#(e.g. while a plot is written, see WindowLogic.compose)
         return None
     if isinstance(node,ast.BinOp) and isinstance(node.op,ast.Div) and isinstance(node.right,_Unit):
         node = node.left

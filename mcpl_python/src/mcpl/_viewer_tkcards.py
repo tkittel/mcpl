@@ -20,7 +20,7 @@
 ################################################################################
 
 """The list of the cards of the views of the viewer with Tk (see _viewer_tk and
-WidgetViewer.cards)"""
+WindowLogic.cards)"""
 
 __all__ = []
 
@@ -32,14 +32,14 @@ from ._viewer_ui import card_colors, colors
 _card_heights = { 'card' : 64, 'small' : 30, 'header' : 26 }
 
 class CardList:
-    """The cards of the views (see WidgetViewer.cards and Card) on a canvas
+    """The cards of the views (see WindowLogic.cards and Card) on a canvas
     which can be scrolled: a small image of the plot, its name and badges, or
     a compact card with its name and status, under the headers of their
     groups, with the shown one selected. Cards are clicked to show them,
     dragged to move them (the custom plots), and removed with their menu
     (right click), as far as they allow it. The groups are folded (showing
     only their overview) except that of the shown view (see
-    WidgetViewer.folded_groups), a click on a header shows the overview of
+    WindowLogic.folded_groups), a click on a header shows the overview of
     its group, and the standard groups are deactivated with the menu of their
     header. The inactive groups are shown as small cards in their places,
     and activated by a click."""
@@ -107,7 +107,7 @@ class CardList:
     def _image( self, key ):
         tk, _ttk = tk_modules()
         import base64
-        png = self.tv.thumbnail(key,*self.thumb)
+        png = self.tv.logic.thumbnail(key,*self.thumb)
         if png is None:
             return None
         if png not in self._images:
@@ -118,13 +118,13 @@ class CardList:
         return self._images[png]
 
     def show( self, cards ):
-        """Draw the cards (see WidgetViewer.cards), with the one of the shown
+        """Draw the cards (see WindowLogic.cards), with the one of the shown
         view selected (if anything changed)"""
         self._used = set()
-        folded = self._folded = self.tv.folded_groups(cards)
-        target = self.tv.shown_group(cards)#(where the shown view is selected)
+        folded = self._folded = self.tv.logic.folded_groups(cards)
+        target = self.tv.logic.shown_group(cards)#(where the shown view is selected)
         images = [ self._image(c.key) if c.image else None for c in cards ]
-        current = self.tv.shown_key
+        current = self.tv.logic.shown_key
         shown = ( tuple(cards), current, target, tuple(sorted(folded)),
                   tuple( id(i) for i in images ) )
         if shown == self._shown:
@@ -298,12 +298,12 @@ class CardList:
         for the header of a standard group: deactivate the group"""
         tk, _ = tk_modules()
         s = self._slot(event)
-        key = self.tv.group_key(s[3]) if s is not None and s[2] == 'header' else None
+        key = self.tv.logic.group_key(s[3]) if s is not None and s[2] == 'header' else None
         if key is not None:
             #(the standard groups can be hidden):
             menu = tk.Menu(self.canvas,tearoff=0)
             menu.add_command(label='Deactivate this group',
-                             command=lambda : self.tv.on_show_group(key,False))
+                             command=lambda : self.tv.logic.on_show_group(key,False))
             menu.tk_popup(event.x_root,event.y_root)
             return
         if s is None or s[2] != 'card' or not ( s[3].selectable or s[3].removable ):
@@ -311,10 +311,10 @@ class CardList:
         card = s[3]
         menu = tk.Menu(self.canvas,tearoff=0)
         if card.selectable:
-            menu.add_command(label='Show',command=lambda : self.tv.on_select_key(card.key,card.group))
+            menu.add_command(label='Show',command=lambda : self.tv.logic.on_select_key(card.key,card.group))
         if card.removable:
             menu.add_command(label=card.remove_text or 'Remove this card',
-                             command=lambda : self.tv.on_remove(card.key))
+                             command=lambda : self.tv.logic.on_remove(card.key))
         menu.tk_popup(event.x_root,event.y_root)
 
     def _on_press( self, event ):
@@ -348,15 +348,15 @@ class CardList:
                 return
             #(onto a card, or onto the header of the custom plots, before them):
             if s[2] == 'card':
-                self.tv.on_drop(drag[0],s[3].key)
+                self.tv.logic.on_drop(drag[0],s[3].key)
             elif s[2] == 'header' and s[3] == custom_title:
-                self.tv.on_drop(drag[0],None)
+                self.tv.logic.on_drop(drag[0],None)
             return
         if s is None:
             return
         if s[2] == 'header':
-            self.tv.on_group_header(s[3])
+            self.tv.logic.on_group_header(s[3])
         elif s[2] == 'card' and s[3].selectable:
-            self.tv.on_select_key(s[3].key,s[3].group)
+            self.tv.logic.on_select_key(s[3].key,s[3].group)
         elif s[2] == 'add':
-            self.tv.on_new_plot()
+            self.tv.logic.on_new_plot()

@@ -125,7 +125,7 @@ def shortcut_text( name ):
 #The look of the viewers with windows (for toolkits with colours): the
 #colours of the line of messages and of the marks of the checks, of the
 #highlighted code (see _viewer_code.highlight), of the cards of the views (see
-#WidgetViewer.cards, where the shown card is marked in the accent colour),
+#WindowLogic.cards, where the shown card is marked in the accent colour),
 #and of the parts below the plot (that of the shown plot, tinted, and that of
 #the pick and edit):
 colors = { 'normal' : 'black', 'dim' : '#777777', 'ok' : '#2ca02c', 'error' : '#d62728' }
@@ -142,13 +142,13 @@ card_colors = { 'bg' : '#eef1f5', 'card' : '#ffffff', 'selected' : '#e2ebf6',
 part_colors = { 'Plot' : card_colors['selected'], 'Particles' : card_colors['bg'] }
 
 #The settings of the shown plot in the viewers with windows (see
-#WidgetViewer.plot_controls), for 1D histograms, bar charts and 2D histograms:
+#WindowLogic.plot_controls), for 1D histograms, bar charts and 2D histograms:
 #(option, label, choices), with the choices as (shown text, value of the
 #option: None if it is not given, True if it is given without a value), or
 #None for a text field:
 _scale = ( ( 'linear', None ), ( 'log', True ), ( 'auto', 'auto' ) )
 _count = ( 'unweighted', 'Count', ( ( 'weights', None ), ( 'particles', True ) ) )
-#(the particle types of the file, see WidgetViewer.type_choices):
+#(the particle types of the file, see WindowLogic.type_choices):
 _only = ( 'display_only', 'Display only', 'types' )
 #(a curve of each particle type by default, see _histstring._display_by, or
 #of each value of an expression written in the menu):
@@ -753,13 +753,13 @@ cache_blocks = (
 )
 
 #The settings of the overviews of the standard groups (see
-#WidgetViewer.overview_controls), as name -> label:
+#WindowLogic.overview_controls), as name -> label:
 overview_controls = { 'display_only' : 'Display only', 'display_by' : 'Display by',
                       'variables' : 'Variables' }
 
 #The button of the settings of correlation plots choosing the variables with the
 #strongest correlations, and then all of them again (see
-#WidgetViewer.overview_controls):
+#WindowLogic.overview_controls):
 most_correlated, all_variables = 'Most correlated', 'All variables'
 
 def particle_type_text( name, fraction ):
@@ -775,7 +775,7 @@ def variable_text( expr, constant ):
     return expr if constant is None else f'{expr}: all {constant}'
 
 #Shown instead of the plot while a new plot is made (in the viewers with
-#windows, see WidgetViewer.on_new_plot):
+#windows, see WindowLogic.on_new_plot):
 new_plot_hints = """New plot: choose or type what to plot below, and press Enter
 
 \u2022  Choose a quantity in the list of an axis, or type any expression

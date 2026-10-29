@@ -51,7 +51,7 @@ print('Tk 8.6 or later:', tkinter.TkVersion >= 8.6)
 
 v = Viewer('example.mcpl')
 tv = TkViewer(v,root)
-tv.start()
+tv.logic.start()
 root.after(200,tv._tick)
 
 def pump( seconds = 0.3 ):
@@ -77,7 +77,7 @@ def wait():
         pump(0.01)
         if not v.reading:
             break
-    tv.on_timer()
+    tv.logic.on_timer()
     pump()
 
 def text( w ):
@@ -160,7 +160,7 @@ print('after typing an axis:', 'disabled' in apply.state(), '| shown:', v.curren
 apply.invoke()
 pump()
 print('after clicking Apply:', 'disabled' in apply.state(), '| shown:', v.current_key)
-tv.on_select_key('plot:ekin;logx=auto;logy')
+tv.logic.on_select_key('plot:ekin;logx=auto;logy')
 pump()
 
 #With the list of a combobox open, the focus can be in it (which tkinter
@@ -181,10 +181,10 @@ pump()
 from matplotlib.backend_bases import MouseEvent
 
 v.show_group('3d')
-tv.on_select_key('plot:x : y : z')
+tv.logic.on_select_key('plot:x : y : z')
 pump(1)
 print('3D plot shown:', [ a.name for a in tv.canvas.figure.axes ])
-tv.on_select_key('plot:ekin;logx=auto;logy')
+tv.logic.on_select_key('plot:ekin;logx=auto;logy')
 pump(1)
 for name in ( 'button_press_event', 'button_release_event', 'motion_notify_event' ):
     MouseEvent(name,tv.canvas,100,100,1)._process()
@@ -217,7 +217,7 @@ menu = tv._cache_choices
 labels = [ menu.entrycget(i,'label') for i in range(menu.index('end') + 1)
            if menu.type(i) != 'separator' ]
 print('cache menu:', labels)
-tv.on_cache_limit(v.cache_info()['size'] * 300)
+tv.logic.on_cache_limit(v.cache_info()['size'] * 300)
 wait()
 show('with a small cache')
 menu.invoke(next( i for i in range(menu.index('end') + 1) if menu.type(i) != 'separator'
@@ -241,7 +241,7 @@ def click_slot( slot ):
 inactive = next( s for s in tv._cards._slots if s[2] == 'card' and s[3].inactive )
 click_slot(inactive)
 print('after clicking the inactive group', repr(inactive[3].name), ':', v.current_key,
-      '| folded:', sorted(tv.folded_groups()))
+      '| folded:', sorted(tv.logic.folded_groups()))
 
 #The settings of overviews, shown instead of the fields of plots: a menu of
 #the particle types, and the toggles of the variables of correlation plots:
@@ -252,8 +252,8 @@ def overview_settings():
              **{ name : ( [ t for t, var in w.items() if var.get() ] if isinstance(w,dict)
                           else text(w) if w.winfo_class() == 'TButton' else w.get() )
                  for name, w in oc._widgets.items() } }
-tv.on_show_group('correlations')
-tv.on_select_key('overview:correlations')
+tv.logic.on_show_group('correlations')
+tv.logic.on_select_key('overview:correlations')
 wait()
 print('settings of the correlations:', overview_settings())
 toggles = [ c for c in tv._overview_controls._body.winfo_children()
@@ -275,12 +275,12 @@ for _ in range(2):
                    if c.winfo_class() == 'TButton' )
     print(f'after clicking {clicked!r}:', overview_settings()['variables'],
           '| button now:', text(button))
-tv.on_select_key('plot:x')
+tv.logic.on_select_key('plot:x')
 pump()
 print('with a plot shown:', overview_settings()['shown'], overview_settings()['plot fields shown'])
 
 #The windows of the help topics, formatted (see _helptext):
-for label, title, blocks in tv.help_topics():
+for label, title, blocks in tv.logic.help_topics():
     before = set(root.winfo_children())
     tv.show_text(title,blocks)
     pump(0.1)
@@ -348,21 +348,21 @@ pump()
 print('edit field after adding:', tv._entries['edit'].get()[:60], '...',
       '| align window closed:', not aw.window.winfo_exists())
 tv._set_text(tv._entries['edit'],'')
-tv.on_field_edited('edit','')
+tv.logic.on_field_edited('edit','')
 
 #A zoom of the plot shown is kept when it is drawn again (e.g. when the
 #particles used change), but other plots are not zoomed:
-tv.on_select_key('plot:x')
+tv.logic.on_select_key('plot:x')
 wait()
-tv.pane.axes[0].set_xlim(2,20)
+tv.logic.pane.axes[0].set_xlim(2,20)
 v.set('limit','500')
 wait()
-tv.refresh(plot=True)
+tv.logic.refresh(plot=True)
 print('x range after changing the limit, zoom kept:',
-      tuple( float(x) for x in tv.pane.axes[0].get_xlim() ))
-tv.on_select_key('plot:y')
+      tuple( float(x) for x in tv.logic.pane.axes[0].get_xlim() ))
+tv.logic.on_select_key('plot:y')
 wait()
-print('x range of another plot, not zoomed:', tv.pane.axes[0].get_xlim() != (2,20))
+print('x range of another plot, not zoomed:', tv.logic.pane.axes[0].get_xlim() != (2,20))
 v.set('limit','')
 wait()
 
@@ -381,4 +381,4 @@ print('written:', pathlib.Path('written_by_tk.mcpl.gz').exists(),
       '| window closed:', not ww._code.window.winfo_exists(), '| status:', str(tv._status[0].cget('text')))
 
 tv.close_window()
-print('closed:', tv.closed)
+print('closed:', tv.logic.closed)

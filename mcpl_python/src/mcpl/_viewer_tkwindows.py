@@ -270,7 +270,7 @@ class WriteWindow:
     same"""
     def __init__( self, tv ):
         self.tv = tv
-        self._code = CodeWindow(tv,'Write file',tv.v.code(),top = self._top)
+        self._code = CodeWindow(tv,'Write file',tv.logic.v.code(),top = self._top)
         self._name.focus_set()
 
     def _top( self, f ):
@@ -280,7 +280,7 @@ class WriteWindow:
         row = ttk.Frame(f)
         row.pack(fill='x',pady=(6,0))
         self._name = ttk.Entry(row,width=60)
-        self._name.insert(0,self.tv.suggested_filename('write'))
+        self._name.insert(0,self.tv.logic.suggested_filename('write'))
         self._name.pack(side='left',fill='x',expand=True)
         self._name.bind('<KeyRelease>',lambda _e : self._changed())
         on_paste(self._name,self._changed)
@@ -304,7 +304,7 @@ class WriteWindow:
             self._changed()
 
     def _changed( self ):
-        self._code.show(self.tv.v.code(filename = self._name.get().strip() or None))
+        self._code.show(self.tv.logic.v.code(filename = self._name.get().strip() or None))
 
     def _write( self, view = False ):
         """Write the file (and show it in the viewer, if view is set), in a
@@ -313,9 +313,9 @@ class WriteWindow:
         import threading
         if self._writing:
             return
-        name = self._name.get().strip() or self.tv.suggested_filename('write')
+        name = self._name.get().strip() or self.tv.logic.suggested_filename('write')
         result = []
-        thread = threading.Thread(target = lambda : result.append(self.tv.v.try_write(name)),
+        thread = threading.Thread(target = lambda : result.append(self.tv.logic.v.try_write(name)),
                                   daemon = True)
         self._writing = True
         for b in self._buttons:
@@ -348,7 +348,7 @@ class WriteWindow:
         if not view:
             self.tv.show_line(msg,'normal')
         else:
-            self.tv.on_open_file(name,particles = False)#(with its own message)
+            self.tv.logic.on_open_file(name,particles = False)#(with its own message)
 
 class AlignWindow:
     """The window of the align helper (see _viewer_align): the mean position
@@ -368,7 +368,7 @@ class AlignWindow:
         self.window = w
         f = ttk.Frame(w,padding=10)
         f.pack(fill='both',expand=True)
-        edit = tv.v.edit_text
+        edit = tv.logic.v.edit_text
         ttk.Label(f,text=( 'The weighted means of the particles used'
                            + ( f' (after the edit "{edit}"):' if edit else ':' ) ),
                   font=tv.bold).pack(anchor='w')
@@ -421,7 +421,7 @@ class AlignWindow:
         self._stats, self._statements = None, None
         self._lock, self._new, self._gone = threading.Lock(), [], threading.Event()
         w.bind('<Destroy>',lambda e : self._gone.set() if e.widget is w else None)
-        threading.Thread(target = lambda : al.read_stats(tv.v.picked_blocks(),self._publish,
+        threading.Thread(target = lambda : al.read_stats(tv.logic.v.picked_blocks(),self._publish,
                                                           self._gone.is_set),
                          daemon = True).start()
         self._update()
@@ -509,7 +509,7 @@ class AlignWindow:
     def _on_add( self ):
         if not self._statements:
             return
-        edit = self.tv.v.edit_text
+        edit = self.tv.logic.v.edit_text
         self.tv._use_example('edit',f'{edit};{self._statements}' if edit else self._statements)
         self.window.destroy()
 

@@ -79,7 +79,7 @@ def catch_mpl():
     tv.canvas.callbacks.exception_handler = lambda e : record(
         'matplotlib callback',''.join(traceback.format_exception(e)))
 catch_mpl()
-tv.start()
+tv.logic.start()
 root.after(200,tv._tick)
 
 def pump( seconds ):
@@ -96,7 +96,7 @@ fields = { 'pick' : [ '', 'pdgcode == neutron', 'ekin < 1MeV', 'x >', 'ekin < 0e
            'skip' : [ '', '10', '100000000', 'x' ], 'limit' : [ '', '5', '0' ] }
 
 def card():
-    tv.on_select_key(rng.choice(tv.cards()).key)
+    tv.logic.on_select_key(rng.choice(tv.logic.cards()).key)
 def click():
     w = tv.canvas.get_tk_widget()
     x, y = rng.randrange(1,max(2,w.winfo_width())), rng.randrange(1,max(2,w.winfo_height()))
@@ -106,53 +106,53 @@ def click():
 def key():
     tv.on_key(rng.choice([ 'Up', 'Down', 'Delete', 'l', 'k', 'MoveUp', 'MoveDown', 'Enter' ]))
 def overview():
-    controls = tv.overview_controls()
+    controls = tv.logic.overview_controls()
     if controls:
         name, _, texts, _ = rng.choice(controls)
-        tv.on_overview_control(name,rng.choice(texts))
+        tv.logic.on_overview_control(name,rng.choice(texts))
 def setting():
-    controls = tv.plot_controls()
+    controls = tv.logic.plot_controls()
     if controls:
         name, _, choices, _, _ = rng.choice(controls[1])
-        tv.on_control(name,rng.choice(choices or [ '', '10', '0:10', '-5cm:5cm', 'x' ]))
+        tv.logic.on_control(name,rng.choice(choices or [ '', '10', '0:10', '-5cm:5cm', 'x' ]))
 def axes():
     x, y, z = ( rng.choice(exprs) if rng.random() < p else '' for p in ( 1, 0.4, 0.2 ) )
-    tv.on_axes_edited(x,y,z)
-    tv.on_axes(x,y,z)
+    tv.logic.on_axes_edited(x,y,z)
+    tv.logic.on_axes(x,y,z)
 def field():
     name = rng.choice(list(fields))
     text = rng.choice(fields[name])
-    tv.on_field_edited(name,text)
-    tv.on_field_apply(name,text)
+    tv.logic.on_field_edited(name,text)
+    tv.logic.on_field_apply(name,text)
 def new_plot():
-    tv.on_new_plot()
-    tv.on_axes(rng.choice(exprs))
+    tv.logic.on_new_plot()
+    tv.logic.on_axes(rng.choice(exprs))
 def group():
-    tv.on_show_group(rng.choice(tv.v.group_list())[0],rng.random() < 0.6)
+    tv.logic.on_show_group(rng.choice(tv.logic.v.group_list())[0],rng.random() < 0.6)
 def header():
-    tv.on_group_header(rng.choice(tv.v.group_list())[1])
+    tv.logic.on_group_header(rng.choice(tv.logic.v.group_list())[1])
 def help_window():
     before = set(root.winfo_children())
-    _, title, blocks = rng.choice(tv.help_topics())
+    _, title, blocks = rng.choice(tv.logic.help_topics())
     tv.show_text(title,blocks)
     pump(0.02)
     for w in set(root.winfo_children()) - before:
         w.destroy()
 def other_file():
-    tv.on_open_file(rng.choice(files),rng.random() < 0.5)
+    tv.logic.on_open_file(rng.choice(files),rng.random() < 0.5)
     catch_mpl()
 def size():
     root.geometry(rng.choice([ '1400x900', '1000x650', '800x600' ]))
 def wait():
     for _ in range(3000):
         pump(0.01)
-        if not tv.v.reading:
+        if not tv.logic.v.reading:
             break
 actions = { card : 10, click : 8, key : 6, overview : 6, setting : 8, axes : 5, field : 5,
-            new_plot : 3, tv.on_remove : 2, group : 3, header : 3, help_window : 2,
-            tv.plot_code : 2, other_file : 1, size : 1, wait : 4,
-            ( lambda : tv.on_cache_limit(rng.choice(cache_limits)) ) : 2,
-            ( lambda : tv.on_title(rng.choice([ 'A title', '', 'x' * 80 ])) ) : 2,
+            new_plot : 3, tv.logic.on_remove : 2, group : 3, header : 3, help_window : 2,
+            tv.logic.plot_code : 2, other_file : 1, size : 1, wait : 4,
+            ( lambda : tv.logic.on_cache_limit(rng.choice(cache_limits)) ) : 2,
+            ( lambda : tv.logic.on_title(rng.choice([ 'A title', '', 'x' * 80 ])) ) : 2,
             ( lambda : tv._toggle.invoke() ) : 2 }
 def run( n ):
     for _ in range(n):
@@ -169,13 +169,13 @@ run(300)
 viewer_reading._cache_limit = 2e4
 files[:] = [ 'example.mcpl', 'example.mcpl.gz' ]
 cache_limits = [ 1e4, 2e4, 3e4, None ]
-tv.on_open_file('example.mcpl')
+tv.logic.on_open_file('example.mcpl')
 catch_mpl()
 wait()
-print('particles fit in the cache:', tv.v.cache_info()['fits'])
+print('particles fit in the cache:', tv.logic.v.cache_info()['fits'])
 run(150)
 tv.close_window()
-print('random actions done:', len(done), '| closed:', tv.closed)
+print('random actions done:', len(done), '| closed:', tv.logic.closed)
 print('problems:', len(problems))
 for p in problems:
     print(p)

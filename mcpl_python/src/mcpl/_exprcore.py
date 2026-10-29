@@ -463,6 +463,13 @@ class _ExprEvaluator:
             return self(node)
         finally:
             self.active = prev
+    def common( self, args, what ):
+        """Check that the values have the same dimension (where a plain 0 has
+        any, see _Q), and return their values and the dimension"""
+        ref = next( ( q for q in args if not q.zero ), args[0] )
+        res = [ self.same(ref,q,what) for q in args ]
+        d = _dim_unknown if any( r[2] == _dim_unknown for r in res ) else ref.d
+        return [ r[1] for r in res ], d
     def same( self, a, b, what ):
         """Check that a and b have the same dimension (for +, -, comparisons,
         etc.) and return their values and the dimension."""
@@ -774,28 +781,20 @@ class _ExprEvaluator:
             if fname == 'hypot':
                 if len(args) < 2:
                     self.error('hypot(..) takes two or more arguments')
-                #(all with the units of the first one which has units, as a
-                #plain 0 matches any units):
-                ref = args[0]
-                for q in args[1:]:
-                    self.same(ref,q,'hypot(..)')
-                    if ref.d is None:
-                        ref = q
-                return _Q(np.sqrt(sum( np.square(q.v) for q in args )),ref.d)
+                values, d = self.common(args,'hypot(..)')
+                return _Q(np.sqrt(sum( np.square(v) for v in values )),d)
             if len(args) == 1 and fname == 'abs':
                 return _Q(fct(args[0].v),args[0].d)
             if fname == 'clamp':
                 if len(args) != 3:
                     self.error('clamp(value,low,high) takes three arguments')
-                v, lo, d = self.same(args[0],args[1],'clamp(..)')
-                _, hi, _ = self.same(args[0],args[2],'clamp(..)')
+                ( v, lo, hi ), d = self.common(args,'clamp(..)')
                 return _Q(np.minimum(np.maximum(v,lo),hi),d)
             if len(args) < 2 or fname not in ('min','max'):
                 self.error(f'Wrong number of arguments for {fname}(..)')
-            res, d = args[0].v, args[0].d
-            for q in args[1:]:
-                _, y, d2 = self.same(args[0],q,f'{fname}(..)')
-                d = d or d2
+            values, d = self.common(args,f'{fname}(..)')
+            res = values[0]
+            for y in values[1:]:
                 res = fct(res,y)
             return _Q(res,d)
     def scalar( self, q, what ):

@@ -568,23 +568,6 @@ def _neff( sumw, sumw2 ):
 
 _range = range#(the name range is shadowed by arguments below)
 
-def _bins_arg( bins, ndims ):
-    """The bins argument of histogram() (ndims=1) or histogram2d() (ndims=2):
-    "auto", a positive number of bins, or for 2D histograms also two as
-    (nx,ny)"""
-    if isinstance(bins,str) and bins == 'auto':
-        return bins
-    def nbins( n ):
-        return ( isinstance(n,(int,np.integer)) and not isinstance(n,bool)
-                 and n > 0 )
-    if nbins(bins):
-        return int(bins)
-    if ( ndims == 2 and isinstance(bins,(tuple,list)) and len(bins) == 2
-         and all( nbins(n) for n in bins ) ):
-        return tuple( int(n) for n in bins )
-    two = ' (or two, as (nx,ny))' if ndims == 2 else ''
-    raise MCPLError(f'The histogram argument bins must be "auto" or a positive'
-                    f' number of bins{two}, not {bins!r}')
 
 def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
                logx = False, unweighted = False, display_by = None,
@@ -624,7 +607,6 @@ def histogram( files, expression, *, pick = None, bins = 'auto', range = None,
     expressions for a 2D histogram (see histogram2d()), or three for a 3D plot
     of a sample of the particles.
     """
-    bins = _bins_arg(bins,1)
     given = { 'bins' : None if bins == 'auto' else bins, 'range' : range,
               'logx' : logx, 'unweighted' : unweighted, 'display_by' : display_by,
               'display_only' : display_only,
@@ -656,7 +638,6 @@ def histogram2d( files, xexpression, yexpression, *, pick = None, bins = 'auto',
     of weights in each bin, or the number of particles if unweighted is
     True.
     """
-    bins = _bins_arg(bins,2)
     o = _hist_defaults([ xexpression, yexpression ])
     o.update( bins = _bins_arg(None if bins == 'auto' else bins,2),
               xrange = _as_range(xrange,'xrange'),

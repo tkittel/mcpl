@@ -268,18 +268,18 @@ histogram('ekin/MeV',) {'pick': 'x > 1km'}: No values to histogram (no particles
 histogram('x/cm',) {'logx': True, 'range': (-1, 1)}: Logarithmic binning requires a positive range
 histogram('wavelength',) {}: no error
 histogram('x/cm',) {'display_by': 'x'}: Expression "x" has units (length), so divide it by a unit, e.g. x/cm
-histogram('x/cm',) {'bins': 0}: The histogram argument bins must be "auto" or a positive number of bins, not 0
-histogram('x/cm',) {'bins': -3}: The histogram argument bins must be "auto" or a positive number of bins, not -3
-histogram('x/cm',) {'bins': 2.5}: The histogram argument bins must be "auto" or a positive number of bins, not 2.5
-histogram('x/cm',) {'bins': 'x'}: The histogram argument bins must be "auto" or a positive number of bins, not 'x'
-histogram('x/cm',) {'bins': True}: The histogram argument bins must be "auto" or a positive number of bins, not True
+histogram('x/cm',) {'bins': 0}: The histogram argument bins must be a positive integer (or two for 2D histograms, like bins=(50,40)), not 0
+histogram('x/cm',) {'bins': -3}: The histogram argument bins must be a positive integer (or two for 2D histograms, like bins=(50,40)), not -3
+histogram('x/cm',) {'bins': 2.5}: The histogram argument bins must be a positive integer (or two for 2D histograms, like bins=(50,40)), not 2.5
+histogram('x/cm',) {'bins': 'x'}: The histogram argument bins must be a positive integer (or two for 2D histograms, like bins=(50,40)), not 'x'
+histogram('x/cm',) {'bins': True}: The histogram argument bins must be a positive integer (or two for 2D histograms, like bins=(50,40)), not True
 histogram('x/cm',) {'range': (5, 1)}: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm)
 histogram('x/cm',) {'range': (1, 1)}: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm)
 histogram('x/cm',) {'range': (0, inf)}: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm)
 histogram('x/cm',) {'range': 'a'}: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm)
 histogram('x/cm',) {'range': (1, 2, 3)}: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm)
-histogram2d {'bins': (5, 0)}: The histogram argument bins must be "auto" or a positive number of bins (or two, as (nx,ny)), not (5, 0)
-histogram2d {'bins': [3]}: The histogram argument bins must be "auto" or a positive number of bins (or two, as (nx,ny)), not [3]
+histogram2d {'bins': (5, 0)}: The histogram argument bins must be a positive integer (or two for 2D histograms, like bins=(50,40)), not (5, 0)
+histogram2d {'bins': [3]}: no error
 histogram2d {'xrange': (1, 0)}: The xrange must be given as xrange=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in xrange=0cm:10cm)
 histogram2d {'yrange': 'a'}: The yrange must be given as yrange=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in yrange=0cm:10cm)
 bins as a numpy integer, and range as a list: 4 [-1.0, 1.0]

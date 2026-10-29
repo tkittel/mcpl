@@ -31,6 +31,7 @@ from ._common import MCPLError
 from ._exprcore import _dimstr, _expr_unit_hints
 from ._exprplot import _range_value
 from ._exprsyntax import _dim_unknown
+from ._numpy import np
 
 #Options of histogram strings ("EXPR;logx;bins=50"), as NAME=VALUE, with the
 #kinds of their values (bool: 1 or 0, auto: also auto):
@@ -153,9 +154,12 @@ def _bins_arg( bins, nexprs ):
     if bins is None:
         return None
     nb = list(bins) if isinstance(bins,( tuple, list )) else [ bins ]
-    if not ( 0 < len(nb) <= nexprs and all( type(e) is int and e > 0 for e in nb ) ):
+    if not ( 0 < len(nb) <= nexprs
+             and all( isinstance(e,(int,np.integer)) and not isinstance(e,bool)
+                      and e > 0 for e in nb ) ):
         raise MCPLError('The histogram argument bins must be a positive integer (or two'
                         f' for 2D histograms, like bins=(50,40)), not {bins!r}')
+    nb = [ int(e) for e in nb ]
     return nb[0] if len(nb) == 1 else tuple(nb)
 
 #The values of display_by for one curve of all particles (1 has one value):

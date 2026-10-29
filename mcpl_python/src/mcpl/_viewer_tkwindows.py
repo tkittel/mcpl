@@ -286,10 +286,13 @@ class WriteWindow:
         bind_enter(self._name,self._write)
         ttk.Button(row,text='Browse...',takefocus=0,
                    command=lambda : self.tv.ask_file_name('write',self._chosen)).pack(side='left',padx=(6,0))
-        ttk.Button(row,text='Write now',style='Accent.TButton',
-                   command=self._write).pack(side='left',padx=(6,0))
-        ttk.Button(row,text='Write now and view it',
-                   command=lambda : self._write(view = True)).pack(side='left',padx=(6,0))
+        self._buttons = [ ttk.Button(row,text='Write now',style='Accent.TButton',
+                                     command=self._write),
+                          ttk.Button(row,text='Write now and view it',
+                                     command=lambda : self._write(view = True)) ]
+        for b in self._buttons:
+            b.pack(side='left',padx=(6,0))
+        self._writing = False
         self._message = ttk.Label(f,foreground=colors['error'])
         self._message.pack(anchor='w')
 
@@ -303,13 +306,42 @@ class WriteWindow:
         self._code.show(self.tv.v.code(filename = self._name.get().strip() or None))
 
     def _write( self, view = False ):
-        """Write the file (and show it in the viewer, if view is set)"""
-        name = self._name.get().strip() or self.tv.suggested_filename('write')
-        ok, msg = self.tv.v.try_write(name)
-        if not ok:
-            self._message.configure(text=msg)
+        """Write the file (and show it in the viewer, if view is set), in a
+        thread, so the window is not frozen while writing (and compressing)
+        large files"""
+        import threading
+        if self._writing:
             return
-        self._code.window.destroy()
+        name = self._name.get().strip() or self.tv.suggested_filename('write')
+        result = []
+        thread = threading.Thread(target = lambda : result.append(self.tv.v.try_write(name)),
+                                  daemon = True)
+        self._writing = True
+        for b in self._buttons:
+            b.state(['disabled'])
+        self._message.configure(text=f'Writing {name} ...',foreground=colors['normal'])
+        thread.start()
+        def check():
+            if thread.is_alive():
+                self.tv.root.after(100,check)
+                return
+            self._writing = False
+            if self._code.window.winfo_exists():
+                for b in self._buttons:
+                    b.state(['!disabled'])
+                self._message.configure(foreground=colors['error'])
+            self._written(name,view,*result[0])
+        self.tv.root.after(100,check)
+
+    def _written( self, name, view, ok, msg ):
+        if not ok:
+            if self._code.window.winfo_exists():
+                self._message.configure(text=msg)
+            else:
+                self.tv.show_line(msg,'error')
+            return
+        if self._code.window.winfo_exists():
+            self._code.window.destroy()
         #(the new file has the picked and edited particles, so only the plots
         #are kept):
         if not view:

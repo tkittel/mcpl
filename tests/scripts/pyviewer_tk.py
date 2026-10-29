@@ -28,6 +28,7 @@
 # behind it is tested without a display by pyviewer_widgets; this checks that
 # the Tk front end works with the real toolkit.
 
+import pathlib
 import shutil
 import time
 import tkinter
@@ -36,6 +37,7 @@ import mcpldev._viewer_tk as viewer_tk
 from mcpldev._viewer import Viewer
 from mcpldev._viewer_tk import TkViewer, _root
 from mcpldev._viewer_tkbase import Flow, focus_of
+from mcpldev._viewer_tkwindows import WriteWindow
 from MCPLTestUtils.dirs import test_data_dir
 
 shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
@@ -310,6 +312,20 @@ flow.set(items)
 pump()
 print('settings in a narrow frame, rows:', len(flow._rows))
 top.destroy()
+
+#Writing a file happens in a thread, with a message and the buttons disabled
+#meanwhile (the window closes when it is written):
+ww = WriteWindow(tv)
+ww._name.delete(0,'end')
+ww._name.insert(0,'written_by_tk.mcpl.gz')
+ww._write()
+print('while writing:', str(ww._message.cget('text')), [ str(b.state()) for b in ww._buttons ])
+for _ in range(500):
+    pump(0.02)
+    if not ww._writing:
+        break
+print('written:', pathlib.Path('written_by_tk.mcpl.gz').exists(),
+      '| window closed:', not ww._code.window.winfo_exists(), '| status:', str(tv._status[0].cget('text')))
 
 tv.close_window()
 print('closed:', tv.closed)

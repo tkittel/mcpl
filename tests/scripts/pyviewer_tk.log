@@ -66,4 +66,6 @@ help 'About MCPL': MCPL viewer: About MCPL | sections: 0 | lines: False
    closed with q: True
 help in the menu: ['Open MCPL file...', 'Save viewer state...', 'Quit']
 settings in a narrow frame, rows: 2
+while writing: Writing written_by_tk.mcpl.gz ... ["('disabled',)", "('disabled',)"]
+written: True | window closed: True | status: example.mcpl: 1,006 particles
 closed: True

@@ -24,6 +24,8 @@
 
 __all__ = ['use_logging']
 
+import threading
+
 _logger = None
 
 def use_logging( enable = True ):
@@ -58,20 +60,33 @@ class _ForcePrinting:
         global _logger
         _logger = self._orig
 
-def _info( msg, prefix = 'MCPL: ' ):
-    if _logger is None:
-        print(f'{prefix}{msg}')
+class _CollectMessages:
+    """Context manager collecting the messages of the current thread (in the
+    list lines) instead of printing or logging them, without affecting other
+    threads (unlike redirecting sys.stdout)"""
+    def __enter__(self):
+        self.lines, self._orig = [], getattr(_collecting,'lines',None)
+        _collecting.lines = self.lines
+        return self
+    def __exit__(self, *args):
+        _collecting.lines = self._orig
+
+_collecting = threading.local()
+
+def _emit( text, log, msg ):
+    lines = getattr(_collecting,'lines',None)
+    if lines is not None:
+        lines.append(text)
+    elif _logger is None:
+        print(text)
     else:
-        _logger.info(msg)
+        log(msg)
+
+def _info( msg, prefix = 'MCPL: ' ):
+    _emit(f'{prefix}{msg}',_logger and _logger.info,msg)
 
 def _warning( msg ):
-    if _logger is None:
-        print(f'MCPL WARNING: {msg}')
-    else:
-        _logger.warning(msg)
+    _emit(f'MCPL WARNING: {msg}',_logger and _logger.warning,msg)
 
 def _error( msg ):
-    if _logger is None:
-        print(f'MCPL ERROR: {msg}')
-    else:
-        _logger.error(msg)
+    _emit(f'MCPL ERROR: {msg}',_logger and _logger.error,msg)

@@ -225,21 +225,19 @@ class _Output:
         """Write the picked and edited particles to a new file (never
         overwriting existing files, and without writing in a dry run).
         Returns the messages (as for mcpltool -e)."""
-        import contextlib
-        import io
-
         from ._extract import _mcpltool_extract
+        from ._messages import _CollectMessages
         filename = filename or self.suggested_filename()
         if pathlib.Path(filename).exists() or pathlib.Path(filename + '.gz').exists():
             raise MCPLError(f'The file {filename} already exists')
         s = self._s
-        out = io.StringIO()
         def bad( msg ):
             raise MCPLError(msg)
-        with contextlib.redirect_stdout(out):
+        #(collecting the messages of this thread only, as it can run in its own):
+        with _CollectMessages() as out:
             _mcpltool_extract([self.filename,filename],s.limit,s.skip,s.pick,
                               s.edit,False,False,self._dry_run,bad)
-        return out.getvalue().strip()
+        return '\n'.join(out.lines).strip()
 
 def _free_filename( filename, suffix, ext, *other_exts ):
     """The name <input><suffix><ext> next to the file (without its extensions

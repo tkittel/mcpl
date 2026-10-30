@@ -44,7 +44,7 @@ In addition to the links above, several examples of how to use the C/C++ API,
 including how to configure a downstream CMake-based project, is provided in the
 https://github.com/mctools/mcpl/tree/HEAD/examples directory.
 
-Note that it is recommmended for most users to simply install the package named
+Note that it is recommended for most users to simply install the package named
 `mcpl`, rather than referring to the package named `mcpl-core` directly.
 
 

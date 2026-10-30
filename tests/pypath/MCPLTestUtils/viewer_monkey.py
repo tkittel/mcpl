@@ -20,7 +20,7 @@
 ################################################################################
 
 
-# NEEDS: numpy matplotlib tkinter
+# (run by the test pyviewer_tk, which needs numpy, matplotlib and tkinter)
 
 # Random use of the viewer in a real Tk window (a "monkey test"): many random
 # clicks, keys, settings, fields and windows, on files with and without
@@ -41,6 +41,7 @@ import mcpldev as mcpl
 import mcpldev._viewer_reading as viewer_reading
 import mcpldev._viewer_tk as viewer_tk
 from mcpldev._viewer import Viewer
+
 from MCPLTestUtils.dirs import test_data_dir
 
 #(if it hangs, the stacks of all threads are shown before the timeout of the

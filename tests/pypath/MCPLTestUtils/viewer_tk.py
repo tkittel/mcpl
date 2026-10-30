@@ -20,7 +20,7 @@
 ################################################################################
 
 
-# NEEDS: numpy matplotlib tkinter
+# (run by the test pyviewer_tk, which needs numpy, matplotlib and tkinter)
 
 # Test the viewer in a real Tk window (on Linux and FreeBSD in CI with a
 # virtual display, Xvfb): that it opens, reads the file, shows cards, plots
@@ -39,6 +39,7 @@ from mcpldev._viewer import Viewer
 from mcpldev._viewer_tk import TkViewer, _root
 from mcpldev._viewer_tkbase import Flow, focus_of
 from mcpldev._viewer_tkwindows import AlignWindow, WriteWindow
+
 from MCPLTestUtils.common import rounded_numbers
 from MCPLTestUtils.dirs import test_data_dir
 

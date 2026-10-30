@@ -1,3 +1,4 @@
+==> viewer_tk
 Tk 8.6 or later: True
 window title: MCPL viewer: example.mcpl
 after reading the file:
@@ -89,3 +90,7 @@ To open the viewer like this again:
 To write these particles to a new file:
   mcpltool -e -p "pdgcode == gamma" example.mcpl example_selected.mcpl.gz
 mcpltool -w ended with exit code 0
+==> viewer_monkey
+particles fit in the cache: False
+random actions done: 450 | closed: True
+problems: 0

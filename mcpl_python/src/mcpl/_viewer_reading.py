@@ -86,17 +86,21 @@ class _Reading:
     def reading( self ):
         """Whether the file is being read (for the current settings)"""
         with self._lock:
-            return not ( self._job is None and self._seen_gen == self._generation )
+            return not ( self._job is None and self._seen_gen == self._generation
+                         and self._found_pending is None )
 
     def wait( self ):
         """Wait until the current reading is done (for tests and scripts)"""
         import time
         while self.reading:
+            self._apply_found()
             time.sleep(0.01)
 
     def poll( self ):
         """Whether the figures or status changed since the last call (and
-        plot_changed whether the figures did, not only the progress)"""
+        plot_changed whether the figures did, not only the progress). The
+        front ends call it regularly, in their own thread."""
+        self._apply_found()
         with self._lock:
             self.plot_changed = self._updates != self._seen
             changed = self.plot_changed or self._status_updates != self._status_seen
@@ -223,7 +227,9 @@ class _Reading:
             if not settings.plots:
                 self._publish(gen,figures=known,constants=done[2]['constants'],progress='',
                               counts=done[3])
-                self._on_found(done[2])
+                with self._lock:
+                    if gen == self._generation:
+                        self._found_pending = done[2]#(see the end of a reading)
                 return
         import time
         def figures( figs ):
@@ -286,14 +292,22 @@ class _Reading:
         figs, found = figures(comp.figures()), comp.found()
         self._publish(gen,figures=figs,constants=found['constants'],progress='',counts=counts)
         with self._lock:
-            current = gen == self._generation
-            if current:
+            if gen == self._generation:
                 self._done = ( key, figs, found, counts )
-        if current:
+                #(applied by poll or wait, in the thread of the front end, so
+                #the groups do not change while it shows them):
+                self._found_pending = found
+
+    def _apply_found( self ):
+        """Apply what the last reading found (see _on_found), if not done yet"""
+        with self._lock:
+            found, self._found_pending = self._found_pending, None
+        if found is not None:
             self._on_found(found)
 
     def _on_found( self, found ):
-        """Called after a reading with what it found (see _Computation.found)"""
+        """Called (by poll or wait, see _apply_found) with what a reading found
+        (see _Computation.found)"""
 
 class _Cancelled(Exception):
     pass

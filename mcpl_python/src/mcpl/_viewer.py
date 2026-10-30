@@ -100,6 +100,7 @@ class Viewer(_Output,_Reading):
         #(the figures of the last reading which was done, for its particles,
         #which are kept for plots which do not change, see _read):
         self._done = None#(particles key, {view key: figure}, found, counts)
+        self._found_pending = None#(what a reading found, see _apply_found)
         #(the last change of toggle_scale, which the same key undoes: the
         #option, the view key after the change, the plot before, the view key
         #before, and whether a plot of a standard group was copied):
@@ -148,7 +149,8 @@ class Viewer(_Output,_Reading):
         self._s.plots = [ p for p, _, _ in self._groups.cards() ]
 
     def _on_found( self, found ):
-        """After a reading: the defaults of the settings of the groups depend on
+        """After a reading (in the thread of the front end, see
+        _apply_found): the defaults of the settings of the groups depend on
         what it found (see PlotGroups.setting), so their plots are read if
         they changed"""
         if found == self._groups.found:

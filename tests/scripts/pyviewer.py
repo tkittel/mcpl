@@ -847,3 +847,31 @@ def test_viewer_in_window_without_tk():
             sys.modules['tkinter'] = saved
 
 test_viewer_in_window_without_tk()
+
+def test_found_in_front_end_thread():
+    """What a reading found (e.g. the fields which vary, which choose the
+    plots of the correlations) changes the groups only in poll and wait, in
+    the thread of the front end, so the views and their groups stay the same
+    while it shows them"""
+    v = Viewer('example.mcpl',view='correlations')
+    v.multi_overview = True
+    v.start()
+    v.wait()
+    variables = v.group_setting('correlations','variables')
+    keys = [ k for k, _ in v.views ]
+    #(as at the end of a reading, in its thread: a field found constant):
+    found = copy.deepcopy(v.found)
+    found['constants'][variables[0]] = '0'
+    with v._lock:
+        v._found_pending = found
+    print('reading until applied:', v.reading)
+    print('views unchanged before poll:', [ k for k, _ in v.views ] == keys)
+    print('plots without a group before poll:',
+          [ k for k in keys if ui.plot_of(k) and not v.plot_info(k)['group'] ])
+    v.poll()
+    print('variables changed by poll:', v.group_setting('correlations','variables') == variables[1:])
+    print('plots without a group after poll:',
+          [ k for k, _ in v.views if ui.plot_of(k) and not v.plot_info(k)['group'] ])
+    v.stop()
+
+test_found_in_front_end_thread()

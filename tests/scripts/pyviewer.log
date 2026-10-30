@@ -614,3 +614,8 @@ mcpltool -wekin -w: exit code 1
    | ERROR: -w specified more than once
 mcpltool -w with two files: ERROR: The viewer shows one file (-w can only be used with one file).
 g without tkinter: The viewer in a window needs tkinter and a display (o shows the plot in a window with matplotlib only)
+reading until applied: True
+views unchanged before poll: True
+plots without a group before poll: []
+variables changed by poll: True
+plots without a group after poll: []

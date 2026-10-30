@@ -76,6 +76,25 @@ jobs:
     - name: CTest
       run: ctest --test-dir ./build --build-config ${{ matrix.buildtype }} --no-tests=error --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
 
+    - name: Repeat pyviewer_tk (alone, and in parallel with the other viewer tests)
+      if: always()
+      run: |
+        cd ./build
+        diag() { grep -E 'Failed|NO KEYBOARD|focus in the pick|pick applied' "$1" | head -20; }
+        alone=0; together=0
+        for i in $(seq 15); do
+          if ! ctest --build-config ${{ matrix.buildtype }} -R '^py_rl_pyviewer_tk$' --output-on-failure > alone_$i.log 2>&1; then
+            alone=$((alone+1)); echo "== alone, run $i failed:"; diag alone_$i.log
+          fi
+        done
+        for i in $(seq 6); do
+          if ! ctest --build-config ${{ matrix.buildtype }} -j3 -R '^py_rl_pyviewer_tk$|^py_rl_pyviewer_monkey$|^py_rl_pyviewer$' --output-on-failure > together_$i.log 2>&1; then
+            together=$((together+1)); echo "== in parallel, run $i failed:"; diag together_$i.log
+          fi
+        done
+        echo "Failed runs: alone $alone of 15, in parallel with pyviewer and pyviewer_monkey $together of 6"
+        [ $alone -eq 0 ] && [ $together -eq 0 ]
+
     - name: Install
       run: cmake --install ./build --config ${{ matrix.buildtype }}
 

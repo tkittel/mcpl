@@ -42,7 +42,7 @@ Modules of the mcpl package and their imports from the package (in parentheses: 
   _viewer              <- _common, _histstring, _stdviews, _viewer_groups, _viewer_output, _viewer_overviews, _viewer_reading, _viewer_ui, (_exprcore), (_expressions), (_exprhelp), (_exprsyntax), (_messages), (_plotregistry), (_reader), (_userdata), [_viewer_curses], [_viewer_tk]
   _viewer_align        <- _common, _numpy, (_exprrotation), (_exprunits), (_particles)
   _viewer_code         <- (_exprcore), (_expressions), (_exprrotation), (_exprsyntax), (_exprunits), (_extract)
-  _viewer_curses       <- _common, _viewer_ui, (_plotbackend_text), (_plotregistry), (_termcolor)
+  _viewer_curses       <- _common, _viewer_ui, (_plotbackend_text), (_plotregistry), (_termcolor), (_viewer_tk)
   _viewer_figure       <- _plotbackend_mpl
   _viewer_groups       <- _stdviews, _viewer_overviews, (_exprcore), (_histstring), (_particles)
   _viewer_output       <- _common, _stdviews, _viewer_groups, _viewer_ui, (_extract), (_messages), (_reader), (_viewer_code)

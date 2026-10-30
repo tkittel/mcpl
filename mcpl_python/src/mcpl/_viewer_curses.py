@@ -201,7 +201,14 @@ def _plot_in_window( figure ):
                ' show([x], backend="matplotlib")',figure)
 
 def _viewer_in_window( viewer ):
-    """Open the viewer in a window, in the same state (see _in_window)"""
+    """Open the viewer in a window, in the same state (see _in_window), if Tk
+    can open windows here (else the new process would fail without a word)"""
+    from ._viewer_tk import _root
+    root = _root()
+    if root is None:
+        raise MCPLError('The viewer in a window needs tkinter and a display (o shows'
+                        ' the plot in a window with matplotlib only)')
+    root.destroy()
     _in_window(f'from {__package__}._viewer import Viewer, _run_viewer, _viewer_backend;'
                f' from {__package__}._plotregistry import _create;'
                ' _run_viewer(Viewer(**x),_create(_viewer_backend("matplotlib",False)))',

@@ -87,7 +87,7 @@ dependencies = {
     '_viewer'            : ( '_common', '_exprcore', '_expressions', '_exprhelp', '_exprsyntax', '_histstring', '_messages', '_plotregistry', '_reader', '_stdviews', '_userdata', '_viewer_curses', '_viewer_groups', '_viewer_output', '_viewer_overviews', '_viewer_reading', '_viewer_tk', '_viewer_ui' ),
     '_viewer_align'      : ( '_common', '_exprrotation', '_exprunits', '_numpy', '_particles' ),
     '_viewer_code'       : ( '_exprcore', '_expressions', '_exprrotation', '_exprsyntax', '_exprunits', '_extract' ),
-    '_viewer_curses'     : ( '_common', '_plotbackend_text', '_plotregistry', '_termcolor', '_viewer_ui' ),
+    '_viewer_curses'     : ( '_common', '_plotbackend_text', '_plotregistry', '_termcolor', '_viewer_tk', '_viewer_ui' ),
     '_viewer_figure'     : ( '_plotbackend_mpl', ),
     '_viewer_groups'     : ( '_exprcore', '_histstring', '_particles', '_stdviews', '_viewer_overviews' ),
     '_viewer_output'     : ( '_common', '_extract', '_messages', '_reader', '_stdviews', '_viewer_code', '_viewer_groups', '_viewer_ui' ),

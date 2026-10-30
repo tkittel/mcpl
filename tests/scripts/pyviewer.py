@@ -827,3 +827,23 @@ test_align()
 test_write()
 test_terminal()
 test_tool()
+
+def test_viewer_in_window_without_tk():
+    """g in the terminal viewer, without tkinter: a message instead of a new
+    process which would fail without a word"""
+    from mcpldev._common import MCPLError
+    from mcpldev._viewer_curses import _viewer_in_window
+    saved = sys.modules.get('tkinter')
+    sys.modules['tkinter'] = None#(import tkinter fails)
+    try:
+        _viewer_in_window(Viewer('example.mcpl'))
+        print('ERROR: no error')
+    except MCPLError as e:
+        print('g without tkinter:', e)
+    finally:
+        if saved is None:
+            del sys.modules['tkinter']
+        else:
+            sys.modules['tkinter'] = saved
+
+test_viewer_in_window_without_tk()

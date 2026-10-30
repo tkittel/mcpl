@@ -39,6 +39,7 @@ from mcpldev._viewer import Viewer
 from mcpldev._viewer_tk import TkViewer, _root
 from mcpldev._viewer_tkbase import Flow, focus_of
 from mcpldev._viewer_tkwindows import AlignWindow, WriteWindow
+from MCPLTestUtils.common import rounded_numbers
 from MCPLTestUtils.dirs import test_data_dir
 
 shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
@@ -329,14 +330,15 @@ for _ in range(500):
     if aw._stats is not None and aw._stats.complete:
         break
 print('align means:', str(aw._means.cget('text')).replace('\n',' | '))
-print('align edit:', aw._edit.get('1.0','end').strip())
+print('align edit:', rounded_numbers(aw._edit.get('1.0','end').strip()))
 print('align result:', str(aw._result.cget('text')), '| add enabled:', 'disabled' not in aw._add.state())
 aw._keep.set('(0,1,0)')
 aw._move.set(True)
 aw._point.set('(0,0,1m)')
 aw._coords['z'].set(False)
 aw._update()
-print('align edit, keeping (0,1,0) and moving to (0,0,1m) in x and y:', aw._edit.get('1.0','end').strip())
+print('align edit, keeping (0,1,0) and moving to (0,0,1m) in x and y:',
+      rounded_numbers(aw._edit.get('1.0','end').strip()))
 print('align result:', str(aw._result.cget('text')))
 aw._target.set('(1,2)')
 aw._update()
@@ -346,7 +348,7 @@ aw._target.set('(0,0,1)')
 aw._update()
 aw._on_add()
 pump()
-print('edit field after adding:', tv._entries['edit'].get()[:60], '...',
+print('edit field after adding:', rounded_numbers(tv._entries['edit'].get())[:60], '...',
       '| align window closed:', not aw.window.winfo_exists())
 tv._set_text(tv._entries['edit'],'')
 tv.logic.on_field_edited('edit','')

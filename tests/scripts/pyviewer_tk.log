@@ -69,12 +69,12 @@ menu bar: {'File': ['Open MCPL file...', 'New MCPL file...', 'Save viewer state.
 icons: [(256, 256), (32, 32)]
 settings in a narrow frame, rows: 2
 align means: Position: (-0.0218695, 3.43867, 20) cm | Direction: (0.00542549, -0.0217169, 0.999749), spread 47.7 deg (typical angle to the mean direction) | Particles: 544 (all), Σw = 544, neutron 85.7%, gamma 13.6%, electron 0.735%
-align edit: pos -= (-0.021869541264844455cm,3.4386698296019698cm,20cm);rotate_frame((0.0054254945136767005,-0.021716876725626142,0.9997494392469375),(0,0,1),(-0.24231828308556339,0.9699385500932678,0.022384341076609297),(-0.24237901375377607,0.9701816395354773,0));pos += (-0.021869541264844455cm,3.4386698296019698cm,20cm)
+align edit: pos -= (-0.0218695cm,3.43867cm,20cm);rotate_frame((0.00542549,-0.0217169,0.999749),(0,0,1),(-0.242318,0.969939,0.0223843),(-0.242379,0.970182,0));pos += (-0.0218695cm,3.43867cm,20cm)
 align result: After it: position (-0.0218695, 3.43867, 20) cm, direction (0, 0, 1) | add enabled: True
-align edit, keeping (0,1,0) and moving to (0,0,1m) in x and y: pos -= (-0.021869541264844455cm,3.4386698296019698cm,20cm);rotate_frame((0.0054254945136767005,-0.021716876725626142,0.9997494392469375),(0,0,1),(0.00011785258978690964,0.9997641608225831,0.021716556943565498),(0,1,0));pos += (0,0,20cm)
+align edit, keeping (0,1,0) and moving to (0,0,1m) in x and y: pos -= (-0.0218695cm,3.43867cm,20cm);rotate_frame((0.00542549,-0.0217169,0.999749),(0,0,1),(0.000117853,0.999764,0.0217166),(0,1,0));pos += (0,0,20cm)
 align result: After it: position (0, 0, 20) cm, direction (0, 0, 1)
 align with a bad direction: The direction must be three numbers, as in (0,0,1), not "(1,2)" | add enabled: False
-edit field after adding: pos -= (-0.021869541264844455cm,3.4386698296019698cm,20cm);r ... | align window closed: True
+edit field after adding: pos -= (-0.0218695cm,3.43867cm,20cm);rotate_frame((0.0054254 ... | align window closed: True
 x range after changing the limit, zoom kept: (2.0, 20.0)
 x range of another plot, not zoomed: True
 while writing: Writing written_by_tk.mcpl.gz ... ["('disabled',)", "('disabled',)"]

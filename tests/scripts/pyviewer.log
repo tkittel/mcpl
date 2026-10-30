@@ -417,12 +417,12 @@ view 'nope.json': Can not read the viewer state from nope.json ([Errno 2] No suc
 view 'nope': Unknown groups of plots or view "nope" (groups: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
 view 'overview:nope': Unknown groups of plots or view "overview:nope" (groups: spectra, fields, geometry, beamz, beamx, beamy, 3d, correlations, separated by commas; views: overview, overview:GROUP or a plot, e.g. ekin)
 align: 2403 particles, neutron 100%, position (3.002553, -0.998609, 5.013888), direction (0.279722, -0.188441, 0.941406), spread 3.749 deg
-align (0, 0, 1) keeping None around mean, to None in xyz: 327 characters, position (3.002553, -0.998609, 5.013888), direction (0, 0, 1.000000), as applied: True
-align (0, 0, 1) keeping (0, 1, 0) around mean, to None in xyz: 292 characters, position (3.002553, -0.998609, 5.013888), direction (0, 0, 1.000000), as applied: True
-align (1, 1, 0) keeping (0, 0, 1) around (0, 0, 0), to None in xyz: 183 characters, position (3.463974, 4.665159, -1.178474), direction (0.707107, 0.707107, 0), as applied: True
-align (0, 0, -1) keeping None around (1, 2, 3), to (0, 0, 0) in xy: 265 characters, position (0, 0, -0.021105), direction (0, 0, -1.000000), as applied: True
-align None keeping None around mean, to (10, 0, 0) in xyz: 70 characters, position (10.000000, 0, 0), direction (0.279722, -0.188441, 0.941406), as applied: True
-align [-1.  0.  0.] keeping [0. 1. 0.] around mean, to (0, 0, 0) in xyz: 222 characters, position (0, 0, 0), direction (-1.000000, 0, 0), as applied: True
+align (0, 0, 1) keeping None around mean, to None in xyz: pos -= (3.00255cm,-0.998609cm,5.01389cm);rotate_frame((0.279722,-0.188441,0.941406),(0,0,1),(-0.780764,0.525978,0.337275),(-0.82936,0.558715,0));pos += (3.00255cm,-0.998609cm,5.01389cm), position (3.002553, -0.998609, 5.013888), direction (0, 0, 1.000000), as applied: True
+align (0, 0, 1) keeping (0, 1, 0) around mean, to None in xyz: pos -= (3.00255cm,-0.998609cm,5.01389cm);rotate_frame((0.279722,-0.188441,0.941406),(0,0,1),(0.0536726,0.982085,0.180635),(0,1,0));pos += (3.00255cm,-0.998609cm,5.01389cm), position (3.002553, -0.998609, 5.013888), direction (0, 0, 1.000000), as applied: True
+align (1, 1, 0) keeping (0, 0, 1) around (0, 0, 0), to None in xyz: rotate_frame((0.279722,-0.188441,0.941406),(0.707107,0.707107,0),(-0.780764,0.525978,0.337275),(0,0,1)), position (3.463974, 4.665159, -1.178474), direction (0.707107, 0.707107, 0), as applied: True
+align (0, 0, -1) keeping None around (1, 2, 3), to (0, 0, 0) in xy: pos -= (1cm,2cm,3cm);rotate_frame((0.279722,-0.188441,0.941406),(0,0,-1),(0.780764,-0.525978,-0.337275),(-0.82936,0.558715,0));pos += (2.80582cm,-0.240652cm,3cm), position (0, 0, -0.021105), direction (0, 0, -1.000000), as applied: True
+align None keeping None around mean, to (10, 0, 0) in xyz: pos += (6.99745cm,0.998609cm,-5.01389cm), position (10.000000, 0, 0), direction (0.279722, -0.188441, 0.941406), as applied: True
+align [-1.  0.  0.] keeping [0. 1. 0.] around mean, to (0, 0, 0) in xyz: pos -= (3.00255cm,-0.998609cm,5.01389cm);rotate_frame((0.279722,-0.188441,0.941406),(-1,0,0),(0.0536726,0.982085,0.180635),(0,1,0)), position (0, 0, 0), direction (-1.000000, 0, 0), as applied: True
 kept axis after: (0, 0.982085, -0.188441) | in the plane of y and z: True
 align ((0, 0, 1), (0.3, -0.2, 1.0)): no error
 align ((0, 0, 1), (0, 0, 2)): The axis to keep must not be along the mean direction or the target direction

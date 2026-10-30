@@ -43,6 +43,7 @@ from mcpldev._plotbackend_text import AsciiBackend
 from mcpldev._reader import MCPLFile, _FileView
 from mcpldev._viewer import Viewer
 from mcpldev._viewer_curses import TextViewer, _ansi_segments
+from MCPLTestUtils.common import rounded_numbers
 from MCPLTestUtils.dirs import test_data_dir
 
 shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
@@ -375,7 +376,7 @@ def test_align():
             t = np.asarray(target,dtype=float) / np.linalg.norm(target)
             ok = ok and np.allclose(mdir,t,atol=1e-12)
         print(f'align {target} keeping {keep} around {pivot}, to {centre} in {coords}:'
-              f' {len(edit)} characters, position {fmt(pos)}, direction {fmt(mdir)},'
+              f' {rounded_numbers(edit)}, position {fmt(pos)}, direction {fmt(mdir)},'
               f' as applied: {ok}')
     #(the kept axis stays in the plane of itself and the target, on its side):
     edit, _, _ = al.align_edit(s,(0,0,1),(0,1,0))

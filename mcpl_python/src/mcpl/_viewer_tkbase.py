@@ -182,6 +182,51 @@ class GreyText:
         """The entry w no longer shows a grey text (e.g. it was emptied)"""
         self._showing.discard(w)
 
+class NarrowLayout:
+    """Switches a part of a window to its narrow layout (with narrow(True))
+    when the width it has (available(), by default the width of the part, when
+    it changes) is less than the width it asks for in its wide layout
+    (measured once, when it is first shown), and back (with narrow(False))
+    when it has enough, so nothing in it gets squeezed away (Tk hides widgets
+    which get no room, e.g. in the small windows of small screens)"""
+    def __init__( self, part, narrow, available = None ):
+        self._part, self._narrow = part, narrow
+        self._available = available or part.winfo_width
+        self._wide_width, self.is_narrow = None, False
+        part.bind('<Configure>',lambda _e : self._fit(),'+')
+
+    def _fit( self ):
+        if self._wide_width is None:
+            self._wide_width = self._part.winfo_reqwidth()
+        narrow = self._available() < self._wide_width
+        if narrow != self.is_narrow:
+            self.is_narrow = narrow
+            self._narrow(narrow)
+
+def second_line( row, widgets ):
+    """The function of a NarrowLayout of the row which moves the widgets (packed
+    next to each other in the row, after its first widget) to a line of their
+    own below its other widgets, and back"""
+    _, ttk = tk_modules()
+    line = ttk.Frame(row,style=row.cget('style'))
+    slaves = row.pack_slaves()
+    after = slaves[slaves.index(widgets[0]) - 1]
+    infos = [ { k : v for k, v in w.pack_info().items() if k != 'in' } for w in widgets ]
+    def narrow( on ):
+        if on:
+            line.pack(side='bottom',fill='x',before=row.pack_slaves()[0])
+        else:
+            line.pack_forget()
+        previous = after
+        for w, info in zip(widgets,infos):
+            if on:
+                w.pack(in_=line,**info)
+                w.lift(line)#(above the line, which is made after it)
+            else:
+                w.pack(in_=row,after=previous,**info)
+            previous = w
+    return narrow
+
 class Flow:
     """Lays out widgets of a frame (the items, in their order) in rows as wide
     as the frame, as many on each row as fit, and again when its width

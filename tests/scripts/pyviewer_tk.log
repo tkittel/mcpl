@@ -81,6 +81,8 @@ x range after changing the limit, zoom kept: (2.0, 20.0)
 x range of another plot, not zoomed: True
 while writing: Writing written_by_tk.mcpl.gz ... ["('disabled',)", "('disabled',)"]
 written: True | window closed: True | status: example.mcpl: 1,006 particles
+small window: squeezed: []
+large window: squeezed: [] | narrow layouts: []
 closed: True
 To open the viewer like this again:
   mcpltool -wspectra -p "pdgcode == gamma" example.mcpl

@@ -406,6 +406,36 @@ for _ in range(500):
 print('written:', pathlib.Path('written_by_tk.mcpl.gz').exists(),
       '| window closed:', not ww._code.window.winfo_exists(), '| status:', str(tv._status[0].cget('text')))
 
+#In a small window (as on a screen of 1024x768 pixels, where the window can be
+#narrower than its layout wants), nothing is squeezed away: the title, the
+#axes, and skip, limit and the button writing the particles go to lines of
+#their own, so all fields and buttons are shown and wide enough. In a large
+#window, they are back in their rows.
+def squeezed():
+    """The fields and buttons which are not shown or narrower than half of
+    what they ask for (only those whose part of the window is shown)"""
+    res, todo = [], [ root ]
+    while todo:
+        w = todo.pop()
+        todo += w.winfo_children()
+        if ( w.winfo_class() in ( 'TEntry', 'TCombobox', 'TButton', 'TCheckbutton', 'TMenubutton' )
+             and w.winfo_manager() and w.master.winfo_ismapped()
+             and ( not w.winfo_ismapped() or w.winfo_width() < w.winfo_reqwidth() // 2 ) ):
+            res.append(str(w))
+    return res
+size, minsize = root.geometry().split('+')[0], root.minsize()
+tv.logic.on_select_key('plot:x')
+for name, geometry in ( ( 'small', '984x648' ), ( 'large', size ) ):
+    root.minsize(1,1)
+    root.geometry(geometry)
+    pump()
+    #(which layouts are narrow in the small window depends on the fonts):
+    narrow = [ name for name, lay in ( ( 'particles', tv._particle_layout ), ( 'title', tv._title_layout ) )
+               if lay.is_narrow ] + ( [ 'axes' ] if len(tv._axes_flow._rows) > 1 else [] )
+    print(f'{name} window: squeezed: {squeezed()}'
+          + ( f' | narrow layouts: {narrow}' if name == 'large' else '' ))
+root.minsize(*minsize)
+
 tv.close_window()
 print('closed:', tv.logic.closed)
 

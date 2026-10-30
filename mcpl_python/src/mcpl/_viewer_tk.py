@@ -29,7 +29,9 @@ __all__ = []
 
 from . import _viewer_ui as ui
 from ._viewer_tkbase import (
+    Flow,
     GreyText,
+    NarrowLayout,
     bind_enter,
     bind_shortcut,
     command_keys,
@@ -37,6 +39,7 @@ from ._viewer_tkbase import (
     mnemonics,
     on_paste,
     repaint_after_resize,
+    second_line,
     shortcut_name,
     tk_modules,
     windowing_system,
@@ -265,6 +268,7 @@ class TkViewer(WindowFrontend):
         grid.pack(fill='x')
         grid.columnconfigure(1,weight=1)
         cols = {}#field -> column of its label
+        placed = {}#field -> its label, entry and mark (see _fit_particle_fields)
         for r, row in enumerate(rows):
             col = 0
             for field in row:
@@ -297,6 +301,7 @@ class TkViewer(WindowFrontend):
                 mark = ttk.Label(grid,width=2)
                 mark.grid(row=r,column=col)
                 col += 1
+                placed[field] = ( lab, w, mark )
                 self._entries[field], self._marks[field] = w, mark
                 self._hover(lab,field)
                 self._hover(w,field)
@@ -309,6 +314,14 @@ class TkViewer(WindowFrontend):
         self._write.grid(row=len(rows)-1,column=cols['skip'],
                          columnspan=cols['limit']+2-cols['skip'],sticky='ew',padx=(12,0))
         self._hover(self._write,'write')
+        #(the expressions are never narrower than requested, and in narrow
+        #windows, skip, limit and the button go to a row of their own, see
+        #_fit_particle_fields):
+        grid.columnconfigure(1,weight=1,minsize=self._entries['pick'].winfo_reqwidth())
+        moved = [ *placed['skip'], *placed['limit'], self._write ]
+        row = ttk.Frame(grid)
+        moved = [ ( w, w.grid_info() ) for w in moved ]
+        self._particle_layout = NarrowLayout(grid,lambda on : self._particle_fields(grid,row,moved,on))
         tint(part,'Particles')
         #(the line of messages, and at its right what is under the mouse):
         self._line = ttk.Label(bottom)
@@ -319,7 +332,7 @@ class TkViewer(WindowFrontend):
         #the fields of the shown plot, so nothing is cut off, but fits on the
         #screen, as in the geometry above, where the fields get narrower):
         root.update_idletasks()
-        root.minsize(min( left.winfo_reqwidth() + self._axes[0].master.winfo_reqwidth() + 40,
+        root.minsize(min( left.winfo_reqwidth() + self._simple.winfo_reqwidth() + 40,
                           root.winfo_screenwidth() - 40 ),
                      min( 600, root.winfo_screenheight() - 120 ))
         self._popup = None#(the list of completions: (field, start, Toplevel, Listbox, choices))
@@ -392,9 +405,12 @@ class TkViewer(WindowFrontend):
                                                              self.logic.plot_code()))
         self._code.pack(side='right')
         #(the title, in the header):
-        ttk.Label(head,text='Title:',style='Plot.TLabel').pack(side='left',padx=(16,4))
+        label = ttk.Label(head,text='Title:',style='Plot.TLabel')
+        label.pack(side='left',padx=(16,4))
         t = ttk.Entry(head,width=32)
         t.pack(side='left')
+        #(in narrow windows, the title is in a line of its own below the buttons):
+        self._title_layout = NarrowLayout(head,second_line(head,[ label, t ]))
         self._placeholders[t] = 'the name in the list of plots'
         bind_enter(t,lambda : self._on_title_enter(t))
         t.bind('<Escape>',lambda _e : self._on_title_escape())
@@ -409,14 +425,18 @@ class TkViewer(WindowFrontend):
         #(the axes, and the settings below them, are shown unless "Advanced"
         #shows the plot expression instead, which has them all):
         simple = ttk.Frame(frame)
-        simple.pack(side='left')
         self._simple = simple
         self._menu = dict(ui.quantity_choices)#(the texts of the quantities -> expressions)
         self._axes = []
+        #(each axis with its label in a frame, in rows as wide as the window,
+        #so all are shown also in narrow windows):
+        items = []
         for label in ( 'X axis:', 'Y axis:', 'Z axis:' ):
-            ttk.Label(simple,text=label,**( row_label if not self._axes else {} )).pack(
-                side='left',padx=(0 if not self._axes else 10,4))
-            w = ttk.Combobox(simple,width=18,values=list(self._menu) if not self._axes else [ '', *self._menu ])
+            item = ttk.Frame(simple)
+            items.append(item)
+            ttk.Label(item,text=label,**( row_label if not self._axes else {} )).pack(
+                side='left',padx=(0,4))
+            w = ttk.Combobox(item,width=18,values=list(self._menu) if not self._axes else [ '', *self._menu ])
             w.pack(side='left')
             w.bind('<<ComboboxSelected>>',lambda _e, w=w : self._on_axis_chosen(w))
             w.bind('<KeyRelease>',lambda e, w=w : self._on_axis_key(w,e))
@@ -437,13 +457,17 @@ class TkViewer(WindowFrontend):
             w.bind('<FocusIn>',lambda _e, w=w : self._set_text(w,self._text(w)),'+')
             w.bind('<FocusOut>',lambda _e, w=w : self._on_entry_unfocus(w),'+')
         #(the Apply button of the axes, as Enter in their fields):
-        b = ttk.Button(simple,text='Apply',width=5,takefocus=0,style='Small.TButton',
+        item = ttk.Frame(simple)
+        items.append(item)
+        b = ttk.Button(item,text='Apply',width=5,takefocus=0,style='Small.TButton',
                        command=self._on_axes_enter)
         b.state([ 'disabled' ])
-        b.pack(side='left',padx=(4,0))
+        b.pack(side='left')
         self._applies['axes'] = b
-        self._marks['axes'] = ttk.Label(simple,width=2)
+        self._marks['axes'] = ttk.Label(item,width=2)
         self._marks['axes'].pack(side='left')
+        self._axes_flow = Flow(simple,style='Plot.TFrame')#(the colour of the part)
+        self._axes_flow.set(items)
         #(the plot expression, which has the axes and the settings, shown
         #instead of them with the toggle "Advanced", see _show_advanced):
         self._advanced = tk.BooleanVar(frame,value=False)
@@ -451,6 +475,8 @@ class TkViewer(WindowFrontend):
                                  style='Choice.Toolbutton',command=self._show_advanced)
         toggle.pack(side='right',padx=(6,0))
         self._toggle = toggle
+        #(after the toggle, which keeps its room in narrow windows):
+        simple.pack(side='left',fill='x',expand=True,after=toggle)
         self._hover(toggle,'advanced')
         expr = ttk.Frame(frame)
         self._expression = expr
@@ -714,7 +740,7 @@ class TkViewer(WindowFrontend):
             self._expression.pack(side='left',fill='x',expand=True)
         else:
             self._expression.pack_forget()
-            self._simple.pack(side='left',before=self._toggle)
+            self._simple.pack(side='left',fill='x',expand=True,after=self._toggle)
             self._settings_row.pack(fill='x',pady=1,after=self._plot_row)
 
     def focus_field( self, field ):
@@ -894,6 +920,23 @@ class TkViewer(WindowFrontend):
         w.bind('<Tab>',lambda _e : self._on_entry_tab(w,field))
         w.bind('<FocusIn>',lambda _e : self._on_entry_focus(w,field),'+')
         w.bind('<FocusOut>',lambda _e : self._on_field_unfocus(w,field),'+')
+
+    def _particle_fields( self, grid, row, moved, narrow ):
+        """The narrow layout of the fields of the particles (see NarrowLayout):
+        skip, limit and the button writing the particles (moved, with their
+        places in the grid) in a row of their own below pick and edit, so the
+        expressions keep their width, or the wide layout with them at the
+        right of pick and edit"""
+        if not narrow:
+            row.grid_forget()
+            for w, info in moved:
+                w.grid(**{ k : v for k, v in info.items() if k != 'in' },in_=grid)
+            return
+        row.grid(row=2,column=0,columnspan=grid.grid_size()[0],sticky='w',pady=(2,0))
+        for i, ( w, info ) in enumerate(moved):
+            w.grid(in_=row,row=0,column=i,sticky=info['sticky'],padx=info['padx'],
+                   pady=info['pady'],columnspan=1)
+            w.lift(row)#(above the row, which is made after them)
 
     def _text( self, w ):
         """The text of the entry (empty while it shows its placeholder)"""

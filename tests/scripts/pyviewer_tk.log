@@ -27,6 +27,8 @@ mouse events after the 3D plot handled
 shown parts of the plot: {'axes': True, 'settings': True, 'expression': False}
 after clicking Advanced (on: True): {'axes': False, 'settings': False, 'expression': True}, expression 'ekin;logx=auto;logy'
 after clicking Advanced (on: False): {'axes': True, 'settings': True, 'expression': False}, expression 'ekin;logx=auto;logy'
+focus in the pick field before Enter: True
+pick applied: 'ekin < 1MeV'
 after the pick:
    status: example.mcpl: 1,006 particles
    counts: 544/1,006 particles (54.1%), Σw = 544 (54.1%)

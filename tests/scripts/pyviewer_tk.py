@@ -63,15 +63,35 @@ def pump( seconds = 0.3 ):
         root.update()
         time.sleep(0.01)
 
+def where_focus():
+    """Where the keyboard focus is, as Tk says (also in the list of a combobox,
+    which tkinter does not know as a widget)"""
+    return root.tk.call('focus') or 'in no window of this program'
+
 def take_focus( widget ):
     """Give the keyboard focus to the widget (keys go to the focus, which other
-    programs on the display can take, e.g. tests running in parallel)"""
+    programs on the display can take, e.g. tests running in parallel), saying
+    so if it fails"""
     for _ in range(100):
         widget.focus_force()
         pump(0.02)
         if widget.focus_get() is widget:
             break
+    else:
+        print(f'   NO KEYBOARD FOCUS for {widget} after 100 tries: it is {where_focus()}')
+        print('   ', focus_diagnostics(widget))
     pump()
+
+def focus_diagnostics( widget ):
+    """Why the widget may not get the keyboard focus: whether it is shown
+    (mapped and viewable, and where, which may be off the screen), and the
+    window, its state and the screen"""
+    def geometry( w ):
+        return f'{w.winfo_width()}x{w.winfo_height()} at ({w.winfo_rootx()},{w.winfo_rooty()})'
+    return ( f'widget: mapped {bool(widget.winfo_ismapped())}, viewable'
+             f' {bool(widget.winfo_viewable())}, {geometry(widget)} | window: {root.wm_state()},'
+             f' {geometry(root)}, focus of the window {root.tk.call("focus","-lastfor",root)} |'
+             f' screen: {root.winfo_screenwidth()}x{root.winfo_screenheight()}' )
 
 def wait():
     """Until the file is read and the window shows the result"""
@@ -209,8 +229,11 @@ for _ in range(2):
 entry = tv._entries['pick']
 take_focus(entry)
 tv._set_text(entry,'ekin < 1MeV')
+ok = focus_of(root) is entry
+print('focus in the pick field before Enter:', ok if ok else f'{ok} (it is {where_focus()})')
 entry.event_generate('<Return>')
 wait()
+print('pick applied:', repr(v.field_text('pick')))
 show('after the pick')
 
 #The menu of the cache button, and a limit with which not all particles fit:

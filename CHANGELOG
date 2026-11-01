@@ -1,4 +1,13 @@
 v2.2.9  (work in progress)
+      * New viewer: mcpltool -w FILE (in a window) or -t FILE (in the
+        terminal), or mcpl.view(FILE) in Python, shows overviews and plots of
+        the particles, where the particles can be picked and edited, and
+        written to a new file. The plots are in groups for some uses (e.g. a
+        beam along z), each with an overview. The state of the viewer can be
+        saved, and opened again (e.g. mcpltool -w=FILE.json). In a window, an
+        align helper adds edits turning the mean direction of the particles
+        into a given direction, or moving their mean position to a point. New
+        extra: "curses".
       * Python fixes: MCPLFile closes the file of gzipped files, dump_file
         closes the file it opened, a plain 0 in hypot, min, max and clamp has
         the units of the other values, histogram() checks its bins and range,
@@ -463,8 +472,9 @@ v2.2.9  (work in progress)
         and Text), which can be shown or saved with matplotlib, with the MCPL
         logo (with the show and save functions).
       * plot_stats is removed: it gives an error saying what to use instead
-        (mcpl.histogram), and mcpltool -S only prints the summary of the
-        particles. The --pdf and --gui options are removed.
+        (the viewer, mcpl.view, or mcpl.histogram), and mcpltool -S only
+        prints the summary of the particles. The --pdf and --gui options are
+        removed (use -w or -t instead).
       * New histogram API: histograms of values given by expressions, e.g.
         mcpl.histogram(FILE,"ekin/eV",lethargy=True).plot(), with options for
         picking particles, logarithmic axes, separate curves for each particle

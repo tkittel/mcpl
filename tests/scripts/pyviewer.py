@@ -23,21 +23,26 @@
 
 # Test the core of the viewer without a display: the views and their figures
 # (which must be identical to those of mcpltool -S and of the histograms), the
-# fields with their checks, completions and history, the commands, and
-# writing files.
+# fields with their checks, completions and history, the commands, writing
+# files, and the viewer in the terminal on a screen in memory.
 
 import copy
 import pathlib
 import runpy
 import shutil
+import subprocess
+import sys
+import threading
 
 import mcpldev as mcpl
 from mcpldev import _viewer_ui as ui
 from mcpldev._histogram import _histogram
 from mcpldev._histstring import _parse_hist
 from mcpldev._plotbackend_test import describe
+from mcpldev._plotbackend_text import AsciiBackend
 from mcpldev._reader import MCPLFile, _FileView
 from mcpldev._viewer import Viewer
+from mcpldev._viewer_curses import TextViewer, _ansi_segments
 from MCPLTestUtils.dirs import test_data_dir
 
 shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
@@ -337,6 +342,179 @@ def test_write():
     print('without pick and edit:')
     print(ui.closing_text(Viewer(ex,limit=100)))
 
+class FakeScreen:
+    """A screen in memory, with the keys to give (WAIT waits for the reading,
+    and functions are called between keys)"""
+    colors = True
+    def __init__( self, keys, h = 44, w = 110 ):
+        self.h, self.w, self.keys = h, w, list(keys)
+        self.clear()
+    def size( self ):
+        return ( self.h, self.w )
+    def clear( self ):
+        self.grid = [ [' '] * self.w for _ in range(self.h) ]
+    def put( self, y, x, text, style = 'normal' ):
+        if 0 <= y < self.h:
+            for i, c in enumerate(text):
+                if 0 <= x + i < self.w:
+                    self.grid[y][x+i] = c
+    def refresh( self ):
+        pass
+    def getkey( self ):
+        self.last = self.text()
+        self.frames = getattr(self,'frames',[]) + [ self.last ]
+        while self.keys:
+            k = self.keys.pop(0)
+            if callable(k):
+                k()
+                continue
+            if k == 'WAIT':
+                self.viewer.wait()
+                return None
+            if k == 'Ctrl-C':
+                raise KeyboardInterrupt
+            return k
+        #(Esc ends the editing of a field, if any, and q quits):
+        self.ending = not getattr(self,'ending',False)
+        return 'Esc' if self.ending else 'q'
+    def text( self ):
+        return '\n'.join( ''.join(r).rstrip() for r in self.grid ).rstrip()
+
+def test_terminal():
+    def run( keys, show = True, backend = None, window = None, **kw ):
+        v = Viewer(ex,**kw)
+        s = FakeScreen(keys)
+        s.viewer = v
+        t = TextViewer(v,s,backend)
+        if window is not None:
+            t.open_window = window
+        t.run()
+        print(f'==> keys {[ k.__name__ if callable(k) else k for k in keys ]}:')
+        if show:
+            for line in s.text().splitlines():
+                print(f'   | {line}')
+        return v, t
+    run(['WAIT','p'] + list('pdgcode == neu') + ['Tab','Enter','WAIT','Down','Down','Down','WAIT'])
+    v, _ = run(['WAIT','e'] + list('x = 2') + ['WAIT'])
+    #(the numbers of the plot shown above, to see what differs if the
+    #drawing does):
+    print(describe([ v.figure(key = v.current_key) ]))
+    v, _ = run(['WAIT','a'] + list('hypot(x,y)/cm;lo') + ['Tab'] + list('y=1') + ['Enter','WAIT'],
+               show = False)
+    print('   views:', [ k for k, _ in v.views ][-1], 'current:', v.views[v.current][0])
+    #Enter on an added plot changes it (and an empty text removes it):
+    v, _ = run(['WAIT','a'] + list('ekin/MeV') + ['Enter','WAIT','Enter']
+               + ['Backspace'] * 3 + list('keV') + ['Enter','WAIT'],show=False)
+    print('   changed with Enter:', [ k for k, _ in v.views ][-1], 'current:', v.views[v.current][0])
+    v, _ = run(['WAIT','a'] + list('ekin/MeV') + ['Enter','WAIT','Enter','Enter','WAIT'],show=False)
+    print('   Enter twice keeps the plot:', [ k for k, _ in v.views ][-1], 'current:', v.views[v.current][0])
+    w = Viewer(ex,state={'custom':['ekin/MeV'],'view':'ekin/MeV'})
+    e = ui.editor_for(w,'change')
+    print('   Enter on an added plot, editing:', repr(e.text), '| hint line when emptied:', end=' ')
+    for _ in e.text:
+        e.key('Backspace')
+    print(ui.hint_line(e), e.ok)
+    v, _ = run(['WAIT','a'] + list('ekin/MeV') + ['Enter','WAIT','Enter']
+               + ['Backspace'] * 8 + ['Enter','WAIT'],show=False)
+    print('   removed with an empty text:', [ k for k, _ in v.views ][-1], 'current:', v.views[v.current][0])
+    print('   Enter on another view, editing:', ui.editor_for(Viewer(ex),'change') is not None)
+    run(['WAIT','h'],show=False)
+    #Moving the shown plot (Up and Down with Shift, Ctrl, Alt, ...):
+    v, _ = run(['WAIT','Down','Down','MoveUp','WAIT'],show=False)
+    print('   moved up:', v._s.plots[:3], 'current:', v.views[v.current][0])
+    #o shows the plot in a GUI window (here with a function which only notes
+    #what is shown, so no window is opened in tests):
+    shown = []
+    def window( action, what ):
+        shown.append( ( action, what ) )
+    v, t = run(['WAIT','Down','o','WAIT'],show=False,window=window)
+    print('   o shows the plot in a window:', shown[0][0], shown[0][1].panels[0].xlabel,
+          '| the plot shown:', v.views[v.current][0],
+          '| messages:', [ ln.strip() for f in t.s.frames for ln in f.splitlines()
+                           if 'GUI window' in ln ][-1:])
+    def fail( action, what ):
+        raise mcpl.MCPLError('Plots can not be shown in a window here (is there no display?).')
+    _, t = run(['WAIT','O'],show=False,window=fail)
+    print('   without a display:', next( ln.strip() for f in t.s.frames for ln in f.splitlines()
+                                            if 'Not shown' in ln ))
+    #l and k toggle the options logy and logx of the shown plot (from the
+    #scale shown, also for auto), in its histogram string:
+    v, t = run(['WAIT','l','WAIT','k','Down','WAIT','K','WAIT'],show=False)
+    print('   l and k:', [ k for k, _ in v.views ][:3])
+    print('   the figure:', 'logx' if v.figure().panels[0].logx else 'linear x')
+    #(the reading of the changed plot is held until k is pressed):
+    from mcpldev._viewer_reading import _Computation
+    add2, release = _Computation.add2, threading.Event()
+    def held( self, b ):
+        release.wait()
+        add2(self,b)
+    def hold():
+        _Computation.add2 = held
+    def unhold():
+        release.set()
+        _Computation.add2 = add2
+    v, t = run(['WAIT',hold,'l','k',unhold,'WAIT'],show=False)
+    print('   k before the changed plot is drawn:', next( ln.strip() for f in t.s.frames
+                                                          for ln in f.splitlines() if 'not drawn' in ln ))
+    #c shows a menu of the collections of plots (Up and Down choose one, which
+    #Enter applies; the keys work with Shift too):
+    e = ui.editor_for(v,'groups')
+    e.key('Down')
+    e.key('Down')
+    print('   c shows the collections:', [ n for n, _ in e.choices ],
+          'chosen:', e.choices[e.selected][0], '| key hint:', ui.hint_line(e,popup=True)[0])
+    v, t = run(['WAIT','C','Down','Down','WAIT'],show=False)
+    print('   the menu on the screen:', [ ln.strip() for ln in t.s.frames[-2].splitlines()
+                                          if 'beamy' in ln or 'Up/Down' in ln ])
+    v, _ = run(['WAIT','c','Down','Down','Enter','WAIT'],show=False)
+    print('   c changes the groups:', v.field_text('groups'), v.views[v.current][0])
+    v, _ = run(['WAIT','c','Down','Esc','WAIT'],show=False)
+    print('   Esc keeps the groups:', v.field_text('groups'))
+    before = set(pathlib.Path('.').glob('*.json'))
+    run(['WAIT','v','Enter','WAIT'],show=False)
+    print('   v saves the state in:', sorted( str(f) for f in set(pathlib.Path('.').glob('*.json')) - before ))
+    v, _ = run(['WAIT','s','1','2','Esc','i','5','0','Enter','WAIT','p','Up','Esc'],show=False)
+    print('   skip, limit:', repr(v.field_text('skip')), repr(v.field_text('limit')),
+          v.status_lines()[0])
+    v, _ = run(['WAIT',('Mouse',2,3,True),'WAIT'],show=False)
+    print('   view after clicking on line 3:', v.views[v.current][0])
+    v, _ = run(['WAIT','p','x','Ctrl-C','p','y'],show=False)
+    print('   Ctrl-C quits like q, while editing a field:', repr(v.field_text('pick')),
+          'running:', v._thread is not None and v._thread.is_alive())
+    #The completions in a popup above the field:
+    v, t = run(['WAIT','a','e','Tab','Down'],show=False)
+    lines = next( f for f in t.s.frames[::-1] if '\u2510' in f ).splitlines()
+    y0 = next( i for i, line in enumerate(lines) if '\u2510' in line and '\u250c' in line )
+    x0, x1 = lines[y0].index('\u250c'), lines[y0].index('\u2510')
+    print('   popup of the completions:')
+    for line in lines[y0:]:
+        print('   |', line[x0:x1+1])
+        if line[x0:x0+1] == '\u2514':
+            break
+    #With the ascii backend, only ASCII characters are shown:
+    v, t = run(['WAIT','p'] + list('pdgcode == neu') + ['WAIT'],show=False,
+               backend=AsciiBackend(),state={'view':'pdgcode;bar;logy=auto'})
+    text = t.s.last
+    print('   ascii backend, only ASCII characters:', text.isascii(),
+          '| selected view:', [ ln.strip() for ln in text.splitlines() if ln.startswith('>') ][:1])
+    print('ANSI segments:', _ansi_segments('ab\x1b[31mcd\x1b[0me\x1b[32;41mf\x1b[0m'))
+
+def test_tool():
+    #(errors before a viewer is opened, and with the output in UTF-8, also on
+    #Windows):
+    import os
+    env = { **os.environ, 'PYTHONIOENCODING' : 'utf-8' }
+    for args in ( ['-w','-S'], ['-w','-o','x.pdf'], ['-w','x/cm','-w','y/cm'],
+                  ['-B','ascii'], ['--view=foo'], ['-t','--color=always'],
+                  ['-w','-p','x > 1'], ['-wekin'], ['-t={bad'] ):
+        rv = subprocess.run([sys.executable,'-m','mcpldev',*args,ex],
+                            capture_output=True,encoding='utf-8',check=False,env=env)
+        print(f'mcpltool {" ".join(args)}: exit code {rv.returncode}')
+        print(f'   | {rv.stdout.splitlines()[0] if rv.stdout else ""}')
+    rv = subprocess.run([sys.executable,'-m','mcpldev','-t={}',ex,ex],
+                        capture_output=True,encoding='utf-8',check=False,env=env)
+    print(f'mcpltool -t={{}} with two files: {rv.stdout.splitlines()[0]}')
+
 def test_code():
     print('The command and code of plots, and of writing files:')
     def show( code, kinds = ( 'command', 'python' ) ):
@@ -570,6 +748,8 @@ test_reading()
 test_groups()
 test_state()
 test_write()
+test_terminal()
+test_tool()
 
 def test_found_in_front_end_thread():
     """What a reading found (e.g. the fields which vary, which choose the

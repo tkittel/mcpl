@@ -960,3 +960,10 @@ def _parse_count( text ):
         return None
     return i if i == f else None
 
+def _run_viewer( viewer, color = None ):
+    """Run the viewer in the terminal until it is closed (with the plots drawn
+    with unicode, or else ascii, characters, in colour as set by color, see
+    mcpl.plotting.show)"""
+    from ._plotregistry import _show_backend
+    from ._viewer_curses import run_viewer
+    run_viewer(viewer,_show_backend(True,color=color))

@@ -37,6 +37,7 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   PROGNAME [options] FILE                  Show the header and first particles
   PROGNAME -S [options] FILE               Summary of the particles
+  PROGNAME -t [options] FILE               View the particles in the terminal
   PROGNAME -w HIST [options] FILE [...]    Histogram in a window
   PROGNAME -t HIST [options] FILE [...]    Histogram in the terminal
   PROGNAME -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
@@ -53,6 +54,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
+  PROGNAME -t file.mcpl.gz
   PROGNAME -w "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
   PROGNAME -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   PROGNAME -S file.mcpl.gz
@@ -69,6 +71,7 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   PROGNAME [options] FILE                  Show the header and first particles
   PROGNAME -S [options] FILE               Summary of the particles
+  PROGNAME -t [options] FILE               View the particles in the terminal
   PROGNAME -w HIST [options] FILE [...]    Histogram in a window
   PROGNAME -t HIST [options] FILE [...]    Histogram in the terminal
   PROGNAME -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
@@ -93,6 +96,15 @@ Showing particles:
   -j, --justhead   Show just the header.
   -n, --nohead     Show just the particles.
   -bKEY            Write the blob stored under KEY to standard output.
+
+Viewer (-t, --terminal, without HIST):
+  Shows an overview and plots of the particles of a file in the terminal
+  (with curses, the plots drawn as text). -l, -s, -p and -E can be changed in
+  the viewer, plots can be added, changed and removed, and the particles can
+  be written to a new file (press h for help).
+  -t=STATE         Start in a state of the viewer: a .json file, as saved in
+                   the viewer (press v), or its text, as printed when the
+                   viewer is closed.
 
 Histogram (-w, --window HIST or -t, --terminal HIST):
   HIST is an expression with options, e.g.
@@ -308,7 +320,7 @@ def _app_mcpltool(argv):
                 f, a = a[0], a[1:]
                 if f'-{f}' in _optional_value_opts:
                     if a and not a.startswith('='):
-                        bad(f"-{f} takes the histogram as -{f}=HIST or -{f} HIST (not -{f}{a})")
+                        bad(f"-{f} takes a value as -{f}=VALUE or -{f} VALUE (not -{f}{a})")
                     after = set_optional(_optional_value_opts[f'-{f}'],a[1:] if a else None)
                     a = ''
                 elif f'-{f}' in short_values:
@@ -402,16 +414,31 @@ def _app_mcpltool(argv):
     allowed('--keep-statsum',('--extract',),'--keep-statsum' in flags)
     allowed('--inplace',('--merge',),'--inplace' in flags)
     allowed('--keepuserflags',('--forcemerge',),'--keepuserflags' in flags)
-    hist = None
+    #(-t shows the viewer, unless given a histogram, and not a state of the
+    #viewer):
+    hist = state = None
+    viewer = False
     if mode in histmodes:
         opt = modenames[mode]
-        hist = optional[mode]
-        if hist is None:
-            bad(f'{opt} needs a histogram, as in {opt} "ekin/MeV;logx" FILE (see --hist-help).')
-        if hist.endswith(('.mcpl','.mcpl.gz')) and os.path.isfile(hist):
+        value = optional[mode]
+        if value is not None and value.endswith(('.mcpl','.mcpl.gz')) and os.path.isfile(value):
             #(-t was the short form of --text in earlier versions, as in -t FILE OUT):
             bad(f'{opt} takes the histogram before the files, as in {opt} "ekin/MeV;logx" FILE'
                 + ( ' (or did you mean --text?).' if opt == '-t' else '.' ))
+        if mode == '--window' and value is None:
+            bad('-w needs a histogram, as in -w "ekin/MeV;logx" FILE (see --hist-help).')
+        if mode == '--terminal' and ( value is None or value.lstrip().startswith('{')
+                                      or value.endswith('.json') ):
+            viewer, state = True, value
+            if '--output' in values:
+                bad('-o can only be used with a histogram, as in -t "ekin/MeV;logx" FILE -o'
+                    ' plot.txt.')
+            if ( len(filelist) == 1 and not os.path.exists(filelist[0])
+                 and not filelist[0].endswith(('.mcpl','.gz')) ):
+                bad(f'No such file: {filelist[0]} (a histogram is given before the files,'
+                    f' as in {opt} "{filelist[0]}" FILE).')
+        else:
+            hist = value
         ext = os.path.splitext(values.get('--output',''))[1].lower()
         if mode == '--window' and ext == '.txt':
             bad('-w saves histograms as .png, .pdf or .svg files (use -t HIST -o FILE.txt for text).')
@@ -467,6 +494,10 @@ def _app_mcpltool(argv):
                           bool(flags & {'--no-comment','--preventcomment'}),
                           '--keep-statsum' in flags,opt_dryrun,bad)
         _mcpltool_dryrun_note(opt_dryrun)
+        sys.exit(0)
+
+    if viewer:
+        _mcpltool_view(progname,filelist,state,opt_skip,opt_limit,values,opt_dryrun,bad)
         sys.exit(0)
 
     if mode in histmodes:
@@ -596,6 +627,23 @@ def _mcpltool_merge(filelist, opt_forcemerge, opt_inplace, opt_keepuserflags,
         out = merge_files(outfn,filelist[1:],dry_run=dry_run)
     if out is not None:
         _mcpltool_close(out,attempt_gzip)
+
+def _mcpltool_view(progname, filelist, state, skip, limit, values, dry_run, bad):
+    """The viewer of -t (in the terminal), starting in the state if given"""
+    from ._viewer import Viewer, _run_viewer
+    from ._viewer_ui import closing_text
+    if not filelist:
+        bad("No input file specified")
+    if len(filelist) > 1:
+        bad("The viewer shows one file (-t without a histogram can only be used with one file).")
+    try:
+        v = Viewer(filelist[0],skip=skip or 0,limit=limit,
+                   pick=values.get('--pick'),edit=values.get('--edit'),
+                   state=state,dry_run=dry_run,progname=progname)
+        _run_viewer(v,values.get('--color'))
+    except MCPLError as e:
+        bad(str(e))
+    print(closing_text(v,'-t'))
 
 def main():
     """This function simply calls app_mcpltool(), but any raised MCPLError

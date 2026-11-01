@@ -282,7 +282,7 @@ histogram2d {'bins': [3]}: no error
 histogram2d {'xrange': (1, 0)}: The xrange must be given as xrange=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in xrange=0cm:10cm)
 histogram2d {'yrange': 'a'}: The yrange must be given as yrange=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in yrange=0cm:10cm)
 bins as a numpy integer, and range as a list: 4 [-1.0, 1.0]
-plot_stats: plot_stats is no longer available: use mcpl.histogram(FILE,EXPR).plot() for plots of the particles
+plot_stats: plot_stats is no longer available: use mcpl.view(FILE) for an interactive overview of a file, or mcpl.histogram(FILE,EXPR).plot() for single plots
 Figure 1 (1x1): None
   Panel None xlabel='ekin/MeV' ylabel='weights per bin' logx logy xlim=[0.00139345,2409.78]
     StepHist label='pick: pdgcode == neutron' color=0 bins=10 edges=[0.00139345,2409.78] sum=726 max=258 nonzero_bins=10
@@ -544,7 +544,7 @@ mcpltool -w x/cm -e example.mcpl out.mcpl: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool -w x/cm: exit code 1
-   | ERROR: -w needs a histogram, as in -w "ekin/MeV;logx" FILE (see --hist-help).
+   | ERROR: No such file: x/cm (a histogram is given before the files, as in -w "x/cm" FILE).
    | 
    | Run with -h or --help for usage information
 mcpltool -w x/cm;print=1 -o a.png example.mcpl: exit code 1
@@ -681,8 +681,8 @@ mcpltool -t example.mcpl: exit code 1
    | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
    | 
    | Run with -h or --help for usage information
-mcpltool -w example.mcpl: exit code 1
-   | ERROR: -w needs a histogram, as in -w "ekin/MeV;logx" FILE (see --hist-help).
+mcpltool -w example.mcpl -o x.pdf: exit code 1
+   | ERROR: -o can only be used with a histogram, as in -w "ekin/MeV;logx" FILE -o plot.pdf.
    | 
    | Run with -h or --help for usage information
 mcpltool -t example.mcpl example.mcpl: exit code 1

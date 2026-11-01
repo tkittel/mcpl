@@ -1,0 +1,488 @@
+
+################################################################################
+##                                                                            ##
+##  This file is part of MCPL (see https://mctools.github.io/mcpl/)           ##
+##                                                                            ##
+##  Copyright 2015-2026 MCPL developers.                                      ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+
+# (run by the test pyviewer_tk, which needs numpy, matplotlib, and tkinter)
+
+# Test the viewer in a real Tk window (on Linux and FreeBSD in CI with a
+# virtual display, Xvfb): that it opens, reads the file, shows cards, plots,
+# and the cache button, and reacts to clicks, typing, and its menus. The logic
+# behind it is tested without a display by pyviewer_widgets; this checks that
+# the Tk front end works with the real toolkit.
+
+import pathlib
+import shutil
+import time
+import tkinter
+
+import mcpldev
+import mcpldev._viewer_tk as viewer_tk
+from mcpldev._viewer import Viewer
+from mcpldev._viewer_tk import TkViewer, _root
+from mcpldev._viewer_tkbase import Flow, focus_of
+from mcpldev._viewer_tkwindows import AlignWindow, WriteWindow
+
+from MCPLTestUtils.common import rounded_numbers
+from MCPLTestUtils.dirs import test_data_dir
+
+shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
+
+#(no warning about fonts without Xft, which depends on the Tk installed):
+viewer_tk._check_fonts = lambda root : None
+
+root = _root()
+assert root is not None, 'Tk can not open a window here'
+print('Tk 8.6 or later:', tkinter.TkVersion >= 8.6)
+
+v = Viewer('example.mcpl')
+tv = TkViewer(v,root)
+tv.logic.start()
+tv._tick()
+
+def pump( seconds = 0.3 ):
+    """Let Tk handle events and the viewer update the window"""
+    end = time.monotonic() + seconds
+    while time.monotonic() < end:
+        root.update()
+        time.sleep(0.01)
+
+def where_focus():
+    """Where the keyboard focus is, as Tk says (also in the list of a combobox,
+    which tkinter does not know as a widget)"""
+    return root.tk.call('focus') or 'in no window of this program'
+
+def take_focus( widget ):
+    """Give the keyboard focus to the widget (keys go to the focus, which other
+    programs on the display can take, e.g. tests running in parallel), saying
+    so if it fails"""
+    for _ in range(100):
+        widget.focus_force()
+        pump(0.02)
+        if widget.focus_get() is widget:
+            break
+    else:
+        print(f'   NO KEYBOARD FOCUS for {widget} after 100 tries: it is {where_focus()}')
+        print('   ', focus_diagnostics(widget))
+    pump()
+
+def focus_diagnostics( widget ):
+    """Why the widget may not get the keyboard focus: whether it is shown
+    (mapped and viewable, and where, which may be off the screen), and the
+    window, its state, and the screen"""
+    def geometry( w ):
+        return f'{w.winfo_width()}x{w.winfo_height()} at ({w.winfo_rootx()},{w.winfo_rooty()})'
+    return ( f'widget: mapped {bool(widget.winfo_ismapped())}, viewable'
+             f' {bool(widget.winfo_viewable())}, {geometry(widget)} | window: {root.wm_state()},'
+             f' {geometry(root)}, focus of the window {root.tk.call("focus","-lastfor",root)} |'
+             f' screen: {root.winfo_screenwidth()}x{root.winfo_screenheight()}' )
+
+def wait():
+    """Until the file is read and the window shows the result"""
+    for _ in range(3000):
+        pump(0.01)
+        if not v.reading:
+            break
+    tv.logic.on_timer()
+    pump()
+
+def text( w ):
+    return str(w.cget('text'))
+
+def show( what ):
+    print(f'{what}:')
+    print('   status:', text(tv._status[0]))
+    print('   counts:', text(tv._counts))
+    print('   cache button:', text(tv._cache), str(tv._cache.cget('style')))
+    print('   write button:', text(tv._write))
+    print('   shown:', v.current_key)
+
+wait()
+print('window title:', root.title())
+show('after reading the file')
+cards = [ s[3] for s in tv._cards._slots if s[2] == 'card' ]
+print('cards:', len(cards), '| first:', [ c.title or c.name for c in cards[:4] ])
+print('axes drawn:', len(tv.canvas.figure.axes) > 0)
+
+#All groups start folded (showing their overviews). A click on the overview of
+#the first group expands it, and a click on its second card shows its plot:
+canvas = tv._cards.canvas
+def click_card( name ):
+    canvas.yview_moveto(0)
+    pump()
+    y0, y1, _, _ = next( s for s in tv._cards._slots if s[2] == 'card' and s[3].name == name )
+    y = ( y0 + y1 ) // 2
+    canvas.event_generate('<ButtonPress-1>',x=60,y=y)
+    canvas.event_generate('<ButtonRelease-1>',x=60,y=y)
+    pump()
+    shown = [ s[3].name for s in tv._cards._slots if s[2] == 'card' ]
+    print(f'after clicking the card {name!r}: {v.current_key} | {len(shown)} cards shown')
+#(clicking the overview of the expanded group again folds it, and again
+#expands it):
+for _ in range(3):
+    click_card(cards[0].name)
+click_card('Energy')
+print('help menu:', [ tv._help_choices.entrycget(i,'label')
+                      for i in range(tv._help_choices.index('end') + 1) ])
+#(m and h, outside the text fields, open the menu and the help menu, and
+#close it again; the menus are not really opened here, since menus on macOS
+#are native, and wait until they are closed):
+for key, menu in ( ( 'm', tv._actions_menu ), ( 'h', tv._help_choices ) ):
+    button, events = tv._menu_keys[key], []
+    real = button.event_generate
+    button.event_generate = events.append
+    tv.on_key(key)
+    button.event_generate = real
+    print(f'menu opened by {key}:', events == [ '<<Invoke>>' ],
+          '| closed by it again:', bool(menu.bind(f'<KeyPress-{key}>')))
+
+#Tab completes in the X axis field (and stays there), and with several
+#completions shows a list, where Down and Enter choose one:
+xaxis = tv._axes[0]
+take_focus(xaxis)
+for typed, keys in ( ( 'ek', [ '<Tab>' ] ), ( 'po', [ '<Tab>', '<Down>', '<Return>' ] ) ):
+    tv._set_text(xaxis,typed)
+    xaxis.icursor('end')
+    for k in keys:
+        xaxis.event_generate(k)
+        pump(0.1)
+        if k == '<Tab>' and tv._popup is not None:
+            print('   completions of', repr(typed), ':', [ c[0] for c in tv._popup[4] ])
+    print(f'X axis after typing {typed!r} and {" ".join(keys)}: {tv._text(xaxis)!r},'
+          f' focus kept: {root.focus_get() is xaxis}')
+tv._on_axis_escape()
+tv._on_title_escape()
+pump()
+
+#The Apply button of the axes is enabled while they are edited, and applies
+#them as Enter does:
+apply = tv._applies['axes']
+print('apply of the axes:', 'disabled' in apply.state())
+take_focus(xaxis)
+tv._set_text(xaxis,'x')
+xaxis.event_generate('<KeyRelease>',keysym='x')
+pump()
+print('after typing an axis:', 'disabled' in apply.state(), '| shown:', v.current_key)
+apply.invoke()
+pump()
+print('after clicking Apply:', 'disabled' in apply.state(), '| shown:', v.current_key)
+tv.logic.on_select_key('plot:ekin;logx=auto;logy')
+pump()
+
+#With the list of a combobox open, the focus can be in it (which tkinter
+#before Python 3.13 does not know as a widget, so focus_get fails), also when
+#a field loses the focus:
+yaxis = tv._axes[1]
+root.tk.call('ttk::combobox::Post',str(yaxis))
+root.tk.call('focus','-force',f'{yaxis}.popdown.f.l')
+pump()
+focus = focus_of(root)
+print('focus in the open list of the Y axis:', focus is None or isinstance(focus,tkinter.Misc))
+tv._on_entry_unfocus(yaxis)
+root.tk.call('ttk::combobox::Unpost',str(yaxis))
+pump()
+
+#After a 3D plot, the mouse events of the plot shown next do not go to the
+#3D plot any more (which would fail):
+from matplotlib.backend_bases import MouseEvent
+
+v.show_group('3d')
+tv.logic.on_select_key('plot:x : y : z')
+pump(1)
+print('3D plot shown:', [ a.name for a in tv.canvas.figure.axes ])
+tv.logic.on_select_key('plot:ekin;logx=auto;logy')
+pump(1)
+for name in ( 'button_press_event', 'button_release_event', 'motion_notify_event' ):
+    MouseEvent(name,tv.canvas,100,100,1)._process()
+print('mouse events after the 3D plot handled')
+
+#"Advanced" shows the plot expression instead of the axes and settings (the
+#parts of it), and back:
+def parts():
+    return { name : bool(w.winfo_ismapped()) for name, w in
+             ( ( 'axes', tv._axes[0] ), ( 'settings', tv._settings_row ),
+               ( 'expression', tv._entries['shown_plot'] ) ) }
+print('shown parts of the plot:', parts())
+for _ in range(2):
+    tv._toggle.invoke()
+    pump()
+    print(f'after clicking Advanced (on: {tv._advanced.get()}): {parts()},'
+          f' expression {tv._text(tv._entries["shown_plot"])!r}')
+
+#Typing a pick and pressing Enter:
+entry = tv._entries['pick']
+take_focus(entry)
+tv._set_text(entry,'ekin < 1MeV')
+ok = focus_of(root) is entry
+print('focus in the pick field before Enter:', ok if ok else f'{ok} (it is {where_focus()})')
+entry.event_generate('<Return>')
+wait()
+print('pick applied:', repr(v.field_text('pick')))
+show('after the pick')
+
+#The menu of the cache button, and a limit with which not all particles fit:
+tv._cache_menu()
+menu = tv._cache_choices
+labels = [ menu.entrycget(i,'label') for i in range(menu.index('end') + 1)
+           if menu.type(i) != 'separator' ]
+print('cache menu:', labels)
+tv.logic.on_cache_limit(v.cache_info()['size'] * 300)
+wait()
+show('with a small cache')
+menu.invoke(next( i for i in range(menu.index('end') + 1) if menu.type(i) != 'separator'
+                 and menu.entrycget(i,'label').split('  ',1)[-1].startswith('Max 500 MB') ))
+wait()
+show('with 500 MB')
+
+#A click on the grey card of an inactive group activates it and shows its
+#overview (and only the group of the shown view is expanded):
+def click_slot( slot ):
+    canvas.yview_moveto(0)
+    pump()
+    top, bottom = slot[0], slot[1]
+    frac = top / float(canvas.cget('scrollregion').split()[3])
+    canvas.yview_moveto(frac)
+    pump()
+    y = int( ( top + bottom ) / 2 - canvas.canvasy(0) )
+    canvas.event_generate('<ButtonPress-1>',x=60,y=y)
+    canvas.event_generate('<ButtonRelease-1>',x=60,y=y)
+    pump()
+inactive = next( s for s in tv._cards._slots if s[2] == 'card' and s[3].inactive )
+click_slot(inactive)
+print('after clicking the inactive group', repr(inactive[3].name), ':', v.current_key,
+      '| folded:', sorted(tv.logic.folded_groups()))
+
+#The settings of overviews, shown instead of the fields of plots: a menu of
+#the particle types, and the toggles of the variables of correlation plots:
+def overview_settings():
+    oc = tv._overview_controls
+    return { 'shown' : bool(oc.frame.winfo_ismapped()),
+             'plot fields shown' : bool(tv._plot_fields.winfo_ismapped()),
+             **{ name : ( [ t for t, var in w.items() if var.get() ] if isinstance(w,dict)
+                          else text(w) if w.winfo_class() == 'TButton' else w.get() )
+                 for name, w in oc._widgets.items() } }
+tv.logic.on_show_group('correlations')
+tv.logic.on_select_key('overview:correlations')
+wait()
+print('settings of the correlations:', overview_settings())
+toggles = [ c for c in tv._overview_controls._body.winfo_children()
+            if str(c.cget('style')) == 'Choice.Toolbutton' ]
+next( c for c in toggles if text(c) == 'ux' ).invoke()
+menu = tv._overview_controls._widgets['display_only']
+menu.set(menu.cget('values')[0])
+menu.event_generate('<<ComboboxSelected>>')
+wait()
+print('after turning ux off and choosing all:', overview_settings(),
+      v.group_settings('correlations')[0][1])
+button = next( c for c in tv._overview_controls._body.winfo_children()
+               if c.winfo_class() == 'TButton' )
+for _ in range(2):
+    clicked = text(button)
+    button.invoke()
+    wait()
+    button = next( c for c in tv._overview_controls._body.winfo_children()
+                   if c.winfo_class() == 'TButton' )
+    print(f'after clicking {clicked!r}:', overview_settings()['variables'],
+          '| button now:', text(button))
+tv.logic.on_select_key('plot:x')
+pump()
+print('with a plot shown:', overview_settings()['shown'], overview_settings()['plot fields shown'])
+
+#The windows of the help topics, formatted (see _helptext):
+for label, title, blocks in tv.logic.help_topics():
+    before = set(root.winfo_children())
+    tv.show_text(title,blocks)
+    pump(0.1)
+    top, = set(root.winfo_children()) - before
+    text = next( w for w in top.winfo_children()[0].winfo_children() if w.winfo_class() == 'Text' )
+    print(f'help {label!r}:', top.title(), '| sections:', len(text.tag_ranges('section')) // 2,
+          '| lines:', int(text.index('end').split('.')[0]) > 10)
+    take_focus(text)
+    text.event_generate('<KeyPress-q>')#(closes it, as Esc)
+    pump(0.1)
+    print('   closed with q:', not top.winfo_exists())
+print('help in the menu:', [ tv._actions_menu.entrycget(i,'label')
+                             for i in range(tv._actions_menu.index('end') + 1) ])
+#The menu bar (only used on macOS, with the menus of the viewer), and the
+#icon of the windows (in two sizes):
+bar = tv._menubar(root)
+print('menu bar:', { bar.entrycget(i,'label') : [ m.entrycget(j,'label') for j in range(m.index('end') + 1) ]
+                     for i in range(bar.index('end') + 1)
+                     for m in [ root.nametowidget(bar.entrycget(i,'menu')) ] })
+print('icons:', [ ( im.width(), im.height() ) for im in tv._icons ])
+
+#Rows of settings wrap in narrow frames, also with items in frames, whose sizes
+#Tk only knows when idle:
+top = tkinter.Toplevel(root)
+narrow = tkinter.Frame(top,width=200,height=100)
+narrow.pack(fill='both',expand=True)
+top.geometry('200x100')
+pump()
+flow = Flow(narrow)
+items = []
+for i in range(4):
+    item = tkinter.Frame(narrow)
+    tkinter.Label(item,text=f'setting {i}').pack(side='left')
+    items.append(item)
+flow.set(items)
+pump()
+print('settings in a narrow frame, rows:', len(flow._rows))
+top.destroy()
+
+#The align helper: the means of the particles (read in a thread), and the
+#edit added to the edit field:
+aw = AlignWindow(tv)
+for _ in range(500):
+    pump(0.02)
+    if aw._stats is not None and aw._stats.complete:
+        break
+print('align means:', str(aw._means.cget('text')).replace('\n',' | '))
+print('align edit:', rounded_numbers(aw._edit.get('1.0','end').strip()))
+print('align result:', str(aw._result.cget('text')), '| add enabled:', 'disabled' not in aw._add.state())
+aw._keep.set('(0,1,0)')
+aw._move.set(True)
+aw._point.set('(0,0,1m)')
+aw._coords['z'].set(False)
+aw._update()
+print('align edit, keeping (0,1,0) and moving to (0,0,1m) in x and y:',
+      rounded_numbers(aw._edit.get('1.0','end').strip()))
+print('align result:', str(aw._result.cget('text')))
+aw._target.set('(1,2)')
+aw._update()
+print('align with a bad direction:', str(aw._result.cget('text')),
+      '| add enabled:', 'disabled' not in aw._add.state())
+aw._target.set('(0,0,1)')
+aw._update()
+aw._on_add()
+pump()
+print('edit field after adding:', rounded_numbers(tv._entries['edit'].get())[:60], '...',
+      '| align window closed:', not aw.window.winfo_exists())
+tv._set_text(tv._entries['edit'],'')
+tv.logic.on_field_edited('edit','')
+
+#A zoom of the plot shown is kept when it is drawn again (e.g. when the
+#particles used change), but other plots are not zoomed:
+tv.logic.on_select_key('plot:x')
+wait()
+tv.logic.pane.axes[0].set_xlim(2,20)
+v.set('limit','500')
+wait()
+tv.logic.refresh(plot=True)
+print('x range after changing the limit, zoom kept:',
+      tuple( float(x) for x in tv.logic.pane.axes[0].get_xlim() ))
+tv.logic.on_select_key('plot:y')
+wait()
+print('x range of another plot, not zoomed:', tv.logic.pane.axes[0].get_xlim() != (2,20))
+v.set('limit','')
+wait()
+
+#Writing a file happens in a thread, with a message and the buttons disabled
+#meanwhile (the window closes when it is written):
+ww = WriteWindow(tv)
+ww._name.delete(0,'end')
+ww._name.insert(0,'written_by_tk.mcpl.gz')
+ww._write()
+print('while writing:', str(ww._message.cget('text')), [ str(b.state()) for b in ww._buttons ])
+for _ in range(500):
+    pump(0.02)
+    if not ww._writing:
+        break
+print('written:', pathlib.Path('written_by_tk.mcpl.gz').exists(),
+      '| window closed:', not ww._code.window.winfo_exists(), '| status:', str(tv._status[0].cget('text')))
+
+#Writing the same file again asks first (here with a stand-in for the question,
+#since native dialogs wait until they are closed): no keeps the window open,
+#yes overwrites the file:
+for answer in ( False, True ):
+    tv.ask_yes_no = lambda question, answer = answer : print(' asked:', question, answer) or answer
+    ww = WriteWindow(tv)
+    ww._name.delete(0,'end')
+    ww._name.insert(0,'written_by_tk.mcpl.gz')
+    ww._write()
+    for _ in range(500):
+        pump(0.02)
+        if not ww._writing:
+            break
+    print(' window closed:', not ww._code.window.winfo_exists(), '| status:', str(tv._status[0].cget('text')))
+    if ww._code.window.winfo_exists():
+        ww._code.window.destroy()
+
+#In a small window (as on a screen of 1024x768 pixels, where the window can be
+#narrower than its layout wants), nothing is squeezed away: the title, the
+#axes, and skip, limit, and the button writing the particles go to lines of
+#their own, so all fields and buttons are shown and wide enough. In a large
+#window, they are back in their rows. In both, the parts with narrow layouts
+#use them exactly when their wide layouts do not fit (as the large window is
+#only as large as the screen allows, which on some systems is not enough for
+#the wide layouts).
+def squeezed():
+    """The fields and buttons which are not shown or narrower than half of
+    what they ask for (only those whose part of the window is shown)"""
+    res, todo = [], [ root ]
+    while todo:
+        w = todo.pop()
+        todo += w.winfo_children()
+        if ( w.winfo_class() in ( 'TEntry', 'TCombobox', 'TButton', 'TCheckbutton', 'TMenubutton' )
+             and w.winfo_manager() and w.master.winfo_ismapped()
+             and ( not w.winfo_ismapped() or w.winfo_width() < w.winfo_reqwidth() // 2 ) ):
+            res.append(str(w))
+    return res
+def misfits():
+    """The parts with narrow layouts whose layout does not match the width
+    they have: narrow when the wide layout fits, or wide when it does not"""
+    res = []
+    for name, lay in ( ( 'particles', tv._particle_layout ), ( 'title', tv._title_layout ) ):
+        fits = lay._wide_width is None or lay._available() >= lay._wide_width
+        if lay.is_narrow == fits:
+            res.append(name)
+    flow = tv._axes_flow#(the axes, in more than one row when one is too narrow)
+    need = sum( w.winfo_reqwidth() + flow._pad for w in flow._items )
+    if ( len(flow._rows) > 1 ) != ( need > flow.frame.winfo_width() ):
+        res.append('axes')
+    return res
+minsize = root.minsize()
+tv.logic.on_select_key('plot:x')
+for name, geometry in ( ( 'small', '984x648' ), ( 'large', '1400x900' ) ):
+    root.minsize(1,1)
+    root.geometry(geometry)
+    pump()
+    #(which layouts are narrow depends on the fonts and the size of the
+    #window, so only whether they fit is shown):
+    bad = misfits()
+    print(f'{name} window: squeezed: {squeezed()} | layouts fit the width: {not bad}'
+          + ( f' (not: {bad})' if bad else '' ))
+root.minsize(*minsize)
+
+tv.close_window()
+print('closed:', tv.logic.closed)
+
+#The viewer as started by mcpltool -w (and mcpl.view), here with a window
+#which is closed after a while, after which the commands doing the same are
+#printed:
+def root_closing_soon():
+    #(closed as by the user, with the handler of closing the window):
+    r = _root()
+    r.after(2000,lambda : r.tk.eval(r.protocol('WM_DELETE_WINDOW')))
+    return r
+viewer_tk._root = root_closing_soon
+try:
+    mcpldev.app_mcpltool(['mcpltool','-w={"groups":["spectra"]}','-p','pdgcode == gamma','example.mcpl'])
+except SystemExit as e:
+    print('mcpltool -w ended with exit code', e.code)

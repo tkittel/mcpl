@@ -24,7 +24,8 @@
 # Test the core of the viewer without a display: the views and their figures
 # (which must be identical to those of mcpltool -S and of the histograms), the
 # fields with their checks, completions, and history, the commands, writing
-# files, and the viewer in the terminal on a screen in memory.
+# files, the align helper, and the viewer in the terminal on a screen in
+# memory.
 
 import copy
 import pathlib
@@ -43,6 +44,7 @@ from mcpldev._plotbackend_text import AsciiBackend
 from mcpldev._reader import MCPLFile, _FileView
 from mcpldev._viewer import Viewer
 from mcpldev._viewer_curses import TextViewer, _ansi_segments
+from MCPLTestUtils.common import rounded_numbers
 from MCPLTestUtils.dirs import test_data_dir
 
 shutil.copy( test_data_dir / 'example.mcpl', 'example.mcpl' )
@@ -324,6 +326,70 @@ def test_reading():
           'current:', v.views[v.current][0])
     v.stop()
 
+def test_align():
+    #The align helper: edits turning the mean direction of the particles into
+    #a direction (keeping another axis in its plane with it, around a pivot)
+    #and moving the mean position to a point, which give that result when
+    #applied (weighted means, after the edit already used):
+    import numpy as np
+    from mcpldev import _viewer_align as al
+    rng = np.random.default_rng(7)
+    n = 3000
+    d = rng.normal((0.3,-0.2,1.0),0.05,(n,3))
+    d /= np.linalg.norm(d,axis=1)[:,None]
+    with mcpl.MCPLOutFile('tilted.mcpl') as o:
+        o.add_particles(x=rng.normal(2,1,n),y=rng.normal(-1,1,n),z=rng.normal(5,1,n),
+                        direction=d,ekin=1.0,weight=rng.uniform(0.5,1.5,n),
+                        pdgcode=np.where(rng.random(n) < 0.8,2112,22))
+    def means( v, edit = None ):
+        if edit:
+            v = Viewer(v.filename,pick='pdgcode == neutron',edit=f'{v.edit_text};{edit}')
+        s = al.AlignStats()
+        for b in v.picked_blocks():
+            s.add(b)
+        return s
+    def fmt( a ):
+        return '(' + ', '.join( f'{x:.6f}' if abs(x) > 1e-9 else '0' for x in a ) + ')'
+    v = Viewer('tilted.mcpl',pick='pdgcode == neutron',edit='x += 1cm')
+    s = means(v)
+    print(f'align: {s.n} particles, {s.types_text()}, position {fmt(s.mean_pos)},'
+          f' direction {fmt(s.mean_dir)}, spread {s.spread_deg:.3f} deg')
+    for target, keep, pivot, centre, coords in (
+            ( (0,0,1), None, 'mean', None, 'xyz' ),
+            ( (0,0,1), (0,1,0), 'mean', None, 'xyz' ),
+            ( (1,1,0), (0,0,1), (0,0,0), None, 'xyz' ),
+            ( (0,0,-1), None, (1,2,3), (0,0,0), 'xy' ),
+            ( None, None, 'mean', (10,0,0), 'xyz' ),
+            ( al.parse_vector('(-1,0,0)','direction'), al.parse_vector('(0,1,0)','axis'), 'mean',
+              (0,0,0), 'xyz' ) ):
+        edit, pos, mdir = al.align_edit(s,target,keep,pivot,centre,coords)
+        after = means(v,edit)
+        ok = np.allclose(after.mean_pos,pos,atol=1e-9) and np.allclose(after.mean_dir,mdir,atol=1e-12)
+        if target is not None:
+            t = np.asarray(target,dtype=float) / np.linalg.norm(target)
+            ok = ok and np.allclose(mdir,t,atol=1e-12)
+        print(f'align {target} keeping {keep} around {pivot}, to {centre} in {coords}:'
+              f' {rounded_numbers(edit)}, position {fmt(pos)}, direction {fmt(mdir)},'
+              f' as applied: {ok}')
+    #(the kept axis stays in the plane of itself and the target, on its side):
+    edit, _, _ = al.align_edit(s,(0,0,1),(0,1,0))
+    k = means(Viewer('tilted.mcpl',edit='dir = (0,1,0);' + edit)).mean_dir
+    print('kept axis after:', fmt(k), '| in the plane of y and z:', abs(k[0]) < 1e-12 and k[1] > 0)
+    for args in ( ( (0,0,1), (0.3,-0.2,1.0) ), ( (0,0,1), (0,0,2) ), ( None, None ),
+                  ( (0,0,0), None ) ):
+        try:
+            al.align_edit(s,*args)
+            print(f'align {args}: no error')
+        except mcpl.MCPLError as e:
+            print(f'align {args}: {e}')
+    for text in ( '+y', '(0,0,1m)', '(1,2,3)', '1, 2, 3', '(1,2)', 'z', '(1,2,3)cm' ):
+        try:
+            print(f'vector {text!r}: {al.parse_vector(text,"point","cm").tolist()}')
+        except mcpl.MCPLError as e:
+            print(f'vector {text!r}: {e}')
+    print('numbers:', [ al.number(x) for x in ( 1.0, -0.0, 1e-17, 0.1, 1/3, 1 + 1e-16, 2.5e-7 ) ])
+    pathlib.Path('tilted.mcpl').unlink()
+
 def test_write():
     v = Viewer(ex,pick='pdgcode == neutron',edit='z += 1m',dry_run=True)
     print('suggested name:', v.suggested_filename())
@@ -434,14 +500,16 @@ def test_terminal():
     #Moving the shown plot (Up and Down with Shift, Ctrl, Alt, ...):
     v, _ = run(['WAIT','Down','Down','MoveUp','WAIT'],show=False)
     print('   moved up:', v._s.plots[:3], 'current:', v.views[v.current][0])
-    #o shows the plot in a GUI window (here with a function which only notes
-    #what is shown, so no window is opened in tests):
+    #o shows the plot, and g the viewer in the same state, in a GUI window
+    #(here with a function which only notes what is shown, so no window is
+    #opened in tests):
     shown = []
     def window( action, what ):
         shown.append( ( action, what ) )
-    v, t = run(['WAIT','Down','o','WAIT'],show=False,window=window)
+    v, t = run(['WAIT','Down','o','g','WAIT'],show=False,window=window)
     print('   o shows the plot in a window:', shown[0][0], shown[0][1].panels[0].xlabel,
-          '| the plot shown:', v.views[v.current][0],
+          '| the plot shown:', v.views[v.current][0])
+    print('   g opens the viewer in a window:', shown[1][0], shown[1][1] is v,
           '| messages:', [ ln.strip() for f in t.s.frames for ln in f.splitlines()
                            if 'GUI window' in ln ][-1:])
     def fail( action, what ):
@@ -759,9 +827,30 @@ test_fields()
 test_reading()
 test_groups()
 test_state()
+test_align()
 test_write()
 test_terminal()
 test_tool()
+
+def test_viewer_in_window_without_tk():
+    """g in the terminal viewer, without tkinter: a message instead of a new
+    process which would fail without a word"""
+    from mcpldev._common import MCPLError
+    from mcpldev._viewer_curses import _viewer_in_window
+    saved = sys.modules.get('tkinter')
+    sys.modules['tkinter'] = None#(import tkinter fails)
+    try:
+        _viewer_in_window(Viewer('example.mcpl'))
+        print('ERROR: no error')
+    except MCPLError as e:
+        print('g without tkinter:', e)
+    finally:
+        if saved is None:
+            del sys.modules['tkinter']
+        else:
+            sys.modules['tkinter'] = saved
+
+test_viewer_in_window_without_tk()
 
 def test_found_in_front_end_thread():
     """What a reading found (e.g. the fields which vary, which choose the

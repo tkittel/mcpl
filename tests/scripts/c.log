@@ -46,6 +46,7 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   mcpltool [options] FILE                  Show the header and first particles
   mcpltool -S [options] FILE               Summary of the particles
+  mcpltool -w [options] FILE               View the particles in a window
   mcpltool -t [options] FILE               View the particles in the terminal
   mcpltool -w HIST [options] FILE [...]    Histogram in a window
   mcpltool -t HIST [options] FILE [...]    Histogram in the terminal
@@ -63,7 +64,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
-  mcpltool -t file.mcpl.gz
+  mcpltool -w file.mcpl.gz
   mcpltool -w "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
   mcpltool -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   mcpltool -S file.mcpl.gz
@@ -88,6 +89,7 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   mcpltool [options] FILE                  Show the header and first particles
   mcpltool -S [options] FILE               Summary of the particles
+  mcpltool -w [options] FILE               View the particles in a window
   mcpltool -t [options] FILE               View the particles in the terminal
   mcpltool -w HIST [options] FILE [...]    Histogram in a window
   mcpltool -t HIST [options] FILE [...]    Histogram in the terminal
@@ -105,7 +107,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
-  mcpltool -t file.mcpl.gz
+  mcpltool -w file.mcpl.gz
   mcpltool -w "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
   mcpltool -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   mcpltool -S file.mcpl.gz
@@ -1261,7 +1263,7 @@ userflags    :           0 (0x00000000)            5 (100.00%)
 ------------------------------------------------------------------------------
 ======================> Test stats(reffile_empty.mcpl,bin_data=True,stats=['x', 'y'])
 MCPL WARNING: Can not calculate stats on an empty file
-plot_stats: plot_stats is no longer available: use mcpl.histogram(FILE,EXPR).plot() for plots of the particles
+plot_stats: plot_stats is no longer available: use mcpl.view(FILE) for an interactive overview of a file, or mcpl.histogram(FILE,EXPR).plot() for single plots
 ======================> Test stats(reffile_uw.mcpl.gz)
 ------------------------------------------------------------------------------
 nparticles   : 15

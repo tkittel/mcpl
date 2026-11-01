@@ -203,7 +203,7 @@
    bins used: 10,10
    plot: 2 axes
   key ?:
-   help shown: 44 lines
+   help shown: 46 lines
    views: 55 views, shown: 'ekin : time' (ekin : time;logx=auto;logy=auto, group Correlations, badges ['2D', 'log'])
    compact cards: ['Particle type: all 2112', 'Position z: all 20 cm', 'Weight: all 1', 'Polarisation x: all 0 (absent)', 'Polarisation y: all 0 (absent)', 'Polarisation z: all 0 (absent)', 'User flags: all 0 (absent)', 'Userdata: not in this file', 'Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
    problems: []
@@ -550,6 +550,6 @@
    line (dim): hint: MeV  energy unit
    completed: ekin > 1MeV
 ==> the buttons of the actions, and quit
-   help shown: 44 lines
+   help shown: 46 lines
    window closed
 closed: True

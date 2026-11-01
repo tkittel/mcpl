@@ -63,7 +63,8 @@ actions = ( ( 'write', 'Write file...', ( 'w', ), 0 ),
             ( 'quit', 'Quit', ( 'q', ), 0 ) )
 
 #The actions of the terminal only (as the others, shown after them):
-terminal_actions = ( ( 'gui_plot', 'Open plot in GUI', ( 'o', ), 0 ), )
+terminal_actions = ( ( 'gui_plot', 'Open plot in GUI', ( 'o', ), 0 ),
+                     ( 'gui_viewer', 'GUI viewer', ( 'g', ), 0 ) )
 
 #The keys for log scales of the shown plot (as the keys of matplotlib):
 scale_keys = { 'l' : 'logy', 'k' : 'logx' }
@@ -121,6 +122,25 @@ def shortcut_text( name ):
                  ' (the histogram string of the plot, which has them all)' )
     return ''
 
+#The look of the viewers with windows (for toolkits with colours): the
+#colours of the line of messages and of the marks of the checks, of the
+#highlighted code (see _viewer_code.highlight), of the cards of the views (see
+#WindowLogic.cards, where the shown card is marked in the accent colour),
+#and of the parts below the plot (that of the shown plot, tinted, and that of
+#the pick and edit):
+colors = { 'normal' : 'black', 'dim' : '#777777', 'ok' : '#2ca02c', 'error' : '#d62728' }
+code_styles = { 'comment' : { 'foreground' : '#6a737d' },
+                'string' : { 'foreground' : '#067d17' },
+                'keyword' : { 'foreground' : '#0033b3' },
+                'number' : { 'foreground' : '#1750eb' },
+                'preprocessor' : { 'foreground' : '#9e5b00' },
+                'option' : { 'foreground' : '#871094' } }
+card_colors = { 'bg' : '#eef1f5', 'card' : '#ffffff', 'selected' : '#e2ebf6',
+                'border' : '#d5dbe3', 'accent' : '#2f5f8f', 'text' : '#1d2733',
+                'dim' : '#7a8594', 'badge' : '#dfe7f1', 'overview' : '#d3e0ef',
+                'stack' : '#b9c9dc' }
+part_colors = { 'Plot' : card_colors['selected'], 'Particles' : card_colors['bg'] }
+
 #The settings of the shown plot in the viewers with windows (see
 #WindowLogic.plot_controls), for 1D histograms, bar charts, and 2D histograms:
 #(option, label, choices), with the choices as (shown text, value of the
@@ -173,6 +193,20 @@ quantities = tuple( ( title or _field_titles[p.split(';')[0]], p ) for title, p 
     ( None, 'x' ), ( None, 'y' ), ( None, 'z' ), ( None, 'ux' ), ( None, 'uy' ), ( None, 'uz' ),
     ( 'Angle to z axis', 'angle(dir,(0,0,1))/deg' ), ( 'Distance to z axis', 'hypot(x,y)' ),
     ( None, 'weight' ), ( None, 'pdgcode;bar' ), ( None, 'userflags;bar' ) ) )
+
+#(the choices of quantities in menus, as (text, expression)):
+quantity_choices = tuple( ( f'{name}:  {p.split(";")[0]}', p.split(';')[0] )
+                          for name, p in quantities )
+
+#(where the groups of plots are chosen, in the viewers with windows):
+groups_hint = ( 'The groups of plots are in the list of plots: the inactive ones (in grey)'
+                ' are activated with a click' )
+
+#The titles of the examples of expressions (see _exprhelp.examples), and the
+#topics of the examples of the fields:
+example_titles = { 'pick' : 'Examples of picks', 'edit' : 'Examples of edits',
+                    'hist' : 'Examples of plot expressions' }
+example_topics = { 'pick' : 'pick', 'edit' : 'edit', 'shown_plot' : 'hist' }
 
 def group_of( key ):
     """The key of the group of the view with the key if it is an overview
@@ -277,6 +311,8 @@ is done.''' ),
       ' overview of a GUI window, of the plot under the mouse).' ) ),
     ( 'key', 'o', ( 'Open the plot in a GUI window (in the terminal; the window shows the plot'
       ' as it is, and stays open).' ) ),
+    ( 'key', 'g', ( 'Open the viewer in a GUI window, in the same state (in the terminal; it'
+      ' stays open, and the terminal viewer goes on).' ) ),
     ( 'key', 'h, ?, F1', 'Show this help.' ),
     ( 'key', 'q', 'Quit (the commands doing the same are then printed).' ),
     ( 'gap', ),
@@ -677,6 +713,9 @@ def used_particles( n, size, limit ):
     if limit is None or n * size <= limit:
         return n
     return max( 1, int( limit // size ) )
+
+#The title of the menu of the cache (see cache_menu):
+cache_menu_title = 'Memory for the particles used by the plots (counted before the pick):'
 
 def cache_menu( info ):
     """The entries of the menu of the cache (info from Viewer.cache_info), as

@@ -75,3 +75,11 @@ def print_text_file_with_snipping(content,
               f" MD5={md5}>>>")
         for i in range(nend):
             print(f'{prefix}{lines[-nend+i]}')
+
+def rounded_numbers( text, digits = 6 ):
+    """The text with its decimal numbers (with a point or an exponent) rounded
+    to digits significant digits, for output which must be the same on all
+    platforms (whose last digits of computed values can differ)"""
+    import re
+    return re.sub(r'\d+\.\d*(?:e[-+]?\d+)?|\d+e[-+]?\d+',
+                  lambda m : f'{float(m.group()):.{digits}g}',text)

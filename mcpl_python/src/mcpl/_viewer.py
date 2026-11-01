@@ -28,7 +28,7 @@ file in a background thread, the state of the viewer (see state()), the
 equivalent commands, and writing the picked and edited particles to a new
 file."""
 
-__all__ = []
+__all__ = ['view']
 
 import functools
 import pathlib
@@ -960,10 +960,37 @@ def _parse_count( text ):
         return None
     return i if i == f else None
 
-def _run_viewer( viewer, color = None ):
-    """Run the viewer in the terminal until it is closed (with the plots drawn
-    with unicode, or else ascii, characters, in colour as set by color, see
-    mcpl.plotting.show)"""
-    from ._plotregistry import _show_backend
-    from ._viewer_curses import run_viewer
-    run_viewer(viewer,_show_backend(True,color=color))
+def view( filename, *, pick = None, edit = None, skip = 0, limit = None,
+          state = None, terminal = False ):
+    """Show the particles of a file in the viewer: an overview and plots of
+    the particles in a range of the file (after skipping skip particles, at
+    most limit particles), picked with pick and then edited with edit
+    (expressions, or ParticleFilter and ParticleEdit objects), which can all
+    be changed in the viewer. The viewer starts in the state if given (as
+    saved in the viewer: a .json file, its JSON text, or a dict). It is shown
+    in a window (with Tk, the plots drawn with matplotlib), or in the terminal
+    with terminal=True (with curses, the plots drawn as text), until it is
+    closed."""
+    def text( e ):
+        return e if e is None or isinstance(e,str) else e.expression
+    v = Viewer(filename,skip=skip,limit=limit,pick=text(pick),edit=text(edit),
+               state=state)
+    _run_viewer(v,terminal)
+
+def _run_viewer( viewer, terminal = False, color = None,
+                 hint = 'Use terminal=True for the viewer in the terminal.' ):
+    """Run the viewer until it is closed: in a window (with Tk), or in the
+    terminal if terminal is True (with the plots drawn with unicode, or else
+    ascii, characters, in colour as set by color, see mcpl.plotting.show).
+    When no window can be opened, the error message ends with the hint."""
+    if terminal:
+        from ._plotregistry import _show_backend
+        from ._viewer_curses import run_viewer
+        run_viewer(viewer,_show_backend(True,color=color))
+        return
+    from ._viewer_tk import _root, run_viewer
+    root = _root()
+    if root is None:
+        raise MCPLError('The viewer can not open a window here (it needs tkinter and a'
+                        f' display). {hint}')
+    run_viewer(viewer,root)

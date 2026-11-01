@@ -247,7 +247,7 @@ def test_cmdline_more():
                      ['-S','-w','x/cm',ex], [ex,ex,ex],
                      ['-w','x/cm;bins=2;print','-w','pdgcode;bar=2;print',ex],
                      ['--text',ex], ['--text',ex,'hist.txt'],
-                     ['-t',ex], ['-w',ex], ['-t',ex,ex], ['-w',ex,'x/cm'], ['-wx/cm',ex],
+                     ['-t',ex], ['-w',ex,'-o','x.pdf'], ['-t',ex,ex], ['-w',ex,'x/cm'], ['-wx/cm',ex],
                      ['-H','x/cm',ex], ['-B','test',ex], ['--te','x',ex],
                      ['-j','-w','x/cm',ex], ['--no-comment','-S',ex],
                      ['-w','x/cm : y/cm;display_by=pdgcode',ex],

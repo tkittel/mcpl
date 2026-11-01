@@ -209,6 +209,18 @@ def _plot_in_window( figure ):
     """Show the figure in a window (see _in_window)"""
     _in_window(f'from {__package__}.plotting import show; show([x])',figure)
 
+def _viewer_in_window( viewer ):
+    """Open the viewer in a window, in the same state (see _in_window), if Tk
+    can open windows here (else the new process would fail without a word)"""
+    from ._viewer_tk import _root
+    root = _root()
+    if root is None:
+        raise MCPLError('The viewer in a window needs tkinter and a display (o shows'
+                        ' the plot in a window with matplotlib only)')
+    root.destroy()
+    _in_window(f'from {__package__}._viewer import Viewer, _run_viewer;'
+               ' _run_viewer(Viewer(**x))',viewer.arguments())
+
 class TextViewer(ui.KeyViewer):
     """The viewer in a terminal (on a screen, see _CursesScreen)"""
     def __init__( self, viewer, screen, backend = None ):
@@ -220,8 +232,9 @@ class TextViewer(ui.KeyViewer):
         self.bk = backend if backend is not None else UnicodeBackend()
         self.ascii = self.bk.encoding == 'ascii'
         self.scroll = 0
-        #(shows a figure in a window, replaced in tests):
-        self.open_window = lambda action, what : _plot_in_window(what)
+        #(shows a figure or viewer in a window, replaced in tests):
+        self.open_window = lambda action, what : ( _plot_in_window(what) if action == 'gui_plot'
+                                                   else _viewer_in_window(what) )
         self._regions = []#(y, x0, x1, what) of the clickable things
 
     def run( self ):
@@ -270,13 +283,13 @@ class TextViewer(ui.KeyViewer):
 
     def _do( self, action ):
         res = self.do(action)
-        if res == 'gui_plot':
+        if res in ( 'gui_plot', 'gui_viewer' ):
             self._window(res)
         return 'quit' if res == 'quit' else None
 
     def _window( self, action ):
-        """Show the plot in a window (with open_window)"""
-        what = self.v.figure()
+        """Show the plot, or the viewer, in a window (with open_window)"""
+        what = self.v.figure() if action == 'gui_plot' else self.v
         if what is None:
             self.set_message('Not shown: there is no plot yet',False)
             return
@@ -285,7 +298,8 @@ class TextViewer(ui.KeyViewer):
         except MCPLError as e:
             self.set_message(f'Not shown: {e}',False)
             return
-        self.set_message('The plot is shown in a GUI window')
+        self.set_message( 'The plot is shown in a GUI window' if action == 'gui_plot'
+                          else 'The viewer is opened in a GUI window' )
 
     def _mouse( self, x, y, clicked ):
         for ry, x0, x1, what in self._regions:

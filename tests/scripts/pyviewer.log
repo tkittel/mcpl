@@ -421,6 +421,26 @@ state '[1]': The viewer state "[1]" must be a .json file or its JSON text, like 
 state 'nope.json': Can not read the viewer state from nope.json ([Errno 2] No such file or directory: 'nope.json')
 state 'nope': The viewer state "nope" must be a .json file or its JSON text, like {"pick":"pdgcode == neutron"}
 state 'overview:nope': The viewer state "overview:nope" must be a .json file or its JSON text, like {"pick":"pdgcode == neutron"}
+align: 2403 particles, neutron 100%, position (3.002553, -0.998609, 5.013888), direction (0.279722, -0.188441, 0.941406), spread 3.749 deg
+align (0, 0, 1) keeping None around mean, to None in xyz: pos -= (3.00255cm,-0.998609cm,5.01389cm);rotate_frame((0.279722,-0.188441,0.941406),(0,0,1),(-0.780764,0.525978,0.337275),(-0.82936,0.558715,0));pos += (3.00255cm,-0.998609cm,5.01389cm), position (3.002553, -0.998609, 5.013888), direction (0, 0, 1.000000), as applied: True
+align (0, 0, 1) keeping (0, 1, 0) around mean, to None in xyz: pos -= (3.00255cm,-0.998609cm,5.01389cm);rotate_frame((0.279722,-0.188441,0.941406),(0,0,1),(0.0536726,0.982085,0.180635),(0,1,0));pos += (3.00255cm,-0.998609cm,5.01389cm), position (3.002553, -0.998609, 5.013888), direction (0, 0, 1.000000), as applied: True
+align (1, 1, 0) keeping (0, 0, 1) around (0, 0, 0), to None in xyz: rotate_frame((0.279722,-0.188441,0.941406),(0.707107,0.707107,0),(-0.780764,0.525978,0.337275),(0,0,1)), position (3.463974, 4.665159, -1.178474), direction (0.707107, 0.707107, 0), as applied: True
+align (0, 0, -1) keeping None around (1, 2, 3), to (0, 0, 0) in xy: pos -= (1cm,2cm,3cm);rotate_frame((0.279722,-0.188441,0.941406),(0,0,-1),(0.780764,-0.525978,-0.337275),(-0.82936,0.558715,0));pos += (2.80582cm,-0.240652cm,3cm), position (0, 0, -0.021105), direction (0, 0, -1.000000), as applied: True
+align None keeping None around mean, to (10, 0, 0) in xyz: pos += (6.99745cm,0.998609cm,-5.01389cm), position (10.000000, 0, 0), direction (0.279722, -0.188441, 0.941406), as applied: True
+align [-1.  0.  0.] keeping [0. 1. 0.] around mean, to (0, 0, 0) in xyz: pos -= (3.00255cm,-0.998609cm,5.01389cm);rotate_frame((0.279722,-0.188441,0.941406),(-1,0,0),(0.0536726,0.982085,0.180635),(0,1,0)), position (0, 0, 0), direction (-1.000000, 0, 0), as applied: True
+kept axis after: (0, 0.982085, -0.188441) | in the plane of y and z: True
+align ((0, 0, 1), (0.3, -0.2, 1.0)): no error
+align ((0, 0, 1), (0, 0, 2)): The axis to keep must not be along the mean direction or the target direction
+align (None, None): Nothing to do: choose a target direction or a point to move to
+align ((0, 0, 0), None): The target direction must not be zero
+vector '+y': The point must be three lengths, as in (0,0,1m) (or numbers in cm, as in (0,0,100)), not "+y"
+vector '(0,0,1m)': [0.0, 0.0, 100.0]
+vector '(1,2,3)': [1.0, 2.0, 3.0]
+vector '1, 2, 3': [1.0, 2.0, 3.0]
+vector '(1,2)': The point must be three lengths, as in (0,0,1m) (or numbers in cm, as in (0,0,100)), not "(1,2)"
+vector 'z': The point must be three lengths, as in (0,0,1m) (or numbers in cm, as in (0,0,100)), not "z"
+vector '(1,2,3)cm': [1.0, 2.0, 3.0]
+numbers: ['1', '0', '0', '0.1', '0.3333333333333333', '1', '2.5e-07']
 suggested name: example_selected.mcpl
 dry run: MCPL: Would extract 726 / 1006 particles from example.mcpl into example_selected.mcpl
 files after the dry run: []
@@ -491,7 +511,7 @@ To write these particles to a new file:
    |  Edit: [no changes]
    |  Add plot: [e.g. hypot(x,y)/cm;logy]
    | 
-   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]
+   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]  [GUI viewer]
 ==> keys ['WAIT', 'e', 'x', ' ', '=', ' ', '2', 'WAIT']:
    |                             example.mcpl: 1,006 particles, Σw = 1,006
    | ▸ ekin;logx=auto;logy
@@ -533,7 +553,7 @@ To write these particles to a new file:
    |  Edit: [no changes]
    |  Add plot: [e.g. hypot(x,y)/cm;logy]
    | 
-   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]
+   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]  [GUI viewer]
 Figure 1 (1x1): None
   Panel None xlabel='ekin [eV]' ylabel='weights per bin' logx logy xlim=[1393.45,9.72496e+09]
     StepHist label='n (2112)' color=0 bins=30 edges=[1393.45,9.72496e+09] sum=726 max=106 nonzero_bins=26
@@ -557,8 +577,9 @@ Figure 1 (1x1): None
 ==> keys ['WAIT', 'h']:
 ==> keys ['WAIT', 'Down', 'Down', 'MoveUp', 'WAIT']:
    moved up: ['ekin;logx=auto;logy', 'ekin;lethargy;logy', 'wavelength;logx'] current: plot:wavelength;logx
-==> keys ['WAIT', 'Down', 'o', 'WAIT']:
-   o shows the plot in a window: gui_plot ekin [eV] | the plot shown: plot:ekin;lethargy;logy | messages: ['The plot is shown in a GUI window']
+==> keys ['WAIT', 'Down', 'o', 'g', 'WAIT']:
+   o shows the plot in a window: gui_plot ekin [eV] | the plot shown: plot:ekin;lethargy;logy
+   g opens the viewer in a window: gui_viewer True | messages: ['The viewer is opened in a GUI window']
 ==> keys ['WAIT', 'O']:
    without a display: Not shown: Plots can not be shown in a window here (is there no display?).
 ==> keys ['WAIT', 'l', 'WAIT', 'k', 'Down', 'WAIT', 'K', 'WAIT']:
@@ -595,7 +616,7 @@ ANSI segments: [('ab', None, None), ('cd', 1, None), ('e', None, None), ('f', 2,
 mcpltool -w -S: exit code 1
    | ERROR: -S and -w can not be used together.
 mcpltool -w -o x.pdf: exit code 1
-   | ERROR: -w needs a histogram, as in -w "ekin/MeV;logx" FILE (see --hist-help).
+   | ERROR: -o can only be used with a histogram, as in -w "ekin/MeV;logx" FILE -o plot.pdf.
 mcpltool -w x/cm -w y/cm: exit code 1
    | ERROR: -w specified more than once
 mcpltool -B ascii: exit code 1
@@ -605,12 +626,13 @@ mcpltool --view=foo: exit code 1
 mcpltool -t --color=always: exit code 1
    | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
 mcpltool -w -p x > 1: exit code 1
-   | ERROR: -w needs a histogram, as in -w "ekin/MeV;logx" FILE (see --hist-help).
+   | ERROR: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 1"
 mcpltool -wekin: exit code 1
    | ERROR: -w takes a value as -w=VALUE or -w VALUE (not -wekin)
 mcpltool -t={bad: exit code 1
    | ERROR: The viewer state "{bad" is not valid JSON (Expecting property name enclosed in double quotes: line 1 column 2 (char 1))
 mcpltool -t={} with two files: ERROR: The viewer shows one file (-t without a histogram can only be used with one file).
+g without tkinter: The viewer in a window needs tkinter and a display (o shows the plot in a window with matplotlib only)
 reading until applied: True
 views unchanged before poll: True
 plots without a group before poll: []

@@ -82,15 +82,18 @@ dependencies = {
     '_statsum'           : ( '_common', ),
     '_stdviews'          : (  ),
     '_termcolor'         : ( '_common', ),
+    '_thumbnails'        : ( '_figures', '_numpy', '_viewer_overviews' ),
     '_userdata'          : ( '_common', '_numpy' ),
     '_viewer'            : ( '_common', '_exprcore', '_expressions', '_exprhelp', '_exprsyntax', '_histstring', '_plotregistry', '_reader', '_stdviews', '_userdata', '_viewer_curses', '_viewer_groups', '_viewer_output', '_viewer_overviews', '_viewer_reading', '_viewer_ui' ),
     '_viewer_code'       : ( '_exprcore', '_expressions', '_exprrotation', '_exprsyntax', '_exprunits', '_extract' ),
     '_viewer_curses'     : ( '_common', '_plotbackend_text', '_plotregistry', '_termcolor', '_viewer_ui' ),
+    '_viewer_figure'     : ( '_plotbackend_mpl', '_viewer_overviews' ),
     '_viewer_groups'     : ( '_exprcore', '_histstring', '_particles', '_stdviews', '_viewer_overviews' ),
     '_viewer_output'     : ( '_common', '_extract', '_messages', '_reader', '_stdviews', '_viewer_code', '_viewer_groups', '_viewer_ui' ),
     '_viewer_overviews'  : ( '_figures', '_histstring', '_numpy' ),
     '_viewer_reading'    : ( '_blocks', '_common', '_exprcore', '_histogram', '_histstring', '_numpy', '_reader', '_stdviews', '_viewer_overviews', '_viewer_ui', 'plotting' ),
-    '_viewer_ui'         : ( '_helptext', '_stdviews' ),
+    '_viewer_ui'         : ( '_common', '_helptext', '_stdviews' ),
+    '_viewer_widgets'    : ( '_common', '_exprhelp', '_histstring', '_particles', '_stdviews', '_thumbnails', '_viewer_figure', '_viewer_ui', 'plotting' ),
     '_writer'            : ( '_blocks', '_common', '_expressions', '_messages', '_numpy', '_reader', '_records', '_statsum', '_userdata' ),
     '__init__'           : ( '_ascii', '_blocks', '_cli', '_common', '_expressions', '_fileops', '_histogram', '_messages', '_reader', '_stats', '_statsum', '_writer', 'constants', 'plotting' ),
     '__main__'           : ( '_cli', ),
@@ -103,7 +106,7 @@ public_submodules = ['constants', 'plotting']
 
 allowed_external_imports = {
     'numpy' : ['_numpy'],
-    'matplotlib' : ['_plotbackend_mpl'],
+    'matplotlib' : ['_plotbackend_mpl', '_thumbnails', '_viewer_figure'],
     'scipp' : ['_scipp'],
     'curses' : ['_viewer_curses'],
 }

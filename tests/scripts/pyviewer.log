@@ -437,6 +437,10 @@ to overwrite with new.mcpl.gz: None
 allowed to overwrite: (True, 'MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl')
 allowed to overwrite the file viewed: (False, 'The output file "example.mcpl" is also one of the input files')
 written file: 726 particles, comments: 'mcpltool: extracted particles with -p "pdgcode == neutron" -E "z += 1m"'
+  key Enter: 'Overwrite example_selected.mcpl? (y/n)', editing: True
+  key n: '', editing: True
+  key Enter: 'Overwrite example_selected.mcpl? (y/n)', editing: True
+  key y: 'MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl', editing: False
 To open the viewer like this again:
   mcpltool -w -p "pdgcode == neutron" -E "z += 1m" example.mcpl
 To write these particles to a new file:
@@ -446,6 +450,167 @@ To open the viewer like this again:
   mcpltool -w -l100 example.mcpl
 To write these particles to a new file:
   mcpltool -e -l100 example.mcpl example_selected3.mcpl
+==> keys ['WAIT', 'p', 'p', 'd', 'g', 'c', 'o', 'd', 'e', ' ', '=', '=', ' ', 'n', 'e', 'u', 'Tab', 'Enter', 'WAIT', 'Down', 'Down', 'Down', 'WAIT']:
+   |                             example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   |   ekin;logx=auto;logy
+   |   ekin;lethargy;logy                                     pick: pdgcode == neutron
+   |   wavelength;logx           (weights per bin)
+   | ▸ time;logx=auto;logy             54 ┤                       ▁█▇   ▂▂▃▃▃▄▄▅▅▄
+   |   pdgcode;bar;logy=auto (a           │                       ███  ▄██████████▇▇▇▇▇▇▆▂
+   |   x                                  │           ▃▃  ▁▃▃▁    ███▅▅███████████████████    ▁▂▂
+   |   y                                  │           ██▇▇█████▇▄▄████████████████████████▇▇█████
+   |   z (all 20 cm)                      │     ▂▄   ████████████████████████████████████████████▄
+   |   ux                                 │   ▂▂██▇  █████████████████████████████████████████████
+   |   uy                                 │▂▂▅█████  █████████████████████████████████████████████▅▅
+   |   uz                                 │████████  ███████████████████████████████████████████████
+   |   weight;logx=auto;logy;un           │█████████████████████████████████████████████████████████
+   |   polx (all 0, absent)               │█████████████████████████████████████████████████████████▄▂
+   |   poly (all 0, absent)               │███████████████████████████████████████████████████████████▆
+   |   polz (all 0, absent)               │████████████████████████████████████████████████████████████▅▅
+   |   userflags;bar;logy=auto            │██████████████████████████████████████████████████████████████
+   |                                      │██████████████████████████████████████████████████████████████
+   |                                      │██████████████████████████████████████████████████████████████
+   |                                      │██████████████████████████████████████████████████████████████
+   |                                      │██████████████████████████████████████████████████████████████
+   |                                      │██████████████████████████████████████████████████████████████
+   |                                      │██████████████████████████████████████████████████████████████▄
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                                      │███████████████████████████████████████████████████████████████  █████
+   |                               0.1852 ┤███████████████████████████████████████████████████████████████  █████
+   |                                      └┬────────────────────────────────────────────────────────────────────┬
+   |                                      7.291e-10                      3.479e-08                       1.66e-06
+   |                                                                      time [s]
+   | 
+   |  Skip: [0]  Limit: [all]  Plot groups: [spectra,fields]
+   |  Pick: [pdgcode == neutron]
+   |  Edit: [no changes]
+   |  Add plot: [e.g. hypot(x,y)/cm;logy]
+   | 
+   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]
+==> keys ['WAIT', 'e', 'x', ' ', '=', ' ', '2', 'WAIT']:
+   |                             example.mcpl: 1,006 particles, Σw = 1,006
+   | ▸ ekin;logx=auto;logy
+   |   ekin;lethargy;logy        (weights per bin)
+   |   wavelength;logx                106 ┤                       ⢠⠤⠴⠒⠒⠋⠉⢧
+   |   time;logx=auto;logy                │                   ⣀⣀⡖⠒⠋      ⢸
+   |   pdgcode;bar;logy=auto              │                  ⢀⡇          ⠘⠒⢲
+   |   x                                  │                  ⢸           ⣀⣀⣸⡄
+   |   y                                  │                  ⢸       ⣀⣀⡏⠉⠁ ⠸⡧⠤⡄
+   |   z (all 20 cm)                      │                ⢀⣀⣸      ⢀⡇      ⠉⠉⡇
+   |   ux                                 │                ⡼        ⢸         ⣇⣀⡀
+   |   uy                                 │              ⡏⠉⠁        ⢸         ⡇ ⢳⣀⣀
+   |   uz                                 │              ⡇          ⢸         ⣇⣀⡞⠒⢺
+   |   weight;logx=auto;logy;un           │              ⡇        ⢸⠉⠉             ⢸⡄   ⢰⠒⢲
+   |   polx (all 0, absent)               │              ⡇        ⢸               ⠈⡇   ⣸ ⠈⠧⠤⡄
+   |   poly (all 0, absent)               │           ⢀⡤⠤⠇        ⢸                ⠯⠭⡧⠤⠇    ⡇
+   |   polz (all 0, absent)               │         ⢠⠤⠼           ⢸                  ⡇      ⠉⠉⢧
+   |   userflags;bar;logy=auto            │         ⢸             ⡼                  ⡇        ⠘⠒⢲
+   |                                      │         ⢸             ⡇                  ⡇          ⢸
+   |                                      │         ⣸             ⡇                  ⡇          ⠘⡆
+   |                                      │         ⡇             ⡇         ⡤⠤⡄      ⡇           ⠧⠤⡄    ⡤⠤     ⡤⠤
+   |                                      │         ⡇             ⡇        ⢰⠃ ⡇      ⡇             ⡇   ⢰⠃      ⡇
+   |                                      │⠤⠤⡄    ⠤⠤⠇             ⡇  ⡤⠤  ⢠⠤⠼⡤⠤⠧⠤⡤⠤⢤  ⠧⠤⠤⠤⠤⠤⠤     ⡤⠤⠧⠤⣤⠤⠼      ⠠⠇
+   |                                      │  ⡇                    ⡇  ⡇   ⢸ ⢰⠃   ⢳ ⢸              ⡇   ⢻
+   |                                      │  ⠇                    ⡇ ⠠⠇   ⢸ ⢸    ⢸ ⠸⡄            ⠠⠇   ⢸
+   |                                      │                ⢀⣀⣀  ⣀⣀⡇      ⢸⣀⣸    ⢸⣀⣀⣇⣀⣀⣀⡀  ⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣸⣀⣀⣀⣀⣀⣀⡀
+   |                                      │                ⢸ ⢸    ⡇      ⢸             ⡇  ⡇   ⣿ ⢸⡇   ⣿      ⡇
+   |                                      │                ⢸ ⢸    ⡇      ⣸             ⡇ ⢀⡇   ⣿ ⢸⡇   ⣿      ⡇
+   |                                      │                ⢸ ⢸           ⢸                    ⢸ ⢸
+   |                                      │                ⢸ ⢸           ⢸                    ⢸ ⢸
+   |                               0.3333 ┤                ⣸ ⢸           ⣸                    ⣸ ⢸
+   |                                      └┬────────────────────────────────────────────────────────────────────┬
+   |                                      1393                           3.681e+06                      9.725e+09
+   |                                                                     ekin [eV]
+   |                             ━━ n (2112)    ━━ γ (22)      ━━ e⁻ (11)     ━━ p (2212)    ━━ e⁺ (-11)
+   |                             ━━ π⁺ (211)    ━━ π⁻ (-211)   ━━ νμ (14)
+   |  Skip: [0]  Limit: [all]  Plot groups: [spectra,fields]
+   |  Pick: [all particles]
+   |  Edit: [no changes]
+   |  Add plot: [e.g. hypot(x,y)/cm;logy]
+   | 
+   |  [Write file...]  [Save viewer state...]  [Help]  [Quit]  [Open plot in GUI]
+Figure 1 (1x1): None
+  Panel None xlabel='ekin [eV]' ylabel='weights per bin' logx logy xlim=[1393.45,9.72496e+09]
+    StepHist label='n (2112)' color=0 bins=30 edges=[1393.45,9.72496e+09] sum=726 max=106 nonzero_bins=26
+    StepHist label='γ (22)' color=8 bins=30 edges=[1393.45,9.72496e+09] sum=239 max=46 nonzero_bins=13
+    StepHist label='e⁻ (11)' color=1 bins=30 edges=[1393.45,9.72496e+09] sum=15 max=3 nonzero_bins=10
+    StepHist label='p (2212)' color=4 bins=30 edges=[1393.45,9.72496e+09] sum=10 max=3 nonzero_bins=4
+    StepHist label='e⁺ (-11)' color=3 bins=30 edges=[1393.45,9.72496e+09] sum=8 max=2 nonzero_bins=5
+    StepHist label='π⁺ (211)' color=2 bins=30 edges=[1393.45,9.72496e+09] sum=5 max=1 nonzero_bins=5
+    StepHist label='π⁻ (-211)' color=7 bins=30 edges=[1393.45,9.72496e+09] sum=2 max=1 nonzero_bins=2
+    StepHist label='νμ (14)' color=9 bins=30 edges=[1393.45,9.72496e+09] sum=1 max=1 nonzero_bins=1
+==> keys ['WAIT', 'a', 'h', 'y', 'p', 'o', 't', '(', 'x', ',', 'y', ')', '/', 'c', 'm', ';', 'l', 'o', 'Tab', 'y', '=', '1', 'Enter', 'WAIT']:
+   views: custom:hypot(x,y)/cm;logy=1 current: custom:hypot(x,y)/cm;logy=1
+==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'k', 'e', 'V', 'Enter', 'WAIT']:
+   changed with Enter: custom:ekin/keV current: custom:ekin/keV
+==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Enter', 'WAIT']:
+   Enter twice keeps the plot: custom:ekin/MeV current: custom:ekin/MeV
+   Enter on an added plot, editing: 'ekin/MeV' | hint line when emptied: ('Enter: remove this plot   Esc: cancel', 'dim') True
+==> keys ['WAIT', 'a', 'e', 'k', 'i', 'n', '/', 'M', 'e', 'V', 'Enter', 'WAIT', 'Enter', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Backspace', 'Enter', 'WAIT']:
+   removed with an empty text: plot:userflags;bar;logy=auto current: plot:userflags;bar;logy=auto
+   Enter on another view, editing: True
+==> keys ['WAIT', 'h']:
+==> keys ['WAIT', 'Down', 'Down', 'MoveUp', 'WAIT']:
+   moved up: ['ekin;logx=auto;logy', 'ekin;lethargy;logy', 'wavelength;logx'] current: plot:wavelength;logx
+==> keys ['WAIT', 'Down', 'o', 'WAIT']:
+   o shows the plot in a window: gui_plot ekin [eV] | the plot shown: plot:ekin;lethargy;logy | messages: ['The plot is shown in a GUI window']
+==> keys ['WAIT', 'O']:
+   without a display: Not shown: Plots can not be shown in a window here (is there no display?).
+==> keys ['WAIT', 'l', 'WAIT', 'k', 'Down', 'WAIT', 'K', 'WAIT']:
+   l and k: ['plot:ekin;logx=auto;logy', 'plot:ekin;lethargy;logy', 'plot:wavelength;logx']
+   the figure: logx
+==> keys ['WAIT', 'hold', 'l', 'k', 'unhold', 'WAIT']:
+   k before the changed plot is drawn: The plot is not drawn yet (try again when it is)
+   c shows the collections: ['spectra', 'fields', 'geometry', 'beamz', 'beamx', 'beamy', '3d', 'correlations'] chosen: geometry | key hint: Up/Down: choose   Enter: apply   Esc: cancel
+==> keys ['WAIT', 'C', 'Down', 'Down', 'WAIT']:
+   the menu on the screen: ['13│beamy         Y beam profile│.681e+06                      9.725e+09', 'Up/Down: choose   Enter: apply   Esc: cancel']
+==> keys ['WAIT', 'c', 'Down', 'Down', 'Enter', 'WAIT']:
+   c changes the groups: geometry plot:x : y
+==> keys ['WAIT', 'c', 'Down', 'Esc', 'WAIT']:
+   Esc keeps the groups: spectra,fields
+==> keys ['WAIT', 'v', 'Enter', 'WAIT']:
+   v saves the state in: ['example_viewer2.json']
+==> keys ['WAIT', 's', '1', '2', 'Esc', 'i', '5', '0', 'Enter', 'WAIT', 'p', 'Up', 'Esc']:
+   skip, limit: '' '50' example.mcpl: 50 particles, Σw = 50
+==> keys ['WAIT', ('Mouse', 2, 3, True), 'WAIT']:
+   view after clicking on line 3: plot:wavelength;logx
+==> keys ['WAIT', 'p', 'x', 'Ctrl-C', 'p', 'y']:
+   Ctrl-C quits like q, while editing a field: '' running: False
+==> keys ['WAIT', 'a', 'e', 'Tab', 'Down']:
+   popup of the completions:
+   | ┌──────────────────────────────────────┐
+   | │ekin      kinetic energy (an energy)  │
+   | │electron  PDG code 11                 │
+   | │eV        energy unit, 1e-6 MeV       │
+   | │exp(      exponential (a without unit)│
+   | └──────────────────────────────────────┘
+==> keys ['WAIT', 'p', 'p', 'd', 'g', 'c', 'o', 'd', 'e', ' ', '=', '=', ' ', 'n', 'e', 'u', 'WAIT']:
+   ascii backend, only ASCII characters: True | selected view: ['> pdgcode;bar;logy=auto         e- (11) (1.49%) |####################### 15']
+ANSI segments: [('ab', None, None), ('cd', 1, None), ('e', None, None), ('f', 2, 1)]
+mcpltool -w -S: exit code 1
+   | ERROR: -S and -w can not be used together.
+mcpltool -w -o x.pdf: exit code 1
+   | ERROR: -w needs a histogram, as in -w "ekin/MeV;logx" FILE (see --hist-help).
+mcpltool -w x/cm -w y/cm: exit code 1
+   | ERROR: -w specified more than once
+mcpltool -B ascii: exit code 1
+   | ERROR: Unrecognised option : -B
+mcpltool --view=foo: exit code 1
+   | ERROR: Unrecognised option : --view=foo
+mcpltool -t --color=always: exit code 1
+   | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
+mcpltool -w -p x > 1: exit code 1
+   | ERROR: -w needs a histogram, as in -w "ekin/MeV;logx" FILE (see --hist-help).
+mcpltool -wekin: exit code 1
+   | ERROR: -w takes a value as -w=VALUE or -w VALUE (not -wekin)
+mcpltool -t={bad: exit code 1
+   | ERROR: The viewer state "{bad" is not valid JSON (Expecting property name enclosed in double quotes: line 1 column 2 (char 1))
+mcpltool -t={} with two files: ERROR: The viewer shows one file (-t without a histogram can only be used with one file).
 reading until applied: True
 views unchanged before poll: True
 plots without a group before poll: []

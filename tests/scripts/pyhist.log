@@ -678,7 +678,7 @@ mcpltool --text example.mcpl hist.txt: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool -t example.mcpl: exit code 1
-   | ERROR: -t needs a histogram, as in -t "ekin/MeV;logx" FILE (see --hist-help).
+   | ERROR: The viewer in the terminal needs a terminal (its input and output can not be redirected)
    | 
    | Run with -h or --help for usage information
 mcpltool -w example.mcpl: exit code 1
@@ -694,7 +694,7 @@ mcpltool -w example.mcpl x/cm: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool -wx/cm example.mcpl: exit code 1
-   | ERROR: -w takes the histogram as -w=HIST or -w HIST (not -wx/cm)
+   | ERROR: -w takes a value as -w=VALUE or -w VALUE (not -wx/cm)
    | 
    | Run with -h or --help for usage information
 mcpltool -H x/cm example.mcpl: exit code 1

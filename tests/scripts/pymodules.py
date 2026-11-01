@@ -46,7 +46,7 @@ from MCPLTestUtils.pymoddeps import package_imports
 dependencies = {
     '_ascii'             : ( '_common', '_reader' ),
     '_blocks'            : ( '_common', '_numpy', '_physics' ),
-    '_cli'               : ( '_ascii', '_clistats', '_common', '_examples', '_expressions', '_exprhelp', '_extract', '_fileops', '_histogram', '_histstring', '_messages', '_particles', '_reader' ),
+    '_cli'               : ( '_ascii', '_clistats', '_common', '_examples', '_expressions', '_exprhelp', '_extract', '_fileops', '_histogram', '_histstring', '_messages', '_particles', '_reader', '_viewer', '_viewer_ui' ),
     '_clistats'          : ( '_common', '_histogram', '_histstring', '_plotregistry', '_reader', '_stats' ),
     '_common'            : (  ),
     'constants'          : (  ),
@@ -83,13 +83,14 @@ dependencies = {
     '_stdviews'          : (  ),
     '_termcolor'         : ( '_common', ),
     '_userdata'          : ( '_common', '_numpy' ),
-    '_viewer'            : ( '_common', '_exprcore', '_expressions', '_exprhelp', '_exprsyntax', '_histstring', '_reader', '_stdviews', '_userdata', '_viewer_groups', '_viewer_output', '_viewer_overviews', '_viewer_reading', '_viewer_ui' ),
+    '_viewer'            : ( '_common', '_exprcore', '_expressions', '_exprhelp', '_exprsyntax', '_histstring', '_plotregistry', '_reader', '_stdviews', '_userdata', '_viewer_curses', '_viewer_groups', '_viewer_output', '_viewer_overviews', '_viewer_reading', '_viewer_ui' ),
     '_viewer_code'       : ( '_exprcore', '_expressions', '_exprrotation', '_exprsyntax', '_exprunits', '_extract' ),
+    '_viewer_curses'     : ( '_common', '_plotbackend_text', '_plotregistry', '_termcolor', '_viewer_ui' ),
     '_viewer_groups'     : ( '_exprcore', '_histstring', '_particles', '_stdviews', '_viewer_overviews' ),
     '_viewer_output'     : ( '_common', '_extract', '_messages', '_reader', '_stdviews', '_viewer_code', '_viewer_groups', '_viewer_ui', '_writer' ),
     '_viewer_overviews'  : ( '_figures', '_histstring', '_numpy' ),
     '_viewer_reading'    : ( '_blocks', '_common', '_exprcore', '_histogram', '_histstring', '_numpy', '_reader', '_stdviews', '_viewer_overviews', '_viewer_ui', 'plotting' ),
-    '_viewer_ui'         : ( '_stdviews', ),
+    '_viewer_ui'         : ( '_helptext', '_stdviews' ),
     '_writer'            : ( '_blocks', '_common', '_expressions', '_messages', '_numpy', '_reader', '_records', '_statsum', '_userdata' ),
     '__init__'           : ( '_ascii', '_blocks', '_cli', '_common', '_expressions', '_fileops', '_histogram', '_messages', '_reader', '_stats', '_statsum', '_writer', 'constants', 'plotting' ),
     '__main__'           : ( '_cli', ),
@@ -104,6 +105,7 @@ allowed_external_imports = {
     'numpy' : ['_numpy'],
     'matplotlib' : ['_plotbackend_mpl'],
     'scipp' : ['_scipp'],
+    'curses' : ['_viewer_curses'],
 }
 
 def find_cycle( graph ):

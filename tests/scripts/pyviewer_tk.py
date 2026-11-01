@@ -29,19 +29,27 @@
 # change things in the modules of the viewer, e.g. how windows are made), in
 # a directory of its own, and its output is shown here.
 
+import os
 import pathlib
 import subprocess
 import sys
+import time
 
+#TEMPORARY diagnostics: the output of each part as it comes, with the time
+#since the start (the parts run unbuffered, so a hang shows where it is):
+t0 = time.monotonic()
+def stamp():
+    return f'[{time.monotonic() - t0:7.1f}s] '
 for name in ( 'viewer_tk', 'viewer_monkey' ):
-    print(f'==> {name}',flush=True)
+    print(f'{stamp()}==> {name}',flush=True)
     rundir = pathlib.Path(name)
     rundir.mkdir()
-    p = subprocess.run([ sys.executable, '-m', f'MCPLTestUtils.{name}' ],cwd=rundir,
-                       capture_output=True,text=True,encoding='utf-8',check=False)
-    sys.stdout.write(p.stdout)
-    sys.stdout.flush()
-    if p.stderr:
-        sys.stderr.write(p.stderr)
-    if p.returncode != 0:
-        raise SystemExit(f'{name} failed (exit code {p.returncode})')
+    p = subprocess.Popen([ sys.executable, '-m', f'MCPLTestUtils.{name}' ],cwd=rundir,
+                         stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,
+                         encoding='utf-8',env=dict(os.environ,PYTHONUNBUFFERED='1'))
+    for line in p.stdout:
+        print(f'{stamp()}{line}',end='',flush=True)
+    rc = p.wait()
+    print(f'{stamp()}{name} done, exit code {rc}',flush=True)
+    if rc != 0:
+        raise SystemExit(f'{name} failed (exit code {rc})')

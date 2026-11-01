@@ -29,15 +29,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - { os: ubuntu-24.04-arm,  CC: gcc-12,   CXX: g++-12,     python: '3.13', buildtype: 'Release' }
-          - { os: ubuntu-24.04-arm,  CC: gcc-14,   CXX: g++-14,     python: '3.9',  buildtype: 'Debug' }
           #(with the minimum versions of the Python dependencies):
-          - { os: ubuntu-22.04,      CC: gcc-10,   CXX: g++-10,     python: '3.9',  buildtype: 'Release', minversions: true }
-          - { os: ubuntu-latest,     CC: gcc-14,   CXX: g++-14,     python: '3.10', buildtype: 'Debug' }
-          - { os: ubuntu-latest,     CC: clang,    CXX: clang++,    python: '3.11', buildtype: 'Debug' }
-          - { os: ubuntu-latest,     CC: gcc-12,   CXX: g++-12,     python: '3.12', buildtype: 'Release' }
-          - { os: ubuntu-26.04,      CC: gcc,      CXX: g++,        python: '3.14', buildtype: 'Release' }
-          - { os: macos-latest,      CC: clang,    CXX: clang++,    python: "3.12", buildtype: 'Release' }
           - { os: macos-26-intel,    CC: clang,    CXX: clang++,    python: "3.11", buildtype: 'Release' }
     name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}-${{ matrix.buildtype }}${{ matrix.minversions && '-minversions' || '' }}
     runs-on: ${{ matrix.os }}
@@ -98,8 +90,17 @@ jobs:
     - name: Build
       run: cmake --build ./build --config ${{ matrix.buildtype }}
 
-    - name: CTest
-      run: ctest --test-dir ./build --build-config ${{ matrix.buildtype }} --no-tests=error --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
+    - name: TEMPORARY diagnostics, the Tk viewer tests run directly with timings
+      timeout-minutes: 30
+      env:
+        PYTHONPATH: ${{ github.workspace }}/build/tests/mcpl_tests_pypath:${{ github.workspace }}/src/tests/pypath
+        PYTHONIOENCODING: UTF-8
+        MCPL_TOOL_FILE: ${{ github.workspace }}/build/mcpl_core/mcpltool-c
+        MCPL_LIB: ${{ github.workspace }}/build/mcpl_core/libmcpl.dylib
+      run: |
+        mkdir diag_pyviewer_tk
+        cd diag_pyviewer_tk
+        python ../src/tests/scripts/pyviewer_tk.py
 
     - name: Install
       run: cmake --install ./build --config ${{ matrix.buildtype }}

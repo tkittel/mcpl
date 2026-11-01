@@ -26,7 +26,7 @@ status line, the help text, and what is printed when the viewer is closed."""
 __all__ = []
 
 from ._helptext import plain_text
-from ._stdviews import _default_groups
+from ._stdviews import _default_groups, _field_titles
 
 #The fields, in the order they are shown: (field of the Viewer, label, key,
 #position of the key in the label or None if it is not in it, text shown when
@@ -120,6 +120,64 @@ def shortcut_text( name ):
         return ( 'Advanced: show the plot expression instead of the axes and settings'
                  ' (the histogram string of the plot, which has them all)' )
     return ''
+
+#The settings of the shown plot in the viewers with windows (see
+#WindowLogic.plot_controls), for 1D histograms, bar charts, and 2D histograms:
+#(option, label, choices), with the choices as (shown text, value of the
+#option: None if it is not given, True if it is given without a value), or
+#None for a text field:
+_scale = ( ( 'linear', None ), ( 'log', True ), ( 'auto', 'auto' ) )
+_count = ( 'unweighted', 'Count', ( ( 'weights', None ), ( 'particles', True ) ) )
+#(the particle types of the file, see WindowLogic.type_choices):
+_only = ( 'display_only', 'Display only', 'types' )
+#(a curve of each particle type by default, see _histstring._display_by, or
+#of each value of an expression written in the menu):
+display_by_choices = ( ( 'particle type', None ), ( 'single', 'single' ) )
+_by = ( 'display_by', 'Display by', display_by_choices )
+#(the settings of plots in whose menus an expression can be written, with the
+#choice for it, its hint, and the field whose completions and hints it has):
+written_options = {
+    'display_by' : ( 'Type expression...', ( 'Type what to show a curve of each value of,'
+                                             ' e.g. x > 0cm or userflags, and press Enter' ),
+                     'plot' ),
+    'display_only' : ( 'Type expression...', ( 'Type which particles to show, e.g.'
+                                               ' ekin > 1MeV, and press Enter' ), 'pick' ) }
+plot_controls = {
+    '1d' : ( ( 'logx', 'X scale', _scale ), ( 'logy', 'Y scale', _scale ), _by,
+             _count, ( 'bins', 'Bins', None ), ( 'range', 'Range', None ), _only ),
+    'bar' : ( ( 'logy', 'Scale', _scale ), _count, ( 'bar', 'Bars', None ), _only ),
+    '2d' : ( ( 'logz', 'Colour scale', ( ( 'log', None ), ( 'linear', '0' ) ) ),
+             ( 'equal', 'Aspect', ( ( 'auto', None ), ( 'equal', True ) ) ), _count,
+             ( 'bins', 'Bins', None ), ( 'xrange', 'X range', None ),
+             ( 'yrange', 'Y range', None ), _only ),
+    '3d' : ( _by, ( 'unweighted', 'Sample by', ( ( 'weights', None ), ( 'particles', True ) ) ),
+             ( 'points', 'Points', None ), _only ),
+}
+
+def quantity_plot( text ):
+    """The start of a plot string for one of the quantities (see quantities),
+    given as its name or its expression (e.g. Energy or ekin for
+    ekin;logx=auto), or the text itself for other expressions"""
+    t = text.strip()
+    return next( ( p for name, p in quantities if t in ( name, p.split(';')[0] ) ), t )
+
+#(the options which are on unless given as 0, like the logarithmic colour
+#scale of 2D histograms):
+on_by_default = ( 'logz', )
+
+#The quantities offered when adding a plot in the viewers with windows (as the
+#start of a histogram string), besides any expression:
+#(the titles of fields, as in the cards, see _stdviews._field_titles):
+quantities = tuple( ( title or _field_titles[p.split(';')[0]], p ) for title, p in (
+    ( None, 'ekin;logx=auto' ), ( None, 'wavelength;logx=auto' ), ( None, 'time;logx=auto' ),
+    ( None, 'x' ), ( None, 'y' ), ( None, 'z' ), ( None, 'ux' ), ( None, 'uy' ), ( None, 'uz' ),
+    ( 'Angle to z axis', 'angle(dir,(0,0,1))/deg' ), ( 'Distance to z axis', 'hypot(x,y)' ),
+    ( None, 'weight' ), ( None, 'pdgcode;bar' ), ( None, 'userflags;bar' ) ) )
+
+def group_of( key ):
+    """The key of the group of the view with the key if it is an overview
+    (overview:GROUP), else None"""
+    return key[9:] if key is not None and key.startswith('overview:') else None
 
 def plot_of( key ):
     """The plot (histogram string) of the view with the key: plot:PLOT for the
@@ -586,6 +644,26 @@ def number_text( x ):
 #The particles kept in memory by the viewer (see Viewer.cache_info), with the
 #button and the menu of the viewers with windows:
 
+def _bytes( n ):
+    """A number of bytes as a text (like 2 GB, 1.2 GB or 500 MB)"""
+    if n >= 1e9:
+        return f'{n/1e9:.2g} GB' if n < 1e10 else f'{n/1e9:.0f} GB'
+    return f'{n/1e6:.0f} MB' if n >= 1e6 else f'{n/1e3:.0f} kB'
+
+def _used_text( n, nrange ):
+    """The particles used by the plots, as a text"""
+    if n >= nrange:
+        return f'all {count_text(nrange)} particles'
+    return f'the first {count_text(n)} of {count_text(nrange)} particles'
+
+def cache_text( info ):
+    """The text of the button of the cache (info from Viewer.cache_info): the
+    memory used, and whether the plots use all particles of the range (else
+    only the first ones, which fit in the cache), as (text, all used)"""
+    if info['limit'] is None:
+        return 'no cache', True
+    return f'cached: {_bytes(info["cached"])}', info['fits']
+
 #The cache limits offered (in bytes, None for no cache):
 cache_presets = ( 5e6, 20e6, 100e6, 500e6, 2e9, 5e9, 10e9, None )
 
@@ -600,3 +678,93 @@ def used_particles( n, size, limit ):
         return n
     return max( 1, int( limit // size ) )
 
+def cache_menu( info ):
+    """The entries of the menu of the cache (info from Viewer.cache_info), as
+    (label, cache limit, whether it is used, whether the plots use all
+    particles with it)"""
+    entries, n = [], info['nrange']
+    for limit in cache_presets:
+        if limit is None:
+            label = 'No memory cache (refreshing plots from file on each change)'
+            fits = True
+        else:
+            used = used_particles(n,info['size'],limit)
+            fits = n * info['size'] <= limit
+            label = f'Max {_bytes(limit)}: {_used_text(used,n)}'
+            if not fits:
+                label += f' ({100.0*used/max(1,n):.2g}%)'
+        entries.append( ( label, limit, limit == info['limit'], fits ) )
+    return entries
+
+def cache_line( info ):
+    """The message after the cache limit was changed"""
+    if info['fits']:
+        return f'The plots use all {count_text(info["nrange"])} particles'
+    return ( f'The plots use the first {count_text(info["nused"])} of the'
+             f' {count_text(info["nrange"])} particles'
+             ' (those in the cache), but new files get all' )
+
+def about_blocks():
+    """The help blocks (see _helptext) about MCPL: its version, website, and
+    how to help its development"""
+    from ._common import __version__
+    repo = 'https://github.com/mctools/mcpl'
+    return (
+        ( 'text', f'MCPL (Monte Carlo Particle Lists), version {__version__}.' ),
+        ( 'text', 'The documentation is on the website: https://mctools.github.io/mcpl/' ),
+        ( 'text', 'To help MCPL developments you can:' ),
+        ( 'bullet', f'Post ideas and questions on {repo}/discussions' ),
+        ( 'bullet', f'Submit issues or feature requests on {repo}/issues' ),
+        ( 'bullet', 'Help add MCPL support to your favourite Monte Carlo' ),
+        ( 'bullet', f'Give it a star on GitHub: {repo}' ) )
+
+#The help about the cache (see cache_menu), as blocks (see _helptext):
+cache_blocks = (
+    ( 'text', ( 'The viewer keeps the particles it reads in memory (the cache), so it does'
+      ' not need to read the file again when the plots, the pick, or the edit change.' ) ),
+    ( 'gap', ),
+    ( 'section', 'The memory limit' ),
+    ( 'text', ( 'The button at the top right shows the memory used, and its menu sets the'
+      f' limit ({_bytes(default_cache_limit)} unless chosen). The memory is counted for the'
+      ' particles before the pick.' ) ),
+    ( 'key', 'Green', 'All particles fit: the plots use all of them.' ),
+    ( 'key', 'Red', ( 'Not all particles fit: the plots use only the first ones, those which'
+      ' fit, and the others are not read, so the viewer stays fast. The numbers of'
+      ' picked particles are then estimates (marked \u2248).' ) ),
+    ( 'key', 'No cache', 'All particles are read from the file again for each change.' ),
+    ( 'gap', ),
+    ( 'section', 'New files' ),
+    ( 'text', ( 'New MCPL files always get all particles (of the skip and limit, picked and'
+      ' edited), whatever the memory limit.' ) ),
+)
+
+#The settings of the overviews of the standard groups (see
+#WindowLogic.overview_controls), as name -> label:
+overview_controls = { 'display_only' : 'Display only', 'display_by' : 'Display by',
+                      'variables' : 'Variables' }
+
+#The button of the settings of correlation plots choosing the variables with the
+#strongest correlations, and then all of them again (see
+#WindowLogic.overview_controls):
+most_correlated, all_variables = 'Most correlated', 'All variables'
+
+def particle_type_text( name, fraction ):
+    """The text of a particle type (its name, or None for all) in the menu of
+    the settings of overviews, with its share of the weights"""
+    if name is None:
+        return 'all'
+    return f'{name} ({100*fraction:.0f}%)' if fraction >= 0.01 else f'{name} (<1%)'
+
+def variable_text( expr, constant ):
+    """The text of a variable of a correlation plot, with its value if all
+    particles have it (e.g. "z: all 20 cm")"""
+    return expr if constant is None else f'{expr}: all {constant}'
+
+#Shown instead of the plot while a new plot is made (in the viewers with
+#windows, see WindowLogic.on_new_plot):
+new_plot_hints = """New plot: choose or type what to plot below, and press Enter
+
+\u2022  Choose a quantity in the list of an axis, or type any expression
+\u2022  Tab completes the names of fields, units, and functions
+\u2022  Add a Y axis for a 2D histogram, and also a Z axis for a 3D plot
+\u2022  mcpltool -p help lists all names, and the ? buttons show examples"""

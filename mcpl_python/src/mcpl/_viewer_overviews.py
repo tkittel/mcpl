@@ -198,7 +198,7 @@ class Correlation(Text):
     """The correlation coefficient of the cell of a correlation plot (from -1
     to 1, or None if not known): drawn as text by the plotting backends, and
     as the number on a background tinted from blue (-1) to red (1) in the
-    window of the viewer."""
+    window of the viewer (see _viewer_figure)."""
     def __init__( self, value ):
         self.value = value
         super().__init__(f'correlation coefficient: {self.number}' if value is not None else '')
@@ -211,14 +211,15 @@ class Correlation(Text):
 class NewPlot(Text):
     """The place of a new plot in the overview of the custom plots: drawn as
     text by the plotting backends, and as a big "+" in the window of the
-    viewer, where clicking on it starts a new plot."""
+    viewer (see _viewer_figure), where clicking on it starts a new plot."""
     label = 'Add new plot'
     def __init__( self ):
         super().__init__(f'+ {self.label}')
 
 class OverviewFigure(Figure):
     """The figure of an overview, which knows whether it is a correlation plot
-    (whose panels share their axes in the window of the viewer)"""
+    (whose panels share their axes in the window of the viewer, see
+    _viewer_figure)"""
     def __init__( self, correlation_plot = False, **kwargs ):
         super().__init__(**kwargs)
         self.correlation_plot = correlation_plot

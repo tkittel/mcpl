@@ -19,9 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
-"""The viewer in a window, independent of the GUI toolkit: what happens when
-the fields, the views and the actions are used (WindowLogic), and what the
-toolkit must show (WindowFrontend). The logic is
+"""The viewer in a window, independent of the GUI toolkit (Tk, see _viewer_tk):
+what happens when the fields, the views and the actions are used
+(WindowLogic), and what the toolkit must show (WindowFrontend). The logic is
 tested without a display, with a front end which prints what it is asked to
 show (see the test pyviewer_widgets). The plot is a matplotlib figure,
 embedded in the window by the toolkit."""
@@ -110,7 +110,7 @@ class Card:
 
 class WindowFrontend:
     """The front end of the viewer in a window (with the widgets of a GUI
-    toolkit), which shows what WindowLogic asks it to with
+    toolkit, see _viewer_tk), which shows what WindowLogic asks it to with
     these methods, and calls the on_* methods of WindowLogic when its widgets
     are used. The methods without a default must be implemented."""
 
@@ -1081,3 +1081,20 @@ class WindowLogic:
                 self._drawn_at = time.monotonic()
                 self._draw_time = self._drawn_at - t
 
+def run_with_ctrl_c( run, close ):
+    """Run the GUI (run() returns when the window is closed), with Ctrl-C in the
+    terminal closing the window (close()). This uses a handler of SIGINT,
+    since a KeyboardInterrupt in a callback of the GUI toolkit is only
+    reported by some (e.g. Tk). The handler runs when Python code runs (with
+    the timer of the viewer, at the latest)."""
+    import signal
+    import threading
+    main = threading.current_thread() is threading.main_thread()
+    old = signal.signal(signal.SIGINT,lambda *args : close()) if main else None
+    try:
+        run()
+    except KeyboardInterrupt:
+        close()
+    finally:
+        if main:
+            signal.signal(signal.SIGINT,old)

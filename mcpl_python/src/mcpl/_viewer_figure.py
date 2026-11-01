@@ -19,10 +19,10 @@
 ##                                                                            ##
 ################################################################################
 
-"""The plots of the viewer in its window, drawn with matplotlib (see
-_plotbackend_mpl): the overview or plot shown, keeping its zoom, with the
+"""The plots of the viewer in its window (see _viewer_tk), drawn with matplotlib
+(see _plotbackend_mpl): the overview or plot shown, keeping its zoom, with the
 cells of correlation coefficients and of a new plot, and the axes of
-correlation plots shared."""
+correlation plots shared, and the keys and events of matplotlib."""
 
 __all__ = []
 
@@ -177,6 +177,40 @@ def draw_in_box( fig, figure, left, right, bottom, top, fontsize = None ):
     with matplotlib.rc_context(rc):
         return draw_in(fig,gs[0,0],figure)
 
+#The names of keys of matplotlib in the viewers (see _viewer_ui.key_action):
+_key_names = { 'up' : 'Up', 'down' : 'Down', 'left' : 'Left', 'right' : 'Right',
+               'home' : 'Home', 'end' : 'End', 'backspace' : 'Backspace',
+               'delete' : 'Delete', 'enter' : 'Enter', 'escape' : 'Esc',
+               'tab' : 'Tab', 'f1' : 'F1', 'pageup' : 'PageUp',
+               'pagedown' : 'PageDown' }
+
+def key_name( key ):
+    """The name in the viewers (see _viewer_ui.key_action) of a key of
+    matplotlib (event.key): Up and Down with any modifiers (e.g. shift+up,
+    ctrl+up or super+up) are MoveUp and MoveDown, shift+x is X"""
+    k = _key_names.get(key,key)
+    for arrow, name in ( ( '+up', 'MoveUp' ), ( '+down', 'MoveDown' ) ):
+        if k.endswith(arrow):
+            return name
+    if k.startswith('shift+') and len(k) == 7:
+        return k[-1].upper()
+    return k
+
+def after_event( canvas, fct, *args ):
+    """Call fct(*args) after the event being handled (e.g. a click which
+    changes the plots, which could otherwise remove 3D plots which still get
+    the event), with a timer of the canvas (or at once, for canvases without
+    timers, e.g. those of files)"""
+    from matplotlib.backend_bases import TimerBase
+    canvas._mcpl_timer = None#(the timer, kept until it is done)
+    timer = canvas.new_timer(interval = 1)
+    if type(timer) is TimerBase:
+        fct(*args)
+        return
+    timer.single_shot = True
+    timer.add_callback(fct,*args)
+    timer.start()
+    canvas._mcpl_timer = timer
 
 def _remove_axes( ax ):
     """Remove the axes from their figure, with the event handlers which 3D axes
@@ -192,8 +226,8 @@ def _remove_axes( ax ):
 
 class FigurePane:
     """The plot of a view of a viewer (see mcpl._viewer.Viewer) in a box of a
-    matplotlib figure, for the viewer in a window (see _viewer_widgets). It
-    is only drawn again when the figure of the view changed,
+    matplotlib figure, for the viewer in a window (see _viewer_widgets and
+    _viewer_tk). It is only drawn again when the figure of the view changed,
     keeps the zoom when the same view is drawn again, and knows the plots of
     the overview (which can be clicked). The box
     is (left, right, bottom, top) in figure coordinates, with title_space less

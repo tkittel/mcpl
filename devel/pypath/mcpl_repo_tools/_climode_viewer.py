@@ -22,6 +22,7 @@
 
 #The modes: (description, how the viewer is started, Python packages needed)
 _modes = {
+    'tk' : ( 'Window with Tk (mcpltool -w)', [ '-w' ], ( 'tkinter', ) ),
     'term' : ( 'Terminal (mcpltool -t)', [ '-t' ], ( 'curses', ) ),
     'term-nocol' : ( 'Terminal without colours (mcpltool -t --color=never)',
                        [ '-t', '--color=never' ], ( 'curses', ) ),
@@ -34,7 +35,7 @@ _modes = {
 }
 
 def short_description():
-    return 'Open an MCPL file in the viewer (mcpltool -t) of this repository'
+    return 'Open an MCPL file in the viewer (mcpltool -w or -t, mcpl.view) of this repository'
 
 def main( parser ):
     import argparse
@@ -58,7 +59,7 @@ def main( parser ):
     if not f.is_file():
         parser.error(f'File not found: {args.FILE}')
     _, how, needed = _modes[args.MODE]
-    needed = [ *needed, 'numpy' ]
+    needed = [ *needed, 'numpy' ] + ( [] if args.MODE.startswith('term') else [ 'matplotlib' ] )
     missing = [ m for m in needed if importlib.util.find_spec(m) is None ]
     if 'curses' in missing and sys.platform != 'win32':
         raise SystemExit( 'Error: this Python was built without the curses module,'
@@ -75,8 +76,10 @@ def main( parser ):
     if args.MODE == 'term-8col':
         #(a terminal type with 8 colours, for curses):
         env['TERM'] = 'xterm'
-    #(with the drawing of the plots of the mode, see _term_code):
-    cmd = [ sys.executable, '-c', _term_code( args.MODE.startswith('term-ascii') ) ]
+    #(the viewer in the terminal with the drawing of the plots of the mode, see
+    #_term_code):
+    cmd = ( [ sys.executable, '-c', _term_code( args.MODE.startswith('term-ascii') ) ]
+            if args.MODE.startswith('term') else [ sys.executable, '-m', 'mcpl' ] )
     #(the file as given, run here, so the commands printed by the viewer are
     #those the user would type):
     rv = _run_child( [ *cmd, *how, args.FILE ], env = env )

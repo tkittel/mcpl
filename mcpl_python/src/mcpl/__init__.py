@@ -79,6 +79,7 @@ __all__ = [
             'plotting',
             'repair',
             'use_logging',
+            'view',
            ]
 
 __version__ = '2.2.9'
@@ -118,6 +119,7 @@ _on_demand = {
     'plot_histograms' : '_histogram',
     'plot_stats' : '_stats',
     'plotting' : 'plotting',
+    'view' : '_viewer',
 }
 
 def __getattr__(name):

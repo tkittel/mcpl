@@ -10,3 +10,4 @@ dependencies:
   - python
   - matplotlib >=3.6
   - numpy >=1.22
+  - tk

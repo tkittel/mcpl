@@ -28,6 +28,7 @@
 # exit code, and leave all files untouched (contents and modification times).
 # Commands which do not write files must ignore --dry-run.
 
+import os
 import pathlib
 import shutil
 import subprocess
@@ -69,8 +70,10 @@ def dir_mtimes(d):
     return { f.name : f.stat().st_mtime_ns for f in sorted(pathlib.Path(d).iterdir()) }
 
 def run(args, cwd):
+    #(with a fixed version in the printouts, so the log does not change with it):
     r = subprocess.run([sys.executable, '-m', 'mcpldev', *args], cwd=cwd,
-                       capture_output=True, check=False)
+                       capture_output=True, check=False,
+                       env = { **os.environ, 'PYMCPLTOOL_FAKE_PYVERSION' : '1' })
     return r.returncode, r.stdout.decode().replace('\r\n','\n'), r.stderr.decode()
 
 def fresh(d):

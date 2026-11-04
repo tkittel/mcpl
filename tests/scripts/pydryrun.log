@@ -198,7 +198,7 @@ mcpltool --dry-run --window ekin/MeV;print=1;display_by=single a1.mcpl: exit cod
    | 0.024 0.027 39
    | 0.027 0.03 59
 mcpltool --dry-run --version: exit code 0, real run did not change files
-   | MCPL version 2.2.9
+   | MCPL version 99.99.99
 mcpltool --dry-run --bkey1 a1.mcpl: exit code 1, real run did not change files
    | ERROR: Unrecognised option : --bkey1
    | 

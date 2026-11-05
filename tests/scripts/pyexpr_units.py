@@ -40,9 +40,8 @@ def test_sizes():
     for unit, power in ( ( 'mm', 1 ), ( 'mm', 2 ), ( 'mm', 3 ), ( 'um', -2 ), ( 'nm', 2 ), ( 'Aa', -1 ),
                          ( 'm', 0.5 ), ( 'mm', 0.5 ), ( 'eV', -0.5 ), ( 'deg', 1 ), ( 'deg', 2 ),
                          ( 'rad', 1 ), ( 'K', 2 ), ( 'km', -3 ) ):
-        size = _unit_size(unit,power)
-        naive = _expr_units[unit][0] ** power
-        print(f'  {unit}^{power}: {size!r}' + ( f' (not {naive!r})' if size != naive else '' ))
+        #(the naive values, the powers of the sizes, depend on the platform):
+        print(f'  {unit}^{power}: {_unit_size(unit,power)!r}')
     for unit in _expr_units:
         assert _unit_size(unit) == _expr_units[unit][0]
 
@@ -55,9 +54,7 @@ def test_quantities():
                                  ( 123456789012345678901234567890, 'Aa', 1 ), ( 2.5, 'mm', 0.5 ),
                                  ( 90, 'deg', 1 ), ( 0, 'm', 1 ), ( -0.0, 'm', 1 ), ( -1.5, 'us', 1 ),
                                  ( 1e308, 'km', 1 ), ( math.inf, 'cm', 1 ) ):
-        v = _quantity_value(number,unit,power)
-        naive = float(number) * _expr_units[unit][0] ** power
-        print(f'  {number!r} {unit}^{power}: {v!r}' + ( f' (not {naive!r})' if v != naive else '' ))
+        print(f'  {number!r} {unit}^{power}: {_quantity_value(number,unit,power)!r}')
     #(the same values for all ways of writing them):
     for group in ( ( ( 5000, 'eV' ), ( 5, 'keV' ), ( 0.005, 'MeV' ), ( 5e-6, 'GeV' ) ),
                    ( ( 0.3, 'nm' ), ( 3, 'Aa' ), ( 3e-4, 'um' ), ( 3e-8, 'cm' ) ),

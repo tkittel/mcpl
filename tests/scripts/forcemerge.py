@@ -52,9 +52,10 @@ def run_mcpltool(*args, expect_failure):
            flush=True )
 
     import subprocess
-    rv = subprocess.run( fullcmd, capture_output=True, check=False,
+    #(with the errors, from standard error, in the output):
+    rv = subprocess.run( fullcmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                         check=False,
                          env = { **os.environ, 'PYMCPLTOOL_FAKE_PYVERSION' : '1' } )
-    assert not rv.stderr
     print(fix_print_str(rv.stdout
                         .replace(b'\r\n',b'\n')
                         .replace((f'MCPL v{mcpl.__version__}').encode('ascii'),

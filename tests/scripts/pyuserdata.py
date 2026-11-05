@@ -26,6 +26,7 @@
 # Python API, and of mcpltool and the C library for such files. The files are
 # written with the C API.
 
+import contextlib
 import pathlib
 import shutil
 import subprocess
@@ -65,8 +66,10 @@ def make_inputs():
     (input_dir/'trunc.mcpl').write_bytes(data[:-20])
 
 def run(cmd, cwd):
-    r = subprocess.run(cmd, cwd=cwd, capture_output=True, check=False)
-    return r.returncode, r.stdout.decode().replace('\r\n','\n'), r.stderr.decode()
+    #(with the errors, from standard error, in the output):
+    r = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                       check=False)
+    return r.returncode, r.stdout.decode().replace('\r\n','\n'), ''
 
 def fresh(d):
     if pathlib.Path(d).exists():
@@ -472,10 +475,11 @@ def test_expressions():
               f.read_block().userdata['temp'].tolist())
     #mcpltool:
     for args in ( [ '-e', 'userdata.temp > 295K', '-n', 'udexpr.mcpl' ],
-                  [ '-t', 'userdata.temp/K;print;bins=3', 'udexpr.mcpl' ] ):
+                  [ '-t', '-H', 'userdata.temp/K;print;bins=3', 'udexpr.mcpl' ] ):
         print(f'  mcpltool {" ".join(args)}:',flush=True)
         try:
-            mcpl.app_mcpltool(['mcpltool']+args)
+            with contextlib.redirect_stderr(sys.stdout):
+                mcpl.app_mcpltool(['mcpltool']+args)
         except SystemExit as e:
             print(f'  exit: {e}')
         sys.stdout.flush()

@@ -49,7 +49,7 @@ def main():
                   [ '--merge', 'out.mcpl.gz', 'a.mcpl', 'b.mcpl' ],
                   [ '--forcemerge', 'out.mcpl', 'a.mcpl', 'b.mcpl' ],
                   [ '--extract', 'a.mcpl', 'out.mcpl' ],
-                  [ '--extract', '-p', 'pdgcode == 2112', 'a.mcpl', 'out' ],
+                  [ '--extract', '-e', 'pdgcode == 2112', 'a.mcpl', 'out' ],
                   [ '--extract', 'a.mcpl', 'out.mcpl.gz' ] ):
         rc, output = run( args )
         assert rc != 0, (args, output)
@@ -73,7 +73,7 @@ def main():
     ex = test_data_dir / 'ref' / 'reffile_1.mcpl'
     for args, out in ( ( [ '--merge', 'ok.mcpl', ex, 'b0.mcpl' ],
                          'ok.mcpl' ),
-                       ( [ '--extract', '-p', 'pdgcode == 2112', ex, 'okx.mcpl.gz' ],
+                       ( [ '--extract', '-e', 'pdgcode == 2112', ex, 'okx.mcpl.gz' ],
                          'okx.mcpl.gz' ) ):
         pathlib.Path('b0.mcpl').write_bytes( ex.read_bytes() )
         rc, output = run( args )

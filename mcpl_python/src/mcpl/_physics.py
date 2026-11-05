@@ -130,7 +130,7 @@ def wavelength_checked(ekin, pdgcode):
         bad = int(pdg[notng].flat[0])
         raise MCPLError('The wavelength is only defined for neutrons (pdgcode'
                         ' 2112) and gammas (pdgcode 22), not for particles with'
-                        f' pdgcode {bad}, so pick neutrons or gammas first'
+                        f' pdgcode {bad}, so keep only neutrons or gammas first'
                         ' (e.g. with block[block.pdgcode == 2112])')
     res = wavelength_from_ekin(ekin, pdgcode)
     if not np.all(np.isfinite(res)):

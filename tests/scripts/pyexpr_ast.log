@@ -1,0 +1,35 @@
+Equal trees are equal, and have the same hash: True
+Different trees are not equal: True True
+Nodes can not be changed: FrozenInstanceError
+Vector of 1 values: ValueError: Vectors have two or three values
+Vector of 2 values: dimension 2
+Vector of 3 values: dimension 3
+Vector of 4 values: ValueError: Vectors have two or three values
+Userdata: userdata.temp userdata.d.at(2)
+Walk (breadth first): Value Compare Binary Call Binary Name:c Name:d Name:a Name:b
+Names in 'hypot(x,y) < 2cm and pdgcode == neutron': ['hypot', 'neutron', 'pdgcode', 'x', 'y']
+Names in 'r = userdata.temp/K; r > pi': ['pi', 'r', 'userdata.temp']
+Names in 'userdata.d.at(1) + abs(pos)/cm': ['abs', 'pos', 'userdata.d.at(1)']
+Names in 'tmp = x; swap(y,tmp); rotate_z(90deg)': ['rotate_z', 'swap', 'tmp', 'x', 'y']
+Fields used by 'ekin/MeV': ['ekin']
+Fields used by 'abs(pos)/cm': ['x', 'y', 'z']
+Fields used by 'through_sphere((0,0,1m),5cm)': ['ux', 'uy', 'uz', 'x', 'y', 'z']
+Fields used by 'mod(fileidx,2) == 0': ['fileidx']
+Fields used by 'wavelength/Aa': ['wavelength']
+Fields used by 'r = hypot(x,y); r > 2cm': ['x', 'y']
+Fields used by 'x = 1cm': []
+Fields used by 'x += 1cm; weight *= ux': ['ux', 'weight', 'x']
+Fields used by 'swap(time,ekin)': ['ekin', 'time']
+Fields used by 'dir = (0,0,1)': []
+Fields used by 'pi + 1': []
+Fields changed by 'x = 1cm': ['x']
+Fields changed by 'x += 1cm; weight *= ux': ['weight', 'x']
+Fields changed by 'pos += (0,0,1m)': ['x', 'y', 'z']
+Fields changed by 'wavelength = 1.8Aa': ['ekin']
+Fields changed by 'tmp = x; x = y; y = tmp': ['x', 'y']
+Fields changed by 'swap(x,tmp)': ['x']
+Fields changed by 'swap(time,ekin)': ['ekin', 'time']
+Fields changed by 'rotate_x(90deg)': ['poly', 'polz', 'uy', 'uz', 'y', 'z']
+Fields changed by 'rotate_z(90deg)': ['polx', 'poly', 'ux', 'uy', 'x', 'y']
+Fields changed by 'rotate_around((0,0,1),30deg)': ['polx', 'poly', 'polz', 'ux', 'uy', 'uz', 'x', 'y', 'z']
+Fields changed by 'pdgcode = neutron': ['pdgcode']

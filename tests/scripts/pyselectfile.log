@@ -1,20 +1,19 @@
-pick=ParticleFilter('pdgcode == neutron') edit=None nparticles=1006
+edit=ParticleEdit('pdgcode == neutron') nparticles=1006
 block lengths with blocklength=100: [185, 188, 179, 168, 6]
 first particle after rewind: 3
-skip_forward: skip_forward can not be used with files opened with pick, edit, skip, or limit
+skip_forward: skip_forward can not be used with files opened with edit, skip, or limit
 edited block (_EditedParticleBlock) as expected: True
 selection from edited block: 81 particles, as expected: True
 particle 14: z=120 x=-22.5224 y=-6.54176
 Opened MCPL file example.mcpl:
-Showing particles picked with: pdgcode == gamma
+Showing particles edited with: pdgcode == gamma; x = 0
 
 index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight
     0          22      1.2635           0    -0.81223          20    -0.41453   -0.022799     0.90975  7.3389e-07           1
     1          22      2.6273           0      10.196          20   0.0031473     0.75937     0.65065  8.6567e-07           1
    46          22      1.7843           0     0.78225          20   -0.034013   -0.088335     0.99551  1.0907e-06           1
 ------------------------------------------------------------------------------
-pick         : (pdgcode == neutron) and (ekin < 1MeV)
-edit         : z += 1m
+edit         : pdgcode == neutron; z += 1m;ekin < 1MeV
 nparticles   : 466
 sum(weights) : 466
 ------------------------------------------------------------------------------
@@ -39,25 +38,27 @@ pdgcode      :        2112 (n)                   466 (100.00%)
 userflags    :           0 (0x00000000)          466 (100.00%)
                      [ values ]             [ weighted counts ]
 ------------------------------------------------------------------------------
-skip=5 limit=None pick=None: 1001 particles, as expected: True
-skip=0 limit=13 pick=None: 13 particles, as expected: True
-skip=250 limit=300 pick='pdgcode == neutron': 275 particles, as expected: True
-skip=999 limit=50 pick=None: 7 particles, as expected: True
-skip=2000 limit=None pick=None: 0 particles, as expected: True
-skip=10 limit=0 pick=None: 0 particles, as expected: True
+condition after a rotation: 478 particles, as expected: True
+skip=5 limit=None condition=None: 1001 particles, as expected: True
+skip=0 limit=13 condition=None: 13 particles, as expected: True
+skip=250 limit=300 condition='pdgcode == neutron': 275 particles, as expected: True
+skip=999 limit=50 condition=None: 7 particles, as expected: True
+skip=2000 limit=None condition=None: 0 particles, as expected: True
+skip=10 limit=0 condition=None: 0 particles, as expected: True
 {'skip': -1}: skip must be a number of particles (not -1)
 {'limit': 2.5}: limit must be a number of particles (not 2.5)
 {'skip': True}: skip must be a number of particles (not True)
-skip_forward: skip_forward can not be used with files opened with pick, edit, skip, or limit
+{'limit': 'none'}: limit must be a number of particles (not 'none')
+skip_forward: skip_forward can not be used with files opened with edit, skip, or limit
 MCPLFile(ex, 1000): TypeError
 edited blocks written like explicit field values: True
-MCPLOutFile with pick and edit gives the same: True True
-fields then selection and edit: 239 particles, weights {2.0}, pdgcodes {22}
+MCPLOutFile with an edit gives the same: True True
+fields then the edit: 239 particles, weights {2.0}, pdgcodes {22}
 arrays: ekin=[1.5 2.5 3. ] weight=[2. 2. 2.] x=[2. 2. 2.] pdgcode=[2112 2112   22]
-MCPLOutFile({'pick': 'x > 2'}): Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 2"
+MCPLOutFile({'edit': 'x > 2'}): Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 2"
 MCPLOutFile({'edit': 'x = 2'}): Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x = 2"
-MCPLOutFile({'pick': 'wavelength > 1Aa'}): The wavelength is only defined for neutrons and gammas, so pick those before using it, e.g. "pdgcode == neutron and wavelength > 1.8Aa" (in expression "wavelength > 1Aa")
-MCPLOutFile with pick using fileidx: 11 particles
+MCPLOutFile({'edit': 'wavelength > 1Aa'}): The wavelength is only defined for neutrons and gammas, so keep only those before using it, e.g. "pdgcode == neutron; wavelength > 1.8Aa" (in expression "wavelength > 1Aa")
+MCPLOutFile with an edit using fileidx: 11 particles
 fileidx with arrays: fileidx can only be used for particles read from files
 MCPLFile with a bytes filename: ok
-MCPLFile with an invalid pick: Syntax error in expression "blah +", at the end: a value is missing
+MCPLFile with an invalid edit: Syntax error in expression "blah +", at the end: a value is missing

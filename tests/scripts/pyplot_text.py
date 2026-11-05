@@ -66,7 +66,7 @@ def test_histograms():
     show(hist_figure(mcpl,h), 'ascii')
     #2D histogram:
     h = internal_histogram2d(mcpl, example_file, 'x/cm', 'y/cm', bins=30,
-                         pick='pdgcode == neutron')
+                         edit='pdgcode == neutron')
     for backend in ('unicode','ascii'):
         show(hist_figure(mcpl,h), backend, height=12)
 

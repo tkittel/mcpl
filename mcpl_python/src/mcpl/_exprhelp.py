@@ -393,8 +393,8 @@ def example_rows( topic ):
 _intro = {
     'pick' : ( 'PICK: an expression which is true for the particles to use, for example:',
                '''The operators are: + - * / // (and ^ for powers), == != < <= > >=, in and
-not in (one of the values in parentheses), and, or, not (and & | for
-bits). Values with units must be written with units
+not in (one of the integers or particle names in parentheses), and, or, not
+(and & | for bits). Values with units must be written with units
 (e.g. 25meV or 10cm), except for a plain 0 (e.g. x > 0), and the wavelength
 can only be used for neutrons and gammas, which must be picked first (e.g.
 "pdgcode == neutron and wavelength > 1.8Aa"). Integers (like pdgcode,

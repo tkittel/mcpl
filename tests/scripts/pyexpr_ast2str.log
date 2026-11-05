@@ -67,6 +67,7 @@ Operators, with parentheses only where needed:
   'not a==b'
   'pdgcode in (neutron,gamma)'
   'a+1 not in (2)'
+  'a in (-11,-0x10,0,positron)'
   'not a in (1,2)'
   'a in (1) and b'
   '(a in (1))==b'

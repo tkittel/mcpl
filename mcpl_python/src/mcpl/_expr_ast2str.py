@@ -78,7 +78,10 @@ def _sub( node, minprec ):
     return t if prec >= minprec else f'({t})'
 
 def _number( node ):
-    return f'0x{node.value:x}' if isinstance(node,Int) and node.hex else repr(node.value)
+    if isinstance(node,Int) and node.hex:
+        #(negative only in the values of In):
+        return f'{"-" if node.value < 0 else ""}0x{abs(node.value):x}'
+    return repr(node.value)
 
 def _unit( unit, power ):
     return unit + ( '' if power == 1 else f'^{power!r}' )

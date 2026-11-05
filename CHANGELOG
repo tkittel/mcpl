@@ -322,10 +322,12 @@ v2.2.9  (work in progress)
       * Expressions have vectors (pos, dir, pol, and (a,b,c)) with the
         functions dot, cross, and angle (precise also for small angles, e.g.
         "angle(dir,(0,0,1)) < 1deg"), round, through_sphere(center,radius),
-        in and not in, and variables before the condition of picks. Edits
-        have rotate_around and rotate_frame. Errors say where in the
-        expression the problem is. Numbers are decimal or hexadecimal (like
-        0x1f), as in C.
+        in and not in (of integers or particle names, as in
+        "pdgcode in (neutron,gamma)"), and variables before the condition of
+        picks. Edits have rotate_around and rotate_frame. Errors say where in
+        the expression the problem is. Numbers are decimal or hexadecimal
+        (like 0x1f), as in C, and numbers with units are exact (5000eV is
+        exactly 5keV).
       * Plots can be drawn as text, with Unicode characters (or else ASCII):
         in the terminal (with mcpltool -t HIST), or in .txt files. This needs
         no extra Python packages, so plots can always be made. Histograms with

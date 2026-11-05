@@ -20,10 +20,11 @@
 ################################################################################
 
 """The dimensions and units of the quantities in particle expressions (see
-_expressions)."""
+_expressions), and their exact sizes (see _unit_size and _quantity_value)."""
 
 __all__ = []
 
+import decimal
 import math
 
 #Dimensions (length,energy,time,temperature) and units of quantities in
@@ -45,3 +46,36 @@ _expr_units = { 'meV' : (1e-9,_dim_E), 'eV' : (1e-6,_dim_E),
                 'cm' : (1.0,_dim_L), 'm' : (100.0,_dim_L),
                 'km' : (1e5,_dim_L), 'K' : (1.0,_dim_K),
                 'deg' : (math.pi/180,None), 'rad' : (1.0,None) }
+
+def _decimal_exponent( size ):
+    """n if the size is 10^n, else None"""
+    d = decimal.Decimal(repr(size))
+    n = d.adjusted()
+    return n if d == decimal.Decimal(1).scaleb(n) else None
+
+#The units which are powers of ten of the units of MCPL, with their exponents
+#(all but deg):
+_unit_exponents = { u : n for u, ( size, _ ) in _expr_units.items()
+                    if ( n := _decimal_exponent(size) ) is not None }
+
+def _unit_size( unit, power = 1 ):
+    """The size of the unit to the power, in the units of MCPL. Whole powers
+    of ten are exact (as the nearest floating point numbers, e.g. mm^2 is
+    0.01, not 0.1^2)."""
+    n = _unit_exponents.get(unit)
+    if n is not None and float(n * power).is_integer():
+        return float(f'1e{int(n * power)}')
+    return _expr_units[unit][0] ** power
+
+def _quantity_value( number, unit, power = 1 ):
+    """The number (an int or float) times the unit to the power, in the units
+    of MCPL. For units which are powers of ten (with whole exponents), this is
+    exact, with the decimal digits of the number (e.g. 5000eV and 5keV are
+    the same, and 0.1keV is the nearest floating point number to 0.0001)."""
+    n = _unit_exponents.get(unit)
+    if n is None or not float(n * power).is_integer() or not math.isfinite(number):
+        return float(number) * _unit_size(unit,power)
+    d = decimal.Decimal(repr(number))
+    with decimal.localcontext() as ctx:
+        ctx.prec = len(d.as_tuple().digits)#(so scaleb is exact)
+        return float(d.scaleb(int(n * power)))

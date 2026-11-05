@@ -79,12 +79,13 @@ Userdata fields:
   'userdata.d.at(1)'                 -> userdata.d.at(1)   written: 'userdata.d.at(1)'
   'userdata.temp > 300K'             -> (cmp userdata.temp > 300<K>)   written: 'userdata.temp>300K'
   '-userdata.n ^ 2'                  -> (neg (^ userdata.n 2))   written: '-userdata.n^2'
-In and not in:
+In and not in (of integers and particles):
   'pdgcode in (neutron,gamma)'       -> (in pdgcode [p:neutron, p:gamma])   written: 'pdgcode in (neutron,gamma)'
   'x not in (1,2)'                   -> (not in x [1, 2])   written: 'x not in (1,2)'
-  'a in (b)'                         -> (in a [b])   written: 'a in (b)'
+  'a in (1)'                         -> (in a [1])   written: 'a in (1)'
   'not a in (1,2)'                   -> (not (in a [1, 2]))   written: 'not a in (1,2)'
   'a + 1 in (2,3) and b'             -> (and (in (+ a 1) [2, 3]) b)   written: 'a+1 in (2,3) and b'
+  'p in (-11, +0x1f, -0x10, positron, 0)' -> (in p [-11, hex:31, hex:-16, p:positron, 0])   written: 'p in (-11,0x1f,-0x10,positron,0)'
 Numbers (decimal and hexadecimal, as in C):
   '0'                                -> 0   written: '0'
   '7'                                -> 7   written: '7'
@@ -142,7 +143,14 @@ Errors:
   'a in (1) < 2'           -> Syntax error in expression "a in (1) < 2", after "a in (1)": "in" can not be used in a chain of comparisons
   'a < b in (1)'           -> Syntax error in expression "a < b in (1)", after "a < b": "in" can not be used in a chain of comparisons
   'a in 1'                 -> Syntax error in expression "a in 1", after "a in": "(" is expected, not "1"
-  'a in ()'                -> Syntax error in expression "a in ()", after "a in (": a value is expected, not ")"
+  'a in ()'                -> Syntax error in expression "a in ()", after "a in (": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+  'a in (b)'               -> Syntax error in expression "a in (b)", after "a in (": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+  'a in (1cm)'             -> Syntax error in expression "a in (1cm)", after "a in (1": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+  'a in (1.5)'             -> Syntax error in expression "a in (1.5)", after "a in (": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+  'a in (-neutron)'        -> Syntax error in expression "a in (-neutron)", after "a in (-": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+  'a in (1,)'              -> Syntax error in expression "a in (1,)", after "a in (1,": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+  'a in (--1)'             -> Syntax error in expression "a in (--1)", after "a in (-": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+  'a in ((1))'             -> Syntax error in expression "a in ((1))", after "a in (": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
   '(1,2,3,4)'              -> Syntax error in expression "(1,2,3,4)", at the end: vectors have two or three values
   '()'                     -> Syntax error in expression "()", after "(": a value is expected, not ")"
   'pos.w'                  -> Syntax error in expression "pos.w", after "pos.": the values of vectors are written as .x, .y, .z or .at(INDEX) (as in pos.x or pos.at(0))
@@ -219,5 +227,5 @@ Errors of picks:
   ';'                      -> Empty expression
   'r = 1, r > 0'           -> Separate statements with ";" (not ",") in "r = 1, r > 0"
   'x = 1'                  -> Syntax error in expression "x = 1", after "x": unexpected "=" (use == for comparisons)
-Random expressions: 1604 written and parsed again to the same trees, 396 errors
-Random input: only trees or MCPLError, and the trees are written and parsed again to the same trees (in total 1086 trees and 13914 errors)
+Random expressions: 1666 written and parsed again to the same trees, 334 errors
+Random input: only trees or MCPLError, and the trees are written and parsed again to the same trees (in total 1142 trees and 13858 errors)

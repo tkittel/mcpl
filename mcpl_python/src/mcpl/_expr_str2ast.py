@@ -191,8 +191,8 @@ class _SyntaxError(Exception):
         self.pos, self.what = pos, what
 
 #The numbers: decimal and hexadecimal integers, and floating point numbers:
-_number_forms = ( r'0|[1-9][0-9]*|0[xX][0-9a-fA-F]+'
-                  r'|([0-9]+\.[0-9]*|\.[0-9]+)([eE][-+]?[0-9]+)?|[0-9]+[eE][-+]?[0-9]+' )
+_int_forms = r'0|[1-9][0-9]*|0[xX][0-9a-fA-F]+'
+_number_forms = ( _int_forms + r'|([0-9]+\.[0-9]*|\.[0-9]+)([eE][-+]?[0-9]+)?|[0-9]+[eE][-+]?[0-9]+' )
 #The tokens: numbers (as anything starting like a number which continues
 #with "_", or 0x, 0o, and 0b, so _Parser._number can say what is wrong),
 #names, and the operators (the longest first):
@@ -208,8 +208,8 @@ _op_levels = [ tuple( s for s, p in _binary_ops.items() if p == prec )
 class _Parser:
     """Parser of expressions and statements. The precedences are, from the
     lowest: or, and, not, comparisons (which can be chained, as in
-    0 < x < 2cm, and "in" or "not in" a list of values, as in
-    pdgcode in (neutron,gamma), which can not), |, &, + and -, *, / and //,
+    0 < x < 2cm, and "in" or "not in" a list of integers or particle names,
+    as in pdgcode in (neutron,gamma), which can not), |, &, + and -, *, / and //,
     unary - and +, the multiplication by a unit directly after a number or a
     closing parenthesis (as in 25meV or 2^(ekin/MeV)MeV), and ^ (or **, which
     is right-associative, with unary - and + allowed in exponents). Units are
@@ -315,14 +315,32 @@ class _Parser:
             negated = bool(self._accept('name','not'))
             self._take()
             self._expect('op','(')
-            values = [ self._expression() ]
+            values = [ self._in_value() ]
             while self._accept('op',','):
-                values.append(self._expression())
+                values.append(self._in_value())
             self._expect('op',')')
             if self._peek()[0] == 'op' and self._peek()[1] in _compare_ops:
                 raise self._error('"in" can not be used in a chain of comparisons')
             return In(first,negated,tuple(values))
         return Compare(first,tuple(ops),tuple(values)) if ops else first
+
+    def _in_value( self ):
+        """A value in the list after "in": an integer (with an optional sign)
+        or the name of a particle"""
+        sign = self._accept('op',*_unary_ops)
+        kind, s = self._peek()
+        res = None
+        if kind == 'number' and re.fullmatch(_int_forms,s):
+            n = self._number(s)
+            res = Int(-n.value if sign == '-' else n.value,n.hex)
+        elif kind == 'name' and s in _particle_names and not sign:
+            res = Particle(s)
+        if res is not None:
+            self._i += 1
+        if res is None or self._peek() not in ( ( 'op', ',' ), ( 'op', ')' ) ):
+            raise self._error('the values after "in" must be integers or names of particles,'
+                              ' as in pdgcode in (neutron,gamma) or userflags in (1,2)')
+        return res
 
     def _binary( self, level = 0 ):
         #(the left-associative binary operators, from the lowest precedence):

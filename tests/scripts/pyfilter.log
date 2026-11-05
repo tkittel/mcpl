@@ -114,7 +114,8 @@ histogram example 'userdata.nscat;bar;unweighted': HistDiscrete
 'pdgcode in (neutron,gamma)': 965 particles, normalised 'pdgcode in (neutron,gamma)', as expected: True
 'pdgcode not in ( neutron, gamma )': 41 particles, normalised 'pdgcode not in (neutron,gamma)', as expected: True
 'abs(pdgcode) in (11)': 23 particles, normalised 'abs(pdgcode) in (11)', as expected: True
-'not ekin in (1MeV,2MeV) and pdgcode in (22,2112)': 965 particles, normalised 'not ekin in (1MeV,2MeV) and pdgcode in (22,2112)', as expected: True
+'not userflags in (1,0x10) and pdgcode in (22,2112)': 965 particles, normalised 'not userflags in (1,0x10) and pdgcode in (22,2112)', as expected: True
+'pdgcode in (-11,+11,positron)': 23 particles, normalised 'pdgcode in (-11,11,positron)', as expected: True
 'neutron': neutron is a PDG code (2112), not a condition (e.g. pdgcode == neutron), in expression "neutron"
 'pdgcode': pdgcode is not a condition (e.g. pdgcode == neutron), in expression "pdgcode"
 'neutron or gamma': neutron is a PDG code (2112), not a condition (e.g. pdgcode == neutron), in expression "neutron or gamma"
@@ -124,10 +125,16 @@ histogram example 'userdata.nscat;bar;unweighted': HistDiscrete
 'not userflags': a condition
 abs(pdgcode): i
 pdgcode in neutron: Syntax error in expression "pdgcode in neutron", after "pdgcode in": "(" is expected, not "neutron"
-pdgcode in (): Syntax error in expression "pdgcode in ()", after "pdgcode in (": a value is expected, not ")"
-pdgcode in (1cm): Incompatible units in comparison with "in": value without units and length (add units, e.g. 2cm) in expression "pdgcode in (1cm)"
+pdgcode in (): Syntax error in expression "pdgcode in ()", after "pdgcode in (": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+pdgcode in (1cm): Syntax error in expression "pdgcode in (1cm)", after "pdgcode in (1": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
 0 < pdgcode in (1,2): Syntax error in expression "0 < pdgcode in (1,2)", after "0 < pdgcode": "in" can not be used in a chain of comparisons
 pdgcode in (1,2) < 3: Syntax error in expression "pdgcode in (1,2) < 3", after "pdgcode in (1,2)": "in" can not be used in a chain of comparisons
+ekin in (1MeV,2MeV): Syntax error in expression "ekin in (1MeV,2MeV)", after "ekin in (1": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+pdgcode in (1+1): Syntax error in expression "pdgcode in (1+1)", after "pdgcode in (1": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+pdgcode in (x): Syntax error in expression "pdgcode in (x)", after "pdgcode in (": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+pdgcode in (-neutron): Syntax error in expression "pdgcode in (-neutron)", after "pdgcode in (-": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+pdgcode in (1.0): Syntax error in expression "pdgcode in (1.0)", after "pdgcode in (": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+x in (1,2): Incompatible units in comparison with "in": length and value without units (add units, e.g. 2cm) in expression "x in (1,2)"
 'userdata.nscat >= 2': [False, False, True, True], normalised 'userdata.nscat>=2'
 'userdata.temp < 25 or userdata.nscat == 3': [True, True, False, True], normalised 'userdata.temp<25 or userdata.nscat==3'
 'userdata.nscat in (0,3)': [True, False, False, True], normalised 'userdata.nscat in (0,3)'

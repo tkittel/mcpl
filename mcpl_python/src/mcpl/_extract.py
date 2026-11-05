@@ -24,6 +24,7 @@ file names of mcpltool."""
 
 __all__ = []
 
+from ._common import MCPLError
 from ._messages import _info, _warning
 from ._reader import MCPLFile, _blocks_in_range, _particle_range
 from ._writer import MCPLOutFile
@@ -62,16 +63,15 @@ def _statsum_marking( f, skip, limit, pick, edit, keepstatsum = False ):
     return None
 
 def _tool_check_outfn( fn, inputs, allow_overwrite = False ):
-    """Usage error message unless the output file of --merge, --forcemerge or
+    """Error message unless the output file of --merge, --forcemerge or
     --extract can be created, or None if it can. Checked
     before creating the file, so the output of a failed command can be
     removed."""
-    from ._common import MCPLError
     from ._writer import _check_merge_output
     try:
         _check_merge_output( fn, inputs, allow_overwrite )
     except MCPLError as e:
-        return f'{e}.'
+        return str(e)
     return None
 
 def _mcpltool_close(outfile):
@@ -101,7 +101,7 @@ def _mcpltool_code(filelist, lang, limit, skip, pick, edit, preventcomment, keep
     userdata layout and stat:sum entries), see _expr_ast2c"""
     from ._common import MCPLError
     if len(filelist) != 1:
-        bad("Must specify one input file (and no output file) with --code.")
+        bad("must specify one input file (and no output file) with --code")
     skip, limit = skip or 0, limit or 0
     with MCPLFile(filelist[0]) as f:
         layout = f.userdata_layout
@@ -121,13 +121,13 @@ def _mcpltool_code(filelist, lang, limit, skip, pick, edit, preventcomment, keep
 def _mcpltool_extract(filelist, limit, skip, pick, edit, preventcomment,
                       keepstatsum, dry_run, bad, allow_overwrite = False):
     if len(filelist) > 2:
-        bad("Too many arguments.")
+        bad("too many arguments")
     if len(filelist) != 2:
-        bad("Must specify both input and output files with --extract.")
+        bad("must specify both input and output files with --extract")
     outfn = filelist[1]
     err = _tool_check_outfn( outfn, filelist[:1], allow_overwrite )
     if err:
-        bad(err)
+        raise MCPLError(err)
     limit = limit or 0
     skip = skip or 0
     with MCPLFile(filelist[0],raw_strings=True) as fi:

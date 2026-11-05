@@ -118,6 +118,11 @@ v2.2.9  (work in progress)
         the new name of app_pymcpltool (which also still works, but warns).
         The usage information shown with "python -m mcpl" shows "python -m
         mcpl" as the name of the command.
+      * mcpltool reports errors on standard error, in the usual form of
+        command-line tools: problems with the command line as "mcpltool:
+        error: ..." after a usage line (exit code 2), and other problems as
+        "mcpltool: ..." (exit code 1), naming missing input files.
+        Values of options can also be given in the next argument (-l 10).
       * The MCPL_BINDIR, MCPL_LIBDIR, MCPL_INCDIR, MCPL_LIBNAME, and
         MCPL_CMD_MCPLCONFIG variables provided by find_package(MCPL) in CMake
         had wrong (or empty) values. The MCPL_CMD_MCPLTOOL variable is
@@ -339,7 +344,7 @@ v2.2.9  (work in progress)
         mcpltool use the canonical forms, so files extracted with picks
         written in different ways can be merged.
       * Plots can be drawn as text, with Unicode characters (or else ASCII):
-        in the terminal (with mcpltool -t HIST), or in .txt files. This needs
+        in the terminal (with mcpltool -t -H HIST), or in .txt files. This needs
         no extra Python packages, so plots can always be made. Histograms with
         more bins than the columns (or cells) of such plots are shown with the
         average of the bin values over each column, and histograms from
@@ -499,10 +504,10 @@ v2.2.9  (work in progress)
         (of whole numbers), or PointSet3D (of three expressions) objects, which
         give their bin edges and contents (or points), and can be plotted with
         plot().
-      * New mcpltool options -w HIST (--window) and -t HIST (--terminal) for a
-        histogram of expressions, shown in a window (matplotlib) or in the
-        terminal, or saved with -o FILE, with options NAME=VALUE separated by
-        ";" (see mcpltool --hist-help), e.g. mcpltool -w "ekin;logx" -p
+      * New mcpltool option -H HIST (--hist) for a histogram of expressions,
+        shown in a window (matplotlib) or with -t in the terminal, or saved
+        with -o FILE, with options NAME=VALUE separated by ";" (see mcpltool
+        --hist-help), e.g. mcpltool -H "ekin;logx" -p
         "pdgcode == neutron" FILE, also for 2D histograms and bar charts.
         mcpl.histogram also accepts these strings.
       * mcpltool --extract no longer leaves a broken output file behind when

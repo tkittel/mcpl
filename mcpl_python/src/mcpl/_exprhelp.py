@@ -412,8 +412,8 @@ and the statements listed below. The expressions are written as for -p (see
 or two separated by ":" for a 2D histogram (or three for a 3D plot of
 particles chosen at random, in windows), followed by options separated by ";".
 For example:''',
-               '''The histogram is shown in a window with -w HIST, or in the terminal with -t
-HIST, or saved in a file (with -o FILE).''' ),
+               '''The histogram is shown in a window with -H HIST, or in the terminal with -t
+-H HIST, or saved in a file (with -o FILE).''' ),
 }
 
 #(the end of the help texts, if any):
@@ -447,7 +447,7 @@ def _help_blocks( topic ):
     """Help for -p help ('pick'), -E help ('edit'), or --hist-help ('hist'), as
     blocks (see _helptext)"""
     head, tail = _intro[topic]
-    opt = { 'pick' : '-p', 'edit' : '-E', 'hist' : '-w' }[topic]
+    opt = { 'pick' : '-p', 'edit' : '-E', 'hist' : '-H' }[topic]
     blocks = [ ( 'text', head ) ]
     for title, note, rows in examples[topic]:
         blocks += [ ( 'gap', ), ( 'subsection', title ) ]

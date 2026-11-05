@@ -41,8 +41,8 @@ def _view( filename, skip, limit, pick, edit ):
     return _FileView(f,skip,limit,pick,edit)
 
 def _plot_backend( outfn, terminal, color = None, allow_overwrite = False ):
-    """Backend object for showing the histogram of mcpltool -w (in a window)
-    or -t (in the terminal, with the --color setting), or saving it in outfn
+    """Backend object for showing the histogram of mcpltool -H (in a window,
+    or with -t in the terminal, with the --color setting), or saving it in outfn
     (with -o, where an existing file is only overwritten if allowed)"""
     from ._plotregistry import _save_backend, _show_backend
     if outfn:
@@ -54,28 +54,28 @@ def _plot_backend( outfn, terminal, color = None, allow_overwrite = False ):
     return _show_backend(terminal,color=color,
                          hint=' Use -t to show the histogram in the terminal.')
 
-def mcpltool_stats(filename,skip,limit,pick,edit,bad):
+def mcpltool_stats(filename,skip,limit,pick,edit):
     from ._stats import _PickedFile, dump_stats
     f = _view(filename,skip,limit,pick,edit)
     if MCPLFile(filename).nparticles == 0:
-        bad("Can not calculate statistics for an empty file")
+        raise MCPLError("can not calculate statistics for an empty file")
     if f.nparticles == 0:
-        bad("Can not calculate statistics when no particles are picked")
+        raise MCPLError("can not calculate statistics when no particles are picked")
     dump_stats(_PickedFile(f,None))
 
 def mcpltool_hist(filelist,hist,skip,limit,pick,edit,outfn,terminal,bad,color=None,
                   allow_overwrite=False):
-    """The histogram of mcpltool -w or -t (shown with matplotlib, or in the
+    """The histogram of mcpltool -H (shown with matplotlib, or in the
     terminal if terminal is set), printed with the print option, or else
     plotted (in the file outfn with -o, or else shown)"""
     from ._histfill import _fill
     from ._histstring import _parse_hist
     if not filelist:
-        bad("No input file specified")
+        bad("no input file specified")
     #(the histogram string is already checked, see _cli):
     o = _parse_hist(hist)
     if o['print'] and ( outfn or color ):
-        bad("The histogram option print can not be used together with -o or --color.")
+        bad("the histogram option print can not be used together with -o or --color")
     files = contextlib.ExitStack()
     sources = [ files.enter_context(_view(fn,skip,limit,pick,edit)) for fn in filelist ]
     try:
@@ -85,10 +85,7 @@ def mcpltool_hist(filelist,hist,skip,limit,pick,edit,outfn,terminal,bad,color=No
         #backends, whose plots are then fitted to the bins):
         bk = maxbins = None
         if not o['print']:
-            try:
-                bk = _plot_backend(outfn,terminal,color,allow_overwrite)
-            except MCPLError as e:
-                bad(str(e))
+            bk = _plot_backend(outfn,terminal,color,allow_overwrite)
             res = bk.resolution() if o['bins'] is None else None
             if res is not None:
                 maxbins = tuple(res) if len(o['exprs']) == 2 else res[0]
@@ -103,12 +100,9 @@ def mcpltool_hist(filelist,hist,skip,limit,pick,edit,outfn,terminal,bad,color=No
         #(drawn with the bins exactly, with a whole number of columns each):
         if maxbins is not None:
             bk._fit_resolution(h._display_bins)
-        try:
-            if outfn:
-                print('Created ' + ', '.join(bk.save([figure(h)],outfn)))
-            else:
-                bk.show([figure(h)])
-        except MCPLError as e:
-            bad(str(e))
+        if outfn:
+            print('Created ' + ', '.join(bk.save([figure(h)],outfn)))
+        else:
+            bk.show([figure(h)])
     finally:
         files.close()

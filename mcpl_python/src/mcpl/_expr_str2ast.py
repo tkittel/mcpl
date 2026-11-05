@@ -84,7 +84,7 @@ def _expr_str2ast( text, kind = 'value' ):
     return Pick(statements,condition)
 
 #Characters which can not be used in expressions (nor in the histogram strings
-#of mcpltool -w and -t), although they are printable ASCII characters:
+#of mcpltool -H), although they are printable ASCII characters:
 _forbidden_chars = '"\'{}[]#$`\\'
 
 def _check_chars( text, what = 'expression' ):

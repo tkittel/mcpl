@@ -13,27 +13,23 @@ show(fig) without matplotlib: MCPLError: Plots can not be shown in a window, sin
 save(fig, 'x.png') without matplotlib: MCPLError: Plots can not be saved as .png files, since matplotlib is not installed
 plot() with MPLBACKEND=agg: exit code 1
 mcpldev._common.MCPLError: Plots can not be shown in a window here (is there no display?).
-==> mcpltool -t ekin/MeV;bins=3;display_by=single : exit code 0
+==> mcpltool -t -H ekin/MeV;bins=3;display_by=single : exit code 0
    | (weights per bin)
    |     1003 ┤███████████████████████
    |          │███████████████████████
    |          │███████████████████████
-==> mcpltool -t ekin/MeV;bins=3;display_by=single -o tool1.txt: exit code 0
+==> mcpltool -t -H ekin/MeV;bins=3;display_by=single -o tool1.txt: exit code 0
    | Created tool1.txt
-==> mcpltool -w ekin/MeV;bins=3;display_by=single -o tool2.svg: exit code 0
+==> mcpltool -w -H ekin/MeV;bins=3;display_by=single -o tool2.svg: exit code 0
    | Created tool2.svg
-==> mcpltool -w ekin/MeV;bins=3;display_by=single -o tool3.txt: exit code 1
-   | ERROR: -w saves histograms as .png, .pdf, or .svg files (use -t HIST -o FILE.txt for text).
-   | 
-   | Run with -h or --help for usage information
-==> mcpltool -t ekin/MeV;bins=3;display_by=single -o tool4.svg: exit code 1
-   | ERROR: -t saves histograms as .txt files (use -w HIST -o FILE for .png, .pdf, or .svg).
-   | 
-   | Run with -h or --help for usage information
-==> mcpltool -w ekin/MeV;bins=3;display_by=single  with {'MPLBACKEND': 'agg'}: exit code 1
-   | ERROR: Plots can not be shown in a window here (is there no display?). Use -t to show the histogram in the terminal.
-   | 
-   | Run with -h or --help for usage information
+==> mcpltool -w -H ekin/MeV;bins=3;display_by=single -o tool3.txt: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: histograms are saved as .txt files with -t (as in -t -H HIST -o FILE.txt)
+==> mcpltool -t -H ekin/MeV;bins=3;display_by=single -o tool4.svg: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -t saves histograms as .txt files (without -t, as .png, .pdf, or .svg files)
+==> mcpltool -w -H ekin/MeV;bins=3;display_by=single  with {'MPLBACKEND': 'agg'}: exit code 1
+   | python -m mcpl: Plots can not be shown in a window here (is there no display?). Use -t to show the histogram in the terminal.
 can show plots on freebsd15 with display '' and backend tkagg: False
 can show plots on freebsd15 with display ':0' and backend tkagg: True
 can show plots on linux with display '' and backend tkagg: False

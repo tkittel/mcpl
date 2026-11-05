@@ -37,8 +37,8 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   PROGNAME [options] FILE                  Show the header and first particles
   PROGNAME -S [options] FILE               Summary of the particles
-  PROGNAME -w HIST [options] FILE [...]    Histogram in a window
-  PROGNAME -t HIST [options] FILE [...]    Histogram in the terminal
+  PROGNAME -H HIST [options] FILE [...]    Histogram in a window
+  PROGNAME -t -H HIST [options] FILE [...] Histogram in the terminal
   PROGNAME -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
   PROGNAME -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   PROGNAME -r FILE                         Repair a file not properly closed
@@ -48,12 +48,12 @@ Common options:
   -p PICK        Only particles for which PICK is true, e.g.
                  -p "pdgcode == neutron and ekin < 25meV".
   -E EDIT        Change particles, e.g. -E "z += 1cm;weight *= 0.5".
-  -o FILE        Save the histogram in FILE (.png, .pdf, or .svg with -w, .txt
-                 with -t).
+  -o FILE        Save the histogram in FILE (.png, .pdf, or .svg, or .txt with
+                 -t).
   -d             Dry run: do everything except writing files.
 
 Examples:
-  PROGNAME -w "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
+  PROGNAME -H "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
   PROGNAME -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   PROGNAME -S file.mcpl.gz
 
@@ -69,8 +69,8 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   PROGNAME [options] FILE                  Show the header and first particles
   PROGNAME -S [options] FILE               Summary of the particles
-  PROGNAME -w HIST [options] FILE [...]    Histogram in a window
-  PROGNAME -t HIST [options] FILE [...]    Histogram in the terminal
+  PROGNAME -H HIST [options] FILE [...]    Histogram in a window
+  PROGNAME -t -H HIST [options] FILE [...] Histogram in the terminal
   PROGNAME -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
   PROGNAME -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   PROGNAME --forcemerge OUT.mcpl.gz FILE1 FILE2 ...
@@ -80,7 +80,7 @@ Usage:
   PROGNAME --create-examples[=N]           Create example files
   PROGNAME -v | -h | --full-help
 
-Particles (when showing particles, and with -S, -w, -t, and -e):
+Particles (when showing particles, and with -S, -H, and -e):
   -lN, -sN         Use only N particles (all with -l0), or skip the first N
                    particles in the file. Without -l, at most 10 particles are
                    shown when showing particles.
@@ -94,16 +94,15 @@ Showing particles:
   -n, --nohead     Show just the particles.
   -bKEY            Write the blob stored under KEY to standard output.
 
-Histogram (-w, --window HIST or -t, --terminal HIST):
+Histogram (-H, --hist HIST):
   HIST is an expression with options, e.g.
-  "ekin/MeV;logx;display_only=neutron" (see --hist-help), given as -w HIST,
-  -w=HIST, --window HIST, or --window=HIST (and likewise with -t). -w shows the
-  histogram in a window (with matplotlib), and -t in the terminal (with
+  "ekin/MeV;logx;display_only=neutron" (see --hist-help). The histogram is
+  shown in a window (with matplotlib), or with -t in the terminal (with
   Unicode characters, or else ASCII). With more files, there is a curve for
   each file.
   -o, --output FILE
-                   Save the histogram in FILE instead: .png, .pdf, or .svg with
-                   -w, or .txt with -t.
+                   Save the histogram in FILE instead: .png, .pdf, or .svg, or
+                   .txt with -t.
   --color=WHEN     Colours in the terminal (with -t): auto (the default: in
                    terminals, unless the NO_COLOR environment variable is set,
                    or always if FORCE_COLOR is set), always, or never.
@@ -147,18 +146,23 @@ Long options can be abbreviated, as long as they are unique (e.g. --ext for
 Output files are gzipped if their names end with .mcpl.gz.
 """
 
-#Where errors in the values of options are explained (see _mcpltool_usage):
+#Where errors in the values of options are explained (see _UsageError):
 _option_help = { '--pick' : 'Run with "-p help" for how to pick particles with expressions',
                  '--edit' : 'Run with "-E help" for how to edit particles with expressions',
                  '--hist' : 'Run with "--hist-help" for how to write histograms' }
 
-def _mcpltool_usage(progname,errmsg=None,full=False,option=None):
-    """Print the usage information, or the error (in the value of the option,
-    if given, see _option_help) and exit"""
-    if errmsg:
-        print(f"ERROR: {errmsg}\n")
-        print(_option_help.get(option,"Run with -h or --help for usage information"))
-        sys.exit(1)
+class _UsageError(MCPLError):
+    """A problem with the command line, with the option whose value has the
+    problem (if any, see _option_help)"""
+    def __init__( self, msg, option = None ):
+        super().__init__(msg)
+        self.option = option
+
+def _progname( argv0 ):
+    name = os.path.basename(argv0)
+    return 'python -m mcpl' if name == '__main__.py' else name
+
+def _print_help( progname, full = False ):
     msg = _full_help if full else _short_help
     print(msg.strip().replace('PROGNAME',progname)
           .replace('PROGPADS',' '*len(progname)))
@@ -172,23 +176,28 @@ def _topic_help(topic):
 def app_mcpltool(argv=None):
     """Implements the mcpltool command, with the command line argv starting
     with the program name, like sys.argv (which is used if argv is None). Like
-    the command, it ends with SystemExit: with code 0 when done, and 1 after
-    printing the problem with the command line (e.g. an unknown option).
-    Problems with files (e.g. missing or invalid files) raise MCPLError
-    exceptions. Messages are always printed, even if use_logging() was
-    called."""
+    the command, it ends with SystemExit: with code 0 when done, and 2 after
+    printing the problem with the command line (e.g. an unknown option) to
+    standard error. Problems with files (e.g. missing or invalid files) raise
+    MCPLError exceptions. Messages are always printed, even if use_logging()
+    was called."""
+    argv = sys.argv if argv is None else argv
+    progname = _progname(argv[0])
     with _ForcePrinting():
-        _app_mcpltool(argv)
+        try:
+            _app_mcpltool(progname,list(argv[1:]))
+        except _UsageError as e:
+            sys.stdout.flush()
+            print(f'usage: {progname} [options] FILE ...  (see {progname} -h)\n'
+                  f'{progname}: error: {e}', file = sys.stderr)
+            if e.option in _option_help:
+                print(_option_help[e.option],file = sys.stderr)
+            sys.exit(2)
 
-#Options which take a value (given in the next argument, or attached as in
-#-pVALUE or --pick=VALUE), by short and long names:
-_value_opts = { '-p' : '--pick', '-E' : '--edit', '-o' : '--output' }
-#(and those without short names):
-_long_value_opts = ( '--color', '--code' )
-#Options with an optional value (a histogram): given as -w=VALUE or
-#--window=VALUE, or as the next argument when it is followed by the files (see
-#_optional_value):
-_optional_value_opts = { '-w' : '--window', '-t' : '--terminal' }
+def _bad( msg, option = None ):
+    """A problem with the command line (see _UsageError)"""
+    raise _UsageError(msg,option)
+
 #Flags, by long name (with short name, if any):
 _flag_opts = { '--stats' : '-S', '--extract' : '-e', '--merge' : '-m',
                '--repair' : '-r', '--dry-run' : '-d', '--justhead' : '-j',
@@ -198,178 +207,96 @@ _flag_opts = { '--stats' : '-S', '--extract' : '-e', '--merge' : '-m',
                '--no-comment' : None, '--preventcomment' : None,
                '--keep-statsum' : None, '--full-help' : None,
                '--allow-overwrite' : None,
-               '--hist-help' : None, '--traceback' : None }
+               '--hist-help' : None, '--traceback' : None,
+               '--window' : '-w', '--terminal' : '-t' }
+#Options which take a value, by long name (with short name, if any):
+_value_opts = { '--pick' : '-p', '--edit' : '-E', '--hist' : '-H', '--output' : '-o',
+                '--color' : None, '--code' : None }
 #Options of earlier versions, which are removed:
 _removed_opts = {
-    '--pdf' : 'a similar option now is: -w HIST -o FILE.pdf',
+    '--pdf' : 'a similar option now is: -H HIST -o FILE.pdf',
     '--gui' : 'use -w instead',
 }
 
-def _long_option( arg, bad ):
-    """The long option given by arg (as --name or --name=value), also when
-    abbreviated (unique), as (name, '=' or '', value)"""
-    name, eq, value = arg.partition('=')
-    names = ( *_value_opts.values(), *_long_value_opts, *_optional_value_opts.values(),
-              *_flag_opts, *_removed_opts, '--create-examples' )
-    if name not in names:
-        matches = sorted( n for n in names if n.startswith(name) and n not in _removed_opts )
-        if len(matches) == 1:
-            name = matches[0]
-        elif matches:
-            bad(f"Ambiguous option {name} (could be {', '.join(matches)})")
-    return name, eq, value
+def _parser():
+    """The parser of the options of mcpltool (with the help texts of its own,
+    see _short_help and _full_help)"""
+    import argparse
 
-def _optional_value( name, value, files ):
-    """The value of -w or -t (by long name): as given with '=', or else the
-    argument right after the option, if more arguments which are not options
-    follow (the files, as a histogram is given before them), or None. files
-    is the list of the arguments which are not options, as (the long name of
-    the option right before it, or None, argument), from which the value is
-    removed."""
-    if value is not None:
-        return value
-    i = next( ( i for i, ( after, _ ) in enumerate(files) if after == name ), None )
-    if i is None or len(files) < 2:
-        return None
-    return files.pop(i)[1]
+    class Parser(argparse.ArgumentParser):
+        def error( self, message ):
+            _bad(message)
 
-def _app_mcpltool(argv):
-    if argv is None:
-        argv = sys.argv
+    class Once(argparse.Action):
+        """Options which can only be given once"""
+        def __call__( self, parser, namespace, values, option_string = None ):
+            if getattr(namespace,self.dest) is not None:
+                _bad(f"{self.option_strings[0]} specified more than once")
+            setattr(namespace,self.dest,values)
 
-    progname,args = os.path.basename(argv[0]),argv[1:]
-    if progname == '__main__.py':
-        progname = 'python -m mcpl'
+    def count( text ):
+        n = _parse_count(text)
+        if n is None:
+            raise argparse.ArgumentTypeError(f"expected a number, not '{text}'")
+        return n
 
-    #NB: We do not use standard python parsing modules, to keep the options
-    #and usage errors of the original mcpltool (written in C).
+    p = Parser(add_help = False)
+    for name, short in _flag_opts.items():
+        p.add_argument(*( [short] if short else [] ),name,dest = name,action = 'store_true')
+    for name, short in _value_opts.items():
+        p.add_argument(*( [short] if short else [] ),name,dest = name,action = Once)
+    p.add_argument('-l',dest = '-l',action = Once,type = count)
+    p.add_argument('-s',dest = '-s',action = Once,type = count)
+    p.add_argument('-b',dest = '-b',action = Once)
+    p.add_argument('--create-examples',dest = '--create-examples',action = Once,
+                   nargs = '?',const = '')
+    p.add_argument('files',nargs = '*')
+    return p
 
+def _parse_args( args ):
+    """The options (by name) and files of the arguments of mcpltool"""
+    for a in args:
+        name = a.partition('=')[0]
+        if name in _removed_opts:
+            _bad(f"{name} is no longer supported as an option ({_removed_opts[name]})")
+    opts = vars(_parser().parse_intermixed_args(args))
+    return opts, opts.pop('files')
+
+def _app_mcpltool(progname,args):
     if not args:
-        print('ERROR: No input file specified\n\nRun with -h or --help for usage information')
-        sys.exit(1)
-    def bad(errmsg,option=None):
-        _mcpltool_usage(progname,errmsg,option=option)
-    args = list(args)
+        _bad("no input file specified")
+    bad = _bad
+    opts, filelist = _parse_args(args)
+
     #(--create-examples can only be combined with --dry-run):
-    opt_examples = None
-    longnames = [ _long_option(a,bad)[0] if a.startswith('--') else a for a in args ]
-    for a, name in zip(args,longnames):
-        if name == '--create-examples':
-            if opt_examples is not None:
-                bad("--create-examples specified more than once")
-            opt_examples = a.partition('=')[2]
+    opt_examples = opts.pop('--create-examples')
     if opt_examples is not None:
-        if any( name not in ('--create-examples','-d','--dry-run','--traceback',
-                             '--allow-overwrite')
-                for name in longnames ):
+        others = [ n for n, v in opts.items() if v not in ( None, False )
+                   and n not in ( '--dry-run', '--traceback', '--allow-overwrite' ) ]
+        if others or filelist:
             bad("--create-examples can only be combined with --dry-run and"
-                " --allow-overwrite.")
+                " --allow-overwrite")
         n = None
         if opt_examples:
             n = _parse_count(opt_examples)
             if not n:
                 bad("--create-examples=N requires a positive integer N")
         from ._examples import create_examples
-        dry_run = '-d' in longnames or '--dry-run' in longnames
-        try:
-            create_examples( n, dry_run = dry_run,
-                             allow_overwrite = '--allow-overwrite' in longnames )
-        except MCPLError as e:
-            bad(str(e))
+        dry_run = opts['--dry-run']
+        create_examples( n, dry_run = dry_run, allow_overwrite = opts['--allow-overwrite'] )
         _mcpltool_dryrun_note(dry_run)
         return
 
-    #Parse the arguments into flags (set of long names), values (dict by long
-    #name), -l, -s, -b, and the list of files:
-    flags, values, files = set(), {}, []
-    opt_limit = opt_skip = opt_blobkey = None
-    optional = {}#(-w and -t, by long name, with their values if given with =)
-    after = None#(the option with an optional value right before, see _optional_value)
-    longtoshort = { v : k for k,v in ( *_value_opts.items(), *_optional_value_opts.items() ) }
-    def set_value(name, value):
-        if name in values:
-            bad(f"{longtoshort.get(name,name)} specified more than once")
-        values[name] = value
-    def set_optional(name, value):
-        if name in optional:
-            bad(f"{longtoshort[name]} specified more than once")
-        optional[name] = value
-        return None if value is not None else name
-    short_flags = { v : k for k,v in _flag_opts.items() if v }
-    short_values = _value_opts
-    while args:
-        a = args.pop(0)
-        option_before, after = after, None
-        if a.startswith('--'):
-            name, eq, value = _long_option(a,bad)
-            if name in _removed_opts:
-                bad(f"{name} is no longer supported as an option"
-                    f" ({_removed_opts[name]})")
-            if name in _optional_value_opts.values():
-                after = set_optional(name,value if eq else None)
-            elif name in _value_opts.values() or name in _long_value_opts:
-                if not eq:
-                    if not args:
-                        bad(f"Missing argument for {name}")
-                    value = args.pop(0)
-                set_value(name,value)
-            elif name in _flag_opts and not eq:
-                flags.add(name)
-            else:
-                bad(f"Unrecognised option : {a}")
-        elif a.startswith('-') and len(a) > 1:
-            a = a[1:]
-            while a:
-                f, a = a[0], a[1:]
-                if f'-{f}' in _optional_value_opts:
-                    if a and not a.startswith('='):
-                        bad(f"-{f} takes the histogram as -{f}=HIST or -{f} HIST (not -{f}{a})")
-                    after = set_optional(_optional_value_opts[f'-{f}'],a[1:] if a else None)
-                    a = ''
-                elif f'-{f}' in short_values:
-                    name = short_values[f'-{f}']
-                    if not a:
-                        if not args:
-                            bad(f"Missing argument for -{f}")
-                        a = args.pop(0)
-                    set_value(name,a)
-                    a = ''
-                elif f'-{f}' in short_flags:
-                    flags.add(short_flags[f'-{f}'])
-                elif f == 'b':
-                    if opt_blobkey is not None:
-                        bad("-b specified more than once")
-                    if not a:
-                        bad("Missing argument for -b")
-                    opt_blobkey,a = a,''
-                elif f in 'ls':
-                    if not a:
-                        bad("Bad option: missing number")
-                    number = _parse_count(a)
-                    if number is None:
-                        bad("Bad option: expected number")
-                    if f == 'l':
-                        if opt_limit is not None:
-                            bad("-l specified more than once")
-                        opt_limit = number
-                    else:
-                        if opt_skip is not None:
-                            bad("-s specified more than once")
-                        opt_skip = number
-                    a = ''
-                else:
-                    bad(f"Unrecognised option : -{f}")
-        else:
-            files.append( ( option_before, a ) )
-    #(-w and -t, whose values can be given as the next argument):
-    for name, value in list(optional.items()):
-        optional[name] = _optional_value(name,value,files)
-    filelist = [ a for _, a in files ]
+    #The options as flags (set of long names), values (dict by long name), -l,
+    #-s, and -b:
+    flags = { n for n in _flag_opts if opts[n] }
+    values = { n : opts[n] for n in _value_opts if opts[n] is not None }
+    opt_limit, opt_skip, opt_blobkey = opts['-l'], opts['-s'], opts['-b']
 
     if '--help' in flags:
-        _mcpltool_usage(progname)
+        _print_help(progname)
     if '--full-help' in flags:
-        _mcpltool_usage(progname,full=True)
+        _print_help(progname,full=True)
     if '--hist-help' in flags:
         _topic_help('hist')
     for name, topic in (('--pick','pick'),('--edit','edit')):
@@ -377,16 +304,21 @@ def _app_mcpltool(argv):
             _topic_help(topic)
 
     #The mode:
+    #(a histogram is shown in a window, unless -t is given):
+    if '--hist' in values and '--terminal' not in flags:
+        flags.add('--window')
     modes = [ m for m in ('--stats','--window','--terminal','--extract','--merge',
                           '--forcemerge','--repair','--text','--version')
-              if m in flags or m in values or m in optional ]
+              if m in flags ]
     modenames = { 'dump' : 'when showing particles', '--stats' : '-S',
                   '--window' : '-w', '--terminal' : '-t', '--extract' : '-e',
                   '--merge' : '-m', '--forcemerge' : '--forcemerge', '--repair' : '-r',
                   '--text' : '--text', '--version' : '-v' }
+    if '--hist' in values and not opts['--window']:
+        modenames['--window'] = '-H'#(the window of a histogram, without -w)
     if len(modes) > 1:
         bad(f"{modenames[modes[0]]} and {modenames[modes[1]]} can not be used"
-            " together.")
+            " together")
     mode = modes[0] if modes else 'dump'
     def allowed(optname, okmodes, given, hint = '', msg = None):
         if given and mode not in okmodes:
@@ -399,7 +331,7 @@ def _app_mcpltool(argv):
                                 if len(others) > 1 else others[0] )
             if 'dump' in okmodes:
                 w = modenames['dump'] + ( f', or {w}' if w else '' )
-            bad(msg or f"{optname} can only be used {w}{hint}.")
+            bad(msg or f"{optname} can only be used {w}{hint}")
     datamodes = ('dump','--stats','--window','--terminal','--extract')
     histmodes = ('--window','--terminal')
     allowed('-l',datamodes,opt_limit is not None)
@@ -409,24 +341,26 @@ def _app_mcpltool(argv):
     allowed('-j',('dump',),'--justhead' in flags)
     allowed('-n',('dump',),'--nohead' in flags)
     allowed('-b',('dump',),opt_blobkey is not None)
-    stats_hint = ' (-S only prints text, for plots use -w or -t)' if mode == '--stats' else ''
-    allowed('-o',histmodes,'--output' in values,hint=stats_hint)
+    stats_hint = ' (-S only prints text, for plots use -H)' if mode == '--stats' else ''
+    allowed('-H',histmodes,'--hist' in values)
+    if '--output' in values and '--hist' not in values:
+        bad("-o can only be used with a histogram (-H HIST)" + stats_hint)
     allowed('--color',('--terminal',),'--color' in values)
     if values.get('--color',"auto") not in ('auto','always','never'):
-        bad("--color must be auto, always, or never.")
+        bad("--color must be auto, always, or never")
     if '--color' in values and '--output' in values:
-        bad("--color can not be used with -o (plots are saved without colours).")
+        bad("--color can not be used with -o (plots are saved without colours)")
     allowed('--no-comment',('--extract',),bool(flags & {'--no-comment','--preventcomment'}))
     allowed('--keep-statsum',('--extract',),'--keep-statsum' in flags)
     allowed('--code',('--extract',),'--code' in values)
     if values.get('--code','c') not in ('c','cpp'):
-        bad("--code must be c or cpp.")
+        bad("--code must be c or cpp")
     if '--code' in values:
         others = [ o for o, given in ( ( '-d', '--dry-run' in flags ),
                                        ( '--allow-overwrite', '--allow-overwrite' in flags ) )
                    if given ]
         if others:
-            bad(f"--code can not be used with {others[0]} (it writes no files).")
+            bad(f"--code can not be used with {others[0]} (it writes no files)")
     allowed('--inplace',('--merge',),'--inplace' in flags)
     allowed('--keepuserflags',('--forcemerge',),'--keepuserflags' in flags)
     opt_allow_overwrite = '--allow-overwrite' in flags
@@ -434,25 +368,20 @@ def _app_mcpltool(argv):
                                  ('--merge','--forcemerge','--extract','--text')
                                  and not ( mode in histmodes and '--output' in values ) ):
         bad("--allow-overwrite can only be used with --merge, --forcemerge,"
-            " --extract, --text, or -o.")
-    hist = None
-    if mode in histmodes:
-        opt = modenames[mode]
-        hist = optional[mode]
-        if hist is None:
-            bad(f'{opt} needs a histogram, as in {opt} "ekin/MeV;logx" FILE (see --hist-help).')
-        if hist.endswith(('.mcpl','.mcpl.gz')) and os.path.isfile(hist):
-            #(-t was the short form of --text in earlier versions, as in -t FILE OUT):
-            bad(f'{opt} takes the histogram before the files, as in {opt} "ekin/MeV;logx" FILE'
-                + ( ' (or did you mean --text?).' if opt == '-t' else '.' ))
+            " --extract, --text, or -o")
+    #(-w and -t only choose where a histogram of -H is shown):
+    hist = values.get('--hist')
+    if mode in histmodes and hist is None:
+        bad(f"{modenames[mode]} is used with -H HIST (see --hist-help)")
+    if hist is not None:
         ext = os.path.splitext(values.get('--output',''))[1].lower()
         if mode == '--window' and ext == '.txt':
-            bad('-w saves histograms as .png, .pdf, or .svg files (use -t HIST -o FILE.txt for text).')
+            bad('histograms are saved as .txt files with -t (as in -t -H HIST -o FILE.txt)')
         if mode == '--terminal' and ext not in ( '', '.txt' ):
-            bad('-t saves histograms as .txt files (use -w HIST -o FILE for .png, .pdf, or .svg).')
+            bad('-t saves histograms as .txt files (without -t, as .png, .pdf, or .svg files)')
     opt_dryrun = '--dry-run' in flags
     if opt_dryrun and '--output' in values:
-        bad("-d can not be used with -o (which saves plots in files).")
+        bad("-d can not be used with -o (which saves plots in files)")
 
     #-p and -E, which are checked here to give errors before reading files:
     pick = edit = None
@@ -484,7 +413,7 @@ def _app_mcpltool(argv):
 
     if mode == '--version':
         if filelist:
-            bad("Unrecognised arguments for --version.")
+            bad(f"unrecognized arguments: {' '.join(filelist)}")
         print(f"MCPL version {_determine_version()}")
         sys.exit(0)
 
@@ -497,6 +426,7 @@ def _app_mcpltool(argv):
 
     if mode == '--extract' and '--code' in values:
         from ._extract import _mcpltool_code
+        _check_inputs(filelist[:1])
         _mcpltool_code(filelist,values['--code'],opt_limit,opt_skip,pick,edit,
                        bool(flags & {'--no-comment','--preventcomment'}),
                        '--keep-statsum' in flags,bad)
@@ -504,6 +434,7 @@ def _app_mcpltool(argv):
 
     if mode == '--extract':
         from ._extract import _mcpltool_extract
+        _check_inputs(filelist[:1])
         _mcpltool_extract(filelist,opt_limit,opt_skip,pick,edit,
                           bool(flags & {'--no-comment','--preventcomment'}),
                           '--keep-statsum' in flags,opt_dryrun,bad,
@@ -513,6 +444,7 @@ def _app_mcpltool(argv):
 
     if mode in histmodes:
         from ._clistats import mcpltool_hist
+        _check_inputs(filelist)
         mcpltool_hist(filelist,hist,opt_skip,opt_limit,pick,edit,
                       values.get('--output'),mode == '--terminal',bad,
                       color=values.get('--color'),
@@ -521,18 +453,19 @@ def _app_mcpltool(argv):
 
     if mode == '--text':
         if len(filelist)>2:
-            bad("Too many arguments.")
+            bad("too many arguments")
         if len(filelist)!=2:
-            bad("Must specify both input and output files with --text.")
+            bad("must specify both input and output files with --text")
+        _check_inputs(filelist[:1])
         #(the output file must not be the input file, or exist unless allowed):
         try:
             same = os.path.samefile(filelist[1],filelist[0])
         except OSError:
             same = False
         if same:
-            bad(f'The output file "{filelist[1]}" is also one of the input files.')
+            raise MCPLError(f'The output file "{filelist[1]}" is also one of the input files')
         if not opt_allow_overwrite and os.path.lexists(filelist[1]):
-            bad(f'The output file "{filelist[1]}" already exists.')
+            raise MCPLError(f'The output file "{filelist[1]}" already exists')
         from ._ascii import convert2ascii
         if opt_dryrun:
             #(still read and convert everything, for the same errors):
@@ -545,7 +478,7 @@ def _app_mcpltool(argv):
         except OSError:
             fout = None
         if not fout:
-            raise MCPLError('Could not open output file.')
+            raise MCPLError(f'{filelist[1]}: can not open the file for writing')
         try:
             convert2ascii(filelist[0],fout)
         finally:
@@ -554,9 +487,10 @@ def _app_mcpltool(argv):
 
     #Dump, stats, or repair:
     if len(filelist)>1:
-        bad("Too many arguments.")
+        bad("too many arguments")
     if not filelist:
-        bad("No input file specified")
+        bad("no input file specified")
+    _check_inputs(filelist)
 
     if mode == '--repair':
         from ._fileops import repair
@@ -566,7 +500,7 @@ def _app_mcpltool(argv):
 
     if mode == '--stats':
         from ._clistats import mcpltool_stats
-        mcpltool_stats(filelist[0],opt_skip,opt_limit,pick,edit,bad)
+        mcpltool_stats(filelist[0],opt_skip,opt_limit,pick,edit)
         sys.exit(0)
 
     #Dump
@@ -574,25 +508,25 @@ def _app_mcpltool(argv):
     if opt_blobkey:
         if ( opt_justhead or opt_nohead or opt_limit is not None
              or opt_skip is not None or pick is not None or edit is not None ):
-            bad("Do not specify other dump options with -b.")
+            bad("do not specify other dump options with -b")
         with MCPLFile(filelist[0]) as f:
             thedata = f.blobs.get(opt_blobkey,None)
             if thedata is None and 'blobs_raw' in f._hdr:
                 #Under LANG=C and python3, utf-8 keys might be in trouble:
                 thedata = f._hdr['blobs_raw'].get(os.fsencode(opt_blobkey),None)
             if thedata is None:
-                sys.exit(1)
+                raise MCPLError(f'{filelist[0]}: no blob with the key "{opt_blobkey}"')
             if sys.platform == "win32":
                 import msvcrt
                 msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
             _output_bytearray_raw(thedata)
             sys.exit(0)
     if (opt_limit is not None or opt_skip is not None) and opt_justhead:
-        bad("Do not specify -l or -s with --justhead")
+        bad("do not specify -l or -s with --justhead")
     if (pick is not None or edit is not None) and opt_justhead:
-        bad("Do not specify -p or -E with --justhead")
+        bad("do not specify -p or -E with --justhead")
     if opt_justhead and opt_nohead:
-        bad("Do not supply both --justhead and --nohead.")
+        bad("do not specify both --justhead and --nohead")
     if pick is None and edit is None:
         dump_file(filelist[0],header=not opt_nohead,particles=not opt_justhead,
                   limit=10 if opt_limit is None else opt_limit,
@@ -613,6 +547,15 @@ def _app_mcpltool(argv):
         f.dump_particles(limit=10 if opt_limit is None else 0,_view=view)
     sys.exit(0)
 
+def _check_inputs( filenames ):
+    """Error (naming the file) for input files which do not exist, or are
+    directories"""
+    for fn in filenames:
+        if not os.path.lexists(fn):
+            raise MCPLError(f'{fn}: no such file')
+        if os.path.isdir(fn):
+            raise MCPLError(f'{fn}: is a directory')
+
 def _mcpltool_dryrun_note(dry_run):
     if dry_run:
         _info('dry run, nothing was written')
@@ -620,9 +563,10 @@ def _mcpltool_dryrun_note(dry_run):
 def _mcpltool_merge(filelist, opt_forcemerge, opt_inplace, opt_keepuserflags,
                       dry_run, bad, allow_overwrite = False):
     if len(filelist) < 2:
-        bad("Too few arguments for --forcemerge." if opt_forcemerge
-            else "Too few arguments for --merge.")
+        bad("too few arguments for --forcemerge" if opt_forcemerge
+            else "too few arguments for --merge")
     ifirst = 0 if opt_inplace else 1
+    _check_inputs(filelist[ifirst:])
     from ._fileops import forcemerge_files, merge_files, merge_inplace
     if not opt_forcemerge:
         from ._fileops import _merge_incompat_reason, _open_raw
@@ -630,8 +574,8 @@ def _mcpltool_merge(filelist, opt_forcemerge, opt_inplace, opt_keepuserflags,
             with _open_raw(filelist[ifirst]) as f1, _open_raw(f) as f2:
                 reason = _merge_incompat_reason(f1, f2)
             if reason is not None:
-                bad("Requested files are incompatible for merge as they have"
-                    f" different header info ({reason}).")
+                raise MCPLError("Requested files are incompatible for merge as they have"
+                                f" different header info ({reason})")
     if opt_inplace:
         for f in filelist[ifirst+1:]:
             merge_inplace(filelist[ifirst],f,dry_run=dry_run)
@@ -640,7 +584,7 @@ def _mcpltool_merge(filelist, opt_forcemerge, opt_inplace, opt_keepuserflags,
     outfn = filelist[0]
     err = _tool_check_outfn( outfn, filelist[1:], allow_overwrite )
     if err:
-        bad(err)
+        raise MCPLError(err)
     if opt_forcemerge:
         out = forcemerge_files(outfn,filelist[1:],keep_userflags=opt_keepuserflags,
                                allow_overwrite=allow_overwrite,dry_run=dry_run)
@@ -652,17 +596,18 @@ def _mcpltool_merge(filelist, opt_forcemerge, opt_inplace, opt_keepuserflags,
 
 def main():
     """This function simply calls app_mcpltool(), but any raised MCPLError
-    exception will be caught and transformed into a corresponding error message
-    followed by a call to sys.exit(1). This is what the mcpltool command and
-    "python -m mcpl" run. With the --traceback option, MCPLError exceptions
-    are not caught, so their Python traceback is shown."""
+    exception will be caught and printed to standard error, followed by a call
+    to sys.exit(1). This is what the mcpltool command and "python -m mcpl"
+    run. With the --traceback option, MCPLError exceptions are not caught, so
+    their Python traceback is shown."""
     if '--traceback' in sys.argv[1:]:
         app_mcpltool()
         return
     try:
         app_mcpltool()
     except MCPLError as e:
-        print(f'MCPL ERROR: {e!s}')
+        sys.stdout.flush()
+        print(f'{_progname(sys.argv[0])}: {e!s}',file = sys.stderr)
         sys.exit(1)
 
 def app_pymcpltool(argv=None):

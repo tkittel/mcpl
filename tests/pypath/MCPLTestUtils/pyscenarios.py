@@ -80,7 +80,7 @@ scenarios = [
     ( 'tool', 'mcpltool FILE', _tool('example.mcpl') ),
     ( 'tool_pick', 'mcpltool --pick', _tool('-l3','--pick','pdgcode == gamma','example.mcpl') ),
     ( 'tool_stats', 'mcpltool --stats', _tool('--stats','example.mcpl') ),
-    ( 'tool_hist', 'mcpltool --window with print', _tool('--window','ekin/MeV;print','example.mcpl') ),
+    ( 'tool_hist', 'mcpltool --hist with print', _tool('--hist','ekin/MeV;print','example.mcpl') ),
     ( 'tool_extract', 'mcpltool --extract', _tool('--extract','example.mcpl','e1.mcpl') ),
     ( 'tool_extract_edit', 'mcpltool --extract --edit',
       _tool('--extract','example.mcpl','e2.mcpl','--edit','z += 1m') ),
@@ -91,7 +91,7 @@ scenarios = [
     ( 'plot', 'plot saved as text',
       "mcpl.histogram('example.mcpl','ekin/MeV;bins=4').plot('plot.txt')" ),
     ( 'tool_plot', 'mcpltool --terminal saved as text',
-      _tool('--terminal','ekin/MeV','-o','tool_plot.txt','example.mcpl') ),
+      _tool('--terminal','--hist','ekin/MeV','-o','tool_plot.txt','example.mcpl') ),
 ]
 
 def prepare_files( data_dir ):

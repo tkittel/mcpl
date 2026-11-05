@@ -11,23 +11,17 @@ mcpltool --merge out a1.mcpl: exit code 0
 mcpltool --merge --inplace a1.mcpl a2.mcpl a3.mcpl.gz: exit code 0
    file a1.mcpl: md5 195796b1da00eb13d669d0e538efb640
 mcpltool -m --inplace a3.mcpl.gz a1.mcpl: exit code 1
-   | MCPL ERROR: direct modification of gzipped files is not supported.
+   | python -m mcpl: direct modification of gzipped files is not supported.
 mcpltool --merge out.mcpl a1.mcpl b_dp.mcpl: exit code 1
-   | ERROR: Requested files are incompatible for merge as they have different header info (source name: "MySim" vs "Other").
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: Requested files are incompatible for merge as they have different header info (source name: "MySim" vs "Other")
 mcpltool --merge out.mcpl a1.mcpl: exit code 0
    file out.mcpl: md5 3e4d8851e2f2febf37d76ff079c9be7f
 mcpltool --merge a2.mcpl a1.mcpl a1.mcpl: exit code 1
-   | ERROR: The output file "a2.mcpl" already exists.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "a2.mcpl" already exists
 mcpltool --merge out.gz a1.mcpl a2.mcpl: exit code 1
-   | ERROR: Output file names ending with .gz must end with .mcpl.gz (not "out.gz").
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: Output file names ending with .gz must end with .mcpl.gz (not "out.gz")
 mcpltool --merge out.mcpl a1.mcpl a1.mcpl: exit code 1
-   | MCPL ERROR: Merging file with itself
+   | python -m mcpl: Merging file with itself
 mcpltool --forcemerge out.mcpl a1.mcpl b_dp.mcpl b_pol.mcpl: exit code 0
    | MCPL force-merge: Files have different FP precision (single and double), using double
    | MCPL force-merge: Files have different polarisation info (no and yes), enabling it
@@ -51,10 +45,9 @@ mcpltool --forcemerge --keepuserflags out.mcpl.gz b_dp.mcpl b_pol.mcpl: exit cod
 mcpltool --forcemerge out.mcpl a1.mcpl a2.mcpl: exit code 0
    | MCPL forcemerge_files called with 2 files that are compatible for a standard merge => falling back to standard merge_files function
    file out.mcpl: md5 31d44c968f012abac360c7180fdd245a
-mcpltool --forcemerge out.mcpl: exit code 1
-   | ERROR: Too few arguments for --forcemerge.
-   | 
-   | Run with -h or --help for usage information
+mcpltool --forcemerge out.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: too few arguments for --forcemerge
 mcpltool --extract a1.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
    file out.mcpl: md5 a30df74e6146d6c2562192cd08e91fdf
@@ -101,21 +94,15 @@ mcpltool --extract ref1.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 5 / 5 particles from ref1.mcpl into out.mcpl
    file out.mcpl: md5 1301a64c76e8711c596137067cf6c21f
 mcpltool --extract a1.mcpl a2.mcpl: exit code 1
-   | ERROR: The output file "a2.mcpl" already exists.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "a2.mcpl" already exists
 mcpltool --extract a1.mcpl out.gz: exit code 1
-   | ERROR: Output file names ending with .gz must end with .mcpl.gz (not "out.gz").
-   | 
-   | Run with -h or --help for usage information
-mcpltool --extract a1.mcpl: exit code 1
-   | ERROR: Must specify both input and output files with --extract.
-   | 
-   | Run with -h or --help for usage information
-mcpltool --extract a1.mcpl x.mcpl y.mcpl: exit code 1
-   | ERROR: Too many arguments.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: Output file names ending with .gz must end with .mcpl.gz (not "out.gz")
+mcpltool --extract a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: must specify both input and output files with --extract
+mcpltool --extract a1.mcpl x.mcpl y.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: too many arguments
 mcpltool --extract --no-comment -p pdgcode == 22 -l5 a1.mcpl out.mcpl: exit code 0
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 2 / 30 particles from a1.mcpl into out.mcpl
@@ -124,10 +111,9 @@ mcpltool --extract -p pdgcode == 11 -l3 -s4 a1.mcpl out.mcpl: exit code 0
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 1 / 30 particles from a1.mcpl into out.mcpl
    file out.mcpl: md5 dd71785be79b5637b74c412914001a63
-mcpltool --no-comment a1.mcpl: exit code 1
-   | ERROR: --no-comment can only be used with -e.
-   | 
-   | Run with -h or --help for usage information
+mcpltool --no-comment a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: --no-comment can only be used with -e
 mcpltool --extract -p pdgcode == gamma a1.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
    file out.mcpl: md5 b581e0b9bdbd4edb2e3e87bb985b1b86
@@ -141,37 +127,31 @@ mcpltool --extract -p pdgcode == antielectron b_dp.mcpl out.mcpl: exit code 0
 mcpltool --extract -p pdgcode == neutron c_nostat.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 3 / 9 particles from c_nostat.mcpl into out.mcpl
    file out.mcpl: md5 f7613b331ceaea41d3d5a2f5f6f4ef33
-mcpltool --inplace a1.mcpl a2.mcpl: exit code 1
-   | ERROR: --inplace can only be used with -m.
-   | 
-   | Run with -h or --help for usage information
-mcpltool --keepuserflags a1.mcpl: exit code 1
-   | ERROR: --keepuserflags can only be used with --forcemerge.
-   | 
-   | Run with -h or --help for usage information
-mcpltool --merge --forcemerge out.mcpl a1.mcpl a2.mcpl: exit code 1
-   | ERROR: -m and --forcemerge can not be used together.
-   | 
-   | Run with -h or --help for usage information
-mcpltool --merge --extract a1.mcpl out.mcpl: exit code 1
-   | ERROR: -e and -m can not be used together.
-   | 
-   | Run with -h or --help for usage information
-mcpltool -j --extract a1.mcpl out.mcpl: exit code 1
-   | ERROR: -j can only be used when showing particles.
-   | 
-   | Run with -h or --help for usage information
+mcpltool --inplace a1.mcpl a2.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: --inplace can only be used with -m
+mcpltool --keepuserflags a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: --keepuserflags can only be used with --forcemerge
+mcpltool --merge --forcemerge out.mcpl a1.mcpl a2.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -m and --forcemerge can not be used together
+mcpltool --merge --extract a1.mcpl out.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -e and -m can not be used together
+mcpltool -j --extract a1.mcpl out.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -j can only be used when showing particles
 mcpltool --repair crash.mcpl: exit code 0
    | MCPL: Successfully repaired file with 4 particles.
    file crash.mcpl: md5 75c80085dcb85c8b7ee2ed280b2b8647
 mcpltool --repair a1.mcpl: exit code 1
-   | MCPL ERROR: File does not appear to be broken.
+   | python -m mcpl: File does not appear to be broken.
 mcpltool --repair a3.mcpl.gz: exit code 1
-   | MCPL ERROR: File must be gunzipped before it can be checked and possibly repaired.
-mcpltool -r a1.mcpl a2.mcpl: exit code 1
-   | ERROR: Too many arguments.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: File must be gunzipped before it can be checked and possibly repaired.
+mcpltool -r a1.mcpl a2.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: too many arguments
 mcpltool -l3 a1.mcpl: exit code 0
    | Opened MCPL file a1.mcpl:
    | 
@@ -257,6 +237,7 @@ mcpltool --nohead -l2 a1.mcpl: exit code 0
    |     0        2112       0.001           0          -0           0        -0.8           0         0.6           0           1
    |     1          22       0.002         1.5          -2         0.1         0.6           0         0.8        0.01         1.5
 mcpltool -bnosuchkey a1.mcpl: exit code 1
+   | python -m mcpl: a1.mcpl: no blob with the key "nosuchkey"
 mcpltool nan.mcpl: exit code 0
    | Opened MCPL file nan.mcpl:
    | 
@@ -295,13 +276,13 @@ mcpltool nan.mcpl: exit code 0
    |     8          11       0.009          12         -16         0.8        -0.8           0         0.6        0.08           5
    |     9        2112        0.01        13.5         -18         0.9         0.6           0         0.8        0.09         5.5
 mcpltool nosuchfile.mcpl: exit code 1
-   | MCPL ERROR: Unable to open file!
+   | python -m mcpl: nosuchfile.mcpl: no such file
 mcpltool ..: exit code 1
-   | MCPL ERROR: Is a directory and not a file!
+   | python -m mcpl: ..: is a directory
 mcpltool -e .. out.mcpl: exit code 1
-   | MCPL ERROR: Is a directory and not a file!
+   | python -m mcpl: ..: is a directory
 mcpltool -l3 ..: exit code 1
-   | MCPL ERROR: Is a directory and not a file!
+   | python -m mcpl: ..: is a directory
 mcpltool -n -l0 nan.mcpl: exit code 0
    | Opened MCPL file nan.mcpl:
    | index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight
@@ -468,7 +449,7 @@ mcpltool -j nan.mcpl: exit code 0
    | 
 mcpltool --extract nan.mcpl out.mcpl: exit code 1
    | MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 12). They can not be added to other MCPL files.
-   | MCPL ERROR: add_particles asked to transfer particle with NaN or infinite position
+   | python -m mcpl: add_particles asked to transfer particle with NaN or infinite position
 mcpltool --extract -l12 nan.mcpl out.mcpl: exit code 0
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 12 / 30 particles from nan.mcpl into out.mcpl
@@ -479,7 +460,7 @@ mcpltool --extract -p pdgcode == 22 nan.mcpl out.mcpl: exit code 0
    file out.mcpl: md5 b581e0b9bdbd4edb2e3e87bb985b1b86
 mcpltool --extract -p pdgcode == 2112 inf.mcpl out.mcpl: exit code 1
    | MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 3). They can not be added to other MCPL files.
-   | MCPL ERROR: add_particles asked to transfer particle with NaN or infinite kinetic energy
+   | python -m mcpl: add_particles asked to transfer particle with NaN or infinite kinetic energy
 mcpltool --merge out.mcpl a1.mcpl nan.mcpl inf.mcpl: exit code 0
    file out.mcpl: md5 3046b208cd954d4bf09ca1989ea91bcc
 mcpltool --merge --inplace a2.mcpl nan.mcpl: exit code 0
@@ -491,39 +472,29 @@ mcpltool --forcemerge out.mcpl b_dp.mcpl nan.mcpl: exit code 1
    | MCPL force-merge: Transferring 12 particles from file b_dp.mcpl
    | MCPL force-merge: Transferring 30 particles from file nan.mcpl
    | MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 12). They can not be added to other MCPL files.
-   | MCPL ERROR: add_particles asked to transfer particle with NaN or infinite position
+   | python -m mcpl: add_particles asked to transfer particle with NaN or infinite position
 mcpltool --repair nan.mcpl: exit code 1
-   | MCPL ERROR: File does not appear to be broken.
+   | python -m mcpl: File does not appear to be broken.
 mcpltool --merge b_dp.mcpl a1.mcpl a2.mcpl: exit code 1
-   | ERROR: The output file "b_dp.mcpl" already exists.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "b_dp.mcpl" already exists
 mcpltool --merge --allow-overwrite b_dp.mcpl a1.mcpl a2.mcpl: exit code 0
    file b_dp.mcpl: md5 31d44c968f012abac360c7180fdd245a
 mcpltool -m a3.mcpl.gz a1.mcpl: exit code 1
-   | ERROR: The output file "a3.mcpl.gz" already exists.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "a3.mcpl.gz" already exists
 mcpltool -m --allow-overwrite a3.mcpl.gz a1.mcpl: exit code 0
    | MCPL: Compressing file a3.mcpl
    | MCPL: Compressed file into a3.mcpl.gz
    file a3.mcpl.gz: md5 3e4d8851e2f2febf37d76ff079c9be7f
 mcpltool -m b_pol.mcpl.gz a1.mcpl: exit code 1
-   | ERROR: The output file "b_pol.mcpl.gz" can not be written, since "b_pol.mcpl" (which it is compressed from) already exists.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "b_pol.mcpl.gz" can not be written, since "b_pol.mcpl" (which it is compressed from) already exists
 mcpltool -m --allow-overwrite b_pol.mcpl.gz a1.mcpl: exit code 0
    | MCPL: Compressing file b_pol.mcpl
    | MCPL: Compressed file into b_pol.mcpl.gz
    file b_pol.mcpl.gz: md5 3e4d8851e2f2febf37d76ff079c9be7f
 mcpltool -m --allow-overwrite a2.mcpl a1.mcpl a2.mcpl: exit code 1
-   | ERROR: The output file "a2.mcpl" is also one of the input files.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "a2.mcpl" is also one of the input files
 mcpltool --forcemerge b_dp.mcpl a1.mcpl b_pol.mcpl: exit code 1
-   | ERROR: The output file "b_dp.mcpl" already exists.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "b_dp.mcpl" already exists
 mcpltool --forcemerge --allow-overwrite b_dp.mcpl a1.mcpl b_pol.mcpl: exit code 0
    | MCPL force-merge: Files have different polarisation info (no and yes), enabling it
    | MCPL force-merge: Discarding comments and blobs of the input files
@@ -536,29 +507,21 @@ mcpltool --extract --allow-overwrite -l3 a1.mcpl a2.mcpl: exit code 0
    | MCPL: Successfully extracted 3 / 30 particles from a1.mcpl into a2.mcpl
    file a2.mcpl: md5 d29993a52d26b1e09a914b5fe88fafcd
 mcpltool --extract --allow-overwrite a1.mcpl a1.mcpl: exit code 1
-   | ERROR: The output file "a1.mcpl" is also one of the input files.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "a1.mcpl" is also one of the input files
 mcpltool --text a1.mcpl a2.mcpl: exit code 1
-   | ERROR: The output file "a2.mcpl" already exists.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "a2.mcpl" already exists
 mcpltool --text --allow-overwrite a1.mcpl a2.mcpl: exit code 0
    file a2.mcpl: md5 e62e70028f25917c9a1d16d8279bdd0f
 mcpltool --text --allow-overwrite a1.mcpl a1.mcpl: exit code 1
-   | ERROR: The output file "a1.mcpl" is also one of the input files.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "a1.mcpl" is also one of the input files
 mcpltool --allow --merge b_dp.mcpl a1.mcpl: exit code 0
    file b_dp.mcpl: md5 3e4d8851e2f2febf37d76ff079c9be7f
-mcpltool --allow-overwrite a1.mcpl: exit code 1
-   | ERROR: --allow-overwrite can only be used with --merge, --forcemerge, --extract, --text, or -o.
-   | 
-   | Run with -h or --help for usage information
-mcpltool --merge --inplace --allow-overwrite a1.mcpl a2.mcpl: exit code 1
-   | ERROR: --allow-overwrite can only be used with --merge, --forcemerge, --extract, --text, or -o.
-   | 
-   | Run with -h or --help for usage information
+mcpltool --allow-overwrite a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: --allow-overwrite can only be used with --merge, --forcemerge, --extract, --text, or -o
+mcpltool --merge --inplace --allow-overwrite a1.mcpl a2.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: --allow-overwrite can only be used with --merge, --forcemerge, --extract, --text, or -o
 mcpltool --extract a1.mcpl out.mcpl --pick pdgcode == neutron: MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
 mcpltool --extract a1.mcpl out.mcpl --pick ekin > 5keV and ekin <= 20keV and x <= 2cm + abs(y): MCPL: Successfully extracted 15 / 30 particles from a1.mcpl into out.mcpl
@@ -583,100 +546,89 @@ mcpltool --extract a1.mcpl out.mcpl --pick pdgcode != 11 --edit=ux = -ux; uz = -
 mcpltool --extract a1.mcpl out.mcpl --pick x > 10m: MCPL: Successfully extracted 0 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
 Results of selection and edit as expected: True
-mcpltool --extract a1.mcpl out.mcpl --pick ekin=1MeV: exit code 1
-   | ERROR: Syntax error in expression "ekin=1MeV", after "ekin": unexpected "=" (use == for comparisons)
-   | 
+mcpltool --extract a1.mcpl out.mcpl --pick ekin=1MeV: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: Syntax error in expression "ekin=1MeV", after "ekin": unexpected "=" (use == for comparisons)
    | Run with "-p help" for how to pick particles with expressions
-mcpltool --extract a1.mcpl out.mcpl --pick foo>1: exit code 1
-   | ERROR: Unknown name "foo" in expression "foo>1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-   | 
+mcpltool --extract a1.mcpl out.mcpl --pick foo>1: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: Unknown name "foo" in expression "foo>1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    | Run with "-p help" for how to pick particles with expressions
-mcpltool --extract a1.mcpl out.mcpl --pick x>1: exit code 1
-   | ERROR: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x>1"
-   | 
+mcpltool --extract a1.mcpl out.mcpl --pick x>1: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x>1"
    | Run with "-p help" for how to pick particles with expressions
-mcpltool --extract a1.mcpl out.mcpl --edit x==1cm: exit code 1
-   | ERROR: Expected assignments like "x = 2*y" (or swap(..) or rotations like rotate_z(..)) in "x==1cm"
-   | 
+mcpltool --extract a1.mcpl out.mcpl --edit x==1cm: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: Expected assignments like "x = 2*y" (or swap(..) or rotations like rotate_z(..)) in "x==1cm"
    | Run with "-E help" for how to edit particles with expressions
-mcpltool --extract a1.mcpl out.mcpl --edit x=2*ux: exit code 1
-   | ERROR: Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x=2*ux"
-   | 
+mcpltool --extract a1.mcpl out.mcpl --edit x=2*ux: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x=2*ux"
    | Run with "-E help" for how to edit particles with expressions
-mcpltool --extract a1.mcpl out.mcpl --pick: exit code 1
-   | ERROR: Missing argument for --pick
-   | 
-   | Run with -h or --help for usage information
-mcpltool --extract a1.mcpl out.mcpl --pick x>1cm --pick y>1cm: exit code 1
-   | ERROR: -p specified more than once
-   | 
-   | Run with -h or --help for usage information
+mcpltool --extract a1.mcpl out.mcpl --pick: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: argument -p/--pick: expected one argument
+mcpltool --extract a1.mcpl out.mcpl --pick x>1cm --pick y>1cm: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -p specified more than once
 mcpltool --extract a1.mcpl out.mcpl --edit wavelength=1.8Aa: exit code 1
-   | MCPL ERROR: wavelength can only be assigned to neutrons (pdgcode 2112) and gammas (pdgcode 22) in expression "wavelength=1.8Aa"
-mcpltool --pick x>1cm -j a1.mcpl: exit code 1
-   | ERROR: Do not specify -p or -E with --justhead
-   | 
-   | Run with -h or --help for usage information
-mcpltool --pick x>1cm -ba a1.mcpl: exit code 1
-   | ERROR: Do not specify other dump options with -b.
-   | 
-   | Run with -h or --help for usage information
-mcpltool --pick x>1meV a1.mcpl: exit code 1
-   | ERROR: Incompatible units in comparison: length and energy in expression "x>1meV"
-   | 
+   | python -m mcpl: wavelength can only be assigned to neutrons (pdgcode 2112) and gammas (pdgcode 22) in expression "wavelength=1.8Aa"
+mcpltool --pick x>1cm -j a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: do not specify -p or -E with --justhead
+mcpltool --pick x>1cm -ba a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: do not specify other dump options with -b
+mcpltool --pick x>1meV a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: Incompatible units in comparison: length and energy in expression "x>1meV"
    | Run with "-p help" for how to pick particles with expressions
 mcpltool --stats --pick x>1km a1.mcpl: exit code 1
-   | ERROR: Can not calculate statistics when no particles are picked
-   | 
-   | Run with -h or --help for usage information
-mcpltool --stats -pantimuon a1.mcpl: exit code 1
-   | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == antimuon"
-   | 
+   | python -m mcpl: can not calculate statistics when no particles are picked
+mcpltool --stats -pantimuon a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == antimuon"
    | Run with "-p help" for how to pick particles with expressions
-mcpltool -pfoo a1.mcpl: exit code 1
-   | ERROR: Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-   | 
+mcpltool -pfoo a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    | Run with "-p help" for how to pick particles with expressions
-mcpltool -pgamma -j a1.mcpl: exit code 1
-   | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == gamma"
-   | 
+mcpltool -pgamma -j a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == gamma"
    | Run with "-p help" for how to pick particles with expressions
-mcpltool --repair --pick x>1cm a1.mcpl: exit code 1
-   | ERROR: -p can only be used when showing particles, or with -S, -w, -t, or -e.
-   | 
-   | Run with -h or --help for usage information
-mcpltool --repair -pgamma a1.mcpl: exit code 1
-   | ERROR: -p can only be used when showing particles, or with -S, -w, -t, or -e.
-   | 
-   | Run with -h or --help for usage information
-mcpltool -p22 --merge out.mcpl a1.mcpl a2.mcpl: exit code 1
-   | ERROR: -p can only be used when showing particles, or with -S, -w, -t, or -e.
-   | 
-   | Run with -h or --help for usage information
-mcpltool --extract -p0 a1.mcpl out.mcpl: exit code 1
-   | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == 0"
-   | 
+mcpltool --repair --pick x>1cm a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -p can only be used when showing particles, or with -S, -w, -t, or -e
+mcpltool --repair -pgamma a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -p can only be used when showing particles, or with -S, -w, -t, or -e
+mcpltool -p22 --merge out.mcpl a1.mcpl a2.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -p can only be used when showing particles, or with -S, -w, -t, or -e
+mcpltool --extract -p0 a1.mcpl out.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == 0"
    | Run with "-p help" for how to pick particles with expressions
-mcpltool --extract -pabc a1.mcpl out.mcpl: exit code 1
-   | ERROR: Unknown name "abc" in expression "abc" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-   | 
+mcpltool --extract -pabc a1.mcpl out.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: Unknown name "abc" in expression "abc" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    | Run with "-p help" for how to pick particles with expressions
-mcpltool --extract -pNeutron a1.mcpl out.mcpl: exit code 1
-   | ERROR: Unknown name "Neutron" in expression "Neutron" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-   | 
+mcpltool --extract -pNeutron a1.mcpl out.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: Unknown name "Neutron" in expression "Neutron" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    | Run with "-p help" for how to pick particles with expressions
-mcpltool --extract -pfoo a1.mcpl out.mcpl: exit code 1
-   | ERROR: Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-   | 
+mcpltool --extract -pfoo a1.mcpl out.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    | Run with "-p help" for how to pick particles with expressions
-mcpltool --keep-statsum a1.mcpl: exit code 1
-   | ERROR: --keep-statsum can only be used with -e.
-   | 
-   | Run with -h or --help for usage information
-mcpltool --stats --keep-statsum a1.mcpl: exit code 1
-   | ERROR: --keep-statsum can only be used with -e.
-   | 
-   | Run with -h or --help for usage information
+mcpltool --keep-statsum a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: --keep-statsum can only be used with -e
+mcpltool --stats --keep-statsum a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: --keep-statsum can only be used with -e
 mcpltool --extract --pick pdgcode == neutron: stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
 mcpltool --extract --edit z += 1cm; rotate_z(10deg): stat:sum:nsim = 1000.0

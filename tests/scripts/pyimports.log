@@ -16,7 +16,7 @@ histogram contents                      : _expr_ast _expr_ast2astnorm _expr_ast2
 mcpltool FILE                           : _cli
 mcpltool --pick                         : _cli _expr_ast _expr_ast2astnorm _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprrotation _exprunits _particles _physics constants
 mcpltool --stats                        : _cli _clistats _particles _physics _stats _statsum constants
-mcpltool --window with print            : _cli _clistats _expr_ast _expr_ast2astnorm _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprplot _exprrotation _exprunits _histfill _histstring _particles _physics constants
+mcpltool --hist with print              : _cli _clistats _expr_ast _expr_ast2astnorm _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprplot _exprrotation _exprunits _histfill _histstring _particles _physics constants
 mcpltool --extract                      : _cli _extract _records _statsum _writer
 mcpltool --extract --edit               : _cli _expr_ast _expr_ast2astnorm _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprrotation _exprunits _extract _particles _physics _records _statsum _writer constants
 mcpltool --merge                        : _cli _extract _fileops _records _statsum _writer

@@ -265,7 +265,7 @@ def check_buildsys():
             if k == 'extra':
                 requires.add(f'mcpl-core=={version}')
         elif backend == 'setuptools.build_meta':
-            requires = {"setuptools>=75.3.2"}
+            requires = {"setuptools>=77.0.1"}
         else:
             raise SystemExit(f'Unexpected backend in {fname}')
         r = set(b.get('requires',[]))

@@ -111,6 +111,11 @@ Extract (-x, --extract FILE OUT.mcpl.gz):
   --keep-statsum   Keep stat:sum entries when -e changes weights (if the edit
                    is known to be compatible with them). Otherwise they are
                    marked as not available (-1), as they are with -l or -s.
+  --code=LANG      Instead of extracting, print a program in C (LANG c) or C++
+                   (LANG cpp) which does the same for files like FILE (with its
+                   userdata layout and stat:sum entries), taking the input and
+                   output files as arguments (PROGNAME -x --code=LANG
+                   [options] FILE).
 
 Merge (-m, --merge OUT.mcpl.gz FILE1 FILE2 ...):
   --inplace        Append the particles of FILE2 ... to FILE1 instead
@@ -175,7 +180,7 @@ def app_mcpltool(argv=None):
 #-eVALUE or --edit=VALUE), by short and long names:
 _value_opts = { '-e' : '--edit', '-o' : '--output' }
 #(and those without short names):
-_long_value_opts = ( '--color', )
+_long_value_opts = ( '--color', '--code' )
 #Options with an optional value (a histogram): given as -w=VALUE or
 #--window=VALUE, or as the next argument when it is followed by the files (see
 #_optional_value):
@@ -415,6 +420,15 @@ def _app_mcpltool(argv):
         bad("--color can not be used with -o (plots are saved without colours).")
     allowed('--no-comment',('--extract',),bool(flags & {'--no-comment','--preventcomment'}))
     allowed('--keep-statsum',('--extract',),'--keep-statsum' in flags)
+    allowed('--code',('--extract',),'--code' in values)
+    if values.get('--code','c') not in ('c','cpp'):
+        bad("--code must be c or cpp.")
+    if '--code' in values:
+        others = [ o for o, given in ( ( '-d', '--dry-run' in flags ),
+                                       ( '--allow-overwrite', '--allow-overwrite' in flags ) )
+                   if given ]
+        if others:
+            bad(f"--code can not be used with {others[0]} (it writes no files).")
     allowed('--inplace',('--merge',),'--inplace' in flags)
     allowed('--keepuserflags',('--forcemerge',),'--keepuserflags' in flags)
     opt_allow_overwrite = '--allow-overwrite' in flags
@@ -473,6 +487,13 @@ def _app_mcpltool(argv):
                         '--keepuserflags' in flags,opt_dryrun,bad,
                         allow_overwrite = opt_allow_overwrite)
         _mcpltool_dryrun_note(opt_dryrun)
+        sys.exit(0)
+
+    if mode == '--extract' and '--code' in values:
+        from ._extract import _mcpltool_code
+        _mcpltool_code(filelist,values['--code'],opt_limit,opt_skip,edit,
+                       bool(flags & {'--no-comment','--preventcomment'}),
+                       '--keep-statsum' in flags,bad)
         sys.exit(0)
 
     if mode == '--extract':

@@ -59,7 +59,7 @@ def test_png():
     #mcpltool (saving files with matplotlib):
     rc = 0
     try:
-        mcpl.app_mcpltool(['mcpltool','-w','x : y','-o','tool.png',
+        mcpl.app_mcpltool(['mcpltool','-H','x : y','-o','tool.png',
                            str(example_file)])
     except SystemExit as e:
         rc = e.code

@@ -321,7 +321,7 @@ Figure 1 (1x1): None
     StepHist label='p (2212)' color=4 bins=5 edges=[0.00139345,9698.87] sum=4 max=4 nonzero_bins=1
 plot created ['plot.txt']
 plot to an existing file: The output file "plot.txt" already exists
-mcpltool -w ekin/MeV;logx=1;display_by=pdgcode example.mcpl: exit code 0
+mcpltool -H ekin/MeV;logx=1;display_by=pdgcode example.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='ekin/MeV' ylabel='weights per bin' logx xlim=[0.00139345,9724.96]
    |     StepHist label='n (2112)' color=0 bins=30 edges=[0.00139345,9724.96] sum=726 max=106 nonzero_bins=26
@@ -332,7 +332,7 @@ mcpltool -w ekin/MeV;logx=1;display_by=pdgcode example.mcpl: exit code 0
    |     StepHist label='π⁺ (211)' color=2 bins=30 edges=[0.00139345,9724.96] sum=5 max=1 nonzero_bins=5
    |     StepHist label='π⁻ (-211)' color=7 bins=30 edges=[0.00139345,9724.96] sum=2 max=1 nonzero_bins=2
    |     StepHist label='νμ (14)' color=9 bins=30 edges=[0.00139345,9724.96] sum=1 max=1 nonzero_bins=1
-mcpltool -t=ekin/eV;lethargy=1;bins=5;print=1 -e pdgcode == neutron example.mcpl: exit code 0
+mcpltool -t -H ekin/eV;lethargy=1;bins=5;print=1 -e pdgcode == neutron example.mcpl: exit code 0
    | # histogram of: ekin/eV
    | # edit: pdgcode==neutron
    | # values: weights per unit lethargy
@@ -342,7 +342,7 @@ mcpltool -t=ekin/eV;lethargy=1;bins=5;print=1 -e pdgcode == neutron example.mcpl
    | 435758.52 7705899.2 119.40181
    | 7705899.2 1.3627016e+08 20.886614
    | 1.3627016e+08 2.4097844e+09 5.2216536
-mcpltool --window x/cm : y/cm;bins=4;print=1 -e pdgcode == gamma example.mcpl: exit code 0
+mcpltool --window --hist x/cm : y/cm;bins=4;print=1 -e pdgcode == gamma example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
    | # edit: pdgcode==gamma
    | # values: weights per bin
@@ -363,7 +363,7 @@ mcpltool --window x/cm : y/cm;bins=4;print=1 -e pdgcode == gamma example.mcpl: e
    | 11.875 25 -25 -5 0
    | 11.875 25 -5 15 0
    | 11.875 25 15 35 0
-mcpltool --terminal=x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print=1 example.mcpl: exit code 0
+mcpltool --terminal --hist=x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print=1 example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
    | # values: weights per bin
    | # x lower edge | x upper edge | y lower edge | y upper edge | value
@@ -371,7 +371,7 @@ mcpltool --terminal=x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print=1 example.mc
    | -10 0 2.5 5 33
    | 0 10 0 2.5 75
    | 0 10 2.5 5 36
-mcpltool -w x/cm : y/cm;bins=2;xrange=-10:10;print=1 example.mcpl: exit code 0
+mcpltool -H x/cm : y/cm;bins=2;xrange=-10:10;print=1 example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
    | # values: weights per bin
    | # x lower edge | x upper edge | y lower edge | y upper edge | value
@@ -379,7 +379,7 @@ mcpltool -w x/cm : y/cm;bins=2;xrange=-10:10;print=1 example.mcpl: exit code 0
    | -10 0 -2.5 60 241
    | 0 10 -65 -2.5 74
    | 0 10 -2.5 60 310
-mcpltool -w x/cm : y/cm;bins=3,2;print=1 example.mcpl: exit code 0
+mcpltool -H x/cm : y/cm;bins=3,2;print=1 example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
    | # values: weights per bin
    | # x lower edge | x upper edge | y lower edge | y upper edge | value
@@ -389,12 +389,12 @@ mcpltool -w x/cm : y/cm;bins=3,2;print=1 example.mcpl: exit code 0
    | -20 25 -2.5 60 690
    | 25 70 -65 -2.5 11
    | 25 70 -2.5 60 15
-mcpltool -w x/cm;range=-10:10;bins=4 example.mcpl reffile_1.mcpl: exit code 0
+mcpltool -H x/cm;range=-10:10;bins=4 example.mcpl reffile_1.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='x/cm\n(27.3% of weights outside plot range)' ylabel='weights per bin' xlim=[-10,10]
    |     StepHist label='example.mcpl' color=0 bins=4 edges=[-10,10] sum=730 max=294 nonzero_bins=4
    |     StepHist label='reffile_1.mcpl' color=1 bins=4 edges=[-10,10] sum=5 max=5 nonzero_bins=1
-mcpltool -w time/ms;logx=1;logy=1;unweighted=1 example.mcpl: exit code 0
+mcpltool -H time/ms;logx=1;logy=1;unweighted=1 example.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='time/ms' ylabel='particles per bin' logx logy xlim=[7.01658e-07,0.00166018]
    |     StepHist label='n (2112)' color=0 bins=30 edges=[7.01658e-07,0.00166018] sum=726 max=52 nonzero_bins=29
@@ -405,58 +405,58 @@ mcpltool -w time/ms;logx=1;logy=1;unweighted=1 example.mcpl: exit code 0
    |     StepHist label='π⁺ (211)' color=2 bins=30 edges=[7.01658e-07,0.00166018] sum=5 max=5 nonzero_bins=1
    |     StepHist label='π⁻ (-211)' color=7 bins=30 edges=[7.01658e-07,0.00166018] sum=2 max=2 nonzero_bins=1
    |     StepHist label='νμ (14)' color=9 bins=30 edges=[7.01658e-07,0.00166018] sum=1 max=1 nonzero_bins=1
-mcpltool -t ekin/MeV : time/ms;logx=1;logy=auto example.mcpl: exit code 0
+mcpltool -t -H ekin/MeV : time/ms;logx=1;logy=auto example.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='ekin/MeV' ylabel='time/ms' logx logy
    |     Hist2D shape=(10, 10) x=[0.00139345,9724.96] y=[7.01658e-07,0.00166018] sum=1006 logz=True
-mcpltool -w ekin/MeV;display_by=pdgcode;range=0:10;bins=2;print=1 -e x > 1km example.mcpl: exit code 0
+mcpltool -H ekin/MeV;display_by=pdgcode;range=0:10;bins=2;print=1 -e x > 1km example.mcpl: exit code 0
    | # histogram of: ekin/MeV
    | # edit: x>1km
    | # values: weights per bin
    | # lower edge | upper edge | value
    | 0 5 0
    | 5 10 0
-mcpltool -w z/cm;bins=2;range=0:100;print=1 -s1000 example.mcpl: exit code 0
+mcpltool -H z/cm;bins=2;range=0:100;print=1 -s1000 example.mcpl: exit code 0
    | # histogram of: z/cm
    | # values: weights per bin
    | # lower edge | upper edge | n (2112)
    | 0 50 6
    | 50 100 0
-mcpltool -w z/cm;bins=2;range=0:100;print=1 -s1e3 -l2.5e1 example.mcpl: exit code 0
+mcpltool -H z/cm;bins=2;range=0:100;print=1 -s1e3 -l2.5e1 example.mcpl: exit code 0
    | # histogram of: z/cm
    | # values: weights per bin
    | # lower edge | upper edge | n (2112)
    | 0 50 6
    | 50 100 0
-mcpltool -w z/cm;bins=2;range=0:100;print=1 -l3 -e z += 50cm example.mcpl: exit code 0
+mcpltool -H z/cm;bins=2;range=0:100;print=1 -l3 -e z += 50cm example.mcpl: exit code 0
    | # histogram of: z/cm
    | # edit: z+=50cm
    | # values: weights per bin
    | # lower edge | upper edge | gamma (22) | pi+ (211)
    | 0 50 0 0
    | 50 100 2 1
-mcpltool -w z/cm;bins=2;range=0:100;print=1 --edit=z < 25cm; z += 50cm example.mcpl: exit code 0
+mcpltool -H z/cm;bins=2;range=0:100;print=1 --edit=z < 25cm; z += 50cm example.mcpl: exit code 0
    | # histogram of: z/cm
    | # edit: z<25cm;z+=50cm
    | # values: weights per bin
    | # lower edge | upper edge | n (2112) | gamma (22) | e- (11) | p (2212) | e+ (-11) | pi+ (211) | pi- (-211) | nu_mu (14)
    | 0 50 0 0 0 0 0 0 0 0
    | 50 100 726 239 15 10 8 5 2 1
-mcpltool -w z/cm;bins=2;range=0:100;print=1 --edit=z += 50cm; z < 75cm example.mcpl: exit code 0
+mcpltool -H z/cm;bins=2;range=0:100;print=1 --edit=z += 50cm; z < 75cm example.mcpl: exit code 0
    | # histogram of: z/cm
    | # edit: z+=50cm;z<75cm
    | # values: weights per bin
    | # lower edge | upper edge | n (2112) | gamma (22) | e- (11) | p (2212) | e+ (-11) | pi+ (211) | pi- (-211) | nu_mu (14)
    | 0 50 0 0 0 0 0 0 0 0
    | 50 100 726 239 15 10 8 5 2 1
-mcpltool --win=ekin/MeV;print=1;bins=2 --ed pdgcode==22 example.mcpl: exit code 0
+mcpltool --hist=ekin/MeV;print=1;bins=2 --ed pdgcode==22 example.mcpl: exit code 0
    | # histogram of: ekin/MeV
    | # edit: pdgcode==gamma
    | # values: weights per bin
    | # lower edge | upper edge | gamma (22)
    | 0 95 238
    | 95 190 1
-mcpltool -w ekin example.mcpl: exit code 0
+mcpltool -H ekin example.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='ekin [GeV]' ylabel='weights per bin' xlim=[0,10]
    |     StepHist label='n (2112)' color=0 bins=30 edges=[0,10] sum=726 max=721 nonzero_bins=5
@@ -467,35 +467,35 @@ mcpltool -w ekin example.mcpl: exit code 0
    |     StepHist label='π⁺ (211)' color=2 bins=30 edges=[0,10] sum=5 max=2 nonzero_bins=3
    |     StepHist label='π⁻ (-211)' color=7 bins=30 edges=[0,10] sum=2 max=1 nonzero_bins=2
    |     StepHist label='νμ (14)' color=9 bins=30 edges=[0,10] sum=1 max=1 nonzero_bins=1
-mcpltool -w ekin/MeV;bins=0 example.mcpl: exit code 1
-   | ERROR: bins must be a positive integer (or two for 2D histograms, like bins=50,40) in "ekin/MeV;bins=0"
-   | 
+mcpltool -H ekin/MeV;bins=0 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: bins must be a positive integer (or two for 2D histograms, like bins=50,40) in "ekin/MeV;bins=0"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w ekin/MeV;range=1 example.mcpl: exit code 1
-   | ERROR: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm), in "ekin/MeV;range=1"
-   | 
+mcpltool -H ekin/MeV;range=1 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm), in "ekin/MeV;range=1"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w ekin/MeV;range=2:1 example.mcpl: exit code 1
-   | ERROR: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm), in "ekin/MeV;range=2:1"
-   | 
+mcpltool -H ekin/MeV;range=2:1 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm), in "ekin/MeV;range=2:1"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w ekin/MeV;range=1:2,3:4 example.mcpl: exit code 1
-   | ERROR: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm), in "ekin/MeV;range=1:2,3:4"
-   | 
+mcpltool -H ekin/MeV;range=1:2,3:4 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: The range must be given as range=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in range=0cm:10cm), in "ekin/MeV;range=1:2,3:4"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w ekin/MeV;xrange=1:2 example.mcpl: exit code 1
-   | ERROR: Histogram option "xrange" can only be used for 2D histograms (use range), in "ekin/MeV;xrange=1:2"
-   | 
+mcpltool -H ekin/MeV;xrange=1:2 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Histogram option "xrange" can only be used for 2D histograms (use range), in "ekin/MeV;xrange=1:2"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w x/cm : y/cm;range=1:2 example.mcpl: exit code 1
-   | ERROR: Histogram option "range" can only be used for 1D histograms (use xrange and yrange), in "x/cm : y/cm;range=1:2"
-   | 
+mcpltool -H x/cm : y/cm;range=1:2 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Histogram option "range" can only be used for 1D histograms (use xrange and yrange), in "x/cm : y/cm;range=1:2"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w x/cm : y/cm;logx=1;equal example.mcpl: exit code 1
-   | ERROR: Histogram option "equal" (equal scales of the axes) can not be used with logarithmic axes, in "x/cm : y/cm;logx=1;equal"
-   | 
+mcpltool -H x/cm : y/cm;logx=1;equal example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Histogram option "equal" (equal scales of the axes) can not be used with logarithmic axes, in "x/cm : y/cm;logx=1;equal"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w x/cm : y/cm : z/cm example.mcpl: exit code 0
+mcpltool -H x/cm : y/cm : z/cm example.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel 'all 1,006 particles' xlabel='x/cm' ylabel='y/cm' 
    |     Scatter3D label='n (2112)' color=0 points=726 x=[-60.0882,65.8944] y=[-61.3354,57.6935] z=[20,20]
@@ -506,19 +506,19 @@ mcpltool -w x/cm : y/cm : z/cm example.mcpl: exit code 0
    |     Scatter3D label='π⁺ (211)' color=2 points=5 x=[-6.85752,3.10107] y=[-1.65843,0.864893] z=[20,20]
    |     Scatter3D label='π⁻ (-211)' color=7 points=2 x=[-5.19956,-0.779315] y=[1.5442,1.98627] z=[20,20]
    |     Scatter3D label='νμ (14)' color=9 points=1 x=[-28.4225,-28.4225] y=[8.33121,8.33121] z=[20,20]
-mcpltool -w x : y : z : x example.mcpl: exit code 1
-   | ERROR: Histograms are of an expression, or two expressions separated by ":" for 2D histograms (or three for 3D plots), in "x : y : z : x"
-   | 
+mcpltool -H x : y : z : x example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Histograms are of an expression, or two expressions separated by ":" for 2D histograms (or three for 3D plots), in "x : y : z : x"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w x : y : z;bins=5 example.mcpl: exit code 1
-   | ERROR: Histogram option "bins" can not be used for 3D plots, in "x : y : z;bins=5"
-   | 
+mcpltool -H x : y : z;bins=5 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Histogram option "bins" can only be used for 1D or 2D histograms, in "x : y : z;bins=5"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w x/cm;bins example.mcpl: exit code 1
-   | ERROR: Histogram option "bins" needs a value, like bins=..., in "x/cm;bins"
-   | 
+mcpltool -H x/cm;bins example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Histogram option "bins" needs a value, like bins=..., in "x/cm;bins"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w x/cm;logx example.mcpl: exit code 0
+mcpltool -H x/cm;logx example.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='x/cm\n(48.9% of weights outside plot range)' ylabel='weights per bin' logx xlim=[0.0141108,65.8944]
    |     StepHist label='n (2112)' color=0 bins=24 edges=[0.0141108,65.8944] sum=347 max=47 nonzero_bins=21
@@ -529,19 +529,19 @@ mcpltool -w x/cm;logx example.mcpl: exit code 0
    |     StepHist label='p (2212)' color=4 bins=24 edges=[0.0141108,65.8944] sum=4 max=1 nonzero_bins=4
    |     StepHist label='π⁻ (-211)' color=7 bins=24 edges=[0.0141108,65.8944] sum=0 max=0 nonzero_bins=0
    |     StepHist label='νμ (14)' color=9 bins=24 edges=[0.0141108,65.8944] sum=0 max=0 nonzero_bins=0
-mcpltool -w x/cm;logx=true example.mcpl: exit code 1
-   | ERROR: Histogram options which are on or off are given as 1 or 0 (not "true"), like logx=1, in "x/cm;logx=true"
-   | 
+mcpltool -H x/cm;logx=true example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Histogram options which are on or off are given as 1 or 0 (not "true"), like logx=1, in "x/cm;logx=true"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w x/cm;logy=yes example.mcpl: exit code 1
-   | ERROR: Histogram options which are on or off are given as 1 or 0 (not "yes"), like logy=1, in "x/cm;logy=yes"
-   | 
+mcpltool -H x/cm;logy=yes example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Histogram options which are on or off are given as 1 or 0 (not "yes"), like logy=1, in "x/cm;logy=yes"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w x/cm;logx=2 example.mcpl: exit code 1
-   | ERROR: Histogram option "logx" must be 1, 0, or auto (not "2"), in "x/cm;logx=2"
-   | 
+mcpltool -H x/cm;logx=2 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Histogram option "logx" must be 1, 0, or auto (not "2"), in "x/cm;logx=2"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w x/cm;logy=auto example.mcpl: exit code 0
+mcpltool -H x/cm;logy=auto example.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='x/cm' ylabel='weights per bin' logy xlim=[-65,70]
    |     StepHist label='n (2112)' color=0 bins=30 edges=[-65,70] sum=726 max=152 nonzero_bins=26
@@ -552,71 +552,62 @@ mcpltool -w x/cm;logy=auto example.mcpl: exit code 0
    |     StepHist label='π⁺ (211)' color=2 bins=30 edges=[-65,70] sum=5 max=2 nonzero_bins=3
    |     StepHist label='π⁻ (-211)' color=7 bins=30 edges=[-65,70] sum=2 max=1 nonzero_bins=2
    |     StepHist label='νμ (14)' color=9 bins=30 edges=[-65,70] sum=1 max=1 nonzero_bins=1
-mcpltool -w x/cm;logx=1;logx=1 example.mcpl: exit code 1
-   | ERROR: Histogram option "logx" given more than once in "x/cm;logx=1;logx=1"
-   | 
+mcpltool -H x/cm;logx=1;logx=1 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Histogram option "logx" given more than once in "x/cm;logx=1;logx=1"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w x/cm;foo example.mcpl: exit code 1
-   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, points, equal, display_edit)
-   | 
+mcpltool -H x/cm;foo example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, points, equal, display_edit)
    | Run with "--hist-help" for how to write histograms
-mcpltool --logx example.mcpl: exit code 1
-   | ERROR: Unrecognised option : --logx
-   | 
-   | Run with -h or --help for usage information
-mcpltool --bins 10 example.mcpl: exit code 1
-   | ERROR: Unrecognised option : --bins
-   | 
-   | Run with -h or --help for usage information
-mcpltool -o a.pdf example.mcpl: exit code 1
-   | ERROR: -o can only be used with -w or -t.
-   | 
-   | Run with -h or --help for usage information
-mcpltool -w x/cm -x example.mcpl out.mcpl: exit code 1
-   | ERROR: -w and -x can not be used together.
-   | 
-   | Run with -h or --help for usage information
-mcpltool -w x/cm: exit code 1
-   | ERROR: -w needs a histogram, as in -w "ekin/MeV;logx" FILE (see --hist-help).
-   | 
-   | Run with -h or --help for usage information
-mcpltool -w x/cm;print=1 -o a.png example.mcpl: exit code 1
-   | ERROR: The histogram option print can not be used together with -o or --color.
-   | 
-   | Run with -h or --help for usage information
-mcpltool -w ekin/MeV;logx=auto;bins=3;print=1 example.mcpl: exit code 0
+mcpltool --logx example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: unrecognized arguments: --logx
+mcpltool --bins 10 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: unrecognized arguments: --bins
+mcpltool -o a.pdf example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -o can only be used with a histogram (-H HIST)
+mcpltool -H x/cm -x example.mcpl out.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -H and -x can not be used together
+mcpltool -H x/cm: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: no input file specified
+mcpltool -H x/cm;print=1 -o a.png example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: the histogram option print can not be used together with -o or --color
+mcpltool -H ekin/MeV;logx=auto;bins=3;print=1 example.mcpl: exit code 0
    | # histogram of: ekin/MeV
    | # values: weights per bin
    | # lower edge | upper edge | n (2112) | gamma (22) | e- (11) | p (2212) | e+ (-11) | pi+ (211) | pi- (-211) | nu_mu (14)
    | 0.0013934488 0.26629109 222 1 2 0 0 0 0 0
    | 0.26629109 50.888805 471 235 12 0 8 0 0 1
    | 50.888805 9724.9609 33 3 1 10 0 5 2 0
-mcpltool -w x/cm;logx=auto;bins=3;print=1 example.mcpl: exit code 0
+mcpltool -H x/cm;logx=auto;bins=3;print=1 example.mcpl: exit code 0
    | # histogram of: x/cm
    | # values: weights per bin
    | # lower edge | upper edge | n (2112) | gamma (22) | e- (11) | p (2212) | e+ (-11) | pi+ (211) | pi- (-211) | nu_mu (14)
    | -65 -20 49 1 0 0 0 0 0 1
    | -20 25 652 238 14 10 8 5 2 0
    | 25 70 25 0 1 0 0 0 0 0
-mcpltool -w ekin/MeV;logx=auto;range=1:10;bins=3;print=1 example.mcpl: exit code 0
+mcpltool -H ekin/MeV;logx=auto;range=1:10;bins=3;print=1 example.mcpl: exit code 0
    | # histogram of: ekin/MeV
    | # values: weights per bin
    | # lower edge | upper edge | n (2112) | gamma (22) | e- (11) | e+ (-11) | pi- (-211) | nu_mu (14) | pi+ (211) | p (2212)
    | 1 4 161 110 5 3 0 0 0 0
    | 4 7 19 23 2 3 0 0 0 0
    | 7 10 14 13 1 1 0 0 0 0
-mcpltool -w x/cm -o a.txt example.mcpl: exit code 1
-   | ERROR: -w saves histograms as .png, .pdf, or .svg files (use -t HIST -o FILE.txt for text).
-   | 
-   | Run with -h or --help for usage information
-mcpltool -t x/cm -o a.png example.mcpl: exit code 1
-   | ERROR: -t saves histograms as .txt files (use -w HIST -o FILE for .png, .pdf, or .svg).
-   | 
-   | Run with -h or --help for usage information
-mcpltool -S -o stats.txt -e pdgcode == gamma example.mcpl: exit code 1
-   | ERROR: -o can only be used with -w or -t (-S only prints text, for plots use -w or -t).
-   | 
-   | Run with -h or --help for usage information
+mcpltool -H x/cm -o a.txt example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: histograms are saved as .txt files with -t (as in -t -H HIST -o FILE.txt)
+mcpltool -t -H x/cm -o a.png example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -t saves histograms as .txt files (without -t, as .png, .pdf, or .svg files)
+mcpltool -S -o stats.txt -e pdgcode == gamma example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -o can only be used with a histogram (-H HIST) (-S only prints text, for plots use -H)
 mcpltool -S -s1000 -e x = 1cm example.mcpl: exit code 0
    | ------------------------------------------------------------------------------
    | edit         : x=1cm
@@ -644,166 +635,127 @@ mcpltool -S -s1000 -e x = 1cm example.mcpl: exit code 0
    | userflags    :           0 (0x00000000)            6 (100.00%)
    |                      [ values ]             [ weighted counts ]
    | ------------------------------------------------------------------------------
-mcpltool -t x/cm;bins=3 -o hist.txt example.mcpl: exit code 0
+mcpltool -t -H x/cm;bins=3 -o hist.txt example.mcpl: exit code 0
    | Created hist.txt
-mcpltool -p neutron example.mcpl: exit code 1
-   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
-   | 
-   | Run with -h or --help for usage information
-mcpltool -p2112 example.mcpl: exit code 1
-   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == 2112")
-   | 
-   | Run with -h or --help for usage information
-mcpltool -p  gamma  example.mcpl: exit code 1
-   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
-   | 
-   | Run with -h or --help for usage information
-mcpltool -p: exit code 1
-   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
-   | 
-   | Run with -h or --help for usage information
-mcpltool -lX example.mcpl: exit code 1
-   | ERROR: Bad option: expected number
-   | 
-   | Run with -h or --help for usage information
-mcpltool -l example.mcpl: exit code 1
-   | ERROR: Bad option: missing number
-   | 
-   | Run with -h or --help for usage information
-mcpltool -l1,000 example.mcpl: exit code 1
-   | ERROR: Bad option: expected number
-   | 
-   | Run with -h or --help for usage information
-mcpltool -l1.5 example.mcpl: exit code 1
-   | ERROR: Bad option: expected number
-   | 
-   | Run with -h or --help for usage information
-mcpltool -s1e-3 example.mcpl: exit code 1
-   | ERROR: Bad option: expected number
-   | 
-   | Run with -h or --help for usage information
-mcpltool -l2² example.mcpl: exit code 1
-   | ERROR: Bad option: expected number
-   | 
-   | Run with -h or --help for usage information
-mcpltool -l99999999999999999999 example.mcpl: exit code 1
-   | ERROR: Bad option: expected number
-   | 
-   | Run with -h or --help for usage information
+mcpltool -p neutron example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -p is not an option (use -e, e.g. -e "pdgcode == neutron")
+mcpltool -p2112 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -p is not an option (use -e, e.g. -e "pdgcode == 2112")
+mcpltool -p  gamma  example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -p is not an option (use -e, e.g. -e "pdgcode == neutron")
+mcpltool -p: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: argument -p: expected one argument
+mcpltool -lX example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: argument -l/--limit: expected a non-negative whole number, not 'X'
+mcpltool -l example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: argument -l/--limit: expected a non-negative whole number, not 'example.mcpl'
+mcpltool -l1,000 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: argument -l/--limit: expected a non-negative whole number, not '1,000'
+mcpltool -l1.5 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: argument -l/--limit: expected a non-negative whole number, not '1.5'
+mcpltool -s1e-3 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: argument -s/--skip: expected a non-negative whole number, not '1e-3'
+mcpltool -l2² example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: argument -l/--limit: expected a non-negative whole number, not '2²'
+mcpltool -l99999999999999999999 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: argument -l/--limit: expected a non-negative whole number, not '99999999999999999999'
 mcpltool ..: exit code 1
-   | MCPL ERROR: Is a directory and not a file!
+   | mcpltool: ..: is a directory
 mcpltool -S ..: exit code 1
-   | MCPL ERROR: Is a directory and not a file!
-mcpltool -t x/cm ..: exit code 1
-   | MCPL ERROR: Is a directory and not a file!
-mcpltool -e x > 0 -e x < 1cm example.mcpl: exit code 1
-   | ERROR: -e specified more than once
-   | 
-   | Run with -h or --help for usage information
-mcpltool --pdf example.mcpl: exit code 1
-   | ERROR: --pdf is no longer supported as an option (a similar option now is: -w HIST -o FILE.pdf)
-   | 
-   | Run with -h or --help for usage information
-mcpltool --gui example.mcpl: exit code 1
-   | ERROR: --gui is no longer supported as an option (use -w instead)
-   | 
-   | Run with -h or --help for usage information
-mcpltool --select x > 0 example.mcpl: exit code 1
-   | ERROR: Unrecognised option : --select
-   | 
-   | Run with -h or --help for usage information
-mcpltool -S -t x example.mcpl: exit code 1
-   | ERROR: -S and -t can not be used together.
-   | 
-   | Run with -h or --help for usage information
-mcpltool -S -w x/cm example.mcpl: exit code 1
-   | ERROR: -S and -w can not be used together.
-   | 
-   | Run with -h or --help for usage information
-mcpltool example.mcpl example.mcpl example.mcpl: exit code 1
-   | ERROR: Too many arguments.
-   | 
-   | Run with -h or --help for usage information
-mcpltool -w x/cm;bins=2;print -w pdgcode;bar=2;print example.mcpl: exit code 1
-   | ERROR: -w specified more than once
-   | 
-   | Run with -h or --help for usage information
-mcpltool --text example.mcpl: exit code 1
-   | ERROR: Must specify both input and output files with --text.
-   | 
-   | Run with -h or --help for usage information
+   | mcpltool: ..: is a directory
+mcpltool -t -H x/cm ..: exit code 1
+   | mcpltool: ..: is a directory
+mcpltool -e x > 0 -e x < 1cm example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -e specified more than once
+mcpltool --pdf example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: --pdf is no longer supported as an option (a similar option now is: -H HIST -o FILE.pdf)
+mcpltool --gui example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: --gui is no longer supported as an option (use -w instead)
+mcpltool --select x > 0 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: unrecognized arguments: --select
+mcpltool -S -t -H x example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -S and -t can not be used together
+mcpltool -S -H x/cm example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -S and -H can not be used together
+mcpltool example.mcpl example.mcpl example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: too many arguments
+mcpltool -H x/cm;bins=2;print -H pdgcode;bar=2;print example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -H specified more than once
+mcpltool --text example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: must specify both input and output files with --text
 mcpltool --text example.mcpl hist.txt: exit code 1
-   | ERROR: The output file "hist.txt" already exists.
-   | 
-   | Run with -h or --help for usage information
-mcpltool -t example.mcpl: exit code 1
-   | ERROR: -t needs a histogram, as in -t "ekin/MeV;logx" FILE (see --hist-help).
-   | 
-   | Run with -h or --help for usage information
-mcpltool -w example.mcpl: exit code 1
-   | ERROR: -w needs a histogram, as in -w "ekin/MeV;logx" FILE (see --hist-help).
-   | 
-   | Run with -h or --help for usage information
-mcpltool -t example.mcpl example.mcpl: exit code 1
-   | ERROR: -t takes the histogram before the files, as in -t "ekin/MeV;logx" FILE (or did you mean --text?).
-   | 
-   | Run with -h or --help for usage information
-mcpltool -w example.mcpl x/cm: exit code 1
-   | ERROR: -w takes the histogram before the files, as in -w "ekin/MeV;logx" FILE.
-   | 
-   | Run with -h or --help for usage information
-mcpltool -wx/cm example.mcpl: exit code 1
-   | ERROR: -w takes the histogram as -w=HIST or -w HIST (not -wx/cm)
-   | 
-   | Run with -h or --help for usage information
+   | mcpltool: The output file "hist.txt" already exists
+mcpltool -t example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -t requires -H HIST (to write particles as text, use --text)
+mcpltool -w example.mcpl -o x.pdf: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -o can only be used with a histogram (-H HIST)
+mcpltool -t example.mcpl example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -t requires -H HIST (to write particles as text, use --text)
+mcpltool -w example.mcpl x/cm: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -w is used with -H HIST (see --hist-help)
+mcpltool -wx/cm example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: unrecognized arguments: -/cm
 mcpltool -H x/cm example.mcpl: exit code 1
-   | ERROR: Unrecognised option : -H
-   | 
-   | Run with -h or --help for usage information
-mcpltool -B test example.mcpl: exit code 1
-   | ERROR: Unrecognised option : -B
-   | 
-   | Run with -h or --help for usage information
-mcpltool --te x example.mcpl: exit code 1
-   | ERROR: Ambiguous option --te (could be --terminal, --text)
-   | 
-   | Run with -h or --help for usage information
-mcpltool -j -w x/cm example.mcpl: exit code 1
-   | ERROR: -j can only be used when showing particles.
-   | 
-   | Run with -h or --help for usage information
-mcpltool --no-comment -S example.mcpl: exit code 1
-   | ERROR: --no-comment can only be used with -x.
-   | 
-   | Run with -h or --help for usage information
-mcpltool -w x/cm : y/cm;display_by=pdgcode example.mcpl: exit code 1
-   | ERROR: Histogram option "display_by" can not be used for 2D histograms, in "x/cm : y/cm;display_by=pdgcode"
-   | 
+   | mcpltool: Plots can not be shown in a window here (is there no display?). Use -t to show the histogram in the terminal.
+mcpltool -B test example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: unrecognized arguments: -B
+mcpltool --te x example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: ambiguous option: --te could match --text, --terminal
+mcpltool -j -H x/cm example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -j can only be used when showing particles
+mcpltool --no-comment -S example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: --no-comment can only be used with -x
+mcpltool -H x/cm : y/cm;display_by=pdgcode example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Histogram option "display_by" can only be used for 1D histograms or 3D plots, in "x/cm : y/cm;display_by=pdgcode"
    | Run with "--hist-help" for how to write histograms
-mcpltool -w x/cm -o hist example.mcpl: exit code 1
-   | ERROR: The file name hist has no extension (the extension gives the format of the plots: .pdf, .png, .svg, .txt)
-   | 
-   | Run with -h or --help for usage information
-mcpltool -w x/cm -o hist.jpg example.mcpl: exit code 1
-   | ERROR: Plots can not be saved as .jpg files (the extension gives the format of the plots: .pdf, .png, .svg, .txt)
-   | 
-   | Run with -h or --help for usage information
-mcpltool -w x/cm -o hist.png -d example.mcpl: exit code 1
-   | ERROR: -d can not be used with -o (which saves plots in files).
-   | 
-   | Run with -h or --help for usage information
-mcpltool -e x > "1" example.mcpl: exit code 1
-   | ERROR: The character " can not be used in expressions (in "x > "1"")
-   | 
+mcpltool -H x/cm -o hist example.mcpl: exit code 1
+   | mcpltool: The file name hist has no extension (the extension gives the format of the plots: .pdf, .png, .svg, .txt)
+mcpltool -H x/cm -o hist.jpg example.mcpl: exit code 1
+   | mcpltool: Plots can not be saved as .jpg files (the extension gives the format of the plots: .pdf, .png, .svg, .txt)
+mcpltool -H x/cm -o hist.png -d example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: -d can not be used with -o (which saves plots in files)
+mcpltool -e x > "1" example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: The character " can not be used in expressions (in "x > "1"")
    | Run with "-e help" for how to write edit expressions
-mcpltool -e z = 1cm, x = 0 example.mcpl: exit code 1
-   | ERROR: Separate statements with ";" (not ",") in "z = 1cm, x = 0"
-   | 
+mcpltool -e z = 1cm, x = 0 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: Separate statements with ";" (not ","), in expression "z = 1cm, x = 0"
    | Run with "-e help" for how to write edit expressions
-mcpltool -E x > 0 example.mcpl: exit code 1
-   | ERROR: Unrecognised option : -E
-   | 
-   | Run with -h or --help for usage information
+mcpltool -E x > 0 example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: unrecognized arguments: -E
 mcpltool -e help: exit code 0, 258 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    | 
@@ -817,16 +769,19 @@ mcpltool --hist-help: exit code 0, 83 lines, starting with:
    | or two separated by ":" for a 2D histogram (or three for a 3D plot of
    | particles chosen at random, in windows), followed by options separated by ";".
 nice numbers of bins: [(1200, 1080), (400, 360), (239, 216), (83, 72), (37, 36), (15, 15), (8, 8)]
-neff=1: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
-neff=100: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
-neff=1000: bins of 1080 -> 30, of 216 -> 36, 2D of 216 -> 9
-neff=10000: bins of 1080 -> 108, of 216 -> 108, 2D of 216 -> 24
-neff=100000: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 54
-neff=1e+06: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 108
-2756 (ncols,neff) cases, 0 bad, ratio to target 0.72..1.25 when not capped, 1035 capped by narrow plots, at most 15% unused columns
+n=1: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
+n=100: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
+n=1000: bins of 1080 -> 30, of 216 -> 36, 2D of 216 -> 9
+n=10000: bins of 1080 -> 108, of 216 -> 108, 2D of 216 -> 24
+n=100000: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 54
+n=1e+06: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 108
+2756 (ncols,nentries) cases, 0 bad, ratio to target 0.72..1.25 when not capped, 1035 capped by narrow plots, at most 15% unused columns
 auto: 30 bins, sum 1006 (1080 bins: 1006), merged exactly: True, same edges: True, for display: 1080
 auto with few particles: 10 bins, sum 10
 auto with at most 83 bins: 36 bins, for display: 72
 auto 2D: (10, 10) bins, sum 1006, for display: (360, 360)
 auto 2D with at most (69,15) bins: (10, 15) bins, sum 1006, for display: (60, 15)
 2D with bins=(8,4): (8, 4) bins, for display: None
+auto with equal weights: 360 bins, 2D (45, 45) bins
+auto with weights spread over 8 decades: 360 bins, 2D (45, 45) bins
+auto with half of the weights 0: 216 bins, 2D (36, 36) bins

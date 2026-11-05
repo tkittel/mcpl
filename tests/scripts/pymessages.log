@@ -30,10 +30,13 @@ MCPL WARNING: Opened file with unknown "stat:..." syntax in comments. The presen
 ==> Errors in mcpltool, with and without --traceback:
 --> Running mcpltool nonexistent.mcpl
     exit code: 1
-    stdout: MCPL ERROR: Unable to open file!
+    last line of stderr: python -m mcpl: nonexistent.mcpl: no such file
 --> Running mcpltool --traceback nonexistent.mcpl
     exit code: 1
-    last line of stderr: mcpldev._common.MCPLError: Unable to open file!
+    last line of stderr: mcpldev._common.MCPLError: nonexistent.mcpl: no such file
+--> Running mcpltool --trace nonexistent.mcpl
+    exit code: 1
+    last line of stderr: mcpldev._common.MCPLError: nonexistent.mcpl: no such file
 ==> Program name in the usage with "python -m mcpl":
       python -m mcpl [options] FILE                  Show the header and first particles
 ==> The old pymcpltool command warns, and works like mcpltool:

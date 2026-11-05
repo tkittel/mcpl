@@ -18,45 +18,36 @@ mcplexample_source.mcpl: 2500 particles, comments ['Example file made by mcpltoo
 mcplexample_target.mcpl: 2500 particles, comments ['Example file made by mcpltool --create-examples, with particles generated from simple distributions (not by a simulation)', 'Mixed particles leaving the surroundings of a target'], polarisation: False, userdata: None
 Existing files are not overwritten:
 --> mcpltool --create-examples=10
-ERROR: The output file "mcplexample_source.mcpl" already exists
-
-Run with -h or --help for usage information
+    mcpltool: The output file "mcplexample_source.mcpl" already exists
     exit code 1
 --> mcpltool --create-examples=0
-ERROR: --create-examples=N requires a positive integer N
-
-Run with -h or --help for usage information
-    exit code 1
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: --create-examples=N requires a positive integer N
+    exit code 2
 --> mcpltool --create-examples=abc
-ERROR: --create-examples=N requires a positive integer N
-
-Run with -h or --help for usage information
-    exit code 1
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: --create-examples=N requires a positive integer N
+    exit code 2
 --> mcpltool --create-examples=-5
-ERROR: --create-examples=N requires a positive integer N
-
-Run with -h or --help for usage information
-    exit code 1
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: --create-examples=N requires a positive integer N
+    exit code 2
 --> mcpltool --create-examples=1,000
-ERROR: --create-examples=N requires a positive integer N
-
-Run with -h or --help for usage information
-    exit code 1
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: --create-examples=N requires a positive integer N
+    exit code 2
 --> mcpltool --create-examples=1.5
-ERROR: --create-examples=N requires a positive integer N
-
-Run with -h or --help for usage information
-    exit code 1
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: --create-examples=N requires a positive integer N
+    exit code 2
 --> mcpltool --create-examples=1e-3
-ERROR: --create-examples=N requires a positive integer N
-
-Run with -h or --help for usage information
-    exit code 1
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: --create-examples=N requires a positive integer N
+    exit code 2
 --> mcpltool --create-examples -j foo.mcpl
-ERROR: --create-examples can only be combined with --dry-run and --allow-overwrite.
-
-Run with -h or --help for usage information
-    exit code 1
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: --create-examples can only be combined with --dry-run and --allow-overwrite
+    exit code 2
 A second run gives the same particles (fixed random seed):
 --> mcpltool --create-examples=2500
 MCPL: Creating mcplexample_source.mcpl with 2500 particles (neutrons leaving a moderator surface)

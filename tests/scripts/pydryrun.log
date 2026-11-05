@@ -21,32 +21,26 @@ mcpltool --dry-run --extract --edit weight *= 2 a1.mcpl out.mcpl: exit code 0, r
 mcpltool --dry-run --extract --edit weight *= 2 --keep-statsum a1.mcpl out.mcpl: exit code 0, real run changed files
    | MCPL: Would extract 30 / 30 particles from a1.mcpl into out.mcpl
    | MCPL: dry run, nothing was written
-mcpltool --dry-run --extract --edit ekin < 1 meV + a1.mcpl out.mcpl: exit code 1, real run did not change files
-   | ERROR: Syntax error in expression "ekin < 1 meV +", at the end: a value is missing
-   | 
+mcpltool --dry-run --extract --edit ekin < 1 meV + a1.mcpl out.mcpl: exit code 2, real run did not change files
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: Syntax error in expression "ekin < 1 meV +", at the end: a value is missing
    | Run with "-e help" for how to write edit expressions
 mcpltool --dry-run --extract a1.mcpl a2.mcpl: exit code 1, real run did not change files
-   | ERROR: The output file "a2.mcpl" already exists.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "a2.mcpl" already exists
 mcpltool --dry-run --extract nosuch.mcpl out.mcpl: exit code 1, real run did not change files
-   | MCPL ERROR: Unable to open file!
+   | python -m mcpl: nosuch.mcpl: no such file
 mcpltool --dry-run --merge out.mcpl a1.mcpl a2.mcpl a3.mcpl.gz: exit code 0, real run changed files
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --merge out.mcpl.gz a1.mcpl a2.mcpl: exit code 0, real run changed files
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --merge out.mcpl a1.mcpl b_dp.mcpl: exit code 1, real run did not change files
-   | ERROR: Requested files are incompatible for merge as they have different header info (source name: "MySim" vs "Other").
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: Requested files are incompatible for merge as they have different header info (source name: "MySim" vs "Other")
 mcpltool --dry-run --merge a2.mcpl a1.mcpl a3.mcpl.gz: exit code 1, real run did not change files
-   | ERROR: The output file "a2.mcpl" already exists.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "a2.mcpl" already exists
 mcpltool --dry-run --merge --inplace a1.mcpl a2.mcpl a3.mcpl.gz: exit code 0, real run changed files
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --merge --inplace a3.mcpl.gz a1.mcpl: exit code 1, real run did not change files
-   | MCPL ERROR: direct modification of gzipped files is not supported.
+   | python -m mcpl: direct modification of gzipped files is not supported.
 mcpltool --dry-run --forcemerge out.mcpl a1.mcpl b_dp.mcpl b_pol.mcpl: exit code 0, real run changed files
    | MCPL force-merge: Files have different FP precision (single and double), using double
    | MCPL force-merge: Files have different polarisation info (no and yes), enabling it
@@ -76,15 +70,13 @@ mcpltool --dry-run --repair crash.mcpl: exit code 0, real run changed files
    | MCPL: Would repair file with 4 particles.
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --repair a1.mcpl: exit code 1, real run did not change files
-   | MCPL ERROR: File does not appear to be broken.
+   | python -m mcpl: File does not appear to be broken.
 mcpltool --dry-run --repair a3.mcpl.gz: exit code 1, real run did not change files
-   | MCPL ERROR: File must be gunzipped before it can be checked and possibly repaired.
+   | python -m mcpl: File must be gunzipped before it can be checked and possibly repaired.
 mcpltool --dry-run --text a1.mcpl out.txt: exit code 0, real run changed files
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --text a1.mcpl a2.mcpl: exit code 1, real run did not change files
-   | ERROR: The output file "a2.mcpl" already exists.
-   | 
-   | Run with -h or --help for usage information
+   | python -m mcpl: The output file "a2.mcpl" already exists
 mcpltool --dry-run a1.mcpl: exit code 0, real run did not change files
    | Opened MCPL file a1.mcpl:
    | 
@@ -183,7 +175,7 @@ mcpltool --dry-run --stats a1.mcpl: exit code 0, real run did not change files
    | userflags    :           0 (0x00000000)        247.5 (100.00%)
    |                      [ values ]             [ weighted counts ]
    | ------------------------------------------------------------------------------
-mcpltool --dry-run --window ekin/MeV;print=1;display_by=single a1.mcpl: exit code 0, real run did not change files
+mcpltool --dry-run --hist ekin/MeV;print=1;display_by=single a1.mcpl: exit code 0, real run did not change files
    | # histogram of: ekin/MeV
    | # values: weights per bin
    | # lower edge | upper edge | value
@@ -199,10 +191,9 @@ mcpltool --dry-run --window ekin/MeV;print=1;display_by=single a1.mcpl: exit cod
    | 0.027 0.03 59
 mcpltool --dry-run --version: exit code 0, real run did not change files
    | MCPL version 99.99.99
-mcpltool --dry-run --bkey1 a1.mcpl: exit code 1, real run did not change files
-   | ERROR: Unrecognised option : --bkey1
-   | 
-   | Run with -h or --help for usage information
+mcpltool --dry-run --bkey1 a1.mcpl: exit code 2, real run did not change files
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: unrecognized arguments: --bkey1
 mcpltool -d --extract -l2 a1.mcpl out.mcpl: exit code 0
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Would extract 2 / 30 particles from a1.mcpl into out.mcpl
@@ -233,14 +224,12 @@ mcpltool -jd a1.mcpl: exit code 0
    |     Endianness         : little
    |     Storage            : 36 bytes/particle
    | 
-mcpltool -d --stats -o s.pdf a1.mcpl: exit code 1
-   | ERROR: -o can only be used with -w or -t (-S only prints text, for plots use -w or -t).
-   | 
-   | Run with -h or --help for usage information
-mcpltool --dry-run --terminal ekin/MeV --output h.txt a1.mcpl: exit code 1
-   | ERROR: -d can not be used with -o (which saves plots in files).
-   | 
-   | Run with -h or --help for usage information
+mcpltool -d --stats -o s.pdf a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -o can only be used with a histogram (-H HIST) (-S only prints text, for plots use -H)
+mcpltool --dry-run --terminal --hist ekin/MeV --output h.txt a1.mcpl: exit code 2
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+   | python -m mcpl: error: -d can not be used with -o (which saves plots in files)
 === Python API dry_run
 merge_files: None
 MCPL force-merge: Files have different FP precision (single and double), using double

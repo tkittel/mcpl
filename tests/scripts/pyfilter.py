@@ -475,7 +475,7 @@ def test_canonical():
     for e in ( 'z += 1cm;weight *= 0.5', 'rotate_z(90deg) ; z+=10 cm' ):
         print(f'edit {e!r}: {_expr_canonical(e,edit=True)!r}')
     #The parsed expressions, with what they use:
-    from mcpldev._expr_eval import _Expr
+    from mcpldev._expressions import _Expr
     for e in ( 'pdgcode == neutron and wavelength > 1.8Aa', 'hypot(x,y)/cm', 'mod(fileidx,10) == 0' ):
         x = _Expr(e)
         print(f'parsed {e!r}: fields {sorted(x.fields)}, names {sorted(x.names)},'

@@ -49,7 +49,7 @@ plot_modules = { 'matplotlib', 'PIL', 'tkinter', 'curses', 'scipp', 'IPython',
 #modules of the scenarios are those imported in addition to these):
 core_modules = '_blocks _common _messages _numpy _reader'
 
-_expr = '_exprcore _expressions _exprrotation _exprsyntax _exprunits _particles _physics constants'
+_expr = '_expr_ast _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprrotation _exprunits _particles _physics constants'
 _plot_tool = '_exprplot _figures _histfigures _histfill _histstring _plotbackend _plotbackend_text _plotregistry _termcolor'
 _plot = f'{_plot_tool} _histogram _plotting'
 

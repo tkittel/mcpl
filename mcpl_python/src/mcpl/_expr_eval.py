@@ -19,85 +19,60 @@
 ##                                                                            ##
 ################################################################################
 
-"""The core of the particle expressions (see _expressions): the names
-which can be used in them, their checks, and their evaluation"""
+"""The evaluation of checked particle expressions (see _expr_astcheck) with
+numpy, on blocks of particles: _ExprEvaluator(block, text) evaluates
+expressions, and _run_statements runs the statements of picks and edits. The
+units and types of the values are checked here, also for blocks without
+particles (_EmptyBlock), which is how expressions are checked before use."""
 
 __all__ = []
 
-import ast
-import functools
-import math
-
 from ._common import MCPLError
-from ._exprsyntax import _expr_parse, _expr_unparse, _Unit
-from ._exprunits import (
-    _dim_E,
-    _dim_K,
-    _dim_L,
-    _dim_none,
-    _dim_T,
-    _dim_unknown,
-    _expr_units,
+from ._expr_ast import (
+    Assign,
+    Binary,
+    Call,
+    Compare,
+    Float,
+    In,
+    Int,
+    Logical,
+    Name,
+    Part,
+    Particle,
+    Quantity,
+    Unary,
+    Unit,
+    Userdata,
+    Value,
+    Vector,
 )
+from ._expr_vocab import (
+    _assignable,
+    _expr_constants,
+    _expr_field_dims,
+    _expr_unit_hints,
+    _expr_vectors,
+    _expr_wl_unit,
+    _functions_nodim,
+    _functions_toint,
+    _functions_vector,
+    _rotated_vectors,
+    _rotation_matrix_args,
+    _rotation_planes,
+)
+from ._exprrotation import _exact_cos_sin, _rotation_matrix
+from ._exprunits import _dim_E, _dim_L, _dim_none, _dim_unknown, _expr_units
 from ._numpy import np
 from ._particles import _particle_names, _wavelength_pdgcodes
-from ._physics import (
-    _pdg_label,
-    _pdg_name,
-    wavelength_from_ekin,
-)
+from ._physics import ekin_from_wavelength, wavelength_from_ekin
 
-_expr_fields = ( 'x', 'y', 'z', 'ux', 'uy', 'uz', 'polx', 'poly', 'polz',
-                 'ekin', 'time', 'weight', 'pdgcode', 'userflags',
-                 'wavelength', 'fileidx' )
-#The vectors of the particles, and their values (e.g. x is pos.x):
-_expr_vectors = { 'pos' : ( 'x', 'y', 'z' ), 'dir' : ( 'ux', 'uy', 'uz' ),
-                  'pol' : ( 'polx', 'poly', 'polz' ) }
-_expr_constants = { 'pi' : math.pi, **_particle_names }
-_expr_field_dims = { 'x' : _dim_L, 'y' : _dim_L, 'z' : _dim_L,
-                     'ekin' : _dim_E, 'time' : _dim_T,
-                     'wavelength' : _dim_L }
-_expr_wl_unit = 1e-8#wavelengths are in Aa in the Python API
-#Fields which are only defined for some particles: the field and the values
-#for which they are defined:
-_expr_field_domains = { 'wavelength' : ( 'pdgcode', _wavelength_pdgcodes ) }
-#Labels and short names of the values of fields (for labels in plots and
-#tables, with symbols for plots if unicode is set, see _pdg_symbols):
-_expr_value_names = { 'pdgcode' : ( _pdg_label, _pdg_name ) }
-#Example units to suggest in error messages:
-_expr_unit_hints = { _dim_L : 'cm', _dim_E : 'MeV', _dim_T : 'ms', _dim_K : 'K' }
-#Functions requiring dimensionless arguments:
-_expr_functions_nodim = { 'exp' : np.exp, 'log' : np.log, 'log10' : np.log10,
-                          'sin' : np.sin, 'cos' : np.cos, 'tan' : np.tan,
-                          'asin' : np.arcsin, 'acos' : np.arccos,
-                          'atan' : np.arctan }
-#Functions giving integers, of values without units:
-_expr_functions_toint = { 'round' : np.rint, 'floor' : np.floor, 'ceil' : np.ceil }
-#Functions keeping the units of the argument(s):
-_expr_functions_samedim = { 'abs' : np.abs, 'min' : np.minimum,
-                            'max' : np.maximum, 'hypot' : np.hypot,
-                            'clamp' : np.clip }
-#Functions used as statements in edits:
-_edit_statements = ( 'swap', 'rotate_x', 'rotate_y', 'rotate_z', 'rotate_around',
-                     'rotate_frame' )
-#Components of position, direction, and polarisation changed by rotations:
-_rotation_planes = { 'rotate_x' : ( ('y','z'), ('uy','uz'), ('poly','polz') ),
-                     'rotate_y' : ( ('z','x'), ('uz','ux'), ('polz','polx') ),
-                     'rotate_z' : ( ('x','y'), ('ux','uy'), ('polx','poly') ) }
-#The rotations given by a matrix, with the numbers of their arguments (an
-#axis and an angle, or the vectors v, vout, u, uout), and the vectors they
-#rotate:
-_rotation_matrix_args = { 'rotate_around' : 2, 'rotate_frame' : 4 }
-_rotated_vectors = ( ('x','y','z'), ('ux','uy','uz'), ('polx','poly','polz') )
-#Functions of vectors (abs also gives the lengths of vectors):
-_expr_functions_vector = ( 'dot', 'cross', 'angle' )
-#(functions using the position and direction of the particles):
-_expr_functions_flight = { 'through_sphere' : ( 'pos', 'dir' ) }
-_expr_functions = dict( sqrt = np.sqrt, atan2 = np.arctan2, mod = np.mod,
-                        **dict.fromkeys(_expr_functions_vector),
-                        **dict.fromkeys(_expr_functions_flight),
-                        **_expr_functions_nodim, **_expr_functions_toint,
-                        **_expr_functions_samedim )
+#The numpy functions of the functions of _expr_vocab:
+_np_functions = { 'exp' : np.exp, 'log' : np.log, 'log10' : np.log10,
+                  'sin' : np.sin, 'cos' : np.cos, 'tan' : np.tan,
+                  'asin' : np.arcsin, 'acos' : np.arccos, 'atan' : np.arctan,
+                  'round' : np.rint, 'floor' : np.floor, 'ceil' : np.ceil,
+                  'abs' : np.abs, 'min' : np.minimum, 'max' : np.maximum }
 
 def _angle_highres( a, b ):
     """Angles between the vectors a and b (given as tuples of components),
@@ -114,133 +89,6 @@ def _angle_highres( a, b ):
     dmag = np.sqrt( sum( ( x - y )**2 for x, y in zip(ua,ub) ) )
     smag = np.sqrt( sum( ( x + y )**2 for x, y in zip(ua,ub) ) )
     return 2.0 * np.arctan2(dmag,smag)
-
-#Characters which can not be used in expressions (nor in the histogram strings
-#of mcpltool -w and -t), although they are printable ASCII characters:
-_forbidden_chars = '"\'{}[]#$`\\'
-
-def _check_chars( text, what = 'expression' ):
-    """Check that the text only has printable ASCII characters (and ASCII
-    whitespace, including newlines), and none of the forbidden characters."""
-    for c in text:
-        if c in _forbidden_chars:
-            raise MCPLError(f'The character {c} can not be used in {what}s'
-                            f' (in "{_ascii_repr(text)}")')
-        if not ( ' ' <= c <= '~' or c in '\t\n\r\f\v' ):
-            raise MCPLError(f'Only printable ASCII characters can be used in'
-                            f' {what}s (not U+{ord(c):04X}, in'
-                            f' "{_ascii_repr(text)}")')
-
-def _ascii_repr( text ):
-    return text.encode('ascii','backslashreplace').decode('ascii')
-
-def _expr_normalise( expr ):
-    """Expression with all whitespace (including newlines, e.g. in long
-    expressions written over several lines) normalised to single spaces."""
-    if not isinstance(expr,str):
-        raise MCPLError(f'Expressions must be strings (got {type(expr).__name__})')
-    _check_chars(expr)
-    return ' '.join(expr.split())
-
-
-def _expr_check( node, expr, variables = () ):
-    """Check that only supported constructs are used in parsed expression
-    (variables are names of variables defined in edits)"""
-    ok_nodes = ( ast.Expression, ast.BoolOp, ast.And, ast.Or, ast.UnaryOp,
-                 ast.Not, ast.USub, ast.UAdd, ast.BinOp, ast.Add,
-                 ast.Sub, ast.Mult, ast.Div, ast.FloorDiv, ast.Pow,
-                 ast.BitAnd, ast.BitOr, ast.Compare, ast.Eq, ast.NotEq,
-                 ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn, ast.Tuple,
-                 ast.Subscript, ast.Name, ast.Load, ast.Constant, ast.Call, _Unit )
-    #TODO: Consider supporting conditional expressions ("a if cond else b",
-    #e.g. evaluated with _ExprEvaluator._with_active for each branch, like the
-    #right side of and/or), which were removed since nothing used them.
-    for n in ast.walk(node):
-        if not isinstance( n, ok_nodes ):
-            raise MCPLError(f'Unsupported syntax in expression "{expr}"')
-        if isinstance(n,ast.Constant) and not isinstance(n.value,(int,float)):
-            raise MCPLError(f'Unsupported value in expression "{expr}"')
-        if isinstance(n,ast.Call) and ( n.keywords or not (
-                isinstance(n.func,ast.Name) and n.func.id in _expr_functions ) ):
-            raise MCPLError(f'Unsupported function call in expression "{expr}"'
-                            ' (available functions are: '
-                            + ', '.join(sorted(_expr_functions)) + ')')
-        if isinstance(n,ast.Name) and not ( n.id in _expr_fields
-                                            or n.id in _expr_vectors
-                                            or n.id in variables
-                                            or n.id in _expr_constants
-                                            or n.id in _expr_functions
-                                            or n.id.startswith('userdata.') ):
-            if n.id == 'userdata':
-                raise MCPLError(f'Fields of the userdata are written as userdata.NAME,'
-                                f' in expression "{expr}"')
-            raise MCPLError(f'Unknown name "{n.id}" in expression "{expr}"'
-                            ' (particle fields are: '
-                            + ', '.join(_expr_fields) + ')')
-
-class _Expr:
-    """A parsed (and checked) expression of a value or condition: the common
-    basis of ParticleFilter, ParticleValue, and the values in ParticleEdit,
-    with the properties derived from its tree, and its evaluation. The tree
-    is given for parts of other expressions (like the values assigned in
-    edits, with their variables), and the text is then used in messages."""
-    def __init__( self, text, tree = None, variables = () ):
-        self.text = _expr_normalise(text)
-        self.tree = _expr_parse(self.text,units = _expr_units) if tree is None else ast.Expression(body = tree)
-        _expr_check(self.tree, self.text, variables)
-
-    @functools.cached_property
-    def canonical( self ):
-        """The normalised text, generated from the tree (see _expr_canonical)"""
-        return _expr_unparse(self.tree)
-
-    @functools.cached_property
-    def names( self ):
-        """All names used (fields, variables, constants, and functions)"""
-        return frozenset( n.id for n in ast.walk(self.tree) if isinstance(n,ast.Name) )
-
-    @property
-    def fields( self ):
-        """The particle fields used (including fileidx, and those of the
-        vectors used, as x for pos)"""
-        vectors = [ _expr_vectors[n] for n in self.names if n in _expr_vectors ]
-        vectors += [ _expr_vectors[v] for n in self.names if n in _expr_functions_flight
-                     for v in _expr_functions_flight[n] ]
-        return ( self.names & frozenset(_expr_fields) ).union(*vectors)
-
-    @property
-    def field( self ):
-        """The field if the expression is just a field (as "pdgcode"), else None"""
-        body = self.tree.body
-        return body.id if isinstance(body,ast.Name) and body.id in _expr_fields else None
-
-    @property
-    def domains( self ):
-        """Where the expression is defined, if only for some particles (as for
-        wavelengths): a list of (field, values) which must all hold (see
-        _expr_field_domains)"""
-        return [ _expr_field_domains[f] for f in sorted(self.fields) if f in _expr_field_domains ]
-
-    def value_label( self, value, unicode = False ):
-        """Label of a value of the expression if it is a field whose values have
-        names (as "n (2112)" for pdgcode, see _expr_value_names), else None"""
-        names = _expr_value_names.get(self.field)
-        return names[0](value,unicode) if names else None
-
-    def domain_mask( self, block ):
-        """Mask of the particles of the block for which the expression is
-        defined"""
-        mask = np.ones(len(block),dtype=bool)
-        for field, values in self.domains:
-            mask &= np.isin(np.broadcast_to(getattr(block,field),(len(block),)),list(values))
-        return mask
-
-    def evaluate( self, block, active = None ):
-        """The value (a _Q) for the particles of the block (for those of the mask
-        active, if given)"""
-        ev = _ExprEvaluator(block,self.text)
-        ev.active = active
-        return ev.scalar(ev(self.tree),'the value of an expression')
 
 class _Q:
     """Value with dimension (length,energy,time,temperature) in an expression.
@@ -337,8 +185,14 @@ def _unit_hint( d ):
     u = _expr_unit_hints.get(d)
     return f' (add units, e.g. 2{u})' if u else ''
 
+#The descriptions of the binary operators, for messages:
+_op_what = { '+' : 'Addition', '-' : 'Subtraction', '*' : 'Multiplication',
+             '/' : 'Division', '//' : 'Integer division', '^' : 'Raising to a power' }
+_compare_fcts = { '==' : np.equal, '!=' : np.not_equal, '<' : np.less,
+                  '<=' : np.less_equal, '>' : np.greater, '>=' : np.greater_equal }
+
 class _ExprEvaluator:
-    """Evaluates parsed expression on a block of particles with numpy"""
+    """Evaluates parsed expressions on a block of particles with numpy"""
     def __init__( self, block, expr, state = None ):
         self._block = block
         self._expr = expr
@@ -364,28 +218,30 @@ class _ExprEvaluator:
         if n in _expr_vectors:
             return _V( self.name(c) for c in _expr_vectors[n] )
         if n in _expr_constants:
-            v = _expr_constants[n]
-            return _Q(_int_constant(v) if isinstance(v,int) else v)
+            return _Q(_expr_constants[n])
         if n not in self._cache:
-            if n.startswith('userdata.'):
-                field, _, index = n[9:].partition('.at(')
-                q = self._userdata(field,int(index[:-1]) if index else None)
-            else:
-                q = _Q(getattr(self._block,n),_expr_field_dims.get(n))
-            v = np.asarray(q.v)
-            if v.dtype.kind in 'iub':
-                v = v.astype(_ctype(v.dtype),copy=False)
-            elif v.dtype != np.float64:
-                v = v.astype(np.float64)#(e.g. float32 userdata)
-            self._cache[n] = _Q(v,q.d)
+            self._cache[n] = self._typed(_Q(getattr(self._block,n),_expr_field_dims.get(n)))
         #(checked for each use, for the particles in use there):
-        what = ( f'The userdata field {n[9:].partition(".at(")[0]} has'
-                 if n.startswith('userdata.') else f'The particle field {n} has' )
-        return self.finite(self._cache[n],what)
-    def _userdata( self, field, index = None ):
+        return self.finite(self._cache[n],f'The particle field {n} has')
+    @staticmethod
+    def _typed( q ):
+        """q with the integer types of C (see _Q), or as float64 (e.g. for
+        float32 userdata)"""
+        v = np.asarray(q.v)
+        if v.dtype.kind in 'iub':
+            v = v.astype(_ctype(v.dtype),copy=False)
+        elif v.dtype != np.float64:
+            v = v.astype(np.float64)
+        return _Q(v,q.d)
+    def userdata( self, node ):
         """The values of the field of the userdata (with the unit of the field
         in the layout, if any), or of the value with the index (from 0) of a
         field with an array of values"""
+        key = node.text
+        if key not in self._cache:
+            self._cache[key] = self._typed(self._userdata(node.field,node.index))
+        return self.finite(self._cache[key],f'The userdata field {node.field} has')
+    def _userdata( self, field, index ):
         if isinstance(self._block,_EmptyBlock):
             #(all fields, when checked without a file, with unknown units, and
             #as integers, which can be used in all places):
@@ -485,117 +341,110 @@ class _ExprEvaluator:
             self.error(f'{what} requires a value without units, not {_dimstr(q.d)}')
         return q.v
     def __call__( self, node ):
-        ev = self
-        if isinstance(node,ast.Expression):
-            return ev(node.body)
-        if isinstance(node,ast.Constant):
-            v = node.value
-            if type(v) is int:
-                c = _int_constant(v)
-                if c is None:
-                    self.error(f'The integer {v} is too large (integers must fit'
-                               ' in 64 bits)')
-                return _Q(c,zero=(v==0))
-            return self.finite(_Q(v,zero=(v==0)),'A constant has')
-        if isinstance(node,ast.Name):
-            return self.name(node.id)
-        if isinstance(node,ast.Tuple):
-            return self.vector([ ev(e) for e in node.elts ])
-        if isinstance(node,ast.Subscript):
-            v, i = ev(node.value), node.slice.value
-            if not isinstance(v,_V):
-                self.error('Only vectors have values like .x or .at(INDEX)')
-            if i >= len(v.c):
-                self.error(f'The index {i} is too large for {v.describe()}'
-                           ' (the values are counted from 0)')
-            return v.c[i]
-        if isinstance(node,_Unit):
-            v, d = _expr_units[node.unit]
-            return _Q(v ** node.power,self.dimpow(d,node.power,f'The unit {node.unit}'))
-        if isinstance(node,ast.BoolOp):
-            #The right side of and (or) is only used for particles
-            #where the left side is true (false):
-            is_and = isinstance(node.op,ast.And)
-            fct = np.logical_and if is_and else np.logical_or
-            res = self.boolval(ev(node.values[0]))
-            for v in node.values[1:]:
-                b = self.boolval(self._with_active(res if is_and else ~np.asarray(res,dtype=bool),v))
-                res = fct(res,b)
-            return _Q(res)
-        if isinstance(node,ast.UnaryOp):
-            c = node.operand
-            if ( isinstance(node.op,ast.USub) and isinstance(c,ast.Constant)
-                 and type(c.value) is int ):
-                #(negative integer constants, like -2147483648):
-                return ev(ast.Constant(-c.value))
-            q = ev(c)
-            if isinstance(q,_V):
-                if not isinstance(node.op,(ast.USub,ast.UAdd)):
-                    self.error(f'not can not be used for vectors (here {q.describe()})')
-                return _V( self.negate(c) for c in q.c ) if isinstance(node.op,ast.USub) else q
-            if isinstance(node.op,ast.Not):
-                return _Q(np.logical_not(self.boolval(q)))
-            if isinstance(node.op,ast.USub):
-                return self.negate(q)
-            return q
-        if isinstance(node,ast.BinOp):
-            what = { ast.Add : 'Addition', ast.Sub : 'Subtraction',
-                     ast.Mult : 'Multiplication', ast.Div : 'Division',
-                     ast.FloorDiv : 'Integer division',
-                     ast.Pow : 'Raising to a power' }.get(type(node.op),'An operation')
-            a, b = ev(node.left), ev(node.right)
-            res = ( self.vbinop(node.op,a,b) if isinstance(a,_V) or isinstance(b,_V)
-                    else self.binop(node.op,a,b) )
-            return self.finite(res,f'{what} gives')
-        if isinstance(node,ast.Compare):
-            fcts = { ast.Eq : np.equal, ast.NotEq : np.not_equal,
-                     ast.Lt : np.less, ast.LtE : np.less_equal,
-                     ast.Gt : np.greater, ast.GtE : np.greater_equal }
-            if isinstance(node.ops[0],(ast.In,ast.NotIn)):
-                #(equal to any of the values, see _ExprParser._comparison):
-                left, res = self.scalar(ev(node.left),'compared'), False
-                for c in node.comparators[0].elts:
-                    a, b, _ = self.same(left,ev(c),'comparison with "in"')
-                    res = np.logical_or(res,self.compare(np.equal,a,b))
-                return _Q(np.logical_not(res) if isinstance(node.ops[0],ast.NotIn) else res)
-            left, res = self.scalar(ev(node.left),'compared'), True
-            for op, c in zip(node.ops,node.comparators):
-                right = self.scalar(ev(c),'compared')
-                a, b, _ = self.same(left,right,'comparison')
-                res = np.logical_and(res,self.compare(fcts[type(op)],a,b))
-                left = right
-            return _Q(res)
-        if isinstance(node,ast.Call):
-            return self.finite(self.call(node.func.id,[ev(a) for a in node.args]),
-                               f'{node.func.id}(..) gives')
-        raise MCPLError('Unsupported expression')#should not happen
+        return _dispatch[type(node)](self,node)
+    def _value( self, node ):
+        return self(node.expr)
+    def _int( self, node ):
+        v = node.value
+        c = _int_constant(v)
+        if c is None:
+            self.error(f'The integer {v} is too large (integers must fit in 64 bits)')
+        return _Q(c,zero=(v==0))
+    def _float( self, node ):
+        v = node.value
+        return self.finite(_Q(v,zero=(v==0)),'A constant has')
+    def _quantity( self, node ):
+        #(the number multiplied by the unit):
+        q = self.binop('*',self(node.number),self(Unit(node.unit,node.power)))
+        return self.finite(q,'Multiplication gives')
+    def _unit( self, node ):
+        v, d = _expr_units[node.unit]
+        return _Q(v ** node.power,self.dimpow(d,node.power,f'The unit {node.unit}'))
+    def _name( self, node ):
+        return self.name(node.id)
+    def _particle( self, node ):
+        return _Q(_int_constant(_particle_names[node.name]))
+    def _vector( self, node ):
+        return self.vector([ self(c) for c in node.components ])
+    def _part( self, node ):
+        v, i = self(node.vector), node.index
+        if not isinstance(v,_V):
+            self.error('Only vectors have values like .x or .at(INDEX)')
+        if i >= len(v.c):
+            self.error(f'The index {i} is too large for {v.describe()}'
+                       ' (the values are counted from 0)')
+        return v.c[i]
+    def _logical( self, node ):
+        #The right side of and (or) is only used for particles
+        #where the left side is true (false):
+        is_and = node.op == 'and'
+        fct = np.logical_and if is_and else np.logical_or
+        res = self.boolval(self(node.values[0]))
+        for v in node.values[1:]:
+            b = self.boolval(self._with_active(res if is_and else ~np.asarray(res,dtype=bool),v))
+            res = fct(res,b)
+        return _Q(res)
+    def _unary( self, node ):
+        c = node.operand
+        if node.op == '-' and isinstance(c,Int):
+            #(negative integer constants, like -2147483648):
+            return self(Int(-c.value))
+        q = self(c)
+        if isinstance(q,_V):
+            if node.op == 'not':
+                self.error(f'not can not be used for vectors (here {q.describe()})')
+            return _V( self.negate(c) for c in q.c ) if node.op == '-' else q
+        if node.op == 'not':
+            return _Q(np.logical_not(self.boolval(q)))
+        if node.op == '-':
+            return self.negate(q)
+        return q
+    def _binary( self, node ):
+        a, b = self(node.left), self(node.right)
+        res = ( self.vbinop(node.op,a,b) if isinstance(a,_V) or isinstance(b,_V)
+                else self.binop(node.op,a,b) )
+        return self.finite(res,f'{_op_what.get(node.op,"An operation")} gives')
+    def _in( self, node ):
+        #(equal to any of the values):
+        left, res = self.scalar(self(node.value),'compared'), False
+        for c in node.values:
+            a, b, _ = self.same(left,self(c),'comparison with "in"')
+            res = np.logical_or(res,self.compare(np.equal,a,b))
+        return _Q(np.logical_not(res) if node.negated else res)
+    def _compare( self, node ):
+        left, res = self.scalar(self(node.first),'compared'), True
+        for op, c in zip(node.ops,node.values):
+            right = self.scalar(self(c),'compared')
+            a, b, _ = self.same(left,right,'comparison')
+            res = np.logical_and(res,self.compare(_compare_fcts[op],a,b))
+            left = right
+        return _Q(res)
+    def _call( self, node ):
+        return self.finite(self.call(node.name,[ self(a) for a in node.args ]),
+                           f'{node.name}(..) gives')
     def binop( self, op, a, b ):
-        if isinstance(op,(ast.BitAnd,ast.BitOr)):
+        if op in ( '&', '|' ):
             return self.bitwise(op,a,b)
-        what = { ast.Add : 'Addition', ast.Sub : 'Subtraction',
-                 ast.Mult : 'Multiplication', ast.FloorDiv : 'Integer division',
-                 ast.Pow : 'Raising to a power' }.get(type(op),'Division')
-        if isinstance(op,ast.FloorDiv):
+        what = _op_what[op]
+        if op == '//':
             if not ( _is_int(a.v) and _is_int(b.v) ):
                 self.error('The operator // can only be used with integers (/ divides'
                            ' as floating point numbers)')
             return self.int_arith(op,a,b,what)
-        if ( isinstance(op,(ast.Add,ast.Sub,ast.Mult)) and np.asarray(a.v).dtype.kind in 'iub'
+        if ( op in ( '+', '-', '*' ) and np.asarray(a.v).dtype.kind in 'iub'
              and np.asarray(b.v).dtype.kind in 'iub' ):
             return self.int_arith(op,a,b,what)
         #(otherwise integers are used as doubles, like in C, and / always
         #divides as floating point numbers):
         a, b = self.as_float(a), self.as_float(b)
         with np.errstate(divide='ignore',invalid='ignore',over='ignore'):
-            if isinstance(op,(ast.Add,ast.Sub)):
+            if op in ( '+', '-' ):
                 x, y, d = self.same(a,b,'arithmetic')
-                return _Q(np.add(x,y) if isinstance(op,ast.Add) else np.subtract(x,y),d)
-            if isinstance(op,(ast.Mult,ast.Div)):
-                if isinstance(op,ast.Mult):
-                    v, sign = a.v * b.v, 1
-                else:
-                    v, sign = np.true_divide(a.v,b.v), -1
-                return _Q(v,self.muldim(a.d,b.d,sign))
+                return _Q(np.add(x,y) if op == '+' else np.subtract(x,y),d)
+            if op == '*':
+                return _Q(a.v * b.v,self.muldim(a.d,b.d,1))
+            if op == '/':
+                return _Q(np.true_divide(a.v,b.v),self.muldim(a.d,b.d,-1))
             #Power:
             if b.d not in ( None, _dim_unknown ):
                 self.error(f'Exponent with units ({_dimstr(b.d)})')
@@ -642,13 +491,13 @@ class _ExprEvaluator:
         """+, -, *, and // of integers, like in C, but with errors instead of
         wrapping around (// only divides non-negative integers, where Python
         and C agree)"""
-        if isinstance(op,(ast.Add,ast.Sub)):
+        if op in ( '+', '-' ):
             _, _, d = self.same(a,b,'arithmetic')
         else:
-            d = self.muldim(a.d,b.d,1 if isinstance(op,ast.Mult) else -1)
+            d = self.muldim(a.d,b.d,1 if op == '*' else -1)
         rt, ( x, y ) = self.int_operands((a.v,b.v),what)
         info = np.iinfo(rt)
-        if isinstance(op,ast.FloorDiv):
+        if op == '//':
             if np.any(self.masked( ( x < 0 ) | ( y < 0 ) )):
                 self.error('The operator // can not be used with negative values')
             zero = y == 0
@@ -659,18 +508,18 @@ class _ExprEvaluator:
             #(computed in 64 bits, where the results of 32-bit integers fit):
             wide = np.uint64 if rt.kind == 'u' else np.int64
             x, y = x.astype(wide), y.astype(wide)
-            if isinstance(op,ast.Sub) and rt.kind == 'u':
+            if op == '-' and rt.kind == 'u':
                 x, y = x.astype(np.int64), y.astype(np.int64)
             v = self._int_op(op,x,y)
             self.int_overflow( ( v < info.min ) | ( v > info.max ),rt,what)
             return _Q(v.astype(rt),d)
         with np.errstate(over='ignore'):
             v = self._int_op(op,x,y)
-            if isinstance(op,ast.Add):
+            if op == '+':
                 bad = ( v < x ) if rt.kind == 'u' else ( ( ( x ^ v ) & ( y ^ v ) ) < 0 )
-            elif isinstance(op,ast.Sub):
+            elif op == '-':
                 bad = ( x < y ) if rt.kind == 'u' else ( ( ( x ^ y ) & ( x ^ v ) ) < 0 )
-            elif isinstance(op,ast.Mult):
+            elif op == '*':
                 nz = x != 0
                 bad = nz & ( v // np.where(nz,x,np.ones_like(x)) != y )
                 if rt.kind == 'i':
@@ -681,11 +530,11 @@ class _ExprEvaluator:
         return _Q(v,d)
     @staticmethod
     def _int_op( op, x, y ):
-        if isinstance(op,ast.Add):
+        if op == '+':
             return x + y
-        if isinstance(op,ast.Sub):
+        if op == '-':
             return x - y
-        if isinstance(op,ast.Mult):
+        if op == '*':
             return x * y
         #Integer division (of non-negative integers, see int_arith):
         return np.floor_divide(x,y)
@@ -712,13 +561,12 @@ class _ExprEvaluator:
         return fct(a,b)
     def bitwise( self, op, a, b ):
         """& and | of integers, like in C"""
-        sym = '&' if isinstance(op,ast.BitAnd) else '|'
         for q in (a,b):
             if not _is_int(q.v):
-                self.error(f'The bitwise operator {sym} can only be used with integers'
+                self.error(f'The bitwise operator {op} can only be used with integers'
                            ' (use "and" and "or" for logical and/or)')
-        _, ( x, y ) = self.int_operands((a.v,b.v),f'the operation {sym}')
-        return _Q(np.bitwise_and(x,y) if sym == '&' else np.bitwise_or(x,y))
+        _, ( x, y ) = self.int_operands((a.v,b.v),f'the operation {op}')
+        return _Q(np.bitwise_and(x,y) if op == '&' else np.bitwise_or(x,y))
     def dimpow( self, d, e, what ):
         """The dimension d to the power e, which must give whole or half powers
         of the units (as in sqrt(ekin))"""
@@ -733,11 +581,10 @@ class _ExprEvaluator:
             res.append( int(p) if float(p).is_integer() else float(p) )
         return tuple(res)
     def call( self, fname, args ):
-        fct = _expr_functions[fname]
         if fname == 'through_sphere':
             return self.through_sphere(args)
-        if fname in _expr_functions_vector or ( fname == 'abs' and len(args) == 1
-                                                and isinstance(args[0],_V) ):
+        if fname in _functions_vector or ( fname == 'abs' and len(args) == 1
+                                           and isinstance(args[0],_V) ):
             with np.errstate(divide='ignore',invalid='ignore'):
                 return self.vcall(fname,args)
         for q in args:
@@ -745,14 +592,15 @@ class _ExprEvaluator:
         if fname in ('mod','abs','round','floor','ceil','min','max','clamp') and all(
                 np.asarray(q.v).dtype.kind in 'iub' for q in args ):
             return self.int_call(fname,args,f'{fname}(..)')
+        fct = _np_functions.get(fname)
         #(otherwise integers are used as doubles, like in C):
         args = [ self.as_float(q) for q in args ]
         with np.errstate(divide='ignore',invalid='ignore'):
-            if fname in _expr_functions_nodim:
+            if fname in _functions_nodim:
                 if len(args) != 1:
                     self.error(f'{fname}(..) takes one argument')
                 return _Q(fct(self.nodim(args[0],f'{fname}(..)')))
-            if fname in _expr_functions_toint:
+            if fname in _functions_toint:
                 if len(args) != 1:
                     self.error(f'{fname}(..) takes one argument')
                 v = np.asarray(fct(self.nodim(args[0],f'{fname}(..)')))
@@ -813,19 +661,19 @@ class _ExprEvaluator:
         same size and units), vectors multiplied or divided by numbers, and v^2
         (the length squared)"""
         va, vb = isinstance(a,_V), isinstance(b,_V)
-        if isinstance(op,(ast.Add,ast.Sub)):
+        if op in ( '+', '-' ):
             if not ( va and vb ) or len(a.c) != len(b.c):
                 self.error('Vectors can only be added to or subtracted from vectors of'
                            ' the same size (not '
                            f'{a.describe() if va else "a number"} and'
                            f' {b.describe() if vb else "a number"})')
             return _V( self.binop(op,x,y) for x, y in zip(a.c,b.c) )
-        if isinstance(op,ast.Mult) and not ( va and vb ):
+        if op == '*' and not ( va and vb ):
             return ( _V( self.binop(op,x,b) for x in a.c ) if va
                      else _V( self.binop(op,a,y) for y in b.c ) )
-        if isinstance(op,ast.Div) and va and not vb:
+        if op == '/' and va and not vb:
             return _V( self.binop(op,x,b) for x in a.c )
-        if isinstance(op,ast.Pow) and va and not vb and np.ndim(b.v) == 0 and b.v == 2:
+        if op == '^' and va and not vb and np.ndim(b.v) == 0 and b.v == 2:
             return self.call('dot',[a,a])
         self.error('Vectors can be added and subtracted, multiplied and divided by numbers,'
                    ' and v^2 gives their lengths squared (dot(v,w) and cross(v,w) give'
@@ -845,13 +693,13 @@ class _ExprEvaluator:
             #(precise also for small angles, and of 2D vectors as in 3D):
             pad = [ 0.0 ] * ( 3 - len(v.c) )
             return _Q(_angle_highres([ c.v for c in v.c ] + pad,[ c.v for c in w.c ] + pad))
-        mult = lambda x, y : self.binop(ast.Mult(),x,y)
+        mult = lambda x, y : self.binop('*',x,y)
         if fname == 'dot':
             res = mult(v.c[0],w.c[0])
             for x, y in zip(v.c[1:],w.c[1:]):
-                res = self.binop(ast.Add(),res,mult(x,y))
+                res = self.binop('+',res,mult(x,y))
             return res
-        sub = lambda i, j : self.binop(ast.Sub(),mult(v.c[i],w.c[j]),mult(v.c[j],w.c[i]))
+        sub = lambda i, j : self.binop('-',mult(v.c[i],w.c[j]),mult(v.c[j],w.c[i]))
         return _V([ sub(1,2), sub(2,0), sub(0,1) ])
     def through_sphere( self, args ):
         """Whether the line of flight of the particles (through their
@@ -871,7 +719,7 @@ class _ExprEvaluator:
             self.error('The radius of through_sphere(center,radius) can not be negative')
         #(the distance of the center from the line is the length of the cross
         #product of the direction, a unit vector, and the vector to the center):
-        to_center = _V( self.binop(ast.Sub(),c,p) for c, p in zip(center.c,self.name('pos').c) )
+        to_center = _V( self.binop('-',c,p) for c, p in zip(center.c,self.name('pos').c) )
         d = self.vcall('cross',[to_center,self.name('dir')])
         return _Q(np.less_equal(self.vcall('dot',[d,d]).v,np.square(self.as_float(radius).v)))
     def int_call( self, fname, args, what ):
@@ -920,6 +768,16 @@ class _ExprEvaluator:
         q = self.scalar(q,'a condition')
         return np.asarray(q.v).astype(bool) if np.asarray(q.v).dtype != bool else q.v
 
+#(the methods of _ExprEvaluator evaluating the nodes):
+_dispatch = { Value : _ExprEvaluator._value, Int : _ExprEvaluator._int,
+              Float : _ExprEvaluator._float, Quantity : _ExprEvaluator._quantity,
+              Unit : _ExprEvaluator._unit, Name : _ExprEvaluator._name,
+              Particle : _ExprEvaluator._particle, Userdata : _ExprEvaluator.userdata,
+              Vector : _ExprEvaluator._vector, Part : _ExprEvaluator._part,
+              Logical : _ExprEvaluator._logical, Unary : _ExprEvaluator._unary,
+              Binary : _ExprEvaluator._binary, In : _ExprEvaluator._in,
+              Compare : _ExprEvaluator._compare, Call : _ExprEvaluator._call }
+
 class _EmptyBlock:
     """Block without particles, for checking expressions before use"""
     def __len__( self ):
@@ -928,3 +786,142 @@ class _EmptyBlock:
         dtypes = { 'pdgcode' : np.int32, 'userflags' : np.uint32,
                    'fileidx' : np.int64 }
         return np.zeros(0,dtype = dtypes.get(name,float))
+
+#The statements of picks and edits:
+
+def _run_statements( ev, statements, text, modified ):
+    """Run the checked statements (see _expr_astcheck) of a pick or edit, with
+    the evaluator ev (of a block), which gets the values of the variables and
+    of the changed fields in its state, adding the names of the changed fields
+    to the set modified (text is the pick or edit, for messages)"""
+    state = ev.state
+    for st in statements:
+        if isinstance(st,Assign):
+            name = st.target
+            value = st.value if st.op is None else Binary(st.op,Name(name),st.value)
+            q = ev(value)
+            if name in _expr_vectors:
+                comps = _expr_vectors[name]
+                d = _expr_field_dims.get(comps[0])
+                if not ( isinstance(q,_V) and len(q.c) == 3
+                         and ( q.d in ( d, _dim_unknown ) or all( c.zero for c in q.c ) ) ):
+                    what = q.describe() if isinstance(q,_V) else 'a number'
+                    dname = f' of {_dimstr(d)}s' if d else ' without units'
+                    raise MCPLError(f'Can not assign {what} to {name}, which is a'
+                                    f' 3D vector{dname}, in expression "{text}"')
+                for c, qc in zip(comps,q.c):
+                    _assign_field(ev,c,qc,text,modified)
+            elif name in _assignable:
+                _assign_field(ev,name,ev.scalar(q,f'assigned to {name}'),text,modified)
+            else:
+                state[name] = q
+        elif st.name == 'swap':
+            a, b = ( n.id for n in st.args )
+            qa, qb = ( ev.scalar(ev.name(c),'swapped') for c in (a,b) )
+            ev.same(qa,qb,'swap(..)')
+            state[a], state[b] = qb, qa
+            modified.update( e for e in (a,b) if e in _assignable )
+        elif st.name in _rotation_matrix_args:
+            _rotate_by_matrix(ev,st,modified)
+        else:
+            _rotate(ev,st,modified)
+
+def _rotate( ev, call, modified ):
+    """rotate_x(angle), rotate_y(angle), or rotate_z(angle)"""
+    fname = call.name
+    qa = ev.scalar(ev(call.args[0]),f'an angle in {fname}(..)')
+    if qa.d not in ( None, _dim_unknown ):
+        ev.error(f'{fname}(..) requires an angle (e.g. 90deg), not {_dimstr(qa.d)}')
+    #Rotations by multiples of 90 degrees are exact, with cos and sin
+    #exactly 0 and +-1 (e.g. rotate_z(90deg) gives exactly (x,y) ->
+    #(-y,x), as the values are finite). Adding 0.0 to the results
+    #avoids negative zeros (-0.0 + 0.0 is 0.0):
+    c, s = _exact_cos_sin(qa.v)
+    for a, b in _rotation_planes[fname]:
+        va, vb = ev.name(a), ev.name(b)
+        ra, rb = c * va.v - s * vb.v, s * va.v + c * vb.v
+        ev.state[a] = _Q(ra + 0.0, va.d)
+        ev.state[b] = _Q(rb + 0.0, vb.d)
+        modified.update((a,b))
+
+def _assign_field( ev, name, q, text, modified ):
+    """Assign the value q to the field"""
+    d = _expr_field_dims.get(name)
+    if q.d not in ( d, _dim_unknown ) and not q.zero:
+        what = _dimstr(q.d) if q.d is None else f'value with {_dimstr(q.d)}'
+        dname = 'unitless' if d is None else f'a {_dimstr(d)}'
+        dname = dname.replace('a energy','an energy')
+        hint = _unit_hint(d) if q.d is None else ''
+        raise MCPLError(f'Can not assign {what} to {name}, which is'
+                        f' {dname}{hint}, in expression "{text}"')
+    v = np.broadcast_to(np.asarray(q.v,dtype=( float if name not in
+                                               ('pdgcode','userflags')
+                                               else None )),(len(ev._block),))
+    if name == 'wavelength':
+        _set_wavelength(ev,v,text,modified)
+        return
+    if name in ('pdgcode','userflags'):
+        v = _int_field_values(name,v,text)
+    ev.state[name] = _Q(v,d)
+    modified.add(name)
+
+def _int_field_values( name, v, text ):
+    """Values for pdgcode or userflags, which must be integers in the range
+    of their types (int32 and uint32)"""
+    v = np.asarray(v)
+    if v.dtype.kind not in 'iub' and not np.all( np.round(v) == v ):
+        raise MCPLError(f'Non-integer values assigned to {name} in'
+                        f' expression "{text}"')
+    info = np.iinfo(np.int32 if name == 'pdgcode' else np.uint32)
+    if np.any( ( v < info.min ) | ( v > info.max ) ):
+        raise MCPLError(f'Values assigned to {name} must be integers from'
+                        f' {info.min} to {info.max}, in expression "{text}"')
+    return v.astype(info.dtype)
+
+def _rotate_by_matrix( ev, call, modified ):
+    """Rotate the positions, directions, and polarisations with the matrix
+    of rotate_around or rotate_frame (see _rotation_matrix)"""
+    fname = call.name
+    qs = [ ev(a) for a in call.args ]
+    #(3D vectors, and the angle of rotate_around):
+    values = []
+    for i, q in enumerate(qs):
+        if fname == 'rotate_around' and i == 1:
+            q = ev.scalar(q,f'the angle in {fname}(..)')
+            if q.d not in ( None, _dim_unknown ):
+                ev.error(f'{fname}(..) requires an angle (e.g. 90deg) as its last'
+                         f' argument, not {_dimstr(q.d)}')
+            values.append(q.v)
+        elif not ( isinstance(q,_V) and len(q.c) == 3 ):
+            what = ( 'a 3D vector (the axis) and an angle, as in rotate_around((0,0,1),90deg)'
+                     if fname == 'rotate_around' else 'four 3D vectors, as in'
+                     ' rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))' )
+            ev.error(f'{fname}(..) takes {what}')
+        else:
+            values += [ c.v for c in q.c ]
+    R = _rotation_matrix(fname,values)
+    if isinstance(R,str):
+        ev.error(f'In {fname}(..), {R}')
+    state, n = ev.state, len(ev._block)
+    for names in _rotated_vectors:
+        qv = [ ev.name(c) for c in names ]
+        V = np.stack([ np.broadcast_to(np.asarray(q.v,dtype=float),(n,)) for q in qv ],
+                     axis=-1)
+        res = np.einsum('...ij,...j->...i',R,V) + 0.0#(no negative zeros)
+        for i, c in enumerate(names):
+            state[c] = _Q(res[:,i],qv[i].d)
+            modified.add(c)
+
+def _set_wavelength( ev, wl, text, modified ):
+    """Set kinetic energy from wavelength (given in cm)"""
+    pdg = np.asarray(ev.name('pdgcode').v)
+    if not np.all( np.isin( pdg, _wavelength_pdgcodes ) ):
+        raise MCPLError('wavelength can only be assigned to neutrons'
+                        ' (pdgcode 2112) and gammas (pdgcode 22)'
+                        f' in expression "{text}"')
+    if np.any( np.asarray(wl) <= 0.0 ):
+        raise MCPLError('wavelength must be assigned positive values'
+                        f' in expression "{text}"')
+    ev.state['ekin'] = _Q(np.broadcast_to(ekin_from_wavelength(wl/_expr_wl_unit,pdg),
+                                          wl.shape),_dim_E)
+    modified.add('ekin')

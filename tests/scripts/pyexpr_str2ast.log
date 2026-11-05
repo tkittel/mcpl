@@ -32,14 +32,14 @@ Precedence and associativity:
   '(a < b) == c'                     -> (cmp (cmp a < b) == c)   written: '(a<b)==c'
   'a < b and b < c'                  -> (and (cmp a < b) (cmp b < c))   written: 'a<b and b<c'
 Units:
-  '25meV'                            -> (* 25 <meV>)   written: '25meV'
-  '25 meV'                           -> (* 25 <meV>)   written: '25meV'
-  '1e3cm'                            -> (* 1000.0 <cm>)   written: '1000.0cm'
-  '0.5m'                             -> (* 0.5 <m>)   written: '0.5m'
+  '25meV'                            -> 25<meV>   written: '25meV'
+  '25 meV'                           -> 25<meV>   written: '25meV'
+  '1e3cm'                            -> 1000.0<cm>   written: '1000.0cm'
+  '0.5m'                             -> 0.5<m>   written: '0.5m'
   'x/cm'                             -> (/ x <cm>)   written: 'x/cm'
   'MeV'                              -> <MeV>   written: 'MeV'
-  '4cm^2'                            -> (* 4 <cm^2>)   written: '4cm^2'
-  '2cm^-1 * x'                       -> (* (* 2 <cm^-1>) x)   written: '2cm^-1*x'
+  '4cm^2'                            -> 4<cm^2>   written: '4cm^2'
+  '2cm^-1 * x'                       -> (* 2<cm^-1> x)   written: '2cm^-1*x'
   'cm^(1/2)'                         -> <cm^0.5>   written: 'cm^0.5'
   'cm^-0.5'                          -> <cm^-0.5>   written: 'cm^-0.5'
   'cm^2.5'                           -> <cm^2.5>   written: 'cm^2.5'
@@ -49,13 +49,20 @@ Units:
   '(a + b)cm'                        -> (* (+ a b) <cm>)   written: '(a+b)cm'
   '1/cm^2'                           -> (/ 1 <cm^2>)   written: '1/cm^2'
   'x > 0'                            -> (cmp x > 0)   written: 'x>0'
-  'x > 2cm - 1mm'                    -> (cmp x > (- (* 2 <cm>) (* 1 <mm>)))   written: 'x>2cm-1mm'
+  'x > 2cm - 1mm'                    -> (cmp x > (- 2<cm> 1<mm>))   written: 'x>2cm-1mm'
   'ekin/MeV ^ 2'                     -> (/ ekin <MeV^2>)   written: 'ekin/MeV^2'
   'deg'                              -> <deg>   written: 'deg'
+  '2*MeV'                            -> (* 2 <MeV>)   written: '2*MeV'
+  '(2)MeV'                           -> 2<MeV>   written: '2MeV'
+  '-2MeV'                            -> (neg 2<MeV>)   written: '-2MeV'
+  '2^3MeV'                           -> (* (^ 2 3) <MeV>)   written: '2^3MeV'
+  '0x10 mm'                          -> hex:16<mm>   written: '0x10 mm'
+  '0x10*mm'                          -> (* hex:16 <mm>)   written: '0x10*mm'
+  '1e-9cm'                           -> 1e-09<cm>   written: '1e-09cm'
 Vectors and their values:
   '(a,b)'                            -> [a, b]   written: '(a,b)'
   '(a,b,c)'                          -> [a, b, c]   written: '(a,b,c)'
-  '(0,0,1m)'                         -> [0, 0, (* 1 <m>)]   written: '(0,0,1m)'
+  '(0,0,1m)'                         -> [0, 0, 1<m>]   written: '(0,0,1m)'
   'pos.x'                            -> (at pos 0)   written: 'pos.x'
   'pos.y.z'                          -> (at (at pos 1) 2)   written: 'pos.y.z'
   'pos.at(2)'                        -> (at pos 2)   written: 'pos.z'
@@ -64,20 +71,20 @@ Vectors and their values:
   '-pos.x'                           -> (neg (at pos 0))   written: '-pos.x'
   'f(a,b)'                           -> f(a, b)   written: 'f(a,b)'
   'f()'                              -> f()   written: 'f()'
-  'abs((0,0,1m))'                    -> abs([0, 0, (* 1 <m>)])   written: 'abs((0,0,1m))'
+  'abs((0,0,1m))'                    -> abs([0, 0, 1<m>])   written: 'abs((0,0,1m))'
   'dot(dir,(0,0,1))'                 -> dot(dir, [0, 0, 1])   written: 'dot(dir,(0,0,1))'
   'f(g(a))'                          -> f(g(a))   written: 'f(g(a))'
 Userdata fields:
   'userdata.temp'                    -> userdata.temp   written: 'userdata.temp'
   'userdata.d.at(1)'                 -> userdata.d.at(1)   written: 'userdata.d.at(1)'
-  'userdata.temp > 300K'             -> (cmp userdata.temp > (* 300 <K>))   written: 'userdata.temp>300K'
+  'userdata.temp > 300K'             -> (cmp userdata.temp > 300<K>)   written: 'userdata.temp>300K'
   '-userdata.n ^ 2'                  -> (neg (^ userdata.n 2))   written: '-userdata.n^2'
 In and not in:
-  'pdgcode in (neutron,gamma)'       -> (cmp pdgcode in [neutron, gamma])   written: 'pdgcode in (neutron,gamma)'
-  'x not in (1,2)'                   -> (cmp x not in [1, 2])   written: 'x not in (1,2)'
-  'a in (b)'                         -> (cmp a in [b])   written: 'a in (b)'
-  'not a in (1,2)'                   -> (not (cmp a in [1, 2]))   written: 'not a in (1,2)'
-  'a + 1 in (2,3) and b'             -> (and (cmp (+ a 1) in [2, 3]) b)   written: 'a+1 in (2,3) and b'
+  'pdgcode in (neutron,gamma)'       -> (in pdgcode [p:neutron, p:gamma])   written: 'pdgcode in (neutron,gamma)'
+  'x not in (1,2)'                   -> (not in x [1, 2])   written: 'x not in (1,2)'
+  'a in (b)'                         -> (in a [b])   written: 'a in (b)'
+  'not a in (1,2)'                   -> (not (in a [1, 2]))   written: 'not a in (1,2)'
+  'a + 1 in (2,3) and b'             -> (and (in (+ a 1) [2, 3]) b)   written: 'a+1 in (2,3) and b'
 Numbers (decimal and hexadecimal, as in C):
   '0'                                -> 0   written: '0'
   '7'                                -> 7   written: '7'
@@ -87,13 +94,19 @@ Numbers (decimal and hexadecimal, as in C):
   '1e-3'                             -> 0.001   written: '0.001'
   '1E3'                              -> 1000.0   written: '1000.0'
   '1.e3'                             -> 1000.0   written: '1000.0'
-  '0x10'                             -> 16   written: '16'
-  '0X1F'                             -> 31   written: '31'
+  '0x10'                             -> hex:16   written: '0x10'
+  '0X1F'                             -> hex:31   written: '0x1f'
+  '0x0'                              -> hex:0   written: '0x0'
   '0.0'                              -> 0.0   written: '0.0'
   '007.5'                            -> 7.5   written: '7.5'
-  '1eV'                              -> (* 1 <eV>)   written: '1eV'
+  '1eV'                              -> 1<eV>   written: '1eV'
+Particles (but not functions or variables with their names):
+  'neutron'                          -> p:neutron   written: 'neutron'
+  'pdgcode == positron'              -> (cmp pdgcode == p:positron)   written: 'pdgcode==positron'
+  'neutron(1)'                       -> neutron(1)   written: 'neutron(1)'
+  'abs(antielectron)'                -> abs(p:antielectron)   written: 'abs(antielectron)'
 Statements of edits:
-  'x = 1cm'                          -> {(= x (* 1 <cm>))}   written: 'x=1cm'
+  'x = 1cm'                          -> {(= x 1<cm>)}   written: 'x=1cm'
   'x += 2'                           -> {(+= x 2)}   written: 'x+=2'
   'x -= y'                           -> {(-= x y)}   written: 'x-=y'
   'x *= 2'                           -> {(*= x 2)}   written: 'x*=2'
@@ -105,12 +118,20 @@ Statements of edits:
   'x |= 4'                           -> {(|= x 4)}   written: 'x|=4'
   'tmp = x + y'                      -> {(= tmp (+ x y))}   written: 'tmp=x+y'
   'swap(x,y)'                        -> {swap(x, y)}   written: 'swap(x,y)'
-  'rotate_z(90deg)'                  -> {rotate_z((* 90 <deg>))}   written: 'rotate_z(90deg)'
-  'pos += (0,0,1m)'                  -> {(+= pos [0, 0, (* 1 <m>)])}   written: 'pos+=(0,0,1m)'
+  'rotate_z(90deg)'                  -> {rotate_z(90<deg>)}   written: 'rotate_z(90deg)'
+  'pos += (0,0,1m)'                  -> {(+= pos [0, 0, 1<m>])}   written: 'pos+=(0,0,1m)'
   'x > 0'                            -> {(cmp x > 0)}   written: 'x>0'
+  'z += 1cm; weight *= 0.5'          -> {(+= z 1<cm>); (*= weight 0.5)}   written: 'z+=1cm;weight*=0.5'
+  ' x = 1 ;; y = 2 ; '               -> {(= x 1); (= y 2)}   written: 'x=1;y=2'
+Picks (statements and a condition):
+  'x > 0'                            -> {(cmp x > 0)}   written: 'x>0'
+  'r = hypot(x,y); r > 2cm'          -> {(= r hypot(x, y)); (cmp r > 2<cm>)}   written: 'r=hypot(x,y);r>2cm'
+  'pdgcode == neutron;'              -> {(cmp pdgcode == p:neutron)}   written: 'pdgcode==neutron'
+  'a = 1; b = a; b > 0'              -> {(= a 1); (= b a); (cmp b > 0)}   written: 'a=1;b=a;b>0'
+  'x > 0; y > 0'                     -> {(cmp x > 0); (cmp y > 0)}   written: 'x>0;y>0'
 Errors:
   ''                       -> Syntax error in expression "", at the start: a value is missing
-  ' '                      -> Syntax error in expression " ", at the start: a value is missing
+  ' '                      -> Syntax error in expression "", at the start: a value is missing
   'x +'                    -> Syntax error in expression "x +", at the end: a value is missing
   '(x'                     -> Syntax error in expression "(x", at the end: ")" is missing
   'x)'                     -> Syntax error in expression "x)", after "x": unexpected ")"
@@ -150,13 +171,13 @@ Errors:
   '!x'                     -> Use "not" instead of "!" in expressions (e.g. "not (x > 0)"), in expression "!x"
   'x % 2'                  -> Use "mod(a,b)" instead of "%" in expressions (e.g. "mod(userflags,4) == 1"), in expression "x % 2"
   '~x'                     -> The operator ~ is not supported in expressions (e.g. "(userflags & 0x10) == 0" tests that a bit is not set), in expression "~x"
-  '"a"'                    -> Syntax error in expression ""a"", at the start: """ can not be used here
-  "'a'"                    -> Syntax error in expression "'a'", at the start: "'" can not be used here
-  'x[0]'                   -> Syntax error in expression "x[0]", after "x": "[" can not be used here
+  '"a"'                    -> The character " can not be used in expressions (in ""a"")
+  "'a'"                    -> The character ' can not be used in expressions (in "'a'")
+  'x[0]'                   -> The character [ can not be used in expressions (in "x[0]")
   'lambda: 1'              -> Syntax error in expression "lambda: 1", after "lambda": unexpected ":"
   'x if y else z'          -> Syntax error in expression "x if y else z", after "x": an operator is missing
-  '[1]'                    -> Syntax error in expression "[1]", at the start: "[" can not be used here
-  '{1}'                    -> Syntax error in expression "{1}", at the start: "{" can not be used here
+  '[1]'                    -> The character [ can not be used in expressions (in "[1]")
+  '{1}'                    -> The character { can not be used in expressions (in "{1}")
   'f(x=1)'                 -> Syntax error in expression "f(x=1)", after "f(x": ")" is expected, not "=" (use == for comparisons)
   'cm^x'                   -> Syntax error in expression "cm^x", after "cm^": the power of a unit must be a number, like cm^2 or cm^(1/2)
   'cm^(1/0)'               -> Powers of units must be numbers (like cm^2 or cm^(1/2)), in expression "cm^(1/0)"
@@ -166,21 +187,37 @@ Errors:
   'x and'                  -> Syntax error in expression "x and", at the end: a value is missing
   'not'                    -> Syntax error in expression "not", at the end: a value is missing
   '@'                      -> Syntax error in expression "@", at the start: "@" can not be used here
-  '$'                      -> Syntax error in expression "$", at the start: "$" can not be used here
-  'x # comment'            -> Syntax error in expression "x # comment", after "x": "#" can not be used here
-  'α'                      -> Syntax error in expression "α", at the start: "α" can not be used here
+  '$'                      -> The character $ can not be used in expressions (in "$")
+  'x # comment'            -> The character # can not be used in expressions (in "x # comment")
+  'α'                      -> Only printable ASCII characters can be used in expressions (not U+03B1, in "\u03b1")
   'a,b'                    -> Syntax error in expression "a,b", after "a": unexpected ","
   '1j'                     -> Syntax error in expression "1j", after "1": an operator is missing
   'x == = 1'               -> Syntax error in expression "x == = 1", after "x ==": a value is expected, not "=" (use == for comparisons)
   'x =< 1'                 -> Syntax error in expression "x =< 1", after "x": unexpected "=" (use == for comparisons)
+  'x; y'                   -> Syntax error in expression "x; y", after "x": unexpected ";"
+  'x > 0;'                 -> Syntax error in expression "x > 0;", after "x > 0": unexpected ";"
+  0                        -> Expressions must be strings (got int)
+  None                     -> Expressions must be strings (got NoneType)
 Errors of statements:
   'x ='                    -> Syntax error in expression "x =", at the end: a value is missing
   '= 1'                    -> Syntax error in expression "= 1", at the start: a value is expected, not "="
   'userdata.t = 1'         -> Syntax error in expression "userdata.t = 1", at the start: fields of the userdata can not be changed
   'userdata.t.at(0) += 1'  -> Syntax error in expression "userdata.t.at(0) += 1", at the start: fields of the userdata can not be changed
   'x = y = 1'              -> Syntax error in expression "x = y = 1", after "x = y": unexpected "="
-  'x += '                  -> Syntax error in expression "x += ", at the end: a value is missing
+  'x += '                  -> Syntax error in expression "x +=", at the end: a value is missing
   '1 = x'                  -> Syntax error in expression "1 = x", after "1": unexpected "="
-  'x, y = 1, 2'            -> Syntax error in expression "x, y = 1, 2", after "x": unexpected ","
-Random expressions: 1603 written and parsed again to the same trees, 397 errors
-Random input: only trees or MCPLError (in total 637 trees and 9363 errors)
+  'x, y = 1, 2'            -> Separate statements with ";" (not ",") in "x, y = 1, 2"
+  ''                       -> Empty expression
+  ' ; ; '                  -> Empty expression
+  'x = 1; y +'             -> Syntax error in expression "x = 1; y +", at the end: a value is missing
+  'x = (1;y = 2)'          -> Syntax error in expression "x = (1;y = 2)", after "x = (1": ")" is expected, not ";"
+  'rotate_x(90deg;x=1cm)'  -> Syntax error in expression "rotate_x(90deg;x=1cm)", after "rotate_x(90deg": ")" is expected, not ";"
+Errors of picks:
+  'r = hypot(x,y); r = 1'  -> A pick ends with its condition, as in "r = hypot(x,y); r > 2cm", in "r = hypot(x,y); r = 1"
+  'r = hypot(x,y); r >'    -> Syntax error in expression "r = hypot(x,y); r >", at the end: a value is missing
+  ''                       -> Empty expression
+  ';'                      -> Empty expression
+  'r = 1, r > 0'           -> Separate statements with ";" (not ",") in "r = 1, r > 0"
+  'x = 1'                  -> Syntax error in expression "x = 1", after "x": unexpected "=" (use == for comparisons)
+Random expressions: 1604 written and parsed again to the same trees, 396 errors
+Random input: only trees or MCPLError, and the trees are written and parsed again to the same trees (in total 1086 trees and 13914 errors)

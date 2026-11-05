@@ -1,0 +1,42 @@
+name: build-docs
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      CONDA_SOLVER: libmamba
+
+    steps:
+    - name: Checkout main repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Setup conda environment
+      uses: conda-incubator/setup-miniconda@be893c923ea9cf1cf7cd510fbdde27c7e18cbdcb # v4.1.0
+      with:
+        miniforge-version: latest
+        channels: conda-forge
+        conda-remove-defaults: true
+        activate-environment: mcpl_doc
+        environment-file: devel/reqs/conda_doc.yml
+
+    - name: Conda list
+      run: conda list
+
+    - name: Virtual display and a Tk with Xft, for the picture of the viewer
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb
+        Xvfb :99 -screen 0 1600x1000x24 -nolisten tcp &
+        echo "DISPLAY=:99" >> $GITHUB_ENV
+        #(the default Tk of conda-forge has no antialiased fonts):
+        conda install -y "tk=*=xft_*" xorg-libxft
+
+    - name: Build documentation
+      #NB: --strict to turn warnings into errors:
+      run: python ./devel/bin/mcpldevtool sphinx --strict

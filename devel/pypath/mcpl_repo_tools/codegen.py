@@ -93,12 +93,27 @@ _cases = [
     ( 'udarrays', 'userdata.ids.at(1) > -5 and userdata.tags.at(4) < 200', None ),
     ( 'udarrays', 'userdata.origin.at(2) > 0cm', 'x = userdata.origin.at(0)' ),
     ( 'udarrays', None, 'time = userdata.dirs.at(1)*1ms; userflags = userdata.flag' ),
+    #(files with universal values, which edits can not change):
+    ( 'udarrays', None, 'weight = userdata.dirs.at(1)' ),
+    ( 'universal', None, 'weight = 0.5; pdgcode = neutron; x += 1cm' ),
+    ( 'universal', None, 'weight *= 2' ),
+    ( 'universal', None, 'pdgcode = gamma' ),
+    ( 'universal', 'ekin > 1keV', 'swap(x,y)' ),
     #(ranges of particles, as given by mcpltool -s and -l):
     ( 'misc', 'mod(fileidx,3) == 0', None, 10, 50 ),
     ( 'misc', None, 'x = fileidx*1cm', 150, None ),
     ( 'misc', 'pdgcode == gamma', 'weight *= 2', 0, 7 ),
     ( 'udarrays', 'userdata.flag > 0', None, 3, 5 ),
 ]
+
+def _write_universal( fn ):
+    """A file with the neutrons of miscphys, with universal pdgcode and weight"""
+    sys.path.insert(0,str(pyroot/'src'))
+    import mcpl
+    with ( mcpl.MCPLFile(_files['misc'],pick = 'pdgcode == neutron') as f,
+           mcpl.MCPLOutFile(fn,opt_universalpdgcode = 2112,opt_universalweight = 0.5) as o ):
+        for b in f.particle_blocks:
+            o.add_particles(b,weight = 0.5)
 
 def _random_picks( n, seed = 123 ):
     """Random picks, of values and functions of many kinds"""
@@ -191,6 +206,8 @@ def run( nprocs, nrandom = 200 ):
     c.do_cfg()
     c.do_build()
     c.do_install()
+    _files['universal'] = cwd/'universal.mcpl'
+    _write_universal(_files['universal'])
     cases = _cases + [ ( 'misc', p, None ) for p in _random_picks(nrandom) ]
     gen = cwd/'gen'
     gen.mkdir()

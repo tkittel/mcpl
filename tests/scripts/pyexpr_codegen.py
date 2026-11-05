@@ -42,6 +42,9 @@ def test_programs():
          'ekin = 25meV; x += 1cm','id:uint64')
     show('pdgcode == neutron and ekin < 25meV',None)
     show(None,'rotate_z(90deg); pos += 50cm*dir; pdgcode = antielectron')
+    #(edits of weights and PDG codes, which are refused in files with universal
+    #weights or PDG codes):
+    show(None,'weight *= 2; pdgcode = gamma')
 
 def test_options():
     #(fixed filenames, the range of particles as by mcpltool -s and -l, a

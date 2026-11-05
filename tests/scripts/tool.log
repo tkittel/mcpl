@@ -6,6 +6,8 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   python -m mcpl [options] FILE                  Show the header and first particles
   python -m mcpl -S [options] FILE               Summary of the particles
+  python -m mcpl -w [options] FILE               View the particles in a window
+  python -m mcpl -t [options] FILE               View the particles in the terminal
   python -m mcpl -H HIST [options] FILE [...]    Histogram in a window
   python -m mcpl -t -H HIST [options] FILE [...] Histogram in the terminal
   python -m mcpl -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
@@ -22,6 +24,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
+  python -m mcpl -w file.mcpl.gz
   python -m mcpl -H "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
   python -m mcpl -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   python -m mcpl -S file.mcpl.gz
@@ -39,6 +42,8 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   python -m mcpl [options] FILE                  Show the header and first particles
   python -m mcpl -S [options] FILE               Summary of the particles
+  python -m mcpl -w [options] FILE               View the particles in a window
+  python -m mcpl -t [options] FILE               View the particles in the terminal
   python -m mcpl -H HIST [options] FILE [...]    Histogram in a window
   python -m mcpl -t -H HIST [options] FILE [...] Histogram in the terminal
   python -m mcpl -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
@@ -55,6 +60,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
+  python -m mcpl -w file.mcpl.gz
   python -m mcpl -H "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
   python -m mcpl -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   python -m mcpl -S file.mcpl.gz

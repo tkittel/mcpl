@@ -37,6 +37,8 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   PROGNAME [options] FILE                  Show the header and first particles
   PROGNAME -S [options] FILE               Summary of the particles
+  PROGNAME -w [options] FILE               View the particles in a window
+  PROGNAME -t [options] FILE               View the particles in the terminal
   PROGNAME -H HIST [options] FILE [...]    Histogram in a window
   PROGNAME -t -H HIST [options] FILE [...] Histogram in the terminal
   PROGNAME -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
@@ -53,6 +55,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
+  PROGNAME -w file.mcpl.gz
   PROGNAME -H "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
   PROGNAME -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   PROGNAME -S file.mcpl.gz
@@ -69,6 +72,8 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   PROGNAME [options] FILE                  Show the header and first particles
   PROGNAME -S [options] FILE               Summary of the particles
+  PROGNAME -w [options] FILE               View the particles in a window
+  PROGNAME -t [options] FILE               View the particles in the terminal
   PROGNAME -H HIST [options] FILE [...]    Histogram in a window
   PROGNAME -t -H HIST [options] FILE [...] Histogram in the terminal
   PROGNAME -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
@@ -80,7 +85,7 @@ Usage:
   PROGNAME --create-examples[=N]           Create example files
   PROGNAME -v | -h | --full-help
 
-Particles (when showing particles, and with -S, -H, and -e):
+Particles (when showing particles, and with -S, -H, -w, -t, and -e):
   -lN, -sN         Use only N particles (all with -l0), or skip the first N
                    particles in the file. Without -l, at most 10 particles are
                    shown when showing particles.
@@ -93,6 +98,16 @@ Showing particles:
   -j, --justhead   Show just the header.
   -n, --nohead     Show just the particles.
   -bKEY            Write the blob stored under KEY to standard output.
+
+Viewer (-w, --window or -t, --terminal):
+  Shows an overview and plots of the particles of a file, in a window (with
+  Tk, the plots drawn with matplotlib) with -w, or in the terminal (with
+  curses, the plots drawn as text) with -t. -l, -s, -p, and -E can be changed
+  in the viewer, plots can be added, changed, and removed, and the particles
+  can be written to a new file (press h for help).
+  STATE            Start in a state of the viewer, given as an argument with
+                   the file: a .json file, as saved in the viewer (press v),
+                   or its text ({...}), as printed when the viewer is closed.
 
 Histogram (-H, --hist HIST):
   HIST is an expression with options, e.g.
@@ -218,6 +233,11 @@ _removed_opts = {
     '--gui' : 'use -w instead',
 }
 
+def _is_state( arg ):
+    """Whether the argument is a state of the viewer (a .json file, or its
+    text), which is given with the files"""
+    return arg.endswith('.json') or arg.lstrip().startswith('{')
+
 def _parser():
     """The parser of the options of mcpltool (with the help texts of its own,
     see _short_help and _full_help)"""
@@ -288,10 +308,14 @@ def _app_mcpltool(progname,args):
         return
 
     #The options as flags (set of long names), values (dict by long name), -l,
-    #-s, and -b:
+    #-s, and -b, and the state of the viewer (given with the files):
     flags = { n for n in _flag_opts if opts[n] }
     values = { n : opts[n] for n in _value_opts if opts[n] is not None }
     opt_limit, opt_skip, opt_blobkey = opts['-l'], opts['-s'], opts['-b']
+    states = [ f for f in filelist if _is_state(f) ]
+    filelist = [ f for f in filelist if not _is_state(f) ]
+    if len(states) > 1:
+        bad("only one viewer state can be given")
 
     if '--help' in flags:
         _print_help(progname)
@@ -369,10 +393,12 @@ def _app_mcpltool(progname,args):
                                  and not ( mode in histmodes and '--output' in values ) ):
         bad("--allow-overwrite can only be used with --merge, --forcemerge,"
             " --extract, --text, or -o")
-    #(-w and -t only choose where a histogram of -H is shown):
+    #(-w and -t show the viewer, unless a histogram is given with -H):
     hist = values.get('--hist')
-    if mode in histmodes and hist is None:
-        bad(f"{modenames[mode]} is used with -H HIST (see --hist-help)")
+    viewer = mode in histmodes and hist is None
+    state = states[0] if states else None
+    if state is not None and ( not viewer or hist is not None ):
+        bad("a viewer state (.json or {...}) can only be given with -w or -t, and not with -H")
     if hist is not None:
         ext = os.path.splitext(values.get('--output',''))[1].lower()
         if mode == '--window' and ext == '.txt':
@@ -440,6 +466,11 @@ def _app_mcpltool(progname,args):
                           '--keep-statsum' in flags,opt_dryrun,bad,
                           allow_overwrite = opt_allow_overwrite)
         _mcpltool_dryrun_note(opt_dryrun)
+        sys.exit(0)
+
+    if viewer:
+        _mcpltool_view(progname,filelist,state,opt_skip,opt_limit,values,
+                       mode == '--terminal',opt_dryrun,bad)
         sys.exit(0)
 
     if mode in histmodes:
@@ -593,6 +624,28 @@ def _mcpltool_merge(filelist, opt_forcemerge, opt_inplace, opt_keepuserflags,
                           dry_run=dry_run)
     if out is not None:
         _mcpltool_close(out)
+
+def _mcpltool_view(progname, filelist, state, skip, limit, values, terminal,
+                   dry_run, bad):
+    """The viewer of -w (in a window) or -t (in the terminal), starting in the
+    state if given"""
+    from ._viewer import Viewer, _run_viewer
+    from ._viewer_ui import closing_text
+    if not filelist:
+        bad("no input file specified")
+    if len(filelist) > 1:
+        bad(f"the viewer shows one file ({'-t' if terminal else '-w'} without -H"
+            " can only be used with one file)")
+    _check_inputs(filelist)
+    try:
+        v = Viewer(filelist[0],skip=skip or 0,limit=limit,
+                   pick=values.get('--pick'),edit=values.get('--edit'),
+                   state=state,dry_run=dry_run,progname=progname)
+        _run_viewer(v,terminal,values.get('--color'),
+                    hint='Use -t for the viewer in the terminal.')
+    except MCPLError as e:
+        bad(str(e))
+    print(closing_text(v,'-t' if terminal else '-w'))
 
 def main():
     """This function simply calls app_mcpltool(), but any raised MCPLError

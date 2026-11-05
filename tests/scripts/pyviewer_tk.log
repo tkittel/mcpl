@@ -1,0 +1,133 @@
+==> viewer_tk
+Tk 8.6 or later: True
+window title: MCPL viewer: example.mcpl
+after reading the file:
+   status: example.mcpl: 1,006 particles
+   counts: 1,006 particles, Σw = 1,006
+   cache button: cache: 44 kB (100%) CacheAll.Compact.TMenubutton
+   write buttons: [('Write file', 'Head.TButton', True), ('Show code', 'Head.TButton', True)]
+   shown: overview:spectra
+cards: 8 | first: ['Spectra', 'Fields', 'Geometry', 'Z beam profile']
+axes drawn: True
+after clicking the card 'Fields': overview:fields | 8 cards shown
+after clicking the card 'Spectra': overview:spectra | 8 cards shown
+right click on a plot of the overview (linux): menu ['Copy and edit'] | shown: overview:spectra
+right click on a plot of the overview (darwin): menu ['Copy and edit'] | shown: overview:spectra
+help menu: ['The viewer', 'Picks (filtering particles)', 'Edits (modifying particles)', 'Plot expressions', 'About data caching', 'About MCPL']
+menu opened by m: True | closed by it again: True
+menu opened by h: True | closed by it again: True
+X axis after typing 'ek' and <Tab>: 'ekin', focus kept: True
+   completions of 'po' : ['polx', 'poly', 'polz', 'pos', 'pol', 'positron']
+X axis after typing 'po' and <Tab> <Down> <Return>: 'poly', focus kept: True
+apply of the axes: enabled: False, mark: ''
+after typing an axis: enabled: True, mark: '✓' | shown: plot:ekin;logx=auto;logy
+after clicking Apply: enabled: False, mark: '' | shown: custom:x;logx=auto;logy
+after typing the bins: enabled: True, mark: ''
+after clicking Apply: enabled: False, mark: '' | shown: custom:x;bins=7;logx=auto;logy
+Apply buttons of the expression: ['?'] | the Apply button shown: True
+after typing the expression: enabled: True, mark: ''
+after clicking Apply: enabled: False, mark: '' | shown: custom:x;bins=5
+header of a plot: '← PLOT  ·  Energy'
+header of a new plot: 'NEW PLOT'
+after the button back: overview:spectra | header: 'OVERVIEW  ·  Spectra'
+first line of the list of the X axis: 'or type any expression, like ekin/meV or x/cm + y/cm'
+after choosing it: 'ekin' | shown: plot:ekin;logx=auto;logy
+completions of "w": ['weight', 'wavelength'] | first line: 'or type any expression, like ekin/meV or x/cm + y/cm' | selected: (1,)
+after choosing the first line: 'w' | list closed: True
+code button: 'Show plot code' Head.TButton
+cache button: cache: 44 kB (100%) CacheAll.Compact.TMenubutton
+focus in the open list of the Y axis: True
+3D plot shown: ['3d']
+mouse events after the 3D plot handled
+shown parts of the plot: {'axes': True, 'settings': True, 'expression': False}
+after clicking Advanced (on: True): {'axes': False, 'settings': False, 'expression': True}, expression 'ekin;logx=auto;logy'
+after clicking Advanced (on: False): {'axes': True, 'settings': True, 'expression': False}, expression 'ekin;logx=auto;logy'
+focus in the pick field before Enter: True
+pick applied: 'ekin < 1MeV'
+after the pick:
+   status: example.mcpl: 1,006 particles
+   counts: 544/1,006 particles (54.1%), Σw = 544 (54.1%)
+   cache button: cache: 44 kB (100%) CacheAll.Compact.TMenubutton
+   write buttons: [('Write file', 'Head.Accent.TButton', False), ('Show code', 'Head.Accent.TButton', False)]
+   shown: plot:ekin;logx=auto;logy
+cache menu: ['Memory for the particles used by the plots (counted before the pick):', '●  Max 5 MB: all 1,006 particles', '●  Max 20 MB: all 1,006 particles', '✓ ●  Max 100 MB: all 1,006 particles', '●  Max 500 MB: all 1,006 particles', '●  Max 2 GB: all 1,006 particles', '●  Max 5 GB: all 1,006 particles', '●  Max 10 GB: all 1,006 particles', 'No memory cache (refreshing plots from file on each change)', 'About caching']
+with a small cache:
+   status: example.mcpl: 1,006 particles
+   counts: ≈647/1,006 particles (64.3%), Σw ≈ 647 (64.3%)
+   cache button: cache: 13 kB (29%) CacheCut.Compact.TMenubutton
+   write buttons: [('Write file', 'Head.Accent.TButton', False), ('Show code', 'Head.Accent.TButton', False)]
+   shown: plot:ekin;logx=auto;logy
+with 500 MB:
+   status: example.mcpl: 1,006 particles
+   counts: 544/1,006 particles (54.1%), Σw = 544 (54.1%)
+   cache button: cache: 44 kB (100%) CacheAll.Compact.TMenubutton
+   write buttons: [('Write file', 'Head.Accent.TButton', False), ('Show code', 'Head.Accent.TButton', False)]
+   shown: plot:ekin;logx=auto;logy
+after clicking the inactive group 'Geometry' : overview:geometry
+settings of the correlations: {'shown': True, 'plot fields shown': False, 'display_only': 'neutron (86%)', 'variables': ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time'], 'most': 'Most correlated'}
+after turning ux off and choosing all: {'shown': True, 'plot fields shown': False, 'display_only': 'all', 'variables': ['x', 'y', 'uy', 'uz', 'ekin', 'time'], 'most': 'Most correlated'} None
+after clicking 'Most correlated': ['x', 'ux', 'ekin', 'time'] | button now: All variables
+after clicking 'All variables': ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time'] | button now: Most correlated
+with a plot shown: False True
+help 'The viewer': MCPL viewer: The viewer | sections: 1 | lines: True
+   closed with q: True
+help 'Picks (filtering particles)': MCPL viewer: Picks | sections: 6 | lines: True
+   closed with q: True
+help 'Edits (modifying particles)': MCPL viewer: Edits | sections: 7 | lines: True
+   closed with q: True
+help 'Plot expressions': MCPL viewer: Plot expressions | sections: 1 | lines: True
+   closed with q: True
+help 'About data caching': MCPL viewer: Data caching | sections: 2 | lines: False
+   closed with q: True
+help 'About MCPL': MCPL viewer: About MCPL | sections: 0 | lines: False
+   closed with q: True
+help in the menu: ['Open MCPL file...', 'Save viewer state...', 'Quit']
+menu bar: {'File': ['Open MCPL file...', 'New MCPL file...', 'Save viewer state...'], 'Help': ['The viewer', 'Picks (filtering particles)', 'Edits (modifying particles)', 'Plot expressions', 'About data caching', 'About MCPL']}
+icons: [(256, 256), (32, 32)]
+settings in a narrow frame, rows: 2
+align means: Position: (-0.0218695, 3.43867, 20) cm | Direction: (0.00542549, -0.0217169, 0.999749), spread 47.7 deg (typical angle to the mean direction) | Particles: 544 (all), Σw = 544, neutron 85.7%, gamma 13.6%, electron 0.735%
+align edit: pos -= (-0.0218695cm,3.43867cm,20cm);rotate_frame((0.00542549,-0.0217169,0.999749),(0,0,1),(-0.242318,0.969939,0.0223843),(-0.242379,0.970182,0));pos += (-0.0218695cm,3.43867cm,20cm)
+align result: After it: position (-0.0218695, 3.43867, 20) cm, direction (0, 0, 1) | add enabled: True
+align edit, keeping (0,1,0) and moving to (0,0,1m) in x and y: pos -= (-0.0218695cm,3.43867cm,20cm);rotate_frame((0.00542549,-0.0217169,0.999749),(0,0,1),(0.000117853,0.999764,0.0217166),(0,1,0));pos += (0,0,20cm)
+align result: After it: position (0, 0, 20) cm, direction (0, 0, 1)
+align with a bad direction: The direction must be three numbers, as in (0,0,1), not "(1,2)" | add enabled: False
+edit field after adding: pos -= (-0.0218695cm,3.43867cm,20cm);rotate_frame((0.0054254 ... | applied: True | align window closed: True
+x range after changing the limit, zoom kept: (2.0, 20.0)
+x range of another plot, not zoomed: True
+show code button enabled: True
+code window: tabs ['Python', 'C++', 'C'] | copy buttons ['Copy', 'Copy Python code', 'Copy C++ code', 'Copy C code'] | command: mcpltool -e -p "ekin<1MeV" example.mcpl example_selected.mcpl
+help window: keyboard focus in it: True | closed by Esc: True
+examples window: keyboard focus in it: True | closed by Esc: True
+plot code window: keyboard focus in it: True | closed by Esc: True
+code of a new file window: keyboard focus in it: True | closed by Esc: True
+write window: keyboard focus in it: True | closed by Esc: True
+align window: keyboard focus in it: True | closed by Esc: True
+while writing: Writing written_by_tk.mcpl.gz ... ["('disabled',)", "('disabled',)"]
+written: True | window closed: True | status: example.mcpl: 1,006 particles
+ asked: Overwrite written_by_tk.mcpl.gz? False
+ window closed: False | status: example.mcpl: 1,006 particles
+ asked: Overwrite written_by_tk.mcpl.gz? True
+ window closed: True | status: example.mcpl: 1,006 particles
+small window: squeezed: [] | layouts fit the width: True | write buttons at the right: True
+large window: squeezed: [] | layouts fit the width: True | write buttons at the right: True
+left edges of "X axis:", the first setting, and "Expression:" (from the header): 0 0 0
+skip and limit in one group: True | room between skip and limit: 8 | limit as far right as the buttons below: True | right of the pick fields: True
+mark of skip: '✗' | inside the field at its right end: True
+mark of limit: '✗' | inside the field at its right end: True
+high window: the cards fit: True, scrollbar shown: False
+low window: the cards fit: False, scrollbar shown: True
+buttons of the examples: [('Close', -1), ('More details', 0)]
+focus in the window of the examples: True
+after the key m: examples closed: True | help shown: ['MCPL viewer: Picks']
+examples with a scroll bar: True | more than shown: True
+after clicking the example 'pdgcode == neutron': applied: True | window closed: True
+closed: True
+Command to launch viewer with same state:
+
+  mcpltool -w "{'groups':['spectra']}" -p "pdgcode==gamma" example.mcpl
+
+mcpltool -w ended with exit code 0
+==> viewer_rndguichecks
+particles fit in the cache: False
+closed: True
+problems: 0

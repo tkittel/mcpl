@@ -1,0 +1,18 @@
+_viewer_threads: imports 0 modules of the package, of windows and plots: none
+_viewer_reading: imports 31 modules of the package, of windows and plots: none
+_viewer_align: imports 36 modules of the package, of windows and plots: none
+_viewer_output: imports 35 modules of the package, of windows and plots: none
+_expressions: imports 15 modules of the package, of windows and plots: none
+modules starting threads: ['_viewer_threads']
+lambda: TypeError: Threads do not run lambdas or functions made in other functions (test_refused.<locals>.<lambda>, see _viewer_threads)
+function made in a function: TypeError: Threads do not run lambdas or functions made in other functions (test_refused.<locals>.inner, see _viewer_threads)
+method of another object: TypeError: Threads do not get methods of Window objects (see _viewer_threads)
+function of another module: TypeError: Threads do not run functions of __main__ (see _viewer_threads)
+function of the viewer module: TypeError: Threads do not run functions of mcpldev._viewer (see _viewer_threads)
+object of another module as argument: TypeError: Threads do not get Window objects (see _viewer_threads)
+lambda as argument: TypeError: Threads do not run lambdas or functions made in other functions (test_refused.<locals>.<lambda>, see _viewer_threads)
+numpy array of objects as argument: TypeError: Threads do not get numpy arrays of objects (see _viewer_threads)
+object in a tuple as argument: TypeError: Threads do not get Window objects (see _viewer_threads)
+align stats: 1 results, the last complete: True particles: 1006
+write: [(True, 'MCPL: Successfully extracted 10 / 1006 particles from example.mcpl into out.mcpl')]
+worker modules: ('_viewer_threads', '_viewer_reading', '_viewer_align', '_viewer_output', '_expressions') module: mcpldev._viewer_threads

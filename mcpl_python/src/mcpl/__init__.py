@@ -80,6 +80,7 @@ __all__ = [
             'plot_stats',
             'repair',
             'use_logging',
+            'view',
            ]
 
 __version__ = '2.2.9'
@@ -120,6 +121,7 @@ _on_demand = {
     'HistDiscrete' : '_histogram',
     'PointSet3D' : '_histogram',
     'plot_stats' : '_stats',
+    'view' : '_viewer',
 }
 
 def __getattr__(name):

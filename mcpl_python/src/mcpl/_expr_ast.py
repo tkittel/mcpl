@@ -130,7 +130,8 @@ class Compare:
 
 @_frozen
 class In:
-    """value in (values), or value not in (values) if negated"""
+    """value in (values), or value not in (values) if negated, where the
+    values are integers (Int) or particles (Particle)"""
     value: typing.Any
     negated: bool
     values: tuple

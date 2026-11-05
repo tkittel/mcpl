@@ -1448,7 +1448,7 @@ Userdata fields in expressions:
   kept from a block added with other userdata: [300.0, 320.0]
   mcpltool -e userdata.temp > 295K -n udexpr.mcpl:
 Opened MCPL file udexpr.mcpl:
-Showing particles edited with: userdata.temp > 295K
+Showing particles edited with: userdata.temp>295K
 
 index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight  userdata
     1        2112           2           0           0           0           0           0           1           0           1  0000964301000080400000a0400000c0...

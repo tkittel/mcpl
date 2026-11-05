@@ -1953,14 +1953,14 @@ Opened MCPL file extracted_comment_1.mcpl:
   Basic info
     Format             : MCPL-3
     No. of particles   : 3
-    Header storage     : 222 bytes
+    Header storage     : 220 bytes
     Data storage       : 156 bytes
 
   Custom meta data
     Source             : "ESS/dgcode/MCPLTests/miscphys"
     Number of comments : 2
           -> comment 0 : "A simple file with various particle species intended as test input."
-          -> comment 1 : "mcpltool: extracted particles with -l3 -s2 -e "pdgcode == neutron""
+          -> comment 1 : "mcpltool: extracted particles with -l3 -s2 -e "pdgcode==neutron""
     Number of blobs    : 0
 
   Particle data format
@@ -1981,14 +1981,14 @@ Opened MCPL file extracted_comment_2.mcpl:
   Basic info
     Format             : MCPL-3
     No. of particles   : 10
-    Header storage     : 210 bytes
+    Header storage     : 213 bytes
     Data storage       : 520 bytes
 
   Custom meta data
     Source             : "ESS/dgcode/MCPLTests/miscphys"
     Number of comments : 2
           -> comment 0 : "A simple file with various particle species intended as test input."
-          -> comment 1 : "mcpltool: extracted particles with -e "pdgcode == -11""
+          -> comment 1 : "mcpltool: extracted particles with -e "pdgcode==positron""
     Number of blobs    : 0
 
   Particle data format
@@ -2103,17 +2103,77 @@ MCPL: Successfully extracted 15 / 195 particles from miscphys.mcpl.gz into extra
 ----------------------------------------------
 Running mcpltool --merge merged_comment_3.mcpl extracted_comment_7.mcpl extracted_comment_8.mcpl
 ----------------------------------------------
-ERROR: Requested files are incompatible for merge as they have different header info (comment 1 differs).
 
-Run with -h or --help for usage information
-
-===> Command failed!
 ----------------------------------------------
 Running mcpltool -j merged_comment_3.mcpl
 ----------------------------------------------
-MCPL ERROR: Unable to open file!
+Opened MCPL file merged_comment_3.mcpl:
 
-===> Command failed!
+  Basic info
+    Format             : MCPL-3
+    No. of particles   : 30
+    Header storage     : 212 bytes
+    Data storage       : 1560 bytes
+
+  Custom meta data
+    Source             : "ESS/dgcode/MCPLTests/miscphys"
+    Number of comments : 2
+          -> comment 0 : "A simple file with various particle species intended as test input."
+          -> comment 1 : "mcpltool: extracted particles with -e "pdgcode==neutron""
+    Number of blobs    : 0
+
+  Particle data format
+    User flags         : yes
+    Polarisation info  : yes
+    Fixed part. type   : no
+    Fixed part. weight : no
+    FP precision       : single
+    Endianness         : little
+    Storage            : 52 bytes/particle
+
+
+----------------------------------------------
+Running mcpltool -x -e '(pdgcode==2112) and ekin>5000eV' miscphys.mcpl.gz extracted_comment_9.mcpl
+----------------------------------------------
+MCPL: Successfully extracted 5 / 195 particles from miscphys.mcpl.gz into extracted_comment_9.mcpl
+
+----------------------------------------------
+Running mcpltool -x -e 'pdgcode == neutron and ekin > 5keV' miscphys.mcpl.gz extracted_comment_10.mcpl
+----------------------------------------------
+MCPL: Successfully extracted 5 / 195 particles from miscphys.mcpl.gz into extracted_comment_10.mcpl
+
+----------------------------------------------
+Running mcpltool --merge merged_comment_4.mcpl extracted_comment_9.mcpl extracted_comment_10.mcpl
+----------------------------------------------
+
+----------------------------------------------
+Running mcpltool -j merged_comment_4.mcpl
+----------------------------------------------
+Opened MCPL file merged_comment_4.mcpl:
+
+  Basic info
+    Format             : MCPL-3
+    No. of particles   : 10
+    Header storage     : 226 bytes
+    Data storage       : 520 bytes
+
+  Custom meta data
+    Source             : "ESS/dgcode/MCPLTests/miscphys"
+    Number of comments : 2
+          -> comment 0 : "A simple file with various particle species intended as test input."
+          -> comment 1 : "mcpltool: extracted particles with -e "pdgcode==neutron and ekin>5keV""
+    Number of blobs    : 0
+
+  Particle data format
+    User flags         : yes
+    Polarisation info  : yes
+    Fixed part. type   : no
+    Fixed part. weight : no
+    FP precision       : single
+    Endianness         : little
+    Storage            : 52 bytes/particle
+
+
 ----------------------------------------------
 Running mcpltool -m extracted_recombined extracted_none.mcpl extracted_all.mcpl
 ----------------------------------------------
@@ -2416,7 +2476,7 @@ Opened MCPL file statsum_extract5photons.mcpl:
   Basic info
     Format             : MCPL-3
     No. of particles   : 21
-    Header storage     : 267 bytes
+    Header storage     : 268 bytes
     Data storage       : 756 bytes
 
   Custom meta data
@@ -2426,7 +2486,7 @@ Opened MCPL file statsum_extract5photons.mcpl:
           -> comment 1 : "stat:sum:some_stat_key:                      -1"
           -> comment 2 : "Some comment."
           -> comment 3 : "Another comment."
-          -> comment 4 : "mcpltool: extracted particles with -l40 -s1 -e "pdgcode == 22""
+          -> comment 4 : "mcpltool: extracted particles with -l40 -s1 -e "pdgcode==gamma""
     Number of blobs    : 0
 
   Particle data format
@@ -2463,7 +2523,7 @@ Opened MCPL file statsum_extractphotons_all.mcpl:
   Basic info
     Format             : MCPL-3
     No. of particles   : 50
-    Header storage     : 258 bytes
+    Header storage     : 259 bytes
     Data storage       : 1800 bytes
 
   Custom meta data
@@ -2473,7 +2533,7 @@ Opened MCPL file statsum_extractphotons_all.mcpl:
           -> comment 1 : "stat:sum:some_stat_key: 1.2345678912345678e-201"
           -> comment 2 : "Some comment."
           -> comment 3 : "Another comment."
-          -> comment 4 : "mcpltool: extracted particles with -e "pdgcode == 22""
+          -> comment 4 : "mcpltool: extracted particles with -e "pdgcode==gamma""
     Number of blobs    : 0
 
   Particle data format
@@ -2510,7 +2570,7 @@ Opened MCPL file statsum_extractphotons_all2.mcpl:
   Basic info
     Format             : MCPL-3
     No. of particles   : 50
-    Header storage     : 264 bytes
+    Header storage     : 265 bytes
     Data storage       : 1800 bytes
 
   Custom meta data
@@ -2520,7 +2580,7 @@ Opened MCPL file statsum_extractphotons_all2.mcpl:
           -> comment 1 : "stat:sum:some_stat_key: 1.2345678912345678e-201"
           -> comment 2 : "Some comment."
           -> comment 3 : "Another comment."
-          -> comment 4 : "mcpltool: extracted particles with -l400 -e "pdgcode == 22""
+          -> comment 4 : "mcpltool: extracted particles with -l400 -e "pdgcode==gamma""
     Number of blobs    : 0
 
   Particle data format

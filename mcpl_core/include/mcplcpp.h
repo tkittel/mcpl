@@ -377,8 +377,10 @@ namespace mcpl {
     FilenameArg( const std::string& s ) : m_cstr(s.c_str()) {}
     /** @brief A name given as a std::string_view (UTF-8). */
     FilenameArg( std::string_view s ) : m_buf(s), m_cstr(m_buf.c_str()) {}
-#ifdef MCPLCPP_HAS_FILESYSTEM
+#if defined(MCPLCPP_FOR_DOXYGEN)
     /** @brief A name given as a `std::filesystem::path` (or a type converting to it). */
+    FilenameArg( const std::filesystem::path& p );
+#elif defined(MCPLCPP_HAS_FILESYSTEM)
     template<class P, detail::if_pathlike<P> = 0>
     FilenameArg( const P& p )
       : m_buf(detail::path_to_utf8(p)), m_cstr(m_buf.c_str()) {}

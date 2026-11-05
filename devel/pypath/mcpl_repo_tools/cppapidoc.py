@@ -68,12 +68,24 @@ def doxyfile( xmldir ):
           ' mcpl::StringListView::iterator' ),
         'INLINE_INHERITED_MEMB = YES',
         'AUTOLINK_SUPPORT = NO',
-        'PREDEFINED = __cplusplus=201703L',
+        'PREDEFINED = __cplusplus=201703L MCPLCPP_FOR_DOXYGEN',
         'WARN_IF_UNDOCUMENTED = YES',
         'WARN_NO_PARAMDOC = NO',
         'WARN_IF_INCOMPLETE_DOC = NO',
         'QUIET = YES',
         '' ] )
+
+doxygen_missing_msg = """Doxygen is needed to build the website (for the C++ API
+reference), but the doxygen command was not found. Doxygen is not available
+from PyPI, so it can not be installed with pip. Instead, either use a conda
+environment (devel/reqs/conda_doc.yml includes it), or install it with the
+package manager of your system, for example:
+
+  sudo apt install doxygen    (Debian and Ubuntu)
+  sudo dnf install doxygen    (Fedora)
+  brew install doxygen        (macOS with Homebrew)
+
+or from https://www.doxygen.nl/download.html"""
 
 def run_doxygen( xmldir ):
     """Run Doxygen on mcplcpp.h, writing its XML to xmldir. Returns the
@@ -81,8 +93,7 @@ def run_doxygen( xmldir ):
     import pathlib
     exe = shutil.which('doxygen')
     if not exe:
-        raise SystemExit('Error: doxygen not found (install it, e.g. from'
-                         ' conda-forge or with the package manager)')
+        raise SystemExit('Error: '+doxygen_missing_msg)
     xmldir = pathlib.Path(xmldir)
     xmldir.mkdir(parents=True,exist_ok=True)
     (xmldir/'Doxyfile').write_text(doxyfile(xmldir.absolute()))
@@ -232,6 +243,55 @@ def _desc_markdown( desc ):
     for n, t in desc.throws:
         out += [ f'Throws `{n}` {t}', '' ]
     return out
+
+def _load_xml( xmldir ):
+    """The classes (by name) and the members of the namespace (by name, a list
+    of the overloads) in the XML of Doxygen in xmldir"""
+    index = ET.parse(xmldir/'index.xml').getroot()
+    compounds = {}
+    for c in index.findall('compound'):
+        if c.get('kind') in ('class','struct','namespace'):
+            cd = ET.parse(xmldir/(c.get('refid')+'.xml')).getroot().find('compounddef')
+            compounds[cd.findtext('compoundname')] = cd
+    ns = compounds.pop('mcpl')
+    nsmembers = {}
+    for sd in ns.findall('sectiondef'):
+        for m in sd.findall('memberdef'):
+            nsmembers.setdefault( 'mcpl::'+m.findtext('name'), [] ).append(m)
+    return compounds, nsmembers
+
+def _check_sections( compounds, nsmembers ):
+    """Error unless everything in mcplcpp.h (except the hidden classes) is in
+    one of the sections"""
+    listed = { n for _, names in _sections for n in names }
+    missing = sorted( n for n in list(compounds) + list(nsmembers)
+                      if n not in listed and n not in _hidden_classes
+                      and not n.startswith('std') )
+    if missing:
+        raise SystemExit(f'Error: not in any section of the page: {missing}')
+
+def sphinx_body( xmldir ):
+    """The body of the C++ API page of the Sphinx website: the sections of the
+    reference documentation, with Breathe directives for the XML of Doxygen
+    in xmldir (one for each overload of the functions)"""
+    import pathlib
+    compounds, nsmembers = _load_xml(pathlib.Path(xmldir))
+    out = []
+    for title, names in _sections:
+        out += [ title, '=' * len(title), '' ]
+        for n in names:
+            if n in compounds:
+                out += [ f'.. doxygenclass:: {n}', '   :members:', '' ]
+            elif n in nsmembers and nsmembers[n][0].get('kind') == 'enum':
+                out += [ f'.. doxygenenum:: {n}', '' ]
+            elif n in nsmembers:
+                for m in nsmembers[n]:
+                    args = re.sub(r'\s+',' ',m.findtext('argsstring')).strip()
+                    out += [ f'.. doxygenfunction:: {n}{args}', '' ]
+            else:
+                raise SystemExit(f'Error: {n} not found in mcplcpp.h')
+    _check_sections(compounds,nsmembers)
+    return '\n'.join(out)
 
 ################################################################################
 # Signatures
@@ -409,17 +469,7 @@ def generate( front_matter = None, strict = False, note = None, xmldir = None ):
     with tempfile.TemporaryDirectory() as tmpdir:
         xd = pathlib.Path(xmldir) if xmldir else pathlib.Path(tmpdir)
         warnings = run_doxygen(xd)
-        index = ET.parse(xd/'index.xml').getroot()
-        compounds = {}
-        for c in index.findall('compound'):
-            if c.get('kind') in ('class','struct','namespace'):
-                cd = ET.parse(xd/(c.get('refid')+'.xml')).getroot().find('compounddef')
-                compounds[cd.findtext('compoundname')] = cd
-    ns = compounds.pop('mcpl')
-    nsmembers = {}
-    for sd in ns.findall('sectiondef'):
-        for m in sd.findall('memberdef'):
-            nsmembers.setdefault( 'mcpl::'+m.findtext('name'), [] ).append(m)
+        compounds, nsmembers = _load_xml(xd)
     out = []
     if front_matter is not None:
         out += [ '---' ] + list(front_matter) + [ '---', '' ]
@@ -441,7 +491,6 @@ def generate( front_matter = None, strict = False, note = None, xmldir = None ):
                ' other errors (e.g. invalid files or arguments). Exceptions are'
                ' `std::bad_alloc` when memory allocation fails, and'
                ' `std::out_of_range` for invalid indices.' ), '' ]
-    done = set()
     for title, names in _sections:
         out += [ f'## {title}', '' ]
         for n in names:
@@ -455,12 +504,7 @@ def generate( front_matter = None, strict = False, note = None, xmldir = None ):
                     _functions(out,n,ms)
             else:
                 raise SystemExit(f'Error: {n} not found in mcplcpp.h')
-            done.add(n)
-    missing = sorted( n for n in list(compounds) + list(nsmembers)
-                      if n not in done and n not in _hidden_classes
-                      and not n.startswith('std') )
-    if missing:
-        raise SystemExit(f'Error: not in any section of the page: {missing}')
+    _check_sections(compounds,nsmembers)
     if strict and ( _undocumented or warnings ):
         raise SystemExit( 'Error: undocumented: ' + ', '.join(_undocumented)
                           + ( '\nDoxygen warnings:\n' + '\n'.join(warnings)

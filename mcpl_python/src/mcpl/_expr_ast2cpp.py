@@ -27,7 +27,14 @@ the C and C++ code compute the same), with errors as exceptions."""
 
 __all__ = []
 
-from ._expr_ast2c import _c_string, _program_header, _Statements, _Translator
+from ._expr_ast2c import (
+    _c_string,
+    _program_header,
+    _Statements,
+    _Translator,
+    _universal_checks,
+    _universal_fields,
+)
 
 #The userdata types, as types of C++:
 _cpp_ud_types = { t : { 'float32' : 'float', 'float64' : 'double' }.get(t,f'std::{t}_t')
@@ -68,6 +75,7 @@ def _expr_ast2cpp( edit = None, layout = None, *, filenames = None, skip = 0,
     if edit is not None:
         body += _Statements(tr,set_field)(edit._tree.statements)
     if changes:
+        body += _universal_checks(tr,edit,lambda f : f'out.{f}()')
         body.append('fout.add( out );')
     else:
         body.append('fout.transfer_last_read_particle( fin );')
@@ -107,6 +115,10 @@ def _expr_ast2cpp( edit = None, layout = None, *, filenames = None, skip = 0,
             if changes:
                 out.append(f'    auto out_{name} = fout.userdata_field<{targs}>( "{name}" );')
     if changes:
+        for f in _universal_fields:
+            if f in edit.modified_fields:
+                t = 'std::int32_t' if f == 'pdgcode' else 'double'
+                out.append(f'    const {t} universal_{f} = fin.universal_{f}();')
         out.append('    auto out = fout.new_particle();')
     counted = limit or tr.uses_fileidx
     if counted:

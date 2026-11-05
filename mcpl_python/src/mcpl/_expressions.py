@@ -29,7 +29,7 @@ import functools
 import re
 
 from ._common import MCPLError
-from ._exprcore import (
+from ._expr_eval import (
     _Q,
     _V,
     _dimstr,
@@ -51,7 +51,7 @@ from ._exprcore import (
     _unit_hint,
 )
 from ._exprrotation import _exact_cos_sin, _rotation_matrix
-from ._exprsyntax import _expr_parse, _expr_unparse
+from ._expr_str2ast import _expr_parse, _expr_unparse
 from ._exprunits import _dim_E, _dim_unknown, _expr_units
 from ._numpy import np
 from ._particles import _particle_names, _wavelength_pdgcodes

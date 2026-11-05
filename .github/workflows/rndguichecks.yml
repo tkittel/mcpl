@@ -1,0 +1,88 @@
+name: rndguichecks
+
+# Random use of the viewer in a real Tk window for 20 minutes on each of the
+# three main platforms (MCPLTestUtils.viewer_rndguichecks, which the CTest test
+# pyviewer_tk runs only briefly).
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        path: src
+
+    - name: Setup python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+      with:
+        python-version: '3.13'
+
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/mcpldevtool nprocs --enable-github-parallel
+
+    - name: pip install deps
+      run: python -mpip install -r ./src/devel/reqs/requirements_devel.txt
+
+    - name: Virtual display for the viewer in a window (Xvfb, on Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb
+        Xvfb :99 -screen 0 1600x1000x24 -nolisten tcp &
+        echo "DISPLAY=:99" >> $GITHUB_ENV
+
+    - name: Font caches of matplotlib and Tk (so the viewer does not wait for them)
+      run: python ./src/devel/bin/mcpldevtool fontcache
+
+    - name: Configure CMake
+      run: >
+        cmake
+        -S ./src
+        -B ./build
+        -DCMAKE_BUILD_TYPE=Release
+        -DMCPL_ENABLE_TESTING=ON
+        -DMCPL_BUILD_STRICT=ON
+        -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
+
+    - name: Build
+      run: cmake --build ./build --config Release
+
+      #In the environment which CTest gives the test pyviewer_tk:
+    - name: Random GUI checks (20 minutes)
+      timeout-minutes: 30
+      shell: python
+      env:
+        MCPL_RNDGUICHECKS_SECONDS: 1200
+      run: |
+        import json, os, pathlib, subprocess, sys
+        out = subprocess.run([ 'ctest', '--test-dir', 'build', '--build-config', 'Release',
+                               '--show-only=json-v1', '-R', '^py_rl_pyviewer_tk$' ],
+                             capture_output=True, text=True, check=True).stdout
+        test, = json.loads(out)['tests']
+        env = dict(os.environ)
+        for p in test['properties']:
+            if p['name'] == 'ENVIRONMENT_MODIFICATION':
+                for m in p['value']:
+                    name, rest = m.split('=',1)
+                    op, value = rest.split(':',1)
+                    if op == 'set':
+                        env[name] = value
+                    elif op == 'path_list_prepend':
+                        env[name] = os.pathsep.join( [ value ] + ( [ env[name] ] if env.get(name) else [] ) )
+                    else:
+                        raise SystemExit(f'unexpected environment modification: {m}')
+        rundir = pathlib.Path('rundir_rndguichecks')
+        rundir.mkdir()
+        sys.exit(subprocess.run([ sys.executable, '-m', 'MCPLTestUtils.viewer_rndguichecks' ],
+                                cwd=rundir, env=env).returncode)

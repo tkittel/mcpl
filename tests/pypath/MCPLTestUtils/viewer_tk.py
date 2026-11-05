@@ -448,21 +448,28 @@ pump(0.1)
 top, = set(root.winfo_children()) - before
 text = next( w for w in top.winfo_children()[0].winfo_children() if w.winfo_class() == 'Text' )
 #(the shortcuts are virtual events, see bind_shortcut, of which the keys are
-#checked here):
+#checked here, as Tk spells them, which differs between systems, e.g. on macOS):
 for letter in ( 'O', 'F' ):
+    for keys in shortcut_keys(letter,root):
+        try:
+            root.event_add('<<MCPLTestKeys>>',keys)
+        except tkinter.TclError:
+            pass
     print(f'keys of the shortcut {letter}: as expected:',
-          sorted(root.event_info(shortcut_event(letter))) == sorted(shortcut_keys(letter,root)))
+          sorted(root.event_info(shortcut_event(letter))) == sorted(root.event_info('<<MCPLTestKeys>>')))
+    root.event_delete('<<MCPLTestKeys>>')
 take_focus(text)
 text.event_generate('<Control-Key-f>')
 pump(0.1)
-#(whether the field of the search is packed into the window, as the window is
-#not drawn everywhere, e.g. not in CI on macOS ARM, where its widgets are never
-#mapped):
+#(whether the field of the search is packed into the window, as it is not
+#drawn everywhere, e.g. not in CI on macOS ARM, where widgets packed into an
+#open window are never mapped):
 field = next( w for w in descendants(top) if w.winfo_class() == 'TEntry' )
 shown = lambda : field.master.winfo_manager() == 'pack'
 opened = shown()
 field.insert(0,'rotate')
-if top.winfo_ismapped():
+drawn = bool(field.winfo_viewable())
+if drawn:
     #(the keys, which go to the keyboard focus):
     take_focus(field)
     field.event_generate('<KeyRelease>',keysym='e')
@@ -477,7 +484,7 @@ count = next( str(w.cget('text')) for w in field.master.winfo_children()
 print('search in help: field shown:', opened, '| matches:',
       len(text.tag_ranges('found')) // 2 > 1, '| at:', count.split()[0], '| highlighted:',
       text.get(*text.tag_ranges('found_now')))
-if top.winfo_ismapped():
+if drawn:
     field.event_generate('<Escape>')
     pump(0.1)
 else:

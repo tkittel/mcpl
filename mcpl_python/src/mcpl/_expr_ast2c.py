@@ -749,6 +749,22 @@ class _Statements:
                 lines.append(self.set_field(c,f'{terms} + 0.0'))
         return lines
 
+#The fields which can have universal values in files (which edits can not
+#change):
+_universal_fields = ( 'pdgcode', 'weight' )
+
+def _universal_checks( tr, edit, value ):
+    """Lines checking that the edit does not change fields with universal
+    values (value(field) is the code of the edited value), which the edits
+    refuse, as files only store the universal values"""
+    lines = []
+    for f in _universal_fields:
+        if f in edit.modified_fields:
+            lines += tr.fail(f'universal_{f} && {value(f)} != universal_{f}',
+                             f'The {f} can not be changed in files with a universal {f}',
+                             indent = '').rstrip('\n').split('\n')
+    return lines
+
 def _program_header( edit ):
     """The first comment lines of the generated code"""
     return ( [] if edit is None else [ f'Edit: {edit.expression}' ] ) + [
@@ -782,6 +798,7 @@ def _expr_ast2c( edit = None, layout = None, *, filenames = None, skip = 0,
     if edit is not None:
         body += _Statements(tr,set_field)(edit._tree.statements)
     if changes:
+        body += _universal_checks(tr,edit,lambda f : f'p.{_c_members[f]}')
         body.append('mcpl_add_particle_with_userdata( fo, &p, ud );' if layout
                     else 'mcpl_add_particle( fo, &p );')
     else:
@@ -816,6 +833,10 @@ def _expr_ast2c( edit = None, layout = None, *, filenames = None, skip = 0,
         for name, ( ftype, count ) in tr.userdata.items():
             t = ftype + ( f'[{count}]' if count is not None else '' )
             out.append(f'  const uint32_t offset_{name} = mcpl_userdata_offset( layout, "{name}", "{t}" );')
+    for f in _universal_fields:
+        if changes and f in edit.modified_fields:
+            t = 'int32_t' if f == 'pdgcode' else 'double'
+            out.append(f'  const {t} universal_{f} = mcpl_hdr_universal_{f}( fi );')
     out.append('  const mcpl_particle_t * p_in;')
     if layout:
         out.append('  const uint8_t * ud;')

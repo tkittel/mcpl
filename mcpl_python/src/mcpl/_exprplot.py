@@ -43,13 +43,14 @@ class _PlotValue:
     """Values of an expression for plots, which can have units (the axes of the
     plots show the units, see _plot_unit): the values are in the units of
     MCPL (cm, MeV, ms, and K, also for wavelengths), with the dimension dim (None
-    for values without units)."""
+    for values without units). The expression is in its canonical form (see
+    ParticleEdit.expression), and expression_original as given."""
     def __init__( self, expression ):
         if isinstance(expression,(ParticleValue,_PlotValue)):
-            expression = expression.expression
-        self._e = _Expr(expression)
-        self.expression = self._e.text
-        q = self._e.evaluate(_EmptyBlock())#(also checks the units)
+            expression = expression.expression_original
+        self.expr = _Expr(expression)
+        self.expression, self.expression_original = self.expr.canonical, self.expr.text
+        q = self.expr.evaluate(_EmptyBlock())#(also checks the units)
         #(the dimension, which for fields of the userdata is known from the
         #first block of particles, see __call__):
         self.dim = q.d

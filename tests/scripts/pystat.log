@@ -5338,7 +5338,7 @@ userflags    :           0 (0x00000000)      37.0735 (100.00%)
 
 Testing ref/reffile_1.mcpl with blocklength=2 and a condition keeping the last particle
 ------------------------------------------------------------------------------
-edit         : fileidx >= 4
+edit         : fileidx>=4
 nparticles   : 1
 sum(weights) : 1
 ------------------------------------------------------------------------------

@@ -26,6 +26,8 @@ types of the values are checked when they are evaluated (see _expr_eval)."""
 
 __all__ = []
 
+import math
+
 from ._common import MCPLError
 from ._expr_ast import (
     Call,
@@ -75,8 +77,11 @@ def _expr_astcheck( tree, text, unused_ok = False ):
 
 def _check_names( node, text, variables = () ):
     """Check that the names and functions in the expression exist (variables
-    are those assigned before it)"""
+    are those assigned before it), and that the constants are finite"""
     for n in _walk(node):
+        if isinstance(n,Float) and not math.isfinite(n.value):
+            #(like 1e400):
+            raise MCPLError(f'A constant has NaN or infinite values in expression "{text}"')
         if isinstance(n,Call) and n.name not in _expr_functions:
             raise MCPLError(f'Unsupported function call in expression "{text}"'
                             ' (available functions are: '

@@ -32,7 +32,7 @@ import math
 from ._common import MCPLError
 from ._expr_eval import _dimstr
 from ._expr_vocab import _expr_unit_hints
-from ._exprplot import _range_value
+from ._exprplot import _PlotValue, _range_value
 from ._exprunits import _dim_unknown
 from ._numpy import np
 
@@ -138,6 +138,43 @@ def _parse_hist( text ):
             res['display_by'] = value
     _check_hist_options(res,text)
     return res
+
+def _canonical_hist( text ):
+    """The canonical form of a histogram string: the same for all ways of
+    writing it which are recognised as the same. Its expressions are in their
+    canonical forms (see ParticleEdit.expression), and only the options
+    which do not have their default values are given, in the order of
+    _hist_options, and each in one way (as logx for logx=1, and single for
+    display_by=1). Raises MCPLError for invalid histogram strings."""
+    from ._expressions import ParticleEdit, ParticleValue, _Expr
+    o = _parse_hist(text)
+    defaults = _hist_defaults(o['exprs'])
+    given = dict(_hist_parts(text)[1])
+    parts = [ ':'.join( _PlotValue(e).expression for e in o['exprs'] ) ]
+    def used_display_by( opts ):
+        v = _display_by(opts)
+        return None if v is None else ParticleValue(v).expression
+    for name, kind in _hist_options.items():
+        v = o[name]
+        if v == defaults[name]:
+            continue
+        #(display_by is left out if it gives the same curves as without it):
+        if name == 'display_by' and used_display_by(o) == used_display_by({ **o, name : None }):
+            continue
+        if kind in ( 'bool', 'auto' ) or ( name == 'bar' and v is True ):
+            value = None if v is True else ( 'auto' if v == 'auto' else '0' )
+        elif name == 'bins':
+            value = ','.join( str(b) for b in ( v if isinstance(v,tuple) else ( v, ) ) )
+        elif kind == 'range':
+            value = ':'.join( _Expr(e).canonical for e in given[name].split(':') )
+        elif name == 'display_by':
+            value = 'single' if v in _single else ParticleValue(v).expression
+        elif name == 'display_edit':
+            value = ParticleEdit(v).expression
+        else:
+            value = str(v)
+        parts.append(name if value is None else f'{name}={value}')
+    return ';'.join(parts)
 
 def _check_range_option( name, nexprs, text ):
     """Check that the option range, xrange, or yrange can be used for a
@@ -265,12 +302,12 @@ def _check_range( rng, vals, name ):
     if rng.dim is None:
         unit = _expr_unit_hints.get(vals.dim)
         example = f', e.g. {name}=0{unit}:10{unit}' if unit else ''
-        raise MCPLError(f'The {name} of "{vals.expression}" must be given with units, as'
+        raise MCPLError(f'The {name} of "{vals.expression_original}" must be given with units, as'
                         f' it has units ({_dimstr(vals.dim)}){example}')
     if vals.dim is None:
-        raise MCPLError(f'The {name} of "{vals.expression}" must be given without units,'
+        raise MCPLError(f'The {name} of "{vals.expression_original}" must be given without units,'
                         ' as it has none')
-    raise MCPLError(f'The {name} of "{vals.expression}" ({_dimstr(vals.dim)}) has'
+    raise MCPLError(f'The {name} of "{vals.expression_original}" ({_dimstr(vals.dim)}) has'
                     f' other units ({_dimstr(rng.dim)})')
 
 

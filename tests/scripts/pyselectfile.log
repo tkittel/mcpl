@@ -1,4 +1,4 @@
-edit=ParticleEdit('pdgcode == neutron') nparticles=1006
+edit=ParticleEdit('pdgcode==neutron') nparticles=1006
 block lengths with blocklength=100: [185, 188, 179, 168, 6]
 first particle after rewind: 3
 skip_forward: skip_forward can not be used with files opened with edit, skip, or limit
@@ -6,14 +6,14 @@ edited block (_EditedParticleBlock) as expected: True
 selection from edited block: 81 particles, as expected: True
 particle 14: z=120 x=-22.5224 y=-6.54176
 Opened MCPL file example.mcpl:
-Showing particles edited with: pdgcode == gamma; x = 0
+Showing particles edited with: pdgcode==gamma;x=0
 
 index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight
     0          22      1.2635           0    -0.81223          20    -0.41453   -0.022799     0.90975  7.3389e-07           1
     1          22      2.6273           0      10.196          20   0.0031473     0.75937     0.65065  8.6567e-07           1
    46          22      1.7843           0     0.78225          20   -0.034013   -0.088335     0.99551  1.0907e-06           1
 ------------------------------------------------------------------------------
-edit         : pdgcode == neutron; z += 1m;ekin < 1MeV
+edit         : pdgcode==neutron;z+=1m;ekin<1MeV
 nparticles   : 466
 sum(weights) : 466
 ------------------------------------------------------------------------------

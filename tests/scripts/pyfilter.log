@@ -50,13 +50,13 @@ Integers:
   edit pdgcode = 2.5: MCPLError: Non-integer values assigned to pdgcode in expression "pdgcode = 2.5"
   edit pdgcode = 4294967295: MCPLError: Values assigned to pdgcode must be integers from -2147483648 to 2147483647, in expression "pdgcode = 4294967295"
   edit swap(pdgcode,userflags): MCPLError: Values assigned to pdgcode must be integers from -2147483648 to 2147483647, in expression "swap(pdgcode,userflags)"
-edit 'r = hypot(x,y); r > 2cm and r < 5cm': same as 'hypot(x,y) > 2cm and hypot(x,y) < 5cm': True (158 kept), fileidx: False, canonical: 'r=hypot(x,y);r>2cm and r<5cm'
-edit 'e = ekin/MeV; e2 = e*e; e2 > 0.25': same as '(ekin/MeV)^2 > 0.25': True (648 kept), fileidx: False, canonical: 'e=ekin/MeV;e2=e*e;e2>0.25'
-edit 'd = x - 1cm; d *= 2; abs(d) < 3cm': same as 'abs(2*(x - 1cm)) < 3cm': True (254 kept), fileidx: False, canonical: 'd=x-1cm;d*=2;abs(d)<3cm'
-edit 'n = pdgcode == neutron; n and ekin < 1MeV': same as 'pdgcode == neutron and ekin < 1MeV': True (466 kept), fileidx: False, canonical: 'n=pdgcode==neutron;n and ekin<1MeV'
-edit 't = time; mod(fileidx,2) == 0 and t > 0ms': same as 'mod(fileidx,2) == 0 and time > 0ms': True (503 kept), fileidx: True, canonical: 't=time;mod(fileidx,2)==0 and t>0ms'
-edit 'pdgcode == neutron;': same as 'pdgcode == neutron': True (726 kept), fileidx: False, canonical: 'pdgcode==neutron'
-edit 'r = hypot(x, y) ; r < 1cm': same as 'hypot(x,y) < 1cm': True (128 kept), fileidx: False, canonical: 'r=hypot(x,y);r<1cm'
+edit 'r=hypot(x,y);r>2cm and r<5cm': same as 'hypot(x,y) > 2cm and hypot(x,y) < 5cm': True (158 kept), fileidx: False, canonical: 'r=hypot(x,y);r>2cm and r<5cm'
+edit 'e=ekin/MeV;e2=e*e;e2>0.25': same as '(ekin/MeV)^2 > 0.25': True (648 kept), fileidx: False, canonical: 'e=ekin/MeV;e2=e*e;e2>0.25'
+edit 'd=x-1cm;d*=2;abs(d)<3cm': same as 'abs(2*(x - 1cm)) < 3cm': True (254 kept), fileidx: False, canonical: 'd=x-1cm;d*=2;abs(d)<3cm'
+edit 'n=pdgcode==neutron;n and ekin<1MeV': same as 'pdgcode == neutron and ekin < 1MeV': True (466 kept), fileidx: False, canonical: 'n=pdgcode==neutron;n and ekin<1MeV'
+edit 't=time;mod(fileidx,2)==0 and t>0s': same as 'mod(fileidx,2) == 0 and time > 0ms': True (503 kept), fileidx: True, canonical: 't=time;mod(fileidx,2)==0 and t>0s'
+edit 'pdgcode==neutron': same as 'pdgcode == neutron': True (726 kept), fileidx: False, canonical: 'pdgcode==neutron'
+edit 'r=hypot(x,y);r<1cm': same as 'hypot(x,y) < 1cm': True (128 kept), fileidx: False, canonical: 'r=hypot(x,y);r<1cm'
 file and histogram with 'r = hypot(x,y); r > 2cm': 820 820
 ParticleEdit('x = 1cm; x > 0cm'): no error
 ParticleEdit('r = hypot(x,y); x > 0cm'): Variable "r" is assigned but never used in "r = hypot(x,y); x > 0cm" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol)
@@ -111,11 +111,11 @@ histogram example 'x : y;display_edit=rotate_z(45deg)': Hist2D
 histogram example 'x : y : z': PointSet3D
 histogram example 'pdgcode;bar': HistDiscrete
 histogram example 'userdata.nscat;bar;unweighted': HistDiscrete
-'pdgcode in (neutron,gamma)': 965 particles, normalised 'pdgcode in (neutron,gamma)', as expected: True
-'pdgcode not in ( neutron, gamma )': 41 particles, normalised 'pdgcode not in (neutron,gamma)', as expected: True
+'pdgcode in (neutron,gamma)': 965 particles, normalised 'pdgcode in (gamma,neutron)', as expected: True
+'pdgcode not in ( neutron, gamma )': 41 particles, normalised 'pdgcode not in (gamma,neutron)', as expected: True
 'abs(pdgcode) in (11)': 23 particles, normalised 'abs(pdgcode) in (11)', as expected: True
-'not userflags in (1,0x10) and pdgcode in (22,2112)': 965 particles, normalised 'not userflags in (1,0x10) and pdgcode in (22,2112)', as expected: True
-'pdgcode in (-11,+11,positron)': 23 particles, normalised 'pdgcode in (-11,11,positron)', as expected: True
+'not userflags in (1,0x10) and pdgcode in (22,2112)': 965 particles, normalised 'not userflags in (1,0x10) and pdgcode in (gamma,neutron)', as expected: True
+'pdgcode in (-11,+11,positron)': 23 particles, normalised 'pdgcode in (positron,electron)', as expected: True
 'neutron': neutron is a PDG code (2112), not a condition (e.g. pdgcode == neutron), in expression "neutron"
 'pdgcode': pdgcode is not a condition (e.g. pdgcode == neutron), in expression "pdgcode"
 'neutron or gamma': neutron is a PDG code (2112), not a condition (e.g. pdgcode == neutron), in expression "neutron or gamma"
@@ -161,7 +161,7 @@ bar chart of userdata.nscat: HistDiscrete
 value 'ekin/MeV': 'ekin/MeV'
 value '(ekin) / MeV': 'ekin/MeV'
 value '(x**2+y^2)/cm^2': '(x^2+y^2)/cm^2'
-value '2.5e-3MeV*ekin/MeV^2': '0.0025MeV*ekin/MeV^2'
+value '2.5e-3MeV*ekin/MeV^2': '2.5keV*ekin/MeV^2'
 value '-(x/cm)^2': '-(x/cm)^2'
 value '2^-1*x/cm': '2^-1*x/cm'
 value '(-2)^2*ux': '(-2)^2*ux'
@@ -284,57 +284,57 @@ rotate_around: 10000 random rotations are proper rotations: True
 rotate_frame: 10000 random rotations are proper rotations: True
 rotate_frame (mirrored vout and uout): 10000 random rotations are proper rotations: True
 nearly parallel: vout and uout must not be parallel
-normalised selection: 'pdgcode == neutron and ekin < 1MeV and hypot(x,y) < 10 cm'
-normalised edit: 'z = 0cm; wavelength = 1.8Aa'
-normalised value: 'ekin / eV'
+normalised selection: 'pdgcode==neutron and ekin<1MeV and hypot(x,y)<10cm'
+normalised edit: 'z=0m;wavelength=1.8Aa'
+normalised value: 'ekin/eV'
 ParticleEdit(42): Expressions must be strings (got int)
 ParticleEdit(None): Expressions must be strings (got NoneType)
-ParticleEdit('ekin > 25keV and x <= 2cm + y and pdgcode != 22'): keeps 477
-ParticleEdit('pdgcode == neutron and ekin < 500keV'): keeps 335
-ParticleEdit('mod(fileidx,10) == 0'): keeps 101
-ParticleEdit('fileidx >= 3 and pdgcode == gamma'): keeps 237
-ParticleEdit('not (pdgcode == gamma) or ekin > 1GeV'): keeps 767
-ParticleEdit('0cm < x < 10mm and not(abs(y) >= 1cm)'): keeps 104
-ParticleEdit('sqrt(x**2+y**2) < 5cm'): keeps 344
-ParticleEdit('sqrt(x^2+y^2) < 5cm'): keeps 344
-ParticleEdit('hypot(x,y) < 0.05m'): keeps 344
-ParticleEdit('hypot(x,y,z) < 25cm'): keeps 669
-ParticleEdit('hypot(0,x) < 2cm'): keeps 327
-ParticleEdit('max(0,x) > 1cm'): keeps 358
-ParticleEdit('clamp(0,x,y) < 0cm'): keeps 478
-ParticleEdit('x^2 + y^2 < 4cm^2'): keeps 186
-ParticleEdit('x^2 + y^2 < 400 mm^2'): keeps 186
-ParticleEdit('2cm^-1*x > 1'): keeps 410
-ParticleEdit('(pdgcode == neutron or pdgcode == gamma) and wavelength > 0.005Aa'): keeps 158
-ParticleEdit('(pdgcode == neutron or pdgcode == gamma) and wavelength > 0.0005nm'): keeps 158
-ParticleEdit('(pdgcode == neutron or pdgcode == gamma) and wavelength > 5e-13m'): keeps 158
-ParticleEdit('pdgcode == proton or (pdgcode == gamma and wavelength > 0.5Aa)'): keeps 10
-ParticleEdit('pdgcode == neutron and wavelength > 0.005Aa'): keeps 2
-ParticleEdit('pdgcode != neutron or wavelength > 0.005Aa'): keeps 282
-ParticleEdit('pdgcode == gamma and 0 < 2*wavelength < x'): keeps 141
-ParticleEdit('uz > cos(10*pi/180)'): keeps 54
-ParticleEdit('acos(uz) < 10deg'): keeps 54
-ParticleEdit('time < 10us'): keeps 1006
-ParticleEdit('(userflags & 1) == 0 and weight == 1'): keeps 1006
-ParticleEdit('mod(userflags,4) == 0'): keeps 1006
-ParticleEdit('mod(abs(pdgcode),2) == 0'): keeps 976
-ParticleEdit('max(abs(x),abs(y)) < 3cm'): keeps 245
-ParticleEdit('ekin/keV > 500'): keeps 648
-ParticleEdit('abs(x) < 1cm + 2mm'): keeps 247
-ParticleEdit('1 < 2'): keeps 1006
-ParticleEdit('x > 0 and y <= -0'): keeps 251
-ParticleEdit('0 < x < 2cm'): keeps 195
-ParticleEdit('ekin > 0 and time > 0 or z == 0'): keeps 1006
-ParticleEdit('userflags & 0x10'): keeps 0
-ParticleEdit('(userflags & 0xff) != 0xff'): keeps 1006
-ParticleEdit('pdgcode == -2111-1'): keeps 0
-ParticleEdit('atan2(uy,ux) > 90deg'): keeps 212
-ParticleEdit('angle(dir,(0,0,1)) < 30deg'): keeps 313
-ParticleEdit('not (userflags & 1) and pdgcode != 0x0'): keeps 1006
-ParticleEdit('pdgcode == electron or pdgcode == positron'): keeps 23
-ParticleEdit('pdgcode == antielectron or pdgcode == photon'): keeps 247
-ParticleEdit('pdgcode == muon or pdgcode == antimuon or pdgcode == antiproton or pdgcode == antineutron'): keeps 0
-ParticleEdit('tmp = x; x = -y; y = tmp + 2cm; z *= 2; weight = weight*0.5; time += 1ms; pdgcode = neutron'): fields ['pdgcode', 'time', 'weight', 'x', 'y', 'z'], as expected: True
+ParticleEdit('ekin>25keV and x<=2cm+y and pdgcode!=gamma'): keeps 477
+ParticleEdit('pdgcode==neutron and ekin<500keV'): keeps 335
+ParticleEdit('mod(fileidx,10)==0'): keeps 101
+ParticleEdit('fileidx>=3 and pdgcode==gamma'): keeps 237
+ParticleEdit('not pdgcode==gamma or ekin>1GeV'): keeps 767
+ParticleEdit('0m<x<1cm and not abs(y)>=1cm'): keeps 104
+ParticleEdit('sqrt(x^2+y^2)<5cm'): keeps 344
+ParticleEdit('sqrt(x^2+y^2)<5cm'): keeps 344
+ParticleEdit('hypot(x,y)<5cm'): keeps 344
+ParticleEdit('hypot(x,y,z)<25cm'): keeps 669
+ParticleEdit('hypot(0,x)<2cm'): keeps 327
+ParticleEdit('max(0,x)>1cm'): keeps 358
+ParticleEdit('clamp(0,x,y)<0m'): keeps 478
+ParticleEdit('x^2+y^2<4cm^2'): keeps 186
+ParticleEdit('x^2+y^2<4cm^2'): keeps 186
+ParticleEdit('2cm^-1*x>1'): keeps 410
+ParticleEdit('(pdgcode==neutron or pdgcode==gamma) and wavelength>0.005Aa'): keeps 158
+ParticleEdit('(pdgcode==neutron or pdgcode==gamma) and wavelength>0.005Aa'): keeps 158
+ParticleEdit('(pdgcode==neutron or pdgcode==gamma) and wavelength>0.005Aa'): keeps 158
+ParticleEdit('pdgcode==proton or pdgcode==gamma and wavelength>0.5Aa'): keeps 10
+ParticleEdit('pdgcode==neutron and wavelength>0.005Aa'): keeps 2
+ParticleEdit('pdgcode!=neutron or wavelength>0.005Aa'): keeps 282
+ParticleEdit('pdgcode==gamma and 0<2*wavelength<x'): keeps 141
+ParticleEdit('uz>cos(10*pi/180)'): keeps 54
+ParticleEdit('acos(uz)<10deg'): keeps 54
+ParticleEdit('time<10us'): keeps 1006
+ParticleEdit('userflags&1==0 and weight==1'): keeps 1006
+ParticleEdit('mod(userflags,4)==0'): keeps 1006
+ParticleEdit('mod(abs(pdgcode),2)==0'): keeps 976
+ParticleEdit('max(abs(x),abs(y))<3cm'): keeps 245
+ParticleEdit('ekin/keV>500'): keeps 648
+ParticleEdit('abs(x)<1cm+2mm'): keeps 247
+ParticleEdit('1<2'): keeps 1006
+ParticleEdit('x>0 and y<=-0'): keeps 251
+ParticleEdit('0<x<2cm'): keeps 195
+ParticleEdit('ekin>0 and time>0 or z==0'): keeps 1006
+ParticleEdit('userflags&0x10'): keeps 0
+ParticleEdit('userflags&0xff!=0xff'): keeps 1006
+ParticleEdit('pdgcode==-2111-1'): keeps 0
+ParticleEdit('atan2(uy,ux)>90deg'): keeps 212
+ParticleEdit('angle(dir,(0,0,1))<30deg'): keeps 313
+ParticleEdit('not userflags&1 and pdgcode!=0x0'): keeps 1006
+ParticleEdit('pdgcode==electron or pdgcode==positron'): keeps 23
+ParticleEdit('pdgcode==positron or pdgcode==gamma'): keeps 247
+ParticleEdit('pdgcode==muon or pdgcode==antimuon or pdgcode==antiproton or pdgcode==antineutron'): keeps 0
+ParticleEdit('tmp=x;x=-y;y=tmp+2cm;z*=2;weight=weight*0.5;time+=1ms;pdgcode=neutron'): fields ['pdgcode', 'time', 'weight', 'x', 'y', 'z'], as expected: True
 ParticleEdit('wavelength = 1.8Aa') as expected: True
 ParticleEdit('wavelength = 0.18nm') as expected: True
 ParticleEdit('wavelength = 1.8Aa + wavelength') as expected: True
@@ -494,7 +494,7 @@ Wrote 239 particles to gammas.mcpl
 Neutron wavelengths in neutrons.mcpl: 1.8Aa - 1.8Aa
 1.8Aa neutrons have ekin = 25.25meV
 Opened MCPL file example.mcpl:
-Showing particles edited with: pdgcode == gamma and ekin > 1MeV
+Showing particles edited with: pdgcode==gamma and ekin>1MeV
 
 index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight
     1          22      2.6273     0.85935      10.196          20   0.0031473     0.75937     0.65065  8.6567e-07           1
@@ -502,7 +502,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
    47          22      2.3411      4.5887      14.531          20  -0.0090622    -0.86911     0.49453  6.3877e-06           1
    49          22      1.0268     -19.849   -0.045838          20     0.30278     0.37687     0.87538  9.5645e-06           1
 ------------------------------------------------------------------------------
-edit         : pdgcode == neutron and ekin < 1MeV
+edit         : pdgcode==neutron and ekin<1MeV
 nparticles   : 466
 sum(weights) : 466
 ------------------------------------------------------------------------------

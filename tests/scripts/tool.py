@@ -284,11 +284,14 @@ def main():
     cmd('--merge','merged_comment_1.mcpl','extracted_comment_1.mcpl','extracted_comment_5.mcpl',fail=True)
     cmd('--merge','merged_comment_2.mcpl','extracted_comment_7.mcpl','extracted_comment_6.mcpl',fail=True)
     cmd('-x','-e','pdgcode == neutron',fmisc,'extracted_comment_8.mcpl')
-    #(the edits are recorded as written, here pdgcode == 2112 and pdgcode ==
-    #neutron, so the comments differ, and the files can not be merged):
-    cmd('--merge','merged_comment_3.mcpl','extracted_comment_7.mcpl','extracted_comment_8.mcpl',
-        fail=True)
-    cmd('-j','merged_comment_3.mcpl',fail=True)
+    #(the edits are recorded in their canonical form, here pdgcode==neutron for
+    #both pdgcode == 2112 and pdgcode == neutron, so the files can be merged):
+    cmd('--merge','merged_comment_3.mcpl','extracted_comment_7.mcpl','extracted_comment_8.mcpl')
+    cmd('-j','merged_comment_3.mcpl')
+    cmd('-x','-e','(pdgcode==2112) and ekin>5000eV',fmisc,'extracted_comment_9.mcpl')
+    cmd('-x','-e','pdgcode == neutron and ekin > 5keV',fmisc,'extracted_comment_10.mcpl')
+    cmd('--merge','merged_comment_4.mcpl','extracted_comment_9.mcpl','extracted_comment_10.mcpl')
+    cmd('-j','merged_comment_4.mcpl')
 
     cmd('-m','extracted_recombined','extracted_none.mcpl','extracted_all.mcpl')
     cmd('-m','--inplace','extracted_none.mcpl','extracted_all.mcpl')

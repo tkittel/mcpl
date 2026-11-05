@@ -225,7 +225,7 @@ show(terminal=True,terminal_width=40,terminal_height=5) with PYTHONIOENCODING=as
 mcpltool -t with ascii: 19 lines, first and last:
 (weights per bin)
                                          time/ms
-mcpltool -t x/cm;display_by=single with ascii and 83 columns:
+mcpltool -t -H x/cm;display_by=single with ascii and 83 columns:
 (weights per bin)
      295 +                                  ##
          |                                  ##
@@ -246,7 +246,7 @@ mcpltool -t x/cm;display_by=single with ascii and 83 columns:
          -65                                2.5                                 70
                                             x/cm
 
-mcpltool -t x/cm : y/cm with ascii and 83 columns:
+mcpltool -t -H x/cm : y/cm with ascii and 83 columns:
 (y: y/cm)
       60 +        ................
          |                ........        ........

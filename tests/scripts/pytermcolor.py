@@ -145,8 +145,9 @@ def tool( *args, **env ):
     for n in ( 'NO_COLOR', 'FORCE_COLOR', 'COLORTERM' ):
         e.pop(n,None)
     e.update(env)
+    #(with the errors, from standard error, in the output):
     rv = subprocess.run([sys.executable,'-m','mcpldev',*args,str(example_file)],
-                        capture_output=True,env=e,check=False)
+                        stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=e,check=False)
     out = rv.stdout.decode('utf-8')
     colours = '\x1b[' in out
     print(f'mcpltool {" ".join(args)} {env if env else ""}: exit code'
@@ -157,19 +158,19 @@ def tool( *args, **env ):
 
 def test_tool():
     h = 'ekin/MeV;bins=5;display_by=single'
-    tool('-t',h)
-    tool('-t',h,'--color=always')
-    tool('-t',h,'--color','always')
-    tool('-t',h,'--color=never',FORCE_COLOR='1')
-    tool('-t',h,FORCE_COLOR='1')
-    tool('-t',h,'--color=always',NO_COLOR='1')
-    tool('-t',h,NO_COLOR='1',FORCE_COLOR='1')
-    tool('-w',h,'--color=always')
-    tool('-t',h,'--color=sometimes')
-    tool('-t',h,'--color=always','-o','x.txt')
-    tool('-t',h+';print=1','--color=always')
+    tool('-t','-H',h)
+    tool('-t','-H',h,'--color=always')
+    tool('-t','-H',h,'--color','always')
+    tool('-t','-H',h,'--color=never',FORCE_COLOR='1')
+    tool('-t','-H',h,FORCE_COLOR='1')
+    tool('-t','-H',h,'--color=always',NO_COLOR='1')
+    tool('-t','-H',h,NO_COLOR='1',FORCE_COLOR='1')
+    tool('-H',h,'--color=always')
+    tool('-t','-H',h,'--color=sometimes')
+    tool('-t','-H',h,'--color=always','-o','x.txt')
+    tool('-t','-H',h+';print=1','--color=always')
     tool('-S','--color=always')
-    tool('-t',h,'--color=always','--color=never')
+    tool('-t','-H',h,'--color=always','--color=never')
 
 test_when()
 test_sequences()

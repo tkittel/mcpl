@@ -79,9 +79,10 @@ def dir_contents(d):
     return res
 
 def run(cmd, cwd):
-    r = subprocess.run(cmd, cwd=cwd, capture_output=True, check=False,
-                       env = { **os.environ, 'PYMCPLTOOL_FAKE_PYVERSION' : '1' })
-    return r.returncode, r.stdout.decode().replace('\r\n','\n'), r.stderr.decode()
+    #(with the errors, from standard error, in the output):
+    r = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                       check=False, env = { **os.environ, 'PYMCPLTOOL_FAKE_PYVERSION' : '1' })
+    return r.returncode, r.stdout.decode().replace('\r\n','\n'), ''
 
 def fresh(d):
     if pathlib.Path(d).exists():

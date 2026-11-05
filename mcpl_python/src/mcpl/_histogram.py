@@ -170,7 +170,7 @@ def histogram( file, expression, *, edit = None ):
        h.plot()
        print( h.edges, h.contents )
 
-    The expression is a histogram string, as for mcpltool -w (see mcpltool
+    The expression is a histogram string, as for mcpltool -H (see mcpltool
     --hist-help), with one expression for a Hist1D (or a HistDiscrete
     with the option bar), two for a Hist2D (as in "x/cm : y/cm"), or
     three for a PointSet3D (as in "x/cm : y/cm : z/cm"). The values are in

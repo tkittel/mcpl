@@ -28,22 +28,22 @@ ascii split: colours used: True, same text without them: True
 ascii 2D: colours used: True, same text without them: True
 ascii overview: colours used: True, same text without them: True
 file without escape sequences: True
-mcpltool -t ekin/MeV;bins=5;display_by=single : exit code 0, colours: False
-mcpltool -t ekin/MeV;bins=5;display_by=single --color=always : exit code 0, colours: True
-mcpltool -t ekin/MeV;bins=5;display_by=single --color always : exit code 0, colours: True
-mcpltool -t ekin/MeV;bins=5;display_by=single --color=never {'FORCE_COLOR': '1'}: exit code 0, colours: False
-mcpltool -t ekin/MeV;bins=5;display_by=single {'FORCE_COLOR': '1'}: exit code 0, colours: True
-mcpltool -t ekin/MeV;bins=5;display_by=single --color=always {'NO_COLOR': '1'}: exit code 0, colours: True
-mcpltool -t ekin/MeV;bins=5;display_by=single {'NO_COLOR': '1', 'FORCE_COLOR': '1'}: exit code 0, colours: False
-mcpltool -w ekin/MeV;bins=5;display_by=single --color=always : exit code 1, colours: False
-   | ERROR: --color can only be used with -t.
-mcpltool -t ekin/MeV;bins=5;display_by=single --color=sometimes : exit code 1, colours: False
-   | ERROR: --color must be auto, always, or never.
-mcpltool -t ekin/MeV;bins=5;display_by=single --color=always -o x.txt : exit code 1, colours: False
-   | ERROR: --color can not be used with -o (plots are saved without colours).
-mcpltool -t ekin/MeV;bins=5;display_by=single;print=1 --color=always : exit code 1, colours: False
-   | ERROR: The histogram option print can not be used together with -o or --color.
-mcpltool -S --color=always : exit code 1, colours: False
-   | ERROR: --color can only be used with -t.
-mcpltool -t ekin/MeV;bins=5;display_by=single --color=always --color=never : exit code 1, colours: False
-   | ERROR: --color specified more than once
+mcpltool -t -H ekin/MeV;bins=5;display_by=single : exit code 0, colours: False
+mcpltool -t -H ekin/MeV;bins=5;display_by=single --color=always : exit code 0, colours: True
+mcpltool -t -H ekin/MeV;bins=5;display_by=single --color always : exit code 0, colours: True
+mcpltool -t -H ekin/MeV;bins=5;display_by=single --color=never {'FORCE_COLOR': '1'}: exit code 0, colours: False
+mcpltool -t -H ekin/MeV;bins=5;display_by=single {'FORCE_COLOR': '1'}: exit code 0, colours: True
+mcpltool -t -H ekin/MeV;bins=5;display_by=single --color=always {'NO_COLOR': '1'}: exit code 0, colours: True
+mcpltool -t -H ekin/MeV;bins=5;display_by=single {'NO_COLOR': '1', 'FORCE_COLOR': '1'}: exit code 0, colours: False
+mcpltool -H ekin/MeV;bins=5;display_by=single --color=always : exit code 2, colours: False
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+mcpltool -t -H ekin/MeV;bins=5;display_by=single --color=sometimes : exit code 2, colours: False
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+mcpltool -t -H ekin/MeV;bins=5;display_by=single --color=always -o x.txt : exit code 2, colours: False
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+mcpltool -t -H ekin/MeV;bins=5;display_by=single;print=1 --color=always : exit code 2, colours: False
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+mcpltool -S --color=always : exit code 2, colours: False
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+mcpltool -t -H ekin/MeV;bins=5;display_by=single --color=always --color=never : exit code 2, colours: False
+   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)

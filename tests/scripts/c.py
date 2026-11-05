@@ -39,6 +39,7 @@ package (as per coverage.py)"""
 
 import contextlib
 import os
+import pathlib
 import shutil
 import sys
 
@@ -89,17 +90,24 @@ badfiles = sorted(test_data_dir.joinpath('ref').glob('reffile_bad*.mcpl*'))
 assert len(badfiles)==10
 
 def testtool(args,testnone=False):
+    #(run in the directory of the test data, with the files relative to it, so
+    #the names in messages are the same everywhere):
+    args = [ e.relative_to(test_data_dir).as_posix() if isinstance(e,pathlib.Path) else str(e)
+             for e in args ]
     flush()
+    cwd = os.getcwd()
     try:
-        mcpl.app_mcpltool(['mcpltool']+[str(e) for e in args]
-                            if not testnone
-                            else None)
+        os.chdir(test_data_dir)
+        with contextlib.redirect_stderr(sys.stdout):
+            mcpl.app_mcpltool(['mcpltool']+args if not testnone else None)
     except mcpl.MCPLError as e:
         flush()
         print(f"===> mcpltool ended with MCPLError exception: {e!s}")
     except SystemExit as e:
         flush()
         print(f"===> mcpltool ended with exit code {e!s}")
+    finally:
+        os.chdir(cwd)
     flush()
 
 testtool([])

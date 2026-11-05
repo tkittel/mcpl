@@ -43,7 +43,8 @@ def gunzip( f ):
 
 def cmd(*args, print_md5sum_of_output = False, fail = False):
     """Run mcpltool with the arguments (with a fixed version in its
-    printouts), printing its output, and check that it fails if fail is set"""
+    printouts), printing its output (and its errors, in order), and check that
+    it fails if fail is set"""
     flush()
     print("----------------------------------------------")
     def argfmt( a ):
@@ -58,10 +59,9 @@ def cmd(*args, print_md5sum_of_output = False, fail = False):
     print(f"Running mcpltool {args_print}")
     print("----------------------------------------------")
     flush()
-    rv = subprocess.run( fullcmd, capture_output = True, check = False,
+    rv = subprocess.run( fullcmd, stdout = subprocess.PIPE, stderr = subprocess.STDOUT,
+                         check = False,
                          env = { **os.environ, 'PYMCPLTOOL_FAKE_PYVERSION' : '1' } )
-    flush()
-    assert not rv.stderr, "process had stderr"
     flush()
     if print_md5sum_of_output:
         print('>>>{}<<<'.format(rv.stdout

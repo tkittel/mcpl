@@ -144,7 +144,7 @@ def test_tool():
     #(with the ascii backend, as in terminals which can not show Unicode):
     out = io.StringIO()
     with _forced_backend('ascii'), contextlib.redirect_stdout(out), contextlib.suppress(SystemExit):
-        mcpl.app_mcpltool(['mcpltool','-t','time/ms;logx=1;bins=20;display_by=single',
+        mcpl.app_mcpltool(['mcpltool','-t','-H','time/ms;logx=1;bins=20;display_by=single',
                            str(example_file)])
     lines = out.getvalue().splitlines()
     print(f'mcpltool -t with ascii: {len(lines)} lines, first and last:')
@@ -157,7 +157,7 @@ def test_tool():
     old = { k : os.environ.get(k) for k in env }
     os.environ.update(env)
     try:
-        for args in ( ['-t','x/cm;display_by=single'], ['-t','x/cm : y/cm'] ):
+        for args in ( ['-t','-H','x/cm;display_by=single'], ['-t','-H','x/cm : y/cm'] ):
             out = io.StringIO()
             with _forced_backend('ascii'), contextlib.redirect_stdout(out), contextlib.suppress(SystemExit):
                 mcpl.app_mcpltool(['mcpltool',*args,str(example_file)])

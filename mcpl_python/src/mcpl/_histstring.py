@@ -28,7 +28,7 @@ __all__ = []
 import math
 
 from ._common import MCPLError
-from ._exprcore import _dimstr, _expr_unit_hints
+from ._expr_eval import _dimstr, _expr_unit_hints
 from ._exprplot import _range_value
 from ._exprunits import _dim_unknown
 from ._numpy import np
@@ -87,7 +87,7 @@ def _parse_hist( text ):
     "ekin/MeV;logx;bins=50" or "x/cm : y/cm;xrange=-10:10". Returns a
     dict with the expressions (a list of one, two, or three), and the options (with
     defaults for those not given)."""
-    from ._exprcore import _check_chars
+    from ._expr_eval import _check_chars
     _check_chars(text,'histogram')
     exprs = _hist_exprs(text)
     opts = _hist_parts(text)[1]

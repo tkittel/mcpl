@@ -22,9 +22,9 @@
 
 # NEEDS: numpy
 
-# Test selection and editing of particles with expressions in the Python API:
-# ParticleFilter and ParticleEdit, dump_file and collect_stats with a
-# selection, and the python examples using them.
+# Test selection and editing of particles with edit expressions in the Python
+# API: ParticleEdit, dump_file and collect_stats with an edit, and the python
+# examples using them.
 
 import pathlib
 import sys
@@ -35,6 +35,19 @@ from mcpldev._physics import wavelength_from_ekin
 from MCPLTestUtils.dirs import test_data_dir
 
 example_file = test_data_dir.joinpath('example.mcpl')
+
+def keeps( edit, b ):
+    """The mask of the particles of the block b which the edit expression (or
+    ParticleEdit) keeps"""
+    kept = mcpl.ParticleEdit(edit)._apply(b)[0] if isinstance(edit,str) else edit._apply(b)[0]
+    mask = np.zeros(len(b),dtype=bool)
+    mask[slice(None) if kept is None else kept] = True
+    return mask
+
+def changes( edit, b ):
+    """The new values of the fields of the particles of the block b which the
+    edit expression changes, as a dict"""
+    return mcpl.ParticleEdit(edit)._apply(b)[1]
 
 def test_expressions():
     with mcpl.MCPLFile(example_file) as f:
@@ -90,12 +103,12 @@ def test_expressions():
               ('pdgcode == muon or pdgcode == antimuon or pdgcode == antiproton or pdgcode == antineutron',
                np.isin(b.pdgcode,(13,-13,-2212,-2112))) ]
     for expr, ref in cases:
-        flt = mcpl.ParticleFilter(expr)
-        sel = flt(b)
-        print(f'{flt!r}: selects {np.sum(sel)}')
+        flt = mcpl.ParticleEdit(expr)
+        sel = keeps(flt,b)
+        print(f'{flt!r}: keeps {np.sum(sel)}')
         assert sel.dtype == bool and np.array_equal(sel, ref), expr
     edit = mcpl.ParticleEdit('tmp = x; x = -y; y = tmp + 2cm; z *= 2; weight = weight*0.5; time += 1ms; pdgcode = neutron')
-    r = edit(b)
+    r = changes(edit.expression,b)
     ok = ( np.allclose(r['x'],-b.y) and np.allclose(r['y'],b.x+2) and np.allclose(r['z'],2*b.z)
            and np.allclose(r['weight'],0.5*b.weight) and np.allclose(r['time'],b.time+1)
            and np.all(r['pdgcode']==2112) and r['pdgcode'].dtype.kind == 'i' )
@@ -105,11 +118,11 @@ def test_expressions():
     for ed, ref in ( ('wavelength = 1.8Aa', 1.8), ('wavelength = 0.18nm', 1.8),
                      ('wavelength = 1.8Aa + wavelength', 1.8+n.wavelength),
                      ('wavelength *= 2', 2*n.wavelength) ):
-        r = mcpl.ParticleEdit(ed)(n)
+        r = changes(ed,n)
         wl = wavelength_from_ekin(r['ekin'],n.pdgcode)
         print(f'ParticleEdit({ed!r}) as expected: {np.allclose(wl,ref)}')
         assert sorted(r) == ['ekin'] and np.allclose(wl,ref)
-    r = mcpl.ParticleEdit('z = 0; x = -0; time = 0')(b)
+    r = changes('z = 0; x = -0; time = 0',b)
     assert np.all(r['z']==0) and np.all(r['x']==0) and np.all(r['time']==0)
     #Statements are executed in order:
     for ed, checks in (
@@ -129,16 +142,16 @@ def test_expressions():
             ('x = clamp(x, -1cm, 1cm); y = min(y, 1cm, 2mm); z = max(z, 0, 25cm)',
              lambda r : ( np.allclose(r['x'],np.clip(b.x,-1,1)) and np.allclose(r['y'],np.minimum(b.y,0.2))
                           and np.allclose(r['z'],np.maximum(b.z,25)) )) ):
-        ok = checks(mcpl.ParticleEdit(ed)(b))
+        ok = checks(changes(ed,b))
         print(f'ParticleEdit({ed!r}) as expected: {ok}')
         assert ok
-    r = mcpl.ParticleEdit('wavelength = 1.8Aa; weight = wavelength/Aa; time = 0')(n)
+    r = changes('wavelength = 1.8Aa; weight = wavelength/Aa; time = 0',n)
     assert sorted(r) == ['ekin','time','weight'] and np.allclose(r['weight'],1.8)
-    r = mcpl.ParticleEdit('ekin = 1MeV; wavelength = 2Aa')(n)
+    r = changes('ekin = 1MeV; wavelength = 2Aa',n)
     assert np.allclose(wavelength_from_ekin(r['ekin']),2)
-    r = mcpl.ParticleEdit('z += 1mm; time = time + 2us; ekin = 25meV')(b)
+    r = changes('z += 1mm; time = time + 2us; ekin = 25meV',b)
     assert np.allclose(r['z'],b.z+0.1) and np.allclose(r['time'],b.time+0.002) and np.allclose(r['ekin'],25e-9)
-    r = mcpl.ParticleEdit('x = 2m*ux; y = uy*1m; ux = min(ux, 0.5); weight = 2')(b)
+    r = changes('x = 2m*ux; y = uy*1m; ux = min(ux, 0.5); weight = 2',b)
     assert ( np.allclose(r['x'], 200*b.ux) and np.allclose(r['y'], 100*b.uy)
              and np.allclose(r['ux'], np.minimum(b.ux,0.5)) and np.all(r['weight']==2) )
     for bad in ('wavelength > 1.8Aa', 'x > 0 and wavelength > 1.8Aa', 'pdgcode == proton or wavelength > 1Aa',
@@ -162,10 +175,10 @@ def test_expressions():
                 'through_sphere((0,0,1m),1)', 'through_sphere(1m,1cm)',
                 'x > 0cm if ux > 0 else x < 0cm'):
         try:
-            mcpl.ParticleFilter(bad)(b)
-            print(f'ParticleFilter({bad!r}): no error')
+            keeps(bad,b)
+            print(f'ParticleEdit({bad!r}): no error')
         except mcpl.MCPLError as e:
-            print(f'ParticleFilter({bad!r}): {e}')
+            print(f'ParticleEdit({bad!r}): {e}')
     for bad in ('x = 2*ux', 'x = 2', 'ekin = 0.025', 'wavelength = 1.8', 'z += 1',
                 'x = 1meV', 'wavelength = 1keV', 'time = 2*x', 'weight = 1cm',
                 'x', 'foo = 1', 'wl = 1.8Aa', 'tmp = x; x = y', 'Tmp = 1', 'tmp += 1cm', 'x = tmp', 'clamp = 1',
@@ -185,7 +198,7 @@ def test_expressions():
                 'x = y = 1cm', 'x, y = y, x', '', 'pdgcode = 1.5',
                 'x = sqrt(x/cm)*1cm', 'weight = 1/(x/cm - x/cm)'):
         try:
-            mcpl.ParticleEdit(bad)(b)
+            changes(bad,b)
             print(f'ParticleEdit({bad!r}): no error')
         except mcpl.MCPLError as e:
             print(f'ParticleEdit({bad!r}): {e}')
@@ -198,7 +211,7 @@ def test_nonfinite():
     n = b[b.pdgcode==2112]
     for bad in ('wavelength = 0', 'wavelength = -1Aa', 'wavelength = wavelength - wavelength'):
         try:
-            mcpl.ParticleEdit(bad)(n)
+            changes(bad,n)
             print(f'ParticleEdit({bad!r}) on neutrons: no error')
         except mcpl.MCPLError as e:
             print(f'ParticleEdit({bad!r}) on neutrons: {e}')
@@ -212,10 +225,10 @@ def test_nonfinite():
                   'ekin > 0 and 1/(ekin/MeV) > 1',
                   '1/(ekin/MeV) > 1' ):
         try:
-            print(f'ParticleFilter({expr!r}) with zero ekin: selects'
-                  f' {np.sum(mcpl.ParticleFilter(expr)(z))}')
+            print(f'ParticleEdit({expr!r}) with zero ekin: selects'
+                  f' {np.sum(keeps(expr,z))}')
         except mcpl.MCPLError as e:
-            print(f'ParticleFilter({expr!r}) with zero ekin: {e}')
+            print(f'ParticleEdit({expr!r}) with zero ekin: {e}')
 
 def run_example(name, *args):
     f = test_data_dir.joinpath('pyexamples',name)
@@ -236,10 +249,10 @@ def test_examples():
 
 def test_dump_and_stats():
     mcpl.dump_file(example_file, header=False, limit=4, skip=1,
-                   pick='pdgcode == gamma and ekin > 1MeV')
-    mcpl.dump_stats(mcpl.collect_stats(example_file, pick='pdgcode == neutron and ekin < 1MeV',
+                   edit='pdgcode == gamma and ekin > 1MeV')
+    mcpl.dump_stats(mcpl.collect_stats(example_file, edit='pdgcode == neutron and ekin < 1MeV',
                                        bin_data=False))
-    s = mcpl.collect_stats(example_file, pick=mcpl.ParticleFilter('x > 1km'))
+    s = mcpl.collect_stats(example_file, edit=mcpl.ParticleEdit('x > 1km'))
     print(f'stats for no selected particles: {s}')
 
 def test_exact_rotations():
@@ -257,7 +270,7 @@ def test_exact_rotations():
                              ('270deg', (y, -x)), ('-90deg', (y, -x)),
                              ('450deg', (-y, x)), ('0deg', (x, y)),
                              ('pi/2', (-y, x)), ('-pi', (-x, -y)) ):
-        r = mcpl.ParticleEdit(f'rotate_z({angle})')(b)
+        r = changes(f'rotate_z({angle})',b)
         assert np.array_equal(bits(r['x']), bits(xx)), angle
         assert np.array_equal(bits(r['y']), bits(yy)), angle
         print(f'rotate_z({angle}) is exact')
@@ -265,25 +278,25 @@ def test_exact_rotations():
     def raw_bits(a):
         return np.ascontiguousarray(a,dtype=float).view(np.uint64)
     for angle in ('90deg','180deg','270deg','-0deg','0deg','30deg','pi'):
-        r = mcpl.ParticleEdit(f'x = 0cm; y = 0cm; rotate_z({angle})')(b)
+        r = changes(f'x = 0cm; y = 0cm; rotate_z({angle})',b)
         assert all( np.array_equal(raw_bits(r[k]),raw_bits(zero))
                     for k in ('x','y') ), angle
     print('rotations of zeros give 0.0 (not -0.0)')
-    r = mcpl.ParticleEdit('rotate_x(90deg)')(b)
+    r = changes('rotate_x(90deg)',b)
     assert np.array_equal(bits(r['y']), bits(-b.z))
     assert np.array_equal(bits(r['z']), bits(b.y))
-    r = mcpl.ParticleEdit('rotate_y(-90deg)')(b)
+    r = changes('rotate_y(-90deg)',b)
     assert np.array_equal(bits(r['z']), bits(b.x))
     assert np.array_equal(bits(r['ux']), bits(-b.uz))
     #Angles differing per particle (exact only where they are multiples of
     #90 degrees):
-    r = mcpl.ParticleEdit('rotate_z( (ux > 0) * 90deg + (ux <= 0) * 30deg )')(b)
+    r = changes('rotate_z( (ux > 0) * 90deg + (ux <= 0) * 30deg )',b)
     q = ux > 0
     assert np.array_equal(bits(r['ux'][q]), bits(-uy[q]))
     c, s = np.cos(np.pi/6), np.sin(np.pi/6)
     assert np.allclose(r['ux'][~q], c*ux[~q] - s*uy[~q])
     #Other angles use cos and sin:
-    r = mcpl.ParticleEdit('rotate_z(45deg)')(b)
+    r = changes('rotate_z(45deg)',b)
     c = np.cos(np.pi/4)
     assert np.allclose(r['x'], c*x - c*y) and np.allclose(r['y'], c*x + c*y)
     print('rotations with other angles use cos and sin')
@@ -293,7 +306,7 @@ def test_exact_rotations():
                    ('rotate_around((0,0,7),-90deg)','rotate_z(-90deg)'),
                    ('rotate_around((1,0,0),180deg)','rotate_x(180deg)'),
                    ('rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))','rotate_y(90deg)') ):
-        ra, rb = mcpl.ParticleEdit(a)(b), mcpl.ParticleEdit(b2)(b)
+        ra, rb = changes(a,b), changes(b2,b)
         assert all( np.array_equal(raw_bits(ra[k]),raw_bits(rb.get(k,getattr(b,k)))) for k in ra ), a
         print(f'{a} is exactly {b2}')
     #(other axes and angles, as with the formula of Rodrigues):
@@ -301,7 +314,7 @@ def test_exact_rotations():
     t = np.radians(37.0)
     K = np.array([[0,-k[2],k[1]],[k[2],0,-k[0]],[-k[1],k[0],0]])
     R = np.eye(3) + np.sin(t) * K + ( 1 - np.cos(t) ) * K @ K
-    r = mcpl.ParticleEdit('rotate_around((1,2,3),37deg)')(b)
+    r = changes('rotate_around((1,2,3),37deg)',b)
     ref = np.stack([x,y,b.z],-1) @ R.T
     assert np.allclose(r['x'],ref[:,0]) and np.allclose(r['y'],ref[:,1]) and np.allclose(r['z'],ref[:,2])
     print('rotate_around((1,2,3),37deg) as with the formula of Rodrigues')
@@ -309,11 +322,11 @@ def test_exact_rotations():
     frame = 'rotate_frame((0,0,1),(1,1,0),(0,1,0),(0,0,1))'
     for before, after in ( ('dir = (0,0,1)',(1/np.sqrt(2),1/np.sqrt(2),0)),
                            ('dir = (0,1,0)',(0,0,1)) ):
-        r = mcpl.ParticleEdit(f'{before}; {frame}')(b)
+        r = changes(f'{before}; {frame}',b)
         assert all( np.allclose(r[c],v) for c, v in zip(('ux','uy','uz'),after) ), before
     print(f'{frame} turns (0,0,1) into (1,1,0)/sqrt(2) and (0,1,0) into (0,0,1)')
     #(axes per particle: rotating around the direction keeps it):
-    r = mcpl.ParticleEdit('rotate_around(dir,33deg)')(b)
+    r = changes('rotate_around(dir,33deg)',b)
     assert np.allclose(r['ux'],ux) and np.allclose(r['uy'],uy)
     print('rotate_around(dir,33deg) keeps the directions')
     #All rotations are proper rotations (never reflections), also when
@@ -338,12 +351,12 @@ def test_whitespace():
     #Whitespace, including newlines, is normalised to single spaces:
     with mcpl.MCPLFile(example_file) as f:
         b = f.read_block()
-    flt = mcpl.ParticleFilter("""pdgcode == neutron
+    flt = mcpl.ParticleEdit("""pdgcode == neutron
                                  and \tekin < 1MeV
                                  and hypot(x,y) < 10 cm  """)
     print(f'normalised selection: {flt.expression!r}')
-    ref = mcpl.ParticleFilter('pdgcode == neutron and ekin < 1MeV and hypot(x,y) < 10cm')
-    assert np.array_equal(flt(b), ref(b))
+    ref = mcpl.ParticleEdit('pdgcode == neutron and ekin < 1MeV and hypot(x,y) < 10cm')
+    assert np.array_equal(keeps(flt,b), keeps(ref,b))
     edit = mcpl.ParticleEdit('z = 0cm;\n  wavelength = 1.8Aa\n')
     print(f'normalised edit: {edit.expression!r}')
     val = mcpl.ParticleValue('  ekin /\n eV ')
@@ -351,9 +364,9 @@ def test_whitespace():
     assert np.allclose(val(b), b.ekin*1e6)
     for bad in ( 42, None ):
         try:
-            mcpl.ParticleFilter(bad)
+            mcpl.ParticleEdit(bad)
         except mcpl.MCPLError as e:
-            print(f'ParticleFilter({bad!r}): {e}')
+            print(f'ParticleEdit({bad!r}): {e}')
 
 def test_vectors():
     #Vectors: pos, dir and pol, (a,b,c), their values (x is pos.x and
@@ -391,21 +404,21 @@ def test_vectors():
         assert abs(a[0]-np.arctan(eps)) <= 1e-15*eps
     a = mcpl.ParticleValue('angle((1,1e-9,0),(1,0,0))')(b)
     assert np.all( np.abs(a-1e-9) <= 1e-24 )
-    #Picks and edits with vectors (and vector variables):
-    for pick, ref in ( ('d = pos - (0,0,1m); abs(d) < 100.5cm', np.linalg.norm(pos-[0,0,100],axis=1) < 100.5),
+    #Conditions and changes with vectors (and vector variables):
+    for cond, ref in ( ('d = pos - (0,0,1m); abs(d) < 100.5cm', np.linalg.norm(pos-[0,0,100],axis=1) < 100.5),
                        ('angle(dir,(0,0,1)) < 30deg', np.degrees(np.arccos(np.clip(b.uz,-1,1))) < 30),
                        #(the line of flight, forwards and backwards, through a sphere):
                        ('through_sphere((1cm,-2cm,30cm),4cm)',
                         np.linalg.norm(np.cross(np.array([1,-2,30])-pos,d),axis=1) <= 4) ):
-        assert np.array_equal(mcpl.ParticleFilter(pick)(b),ref), pick
-        print(f'pick {pick!r} as with numpy ({np.count_nonzero(ref)} of {len(ref)})')
+        assert np.array_equal(keeps(cond,b),ref), cond
+        print(f'condition {cond!r} as with numpy ({np.count_nonzero(ref)} of {len(ref)})')
     for edit, ref in ( ('pos += (0,0,1m)', {'x': b.x, 'y': b.y, 'z': b.z+100}),
                        ('pos += 50cm*dir', {'x': b.x+50*b.ux, 'y': b.y+50*b.uy, 'z': b.z+50*b.uz}),
                        ('x += 1cm; pos = pos/2', {'x': (b.x+1)/2, 'y': b.y/2, 'z': b.z/2}),
                        ('dir = -dir', {'ux': -b.ux, 'uy': -b.uy, 'uz': -b.uz}),
                        ('v = cross(dir,(0,0,1)); x = v.x*1cm', {'x': b.uy}),
                        ('pol = (0,0,1)', {'polx': 0.0, 'poly': 0.0, 'polz': 1.0}) ):
-        r = mcpl.ParticleEdit(edit)(b)
+        r = changes(edit,b)
         assert sorted(r) == sorted(ref) and all( np.allclose(r[k],ref[k]) for k in ref ), edit
         print(f'edit {edit!r} changes {sorted(r)} as with numpy')
     #Errors (vectors are not values, their values have the same units, and
@@ -416,7 +429,7 @@ def test_vectors():
                  '(pos,pos) == 0', 'dir*dir > 0', 'dir^3 > 0', '(1,2,3,4) == 0', 'x.at(0) > 0',
                  'pos.at(x) > 0', 'angle_to(0,0,1) < 1deg', 'pos' ):
         try:
-            mcpl.ParticleFilter(bad)(b)
+            keeps(bad,b)
             print(f'{bad}: no error')
         except mcpl.MCPLError as e:
             print(f'{bad}: {e}')
@@ -450,7 +463,7 @@ def test_canonical():
         assert same
     for bad in ( 'cm^0.25 > 1', 'ekin^0.25 > 1', 'sqrt(sqrt(ekin)) > 1', '2cm^x > 1', 'x cm > 1', 'cm^2MeV > 1' ):
         try:
-            mcpl.ParticleFilter(bad)
+            mcpl.ParticleEdit(bad)
         except mcpl.MCPLError as e:
             print(f'{bad}: {e}')
     #Syntax errors say where the problem is (also in edits, in the whole edit):
@@ -458,7 +471,7 @@ def test_canonical():
                  'x > 1cm and and y < 1cm', 'f(1,)', 'not', 'x ? 1',
                  'hypot(x,y) > 3cm or (ekin < 25meV and pdgcode == neutron and time >' ):
         try:
-            mcpl.ParticleFilter(bad)
+            mcpl.ParticleEdit(bad)
         except mcpl.MCPLError as e:
             print(f'{bad}: {e}')
     for bad in ( 'z += 1cm; x = ', 'x = 2cm;  y + ;z=1cm', 'rotate_x(90deg;x=1cm' ):
@@ -469,13 +482,13 @@ def test_canonical():
     for e in ( 'pdgcode==neutron and (ekin<1MeV)', 'not (x > 1cm) or y<0',
                '(x>0 or y>0) and z>0', 'ekin < 4cm^2*1MeV/cm^2' ):
         k = _expr_canonical(e)
-        print(f'pick {e!r}: {k!r}')
-        assert ( mcpl.ParticleFilter(e)(b) == mcpl.ParticleFilter(k)(b) ).all()
+        print(f'condition {e!r}: {k!r}')
+        assert ( keeps(e,b) == keeps(k,b) ).all()
         assert _expr_canonical(k) == k
     for e in ( 'z += 1cm;weight *= 0.5', 'rotate_z(90deg) ; z+=10 cm' ):
         print(f'edit {e!r}: {_expr_canonical(e,edit=True)!r}')
     #The parsed expressions, with what they use:
-    from mcpldev._expr_eval import _Expr
+    from mcpldev._expressions import _Expr
     for e in ( 'pdgcode == neutron and wavelength > 1.8Aa', 'hypot(x,y)/cm', 'mod(fileidx,10) == 0' ):
         x = _Expr(e)
         print(f'parsed {e!r}: fields {sorted(x.fields)}, names {sorted(x.names)},'
@@ -510,14 +523,14 @@ def test_canonical():
         return f'({cond(d-1)})'
     nok = nchecked = 0
     for e in [ val(4) for _ in range(300) ] + [ cond(3) for _ in range(300) ]:
-        cls = mcpl.ParticleFilter if any( c in e for c in '<>=' ) else mcpl.ParticleValue
+        values = keeps if any( c in e for c in '<>=' ) else lambda e, b : mcpl.ParticleValue(e)(b)
         try:
-            orig = cls(e)(b)
+            orig = values(e,b)
         except mcpl.MCPLError:
             continue#(e.g. wrong numbers of arguments, or NaN values)
         k = _expr_canonical(e)
         nchecked += 1
-        nok += ( np.array_equal(orig,cls(k)(b),equal_nan=True) and _expr_canonical(k) == k )
+        nok += ( np.array_equal(orig,values(k,b),equal_nan=True) and _expr_canonical(k) == k )
     print(f'random expressions: {nok} of {nchecked} valid ones have equivalent normalised forms')
     assert nok == nchecked
     for bad in ( 'exp(2,3)', 'cos(ux,2)' ):
@@ -538,8 +551,8 @@ def test_in_and_userdata():
                     ( 'not ekin in (1MeV,2MeV) and pdgcode in (22,2112)',
                       ~np.isin(b.ekin,[1,2]) & np.isin(p,[22,2112]) ) ):
         k = _expr_canonical(e)
-        ok = ( np.array_equal(mcpl.ParticleFilter(e)(b),ref)
-               and np.array_equal(mcpl.ParticleFilter(k)(b),ref) and _expr_canonical(k) == k )
+        ok = ( np.array_equal(keeps(e,b),ref)
+               and np.array_equal(keeps(k,b),ref) and _expr_canonical(k) == k )
         print(f'{e!r}: {int(ref.sum())} particles, normalised {k!r}, as expected: {ok}')
         assert ok
     #PDG codes are not conditions (they would be true for all particles), but
@@ -547,7 +560,7 @@ def test_in_and_userdata():
     for e in ( 'neutron', 'pdgcode', 'neutron or gamma', 'x > 0cm and not antineutron',
                'abs(pdgcode)', 'userflags & 0x10', 'not userflags' ):
         try:
-            mcpl.ParticleFilter(e)
+            mcpl.ParticleEdit(e)
             print(f'{e!r}: a condition')
         except mcpl.MCPLError as x:
             print(f'{e!r}: {x}')
@@ -556,7 +569,7 @@ def test_in_and_userdata():
     for bad in ( 'pdgcode in neutron', 'pdgcode in ()', 'pdgcode in (1cm)', '0 < pdgcode in (1,2)',
                  'pdgcode in (1,2) < 3' ):
         try:
-            mcpl.ParticleFilter(bad)
+            mcpl.ParticleEdit(bad)
         except mcpl.MCPLError as e:
             print(f'{bad}: {e}')
     #Fields of the userdata, as userdata.NAME, and values of arrays as
@@ -571,14 +584,14 @@ def test_in_and_userdata():
         for e in ( 'userdata.nscat >= 2', 'userdata.temp < 25 or userdata.nscat == 3',
                    'userdata.nscat in (0,3)', 'userdata.dir.at(0) > 0.5', 'userdata.dir.at( 2 ) == 1',
                    'hypot(userdata.dir.at(0),userdata.dir.at(1)) > 0.9' ):
-            print(f'{e!r}: {mcpl.ParticleFilter(e)(u).tolist()}, normalised {_expr_canonical(e)!r}')
+            print(f'{e!r}: {keeps(e,u).tolist()}, normalised {_expr_canonical(e)!r}')
         print('value userdata.temp*2:', mcpl.ParticleValue('userdata.temp*2')(u).tolist())
         print('value userdata.dir.at(1):', mcpl.ParticleValue('userdata.dir.at(1)')(u).tolist())
         for bad in ( 'userdata.nope > 1', 'userdata.dir > 1', 'userdata.dir.at(3) > 0',
                      'userdata.nscat.at(0) > 0', 'userdata.dir.at(x) > 0', 'userdata.dir.at(1.5) > 0',
                      'userdata.dir.get(1) > 0', 'x.y > 1', 'userdata > 1', 'userdata. > 1' ):
             try:
-                mcpl.ParticleFilter(bad)(u)
+                keeps(bad,u)
             except mcpl.MCPLError as e:
                 print(f'{bad}: {e}')
     with mcpl.MCPLFile(fn,edit='x = userdata.temp*1cm;y = userdata.dir.at(1)*1m') as f:
@@ -590,20 +603,20 @@ def test_in_and_userdata():
         except mcpl.MCPLError as e:
             print(f'changing userdata: {e}')
     try:
-        mcpl.ParticleFilter('userdata.nscat > 1')(b)
+        keeps('userdata.nscat > 1',b)
     except mcpl.MCPLError as e:
         print(f'without userdata: {e}')
     h = mcpl.histogram(fn,'userdata.nscat;bar')
     print('bar chart of userdata.nscat:', type(h).__name__)
     pathlib.Path(fn).unlink()
 
-def test_pick_statements():
+def test_variables_in_conditions():
     from mcpldev._expressions import _expr_canonical
-    #Picks can have statements assigning variables before their condition (the
-    #same statements as in edits), giving the same as without them:
+    #Variables can be assigned before conditions, giving the same as without
+    #them:
     with mcpl.MCPLFile(example_file) as f:
         b = f.read_block()
-    for pick, inline in (
+    for edit, inline in (
             ( 'r = hypot(x,y); r > 2cm and r < 5cm', 'hypot(x,y) > 2cm and hypot(x,y) < 5cm' ),
             ( 'e = ekin/MeV; e2 = e*e; e2 > 0.25', '(ekin/MeV)^2 > 0.25' ),
             ( 'd = x - 1cm; d *= 2; abs(d) < 3cm', 'abs(2*(x - 1cm)) < 3cm' ),
@@ -611,26 +624,26 @@ def test_pick_statements():
             ( 't = time; mod(fileidx,2) == 0 and t > 0ms', 'mod(fileidx,2) == 0 and time > 0ms' ),
             ( 'pdgcode == neutron;', 'pdgcode == neutron' ),
             ( ' r = hypot(x, y) ;\n  r < 1cm ', 'hypot(x,y) < 1cm' ) ):
-        flt, ref = mcpl.ParticleFilter(pick), mcpl.ParticleFilter(inline)
-        same = np.array_equal(flt(b),ref(b))
-        print(f'pick {flt.expression!r}: same as {inline!r}: {same} ({int(flt(b).sum())} picked),'
-              f' fileidx: {flt._uses_fileidx}, canonical: {_expr_canonical(pick)!r}')
+        flt, ref = mcpl.ParticleEdit(edit), mcpl.ParticleEdit(inline)
+        same = np.array_equal(keeps(flt,b),keeps(ref,b))
+        print(f'edit {flt.expression!r}: same as {inline!r}: {same} ({int(keeps(flt,b).sum())} kept),'
+              f' fileidx: {flt._uses_fileidx}, canonical: {_expr_canonical(edit,True)!r}')
         assert same
     #(the same in files and histograms):
-    pick = 'r = hypot(x,y); r > 2cm'
-    with mcpl.MCPLFile(example_file,pick = pick) as f:
+    edit = 'r = hypot(x,y); r > 2cm'
+    with mcpl.MCPLFile(example_file,edit = edit) as f:
         n = sum( len(blk) for blk in f.particle_blocks )
-    h = mcpl.histogram(str(example_file),'x;bins=5;display_by=single',pick = pick)
-    print(f"file and histogram with {pick!r}: {n} {int(h.contents.sum())}")
+    h = mcpl.histogram(str(example_file),'x;bins=5;display_by=single',edit = edit)
+    print(f"file and histogram with {edit!r}: {n} {int(h.contents.sum())}")
     for bad in ( 'x = 1cm; x > 0cm', 'r = hypot(x,y); x > 0cm', 'swap(x,y); x > 0cm',
                  'rotate_z(90deg); x > 0cm', 'x > 0cm; y > 0cm', 'r = hypot(x,y);',
                  'r = hypot(x,y); r', 'r += 1cm; r > 0cm', 'r = 1meV; r > 1cm', 'pi = 3; x > 0cm',
                  'r = hypot(x,y), r > 1cm', ';', 'ekin = 1MeV' ):
         try:
-            mcpl.ParticleFilter(bad)(b)
-            print(f'ParticleFilter({bad!r}): no error')
+            keeps(bad,b)
+            print(f'ParticleEdit({bad!r}): no error')
         except mcpl.MCPLError as e:
-            print(f'ParticleFilter({bad!r}): {e}')
+            print(f'ParticleEdit({bad!r}): {e}')
 
 def test_help_examples():
     #The examples of the help texts (and the viewers) are valid, and work on
@@ -644,13 +657,8 @@ def test_help_examples():
                                      'origdir' : np.tile([0.0,0.0,1.0],(len(b),1)) })
     with mcpl.MCPLFile(fn) as f:
         b = f.read_block()
-        for expr, _ in example_rows('pick'):
-            print(f'pick example {expr!r}: {int(mcpl.ParticleFilter(expr)(b).sum())} particles')
-        #(for neutrons, which have wavelengths):
-        neutrons = b[b.pdgcode == 2112]
         for expr, _ in example_rows('edit'):
-            mcpl.ParticleEdit(expr)(neutrons)
-            print(f'edit example {expr!r}: ok')
+            print(f'edit example {expr!r}: keeps {int(keeps(expr,b).sum())} particles')
     for expr, _ in example_rows('hist'):
         h = mcpl.histogram(fn,expr)
         print(f'histogram example {expr!r}: {type(h).__name__}')
@@ -687,26 +695,26 @@ def test_integers():
                '~userflags == 0',
                '18446744073709551616 > 0' ):
         try:
-            print(f'  {e}: {mcpl.ParticleFilter(e)(b).tolist()}')
+            print(f'  {e}: {keeps(e,b).tolist()}')
         except mcpl.MCPLError as err:
             print(f'  {e}: MCPLError: {err}')
     #Errors only for the particles in use:
     print('  userflags > 0 and userflags - 1 == 0:',
-          mcpl.ParticleFilter('userflags > 0 and userflags - 1 == 0')(b).tolist())
+          keeps('userflags > 0 and userflags - 1 == 0',b).tolist())
     #Values assigned to pdgcode and userflags must fit:
     for e in ( 'userflags = userflags + 1', 'userflags = userflags / 2',
                'userflags = userflags // 2',
                'pdgcode = pdgcode * 1.0', 'pdgcode = 2.5',
                'pdgcode = 4294967295', 'swap(pdgcode,userflags)' ):
         try:
-            res = mcpl.ParticleEdit(e)(b)
+            res = changes(e,b)
             print(f'  edit {e}: { {k:v.tolist() for k,v in res.items()} }')
         except mcpl.MCPLError as err:
             print(f'  edit {e}: MCPLError: {err}')
 
 if __name__ == '__main__':
     test_integers()
-    test_pick_statements()
+    test_variables_in_conditions()
     test_help_examples()
     test_in_and_userdata()
     test_canonical()

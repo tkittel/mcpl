@@ -32,13 +32,9 @@ from ._common import MCPLError
 from ._reader import MCPLFile
 
 
-def _view( filename, skip, limit, pick, edit ):
-    """The particles of a file to use, after -s, -l, -p, and -E"""
-    from ._reader import _FileView
-    f = MCPLFile(filename)
-    if not ( skip or limit or pick is not None or edit is not None ):
-        return f
-    return _FileView(f,skip,limit,pick,edit)
+def _view( filename, skip, limit, edit ):
+    """The file opened with -s, -l, and -e (where -l0 is all particles)"""
+    return MCPLFile(filename,skip=skip or 0,limit=limit or None,edit=edit)
 
 def _plot_backend( outfn, terminal, color = None, allow_overwrite = False ):
     """Backend object for showing the histogram of mcpltool -w (in a window)
@@ -54,16 +50,16 @@ def _plot_backend( outfn, terminal, color = None, allow_overwrite = False ):
     return _show_backend(terminal,color=color,
                          hint=' Use -t to show the histogram in the terminal.')
 
-def mcpltool_stats(filename,skip,limit,pick,edit,bad):
-    from ._stats import _PickedFile, dump_stats
-    f = _view(filename,skip,limit,pick,edit)
+def mcpltool_stats(filename,skip,limit,edit,bad):
+    from ._stats import _EditedFile, dump_stats
     if MCPLFile(filename).nparticles == 0:
         bad("Can not calculate statistics for an empty file")
+    f = _EditedFile(_view(filename,skip,limit,edit),None)
     if f.nparticles == 0:
-        bad("Can not calculate statistics when no particles are picked")
-    dump_stats(_PickedFile(f,None))
+        bad("Can not calculate statistics when no particles are kept")
+    dump_stats(f)
 
-def mcpltool_hist(filelist,hist,skip,limit,pick,edit,outfn,terminal,bad,color=None,
+def mcpltool_hist(filelist,hist,skip,limit,edit,outfn,terminal,bad,color=None,
                   allow_overwrite=False):
     """The histogram of mcpltool -w or -t (shown with matplotlib, or in the
     terminal if terminal is set), printed with the print option, or else
@@ -77,9 +73,9 @@ def mcpltool_hist(filelist,hist,skip,limit,pick,edit,outfn,terminal,bad,color=No
     if o['print'] and ( outfn or color ):
         bad("The histogram option print can not be used together with -o or --color.")
     files = contextlib.ExitStack()
-    sources = [ files.enter_context(_view(fn,skip,limit,pick,edit)) for fn in filelist ]
+    sources = [ files.enter_context(_view(fn,skip,limit,edit)) for fn in filelist ]
     try:
-        selection = tuple( None if e is None else e.expression for e in ( pick, edit ) )
+        selection = None if edit is None else edit.expression
         #Unless the number of bins is given, it is chosen automatically, with at
         #most the resolution of the plot (if the backend has one, like the text
         #backends, whose plots are then fitted to the bins):

@@ -23,7 +23,7 @@
 # NEEDS: numpy
 
 # Tests of the operations of mcpltool on files (merging, extracting,
-# repairing, and dumping), including errors, and of its --pick, --edit, and
+# repairing, and dumping), including errors, and of its --edit, and
 # --keep-statsum options.
 
 import gzip
@@ -125,15 +125,15 @@ def test_mcpltool():
         ['--forcemerge','out.mcpl','a1.mcpl','a2.mcpl'],
         ['--forcemerge','out.mcpl'],
         ['--extract','a1.mcpl','out.mcpl'],
-        ['-e','a1.mcpl','out.mcpl.gz'],
+        ['-x','a1.mcpl','out.mcpl.gz'],
         ['--extract','-l5','a1.mcpl','out.mcpl'],
         ['--extract','-s25','a1.mcpl','out'],
         ['--extract','-l3','-s4','a3.mcpl.gz','out.mcpl'],
         ['--extract','-l100','-s0','a1.mcpl','out.mcpl'],
-        ['--extract','-p','pdgcode == 22','a1.mcpl','out.mcpl'],
-        ['-e','-p','pdgcode == -11','b_dp.mcpl','out.mcpl'],
-        ['-e','-p','pdgcode == 11','-l10','-s3','a1.mcpl','out.mcpl'],
-        ['--extract','-p','pdgcode == 2112','c_nostat.mcpl','out.mcpl'],
+        ['--extract','-e','pdgcode == 22','a1.mcpl','out.mcpl'],
+        ['-x','-e','pdgcode == -11','b_dp.mcpl','out.mcpl'],
+        ['-x','-e','pdgcode == 11','-l10','-s3','a1.mcpl','out.mcpl'],
+        ['--extract','-e','pdgcode == 2112','c_nostat.mcpl','out.mcpl'],
         ['--extract','-s5','c_nostat.mcpl','out.mcpl'],
         ['--extract','crash.mcpl','out.mcpl'],
         ['--extract','ref1.mcpl','out.mcpl'],
@@ -141,13 +141,13 @@ def test_mcpltool():
         ['--extract','a1.mcpl','out.gz'],
         ['--extract','a1.mcpl'],
         ['--extract','a1.mcpl','x.mcpl','y.mcpl'],
-        ['--extract','--no-comment','-p','pdgcode == 22','-l5','a1.mcpl','out.mcpl'],
-        ['--extract','-p','pdgcode == 11','-l3','-s4','a1.mcpl','out.mcpl'],
+        ['--extract','--no-comment','-e','pdgcode == 22','-l5','a1.mcpl','out.mcpl'],
+        ['--extract','-e','pdgcode == 11','-l3','-s4','a1.mcpl','out.mcpl'],
         ['--no-comment','a1.mcpl'],
-        ['--extract','-p','pdgcode == gamma','a1.mcpl','out.mcpl'],
-        ['--extract','-p','pdgcode == photon','-l10','a1.mcpl','out.mcpl'],
-        ['--extract','-p','pdgcode == antielectron','b_dp.mcpl','out.mcpl'],
-        ['--extract','-p','pdgcode == neutron','c_nostat.mcpl','out.mcpl'],
+        ['--extract','-e','pdgcode == gamma','a1.mcpl','out.mcpl'],
+        ['--extract','-e','pdgcode == photon','-l10','a1.mcpl','out.mcpl'],
+        ['--extract','-e','pdgcode == antielectron','b_dp.mcpl','out.mcpl'],
+        ['--extract','-e','pdgcode == neutron','c_nostat.mcpl','out.mcpl'],
         ['--inplace','a1.mcpl','a2.mcpl'],
         ['--keepuserflags','a1.mcpl'],
         ['--merge','--forcemerge','out.mcpl','a1.mcpl','a2.mcpl'],
@@ -165,7 +165,7 @@ def test_mcpltool():
         ['nan.mcpl'],
         ['nosuchfile.mcpl'],
         ['..'],
-        ['-e','..','out.mcpl'],
+        ['-x','..','out.mcpl'],
         ['-l3','..'],
         ['-n','-l0','nan.mcpl'],
         ['-s10','-l5','nan.mcpl'],
@@ -174,8 +174,8 @@ def test_mcpltool():
         ['-j','nan.mcpl'],
         ['--extract','nan.mcpl','out.mcpl'],
         ['--extract','-l12','nan.mcpl','out.mcpl'],
-        ['--extract','-p','pdgcode == 22','nan.mcpl','out.mcpl'],
-        ['--extract','-p','pdgcode == 2112','inf.mcpl','out.mcpl'],
+        ['--extract','-e','pdgcode == 22','nan.mcpl','out.mcpl'],
+        ['--extract','-e','pdgcode == 2112','inf.mcpl','out.mcpl'],
         ['--merge','out.mcpl','a1.mcpl','nan.mcpl','inf.mcpl'],
         ['--merge','--inplace','a2.mcpl','nan.mcpl'],
         ['--forcemerge','out.mcpl','b_dp.mcpl','nan.mcpl'],
@@ -203,49 +203,39 @@ def test_mcpltool():
         ok &= tool(*args)
     return ok
 
-def py_extract(infile, outfile, pick = None, edit = None):
-    """Do the same as mcpltool --extract --pick --edit with the API"""
-    flt = mcpl.ParticleFilter(pick) if pick else None
+def py_extract(infile, outfile, edit = None):
+    """Do the same as mcpltool --extract --edit with the API"""
     edt = mcpl.ParticleEdit(edit) if edit else None
     with mcpl.MCPLFile(infile) as fi, mcpl.MCPLOutFile(outfile) as fo:
         fo.transfer_metadata(fi)
-        #(the comment gives the options as they can be used in shells, with the
-        #expressions in double quotes):
-        opts = ''
-        for opt, e in ( ('-p',flt), ('-E',edt) ):
-            if e:
-                opts += f' {opt} "{e.expression}"'
+        #(the comment gives the option as it can be used in shells, with the
+        #expression in double quotes):
         fo.hdr_add_comment('mcpltool: extracted particles'
-                           + ( f' with{opts}' if opts else '' ))
-        if edit and 'weight' in edt.modified_fields:
+                           + ( f' with -e "{edt.expression}"' if edt else '' ))
+        if edt and 'weight' in edt.modified_fields:
             fo.hdr_scale_stat_sums(-1.0)
         for b in fi.particle_blocks:
-            if flt:
-                b = b[flt(b)]
-            fo.add_particles(b, **(edt(b) if edt else {}))
+            fo.add_particles(edt(b) if edt else b)
 
-def test_pick_edit():
+def test_edit():
     ok = True
-    cases = [ ('pdgcode == neutron', None),
-              ('ekin > 5keV and ekin <= 20keV and x <= 2cm + abs(y)', None),
-              ('not (pdgcode == gamma) or uz > 0.7', None),
-              ('(userflags & 1) == 1 and z < 1.5mm', None),
-              (None, 'x = -y; y = x; z += 1cm'),
-              (None, 'tmp = x; x = y; y = tmp; swap(ux,uy); rotate_x(30deg)'),
-              (None, 'weight *= 0.5; time = time + 1us'),
-              ('pdgcode == 2112', 'wavelength = 1.8Aa'),
-              ('pdgcode == gamma', 'wavelength = wavelength*2'),
-              ('pdgcode != 11', 'ux = -ux; uz = -uz; pdgcode = 2112'),
-              ('x > 10m', None) ]
-    for pick, edit in cases:
+    cases = [ 'pdgcode == neutron',
+              'ekin > 5keV and ekin <= 20keV and x <= 2cm + abs(y)',
+              'not (pdgcode == gamma) or uz > 0.7',
+              '(userflags & 1) == 1 and z < 1.5mm',
+              'x = -y; y = x; z += 1cm',
+              'tmp = x; x = y; y = tmp; swap(ux,uy); rotate_x(30deg)',
+              'weight *= 0.5; time = time + 1us',
+              'pdgcode == 2112; wavelength = 1.8Aa',
+              'pdgcode == gamma; wavelength = wavelength*2',
+              'pdgcode != 11; ux = -ux; uz = -uz; pdgcode = 2112',
+              'rotate_y(90deg); x > 0cm; weight *= 2',
+              'x > 10m' ]
+    for edit in cases:
         fresh('py')
-        args = ['--extract','a1.mcpl','out.mcpl']
-        if pick:
-            args += ['--pick', pick]
-        if edit:
-            args += [f'--edit={edit}']
+        args = ['--extract','a1.mcpl','out.mcpl',f'--edit={edit}']
         rc, out, err = run([sys.executable, '-m', 'mcpldev', *args], 'py')
-        py_extract('py/a1.mcpl', 'py/ref.mcpl', pick, edit)
+        py_extract('py/a1.mcpl', 'py/ref.mcpl', edit)
         same = ( rc == 0 and not err
                  and pathlib.Path('py/out.mcpl').read_bytes() == pathlib.Path('py/ref.mcpl').read_bytes() )
         with mcpl.MCPLFile('py/out.mcpl') as f:
@@ -258,31 +248,30 @@ def test_pick_edit():
         b = f.read_block()
     fresh('py')
     run([sys.executable, '-m', 'mcpldev', '--extract', 'a1.mcpl', 'out.mcpl',
-         '--pick', 'pdgcode == neutron', '--edit', 'rotate_z(90deg); wavelength = 1.8Aa'], 'py')
+         '--edit', 'pdgcode == neutron; rotate_z(90deg); wavelength = 1.8Aa'], 'py')
     with mcpl.MCPLFile('py/out.mcpl') as f:
         e = f.read_block()
     n = b[b.pdgcode==2112]
     checks = [ np.allclose(e.x, -n.y), np.allclose(e.y, n.x), np.allclose(e.z, n.z),
                np.allclose(e.wavelength, 1.8, rtol=1e-6), np.all(e.pdgcode==2112) ]
-    print(f'Results of selection and edit as expected: {all(checks)}')
+    print(f'Results of the edit as expected: {all(checks)}')
     ok &= all(checks)
     #Errors:
-    for args in ( ['--extract','a1.mcpl','out.mcpl','--pick','ekin=1MeV'],
-                  ['--extract','a1.mcpl','out.mcpl','--pick','foo>1'],
-                  ['--extract','a1.mcpl','out.mcpl','--pick','x>1'],
-                  ['--extract','a1.mcpl','out.mcpl','--edit','x==1cm'],
+    for args in ( ['--extract','a1.mcpl','out.mcpl','--edit','ekin'],
+                  ['--extract','a1.mcpl','out.mcpl','--edit','foo>1'],
+                  ['--extract','a1.mcpl','out.mcpl','--edit','x>1'],
                   ['--extract','a1.mcpl','out.mcpl','--edit','x=2*ux'],
-                  ['--extract','a1.mcpl','out.mcpl','--pick'],
-                  ['--extract','a1.mcpl','out.mcpl','--pick','x>1cm','--pick','y>1cm'],
+                  ['--extract','a1.mcpl','out.mcpl','--edit'],
+                  ['--extract','a1.mcpl','out.mcpl','--edit','x>1cm','--edit','y>1cm'],
                   ['--extract','a1.mcpl','out.mcpl','--edit','wavelength=1.8Aa'],
-                  ['--pick','x>1cm','-j','a1.mcpl'],
-                  ['--pick','x>1cm','-ba','a1.mcpl'],
-                  ['--pick','x>1meV','a1.mcpl'],
-                  ['--stats','--pick','x>1km','a1.mcpl'],
+                  ['--edit','x>1cm','-j','a1.mcpl'],
+                  ['--edit','x>1cm','-ba','a1.mcpl'],
+                  ['--edit','x>1meV','a1.mcpl'],
+                  ['--stats','--edit','x>1km','a1.mcpl'],
                   ['--stats','-pantimuon','a1.mcpl'],
                   ['-pfoo','a1.mcpl'],
                   ['-pgamma','-j','a1.mcpl'],
-                  ['--repair','--pick','x>1cm','a1.mcpl'],
+                  ['--repair','--edit','x>1cm','a1.mcpl'],
                   ['--repair','-pgamma','a1.mcpl'],
                   ['-p22','--merge','out.mcpl','a1.mcpl','a2.mcpl'],
                   ['--extract','-p0','a1.mcpl','out.mcpl'],
@@ -304,18 +293,19 @@ def test_statsum():
     #editing other fields than weights, and marked as not available (-1) when
     #selecting based on positions in the file or editing weights:
     ok = True
-    for args, expected in ( (['--pick','pdgcode == neutron'], 1000.0),
+    for args, expected in ( (['--edit','pdgcode == neutron'], 1000.0),
                             (['--edit','z += 1cm; rotate_z(10deg)'], 1000.0),
-                            (['-p','pdgcode == gamma','--edit','wavelength = 1Aa'], 1000.0),
+                            (['--edit','pdgcode == gamma; wavelength = 1Aa'], 1000.0),
                             (['--edit','weight *= 2'], None),
                             (['--edit','tmp = weight; weight = 2*tmp'], None),
                             (['--edit','weight *= 2','--keep-statsum'], 1000.0),
-                            (['--pick','x > 0','--edit','weight = 1','--keep-statsum'], 1000.0),
+                            (['--edit','x > 0; weight = 1','--keep-statsum'], 1000.0),
                             (['-l5','--edit','weight *= 2','--keep-statsum'], None),
                             (['-l5'], None),
-                            (['-s1','--pick','x > 0'], None),
-                            (['--pick','mod(fileidx,2) == 0'], None),
-                            (['-E','x = 1cm*fileidx'], 1000.0) ):
+                            (['-s1','--edit','x > 0'], None),
+                            (['--edit','mod(fileidx,2) == 0'], None),
+                            (['--edit','n = fileidx; n > 5'], None),
+                            (['-e','x = 1cm*fileidx'], 1000.0) ):
         fresh('py')
         rc, out, err = run([sys.executable, '-m', 'mcpldev', '--extract', 'a1.mcpl',
                             'out.mcpl', *args], 'py')
@@ -329,7 +319,7 @@ def test_statsum():
 
 def main():
     make_inputs()
-    results = [ test_mcpltool(), test_pick_edit(), test_statsum() ]
+    results = [ test_mcpltool(), test_edit(), test_statsum() ]
     assert all(results), 'Problems found'
 
 if __name__ == '__main__':

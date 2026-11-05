@@ -1,12 +1,14 @@
-ekin/MeV;bins=20;display_only=ekin < 1MeV (pick None): as picking them: True | title 'display_only: ekin < 1MeV'
-x/cm : y/cm;bins=8;display_only=pdgcode == neutron (pick None): as picking them: True | title 'display_only: pdgcode == neutron'
-pdgcode;bar;display_only=ekin > 1MeV (pick None): as picking them: True | title 'display_only: ekin > 1MeV'
-ekin/MeV;bins=20;display_by=pdgcode;display_only=ekin < 1MeV (pick x > 0): as picking them: True | title 'pick: x > 0\ndisplay_only: ekin < 1MeV'
-x : y : z;points=50;display_only=ekin < 1MeV (pick None): as picking them: True | title 'display_only: ekin < 1MeV'
-'x;display_only': Histogram option "display_only" needs a value, like display_only=..., in "x;display_only"
-'x;display_only=r = x': Histogram option "display_only" must be a condition as in picks or a particle type (like display_only=ekin > 1MeV or display_only=neutron), in "x;display_only=r = x": Syntax error in expression "r = x", after "r": unexpected "=" (use == for comparisons)
-'x;display_only=foo > 1': Histogram option "display_only" must be a condition as in picks or a particle type (like display_only=ekin > 1MeV or display_only=neutron), in "x;display_only=foo > 1": Unknown name "foo" in expression "foo > 1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-'x;display_only=1cm': Histogram option "display_only" must be a condition as in picks or a particle type (like display_only=ekin > 1MeV or display_only=neutron), in "x;display_only=1cm": Expression "1cm" is not a condition (e.g. a comparison)
+ekin/MeV;bins=20;display_edit=ekin < 1MeV (edit None): as editing them: True | title 'display_edit: ekin < 1MeV'
+x/cm : y/cm;bins=8;display_edit=pdgcode == neutron (edit None): as editing them: True | title 'display_edit: pdgcode == neutron'
+pdgcode;bar;display_edit=ekin > 1MeV (edit None): as editing them: True | title 'display_edit: ekin > 1MeV'
+ekin/MeV;bins=20;display_by=pdgcode;display_edit=ekin < 1MeV (edit x > 0): as editing them: True | title 'edit: x > 0\ndisplay_edit: ekin < 1MeV'
+x : y : z;points=50;display_edit=ekin < 1MeV (edit None): as editing them: True | title 'display_edit: ekin < 1MeV'
+x/cm;bins=10;display_edit=rotate_z(90deg); x > 0cm (edit ekin < 1MeV): as editing them: True | title 'edit: ekin < 1MeV\ndisplay_edit: rotate_z(90deg);x > 0cm'
+'x;display_edit': Histogram option "display_edit" needs a value, like display_edit=..., in "x;display_edit"
+'x;display_edit=r = x': Histogram option "display_edit" in "x;display_edit=r = x" (the last option): Variable "r" is assigned but never used in "r = x" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol)
+'x;display_edit=foo > 1': Histogram option "display_edit" in "x;display_edit=foo > 1" (the last option): Unknown name "foo" in expression "foo > 1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+'x;display_edit=1cm': Histogram option "display_edit" in "x;display_edit=1cm" (the last option): "1cm" is neither a condition (e.g. a comparison) nor a change of the particles (e.g. x = 2*y), in "1cm"
+'x;display_edit=x > 0cm;logy': Histogram option "display_edit" in "x;display_edit=x > 0cm;logy" (the last option): Unknown name "logy" in expression "x > 0cm;logy" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 'x : y': logz True, panel True
 'x : y;logz': logz True, panel True
 'x : y;logz=0': logz False, panel False
@@ -25,7 +27,7 @@ x : y : z;points=50;display_only=ekin < 1MeV (pick None): as picking them: True 
 same sample: True
 split: {'mod(fileidx,10) = 0': 101, 'mod(fileidx,10) = 1': 101, 'mod(fileidx,10) = 2': 101, 'mod(fileidx,10) = 3': 101, 'mod(fileidx,10) = 4': 101, 'mod(fileidx,10) = 5': 101, 'mod(fileidx,10) = 6': 100, 'other': 300} {}
 Figure 1 (1x1): None
-  Panel 'pick: ekin > 1keV\nall 1,006 particles' xlabel='ux' ylabel='uy' 
+  Panel 'edit: ekin > 1keV\nall 1,006 particles' xlabel='ux' ylabel='uy' 
     Scatter3D label='mod(fileidx,10) = 0' color=0 points=101 x=[-0.952691,0.983025] y=[-0.983829,0.972862] z=[0.0836284,0.999082]
     Scatter3D label='mod(fileidx,10) = 1' color=1 points=101 x=[-0.934464,0.965526] y=[-0.936342,0.979886] z=[0.146776,0.996766]
     Scatter3D label='mod(fileidx,10) = 2' color=2 points=101 x=[-0.946124,0.95677] y=[-0.951279,0.889154] z=[0.0920351,0.998256]
@@ -34,7 +36,7 @@ Figure 1 (1x1): None
     Scatter3D label='mod(fileidx,10) = 5' color=5 points=101 x=[-0.861244,0.995773] y=[-0.918314,0.921416] z=[0.053197,0.998486]
     Scatter3D label='mod(fileidx,10) = 6' color=6 points=100 x=[-0.935036,0.983604] y=[-0.913236,0.911936] z=[0.149306,0.999588]
     Scatter3D label='other' color=7 points=300 x=[-0.994109,0.985248] y=[-0.994904,0.977384] z=[0.0794396,0.999994]
-['# 3D plot of: ux : uy : uz', '# pick: ekin > 1keV', '# values: 1006 points (of 1006 particles)', '# x | y | z | group']
+['# 3D plot of: ux : uy : uz', '# edit: ekin > 1keV', '# values: 1006 points (of 1006 particles)', '# x | y | z | group']
 more points than particles: 1006 of 1006
 range of values from 0.3 to 20.5: 0 to 22
 range of values from -20.5 to -0.3: -22 to 0
@@ -122,9 +124,9 @@ other | 280
 Figure 1 (1x1): None
   Panel None xlabel='weights' ylabel='pdgcode' 
     Bars 'n (2112) (72.17%)'=726, 'other (27.83%)'=280 (horizontal)
-histogram('pdgcode;bar=auto',{'pick': 'pdgcode != neutron'}):
+histogram('pdgcode;bar=auto',{'edit': 'pdgcode != neutron'}):
 # bars of: pdgcode
-# pick: pdgcode != neutron
+# edit: pdgcode != neutron
 # values: weights
 # bar | value
 gamma (22) | 239
@@ -135,7 +137,7 @@ pi+ (211) | 5
 pi- (-211) | 2
 nu_mu (14) | 1
 Figure 1 (1x1): None
-  Panel 'pick: pdgcode != neutron' xlabel='weights' ylabel='pdgcode' 
+  Panel 'edit: pdgcode != neutron' xlabel='weights' ylabel='pdgcode' 
     Bars 'γ (22) (85.36%)'=239, 'e⁻ (11) (5.36%)'=15, 'p (2212) (3.57%)'=10, 'e⁺ (-11) (2.86%)'=8, 'π⁺ (211) (1.79%)'=5, 'π⁻ (-211) (0.71%)'=2, 'νμ (14) (0.36%)'=1 (horizontal)
 histogram('round(x/10cm);bar=4;logy=1',{}):
 # bars of: round(x/10cm)
@@ -160,9 +162,9 @@ Figure 1 (1x1): None
     Bars '0 (62.43%)'=628, '1 (24.35%)'=245, '2 (13.22%)'=133 (horizontal)
 split in at most 8 curves: ['mod(fileidx,10) = 0', 'mod(fileidx,10) = 1', 'mod(fileidx,10) = 2', 'mod(fileidx,10) = 3', 'mod(fileidx,10) = 4', 'mod(fileidx,10) = 5', 'mod(fileidx,10) = 6', 'other'] {}
 histogram('wavelength;bins=3',{}): label 'wavelength [Aa] (n/gamma only)', contents [726.0, 239.0]
-histogram('wavelength;bins=3',{'pick': 'pdgcode == neutron'}): label 'wavelength [Aa]', contents [726.0]
+histogram('wavelength;bins=3',{'edit': 'pdgcode == neutron'}): label 'wavelength [Aa]', contents [726.0]
 histogram('wavelength;display_by=pdgcode;bins=3',{}): label 'wavelength [Aa] (n/gamma only)', contents [726.0, 239.0]
-histogram('round(1000*wavelength/Aa);bar=auto',{'pick': 'ekin > 1GeV'}): label 'round(1000*wavelength/Aa) (n only)', contents [2.0]
+histogram('round(1000*wavelength/Aa);bar=auto',{'edit': 'ekin > 1GeV'}): label 'round(1000*wavelength/Aa) (n only)', contents [2.0]
 histogram2d(wavelength,x): wavelength [Aa] (n/gamma only) | x [cm] | 965.0
 histogram('x;bar=auto',{}): Bar charts are of whole numbers without units, like pdgcode or round(x/cm), not of "x"
 histogram('pdgcode;bar=1',{}): Histogram option "bar" must be a number of at least 2 or auto, or 0 (not "1"), in "pdgcode;bar=1"
@@ -170,7 +172,7 @@ histogram('pdgcode;bar=on',{}): Histogram option "bar" must be a number of at le
 histogram('pdgcode;bar=auto;logx=1',{}): Histogram option "logx" can not be used for bar charts (logy=1 gives a logarithmic scale of the bars), in "pdgcode;bar=auto;logx=1"
 histogram('pdgcode;bar=auto;display_by=pdgcode',{}): Histogram option "display_by" can not be used for bar charts, in "pdgcode;bar=auto;display_by=pdgcode"
 histogram('x:y;bar=auto',{}): Histogram option "bar" can not be used for 2D histograms, in "x:y;bar=auto"
-histogram('ekin/MeV;groups=3',{}): Unknown histogram option "groups" in "ekin/MeV;groups=3" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, points, equal, display_only)
+histogram('ekin/MeV;groups=3',{}): Unknown histogram option "groups" in "ekin/MeV;groups=3" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, points, equal, display_edit)
 histogram('pdgcode',{'bar': 1}): The histogram argument bar must be True or a number of at least 2 (not 1)
 histogram('pdgcode',{'bar': 'auto'}): The histogram argument bar must be True or a number of at least 2 (not 'auto')
 histogram('pdgcode;bar=auto',{'bar': 4}): The histogram option bar can not be given both as an argument and in the expression "pdgcode;bar=auto"
@@ -189,10 +191,10 @@ Figure 1 (1x1): None
     StepHist label='π⁻ (-211)' color=7 bins=30 edges=[0.00139345,9724.96] sum=2 max=1 nonzero_bins=2
     StepHist label='νμ (14)' color=9 bins=30 edges=[0.00139345,9724.96] sum=1 max=1 nonzero_bins=1
 Figure 1 (1x1): None
-  Panel 'pick: pdgcode == neutron' xlabel='ekin/eV' ylabel='weights per unit lethargy' logx xlim=[1393.45,2.40978e+09]
+  Panel 'edit: pdgcode == neutron' xlabel='ekin/eV' ylabel='weights per unit lethargy' logx xlim=[1393.45,2.40978e+09]
     StepHist label=None color=0 bins=20 edges=[1393.45,2.40978e+09] sum=1010.91 max=197.727 nonzero_bins=19
 # histogram of: ekin/eV
-# pick: pdgcode == neutron
+# edit: pdgcode == neutron
 # values: weights per unit lethargy
 # lower edge | upper edge | value
 1393.4488 2857.4943 2.7848819
@@ -247,22 +249,22 @@ Figure 1 (1x1): None
     StepHist label='mod(fileidx,10) = 6' color=6 bins=26 edges=[-300,2300] sum=100 max=74 nonzero_bins=3
     StepHist label='other' color=7 bins=26 edges=[-300,2300] sum=300 max=217 nonzero_bins=4
 Figure 1 (1x1): None
-  Panel 'pick: pdgcode == gamma' xlabel='x/cm' ylabel='y/cm' 
+  Panel 'edit: pdgcode == gamma' xlabel='x/cm' ylabel='y/cm' 
     Hist2D shape=(10, 10) x=[-27.5,25] y=[-45,35] sum=239 logz=True
 empty histogram with display_by='pdgcode': # histogram of: ekin/MeV
-# pick: x > 1km
+# edit: x > 1km
 # values: weights per bin
 # lower edge | upper edge | value
 0 5 0
 5 10 0
 empty histogram with display_by='x > 0cm': # histogram of: ekin/MeV
-# pick: x > 1km
+# edit: x > 1km
 # values: weights per bin
 # lower edge | upper edge | value
 0 5 0
 5 10 0
 histogram('ekin',) {}: no error
-histogram('ekin/MeV',) {'pick': 'x > 1km'}: No values to histogram (no particles picked?)
+histogram('ekin/MeV',) {'edit': 'x > 1km'}: No values to histogram (no particles kept?)
 histogram('x/cm',) {'logx': True, 'range': (-1, 1)}: Logarithmic binning requires a positive range
 histogram('wavelength',) {}: no error
 histogram('x/cm',) {'display_by': 'x'}: Expression "x" has units (length), so divide it by a unit, e.g. x/cm
@@ -286,13 +288,13 @@ Hist1D 'x/cm' [-10.0, -5.0, 0.0, 5.0, 10.0] [94.0, 252.0, 294.0, 90.0] as numpy:
 edges of 'x;range=-0.1m:0.1m;bins=2': [-10.0, 0.0, 10.0]
 edges of 'ekin;bins=2': [0.0, 5000.0, 10000.0]
 edges of 'ekin/keV;bins=2': [0.0, 5000000.0, 10000000.0]
-contents of all curves, with a pick: True
+contents of all curves, with an edit: True
 Hist2D ('x/cm', 'y/cm') [-65.0, -20.0, 25.0, 70.0] [-65.0, -2.5, 60.0] (3, 2) True
 HistDiscrete 'pdgcode' [2112, 22, 11, 2212, -11, 211, -211, 14] [726.0, 239.0, 15.0, 10.0, 8.0, 5.0, 2.0, 1.0]
 PointSet3D ('x/cm', 'y/cm', 'z/cm') (10, 3) 1006
   Panel '10 of 1,006 particles, chosen at random with their weights' xlabel='x/cm' ylabel='y/cm' 
   Panel 'all 1,006 particles' xlabel='x [cm]' ylabel='y [cm]' 
-31 of the points have x > 0, and all are chosen with the pick x > 0: True
+31 of the points have x > 0, and all are chosen with the edit x > 0: True
 Hist1D ['contents', 'edges', 'expression', 'plot'] isinstance: True
 HistDiscrete ['contents', 'expression', 'plot', 'values'] isinstance: True
 Hist2D ['contents', 'expressions', 'plot', 'xedges', 'yedges'] isinstance: True
@@ -310,7 +312,7 @@ histogram(['example.mcpl', 'example.mcpl'], 'x'): mcpl.histogram takes one file
 histogram('example.mcpl', 3): The expression of mcpl.histogram must be a histogram string
 histogram('example.mcpl', 'x;print'): The histogram option print is only for the mcpltool command
 Figure 1 (1x1): None
-  Panel 'pick: x > 0cm' xlabel='ekin/MeV' ylabel='weights per bin' xlim=[0,10000]
+  Panel 'edit: x > 0cm' xlabel='ekin/MeV' ylabel='weights per bin' xlim=[0,10000]
     StepHist label='n (2112)' color=0 bins=5 edges=[0,10000] sum=347 max=346 nonzero_bins=2
     StepHist label='γ (22)' color=8 bins=5 edges=[0,10000] sum=141 max=141 nonzero_bins=1
     StepHist label='e⁻ (11)' color=1 bins=5 edges=[0,10000] sum=11 max=11 nonzero_bins=1
@@ -330,9 +332,9 @@ mcpltool -w ekin/MeV;logx=1;display_by=pdgcode example.mcpl: exit code 0
    |     StepHist label='π⁺ (211)' color=2 bins=30 edges=[0.00139345,9724.96] sum=5 max=1 nonzero_bins=5
    |     StepHist label='π⁻ (-211)' color=7 bins=30 edges=[0.00139345,9724.96] sum=2 max=1 nonzero_bins=2
    |     StepHist label='νμ (14)' color=9 bins=30 edges=[0.00139345,9724.96] sum=1 max=1 nonzero_bins=1
-mcpltool -t=ekin/eV;lethargy=1;bins=5;print=1 -p pdgcode == neutron example.mcpl: exit code 0
+mcpltool -t=ekin/eV;lethargy=1;bins=5;print=1 -e pdgcode == neutron example.mcpl: exit code 0
    | # histogram of: ekin/eV
-   | # pick: pdgcode == neutron
+   | # edit: pdgcode == neutron
    | # values: weights per unit lethargy
    | # lower edge | upper edge | n (2112)
    | 1393.4488 24641.574 4.5254331
@@ -340,9 +342,9 @@ mcpltool -t=ekin/eV;lethargy=1;bins=5;print=1 -p pdgcode == neutron example.mcpl
    | 435758.52 7705899.2 119.40181
    | 7705899.2 1.3627016e+08 20.886614
    | 1.3627016e+08 2.4097844e+09 5.2216536
-mcpltool --window x/cm : y/cm;bins=4;print=1 -p pdgcode == gamma example.mcpl: exit code 0
+mcpltool --window x/cm : y/cm;bins=4;print=1 -e pdgcode == gamma example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
-   | # pick: pdgcode == gamma
+   | # edit: pdgcode == gamma
    | # values: weights per bin
    | # x lower edge | x upper edge | y lower edge | y upper edge | value
    | -27.5 -14.375 -45 -25 0
@@ -407,9 +409,9 @@ mcpltool -t ekin/MeV : time/ms;logx=1;logy=auto example.mcpl: exit code 0
    | Figure 1 (1x1): None
    |   Panel None xlabel='ekin/MeV' ylabel='time/ms' logx logy
    |     Hist2D shape=(10, 10) x=[0.00139345,9724.96] y=[7.01658e-07,0.00166018] sum=1006 logz=True
-mcpltool -w ekin/MeV;display_by=pdgcode;range=0:10;bins=2;print=1 -p x > 1km example.mcpl: exit code 0
+mcpltool -w ekin/MeV;display_by=pdgcode;range=0:10;bins=2;print=1 -e x > 1km example.mcpl: exit code 0
    | # histogram of: ekin/MeV
-   | # pick: x > 1km
+   | # edit: x > 1km
    | # values: weights per bin
    | # lower edge | upper edge | value
    | 0 5 0
@@ -426,24 +428,30 @@ mcpltool -w z/cm;bins=2;range=0:100;print=1 -s1e3 -l2.5e1 example.mcpl: exit cod
    | # lower edge | upper edge | n (2112)
    | 0 50 6
    | 50 100 0
-mcpltool -w z/cm;bins=2;range=0:100;print=1 -l3 -E z += 50cm example.mcpl: exit code 0
+mcpltool -w z/cm;bins=2;range=0:100;print=1 -l3 -e z += 50cm example.mcpl: exit code 0
    | # histogram of: z/cm
    | # edit: z += 50cm
    | # values: weights per bin
    | # lower edge | upper edge | gamma (22) | pi+ (211)
    | 0 50 0 0
    | 50 100 2 1
-mcpltool -w z/cm;bins=2;range=0:100;print=1 --pick=z < 25cm --edit=z += 50cm example.mcpl: exit code 0
+mcpltool -w z/cm;bins=2;range=0:100;print=1 --edit=z < 25cm; z += 50cm example.mcpl: exit code 0
    | # histogram of: z/cm
-   | # pick: z < 25cm
-   | # edit: z += 50cm
+   | # edit: z < 25cm; z += 50cm
    | # values: weights per bin
    | # lower edge | upper edge | n (2112) | gamma (22) | e- (11) | p (2212) | e+ (-11) | pi+ (211) | pi- (-211) | nu_mu (14)
    | 0 50 0 0 0 0 0 0 0 0
    | 50 100 726 239 15 10 8 5 2 1
-mcpltool --win=ekin/MeV;print=1;bins=2 --pi pdgcode==22 example.mcpl: exit code 0
+mcpltool -w z/cm;bins=2;range=0:100;print=1 --edit=z += 50cm; z < 75cm example.mcpl: exit code 0
+   | # histogram of: z/cm
+   | # edit: z += 50cm; z < 75cm
+   | # values: weights per bin
+   | # lower edge | upper edge | n (2112) | gamma (22) | e- (11) | p (2212) | e+ (-11) | pi+ (211) | pi- (-211) | nu_mu (14)
+   | 0 50 0 0 0 0 0 0 0 0
+   | 50 100 726 239 15 10 8 5 2 1
+mcpltool --win=ekin/MeV;print=1;bins=2 --ed pdgcode==22 example.mcpl: exit code 0
    | # histogram of: ekin/MeV
-   | # pick: pdgcode==22
+   | # edit: pdgcode==22
    | # values: weights per bin
    | # lower edge | upper edge | gamma (22)
    | 0 95 238
@@ -549,7 +557,7 @@ mcpltool -w x/cm;logx=1;logx=1 example.mcpl: exit code 1
    | 
    | Run with "--hist-help" for how to write histograms
 mcpltool -w x/cm;foo example.mcpl: exit code 1
-   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, points, equal, display_only)
+   | ERROR: Unknown histogram option "foo" in "x/cm;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, points, equal, display_edit)
    | 
    | Run with "--hist-help" for how to write histograms
 mcpltool --logx example.mcpl: exit code 1
@@ -564,8 +572,8 @@ mcpltool -o a.pdf example.mcpl: exit code 1
    | ERROR: -o can only be used with -w or -t.
    | 
    | Run with -h or --help for usage information
-mcpltool -w x/cm -e example.mcpl out.mcpl: exit code 1
-   | ERROR: -w and -e can not be used together.
+mcpltool -w x/cm -x example.mcpl out.mcpl: exit code 1
+   | ERROR: -w and -x can not be used together.
    | 
    | Run with -h or --help for usage information
 mcpltool -w x/cm: exit code 1
@@ -605,11 +613,11 @@ mcpltool -t x/cm -o a.png example.mcpl: exit code 1
    | ERROR: -t saves histograms as .txt files (use -w HIST -o FILE for .png, .pdf, or .svg).
    | 
    | Run with -h or --help for usage information
-mcpltool -S -o stats.txt -p pdgcode == gamma example.mcpl: exit code 1
+mcpltool -S -o stats.txt -e pdgcode == gamma example.mcpl: exit code 1
    | ERROR: -o can only be used with -w or -t (-S only prints text, for plots use -w or -t).
    | 
    | Run with -h or --help for usage information
-mcpltool -S -s1000 -E x = 1cm example.mcpl: exit code 0
+mcpltool -S -s1000 -e x = 1cm example.mcpl: exit code 0
    | ------------------------------------------------------------------------------
    | edit         : x = 1cm
    | nparticles   : 6
@@ -639,19 +647,19 @@ mcpltool -S -s1000 -E x = 1cm example.mcpl: exit code 0
 mcpltool -t x/cm;bins=3 -o hist.txt example.mcpl: exit code 0
    | Created hist.txt
 mcpltool -p neutron example.mcpl: exit code 1
-   | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == neutron"
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
    | 
-   | Run with "-p help" for how to pick particles with expressions
+   | Run with -h or --help for usage information
 mcpltool -p2112 example.mcpl: exit code 1
-   | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == 2112"
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == 2112")
    | 
-   | Run with "-p help" for how to pick particles with expressions
+   | Run with -h or --help for usage information
 mcpltool -p  gamma  example.mcpl: exit code 1
-   | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == gamma"
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
    | 
-   | Run with "-p help" for how to pick particles with expressions
+   | Run with -h or --help for usage information
 mcpltool -p: exit code 1
-   | ERROR: Missing argument for -p
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
    | 
    | Run with -h or --help for usage information
 mcpltool -lX example.mcpl: exit code 1
@@ -688,8 +696,8 @@ mcpltool -S ..: exit code 1
    | MCPL ERROR: Is a directory and not a file!
 mcpltool -t x/cm ..: exit code 1
    | MCPL ERROR: Is a directory and not a file!
-mcpltool -p x > 0 -p x < 1cm example.mcpl: exit code 1
-   | ERROR: -p specified more than once
+mcpltool -e x > 0 -e x < 1cm example.mcpl: exit code 1
+   | ERROR: -e specified more than once
    | 
    | Run with -h or --help for usage information
 mcpltool --pdf example.mcpl: exit code 1
@@ -765,7 +773,7 @@ mcpltool -j -w x/cm example.mcpl: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool --no-comment -S example.mcpl: exit code 1
-   | ERROR: --no-comment can only be used with -e.
+   | ERROR: --no-comment can only be used with -x.
    | 
    | Run with -h or --help for usage information
 mcpltool -w x/cm : y/cm;display_by=pdgcode example.mcpl: exit code 1
@@ -784,28 +792,28 @@ mcpltool -w x/cm -o hist.png -d example.mcpl: exit code 1
    | ERROR: -d can not be used with -o (which saves plots in files).
    | 
    | Run with -h or --help for usage information
-mcpltool -p x = 1cm; x > 0 example.mcpl: exit code 1
-   | ERROR: Picks can not change the particles (here x), only variables, like "r = hypot(x,y)" (edits can change the particles), in "x = 1cm; x > 0"
-   | 
-   | Run with "-p help" for how to pick particles with expressions
-mcpltool -p x > "1" example.mcpl: exit code 1
+mcpltool -e x > "1" example.mcpl: exit code 1
    | ERROR: The character " can not be used in expressions (in "x > "1"")
    | 
-   | Run with "-p help" for how to pick particles with expressions
-mcpltool -E z = 1cm, x = 0 example.mcpl: exit code 1
+   | Run with "-e help" for how to write edit expressions
+mcpltool -e z = 1cm, x = 0 example.mcpl: exit code 1
    | ERROR: Separate statements with ";" (not ",") in "z = 1cm, x = 0"
    | 
-   | Run with "-E help" for how to edit particles with expressions
-mcpltool -p help: exit code 0, 207 lines, starting with:
-   | PICK: an expression which is true for the particles to use, for example:
+   | Run with "-e help" for how to write edit expressions
+mcpltool -E x > 0 example.mcpl: exit code 1
+   | ERROR: Unrecognised option : -E
    | 
-   | Particle types:
-mcpltool --edit=help: exit code 0, 203 lines, starting with:
+   | Run with -h or --help for usage information
+mcpltool -e help: exit code 0, 258 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    | 
-   | Changing values:
-mcpltool --hist-help: exit code 0, 80 lines, starting with:
-   | HIST: what to plot, an expression of the particles (written as for -p),
+   | Filter conditions:
+mcpltool --edit=help: exit code 0, 258 lines, starting with:
+   | EDIT: statements separated by ";", executed in order, for example:
+   | 
+   | Filter conditions:
+mcpltool --hist-help: exit code 0, 83 lines, starting with:
+   | HIST: what to plot, an expression of the particles (written as for -e),
    | or two separated by ":" for a 2D histogram (or three for a 3D plot of
    | particles chosen at random, in windows), followed by options separated by ";".
 nice numbers of bins: [(1200, 1080), (400, 360), (239, 216), (83, 72), (37, 36), (15, 15), (8, 8)]

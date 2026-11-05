@@ -1,0 +1,150 @@
+Values:
+  '1': 1 dim None type int32
+  '-2147483648': -2147483648 dim None type int32
+  '2147483648': 2147483648 dim None type int64
+  '-9223372036854775808': -9223372036854775808 dim None type int64
+  '18446744073709551615': 18446744073709551615 dim None type uint64
+  '18446744073709551616': MCPLError: The integer 18446744073709551616 is too large (integers must fit in 64 bits) in expression "18446744073709551616"
+  '0': 0 dim None type int32 (a plain zero)
+  '0.0': 0.0 dim None type float64 (a plain zero)
+  '2.5': 2.5 dim None type float64
+  '0x10': 16 dim None type int32
+  '1e400': MCPLError: A constant has NaN or infinite values in expression "1e400"
+  'pi': 3.141592654 dim None type float64
+  'neutron': 2112 dim None type int32
+  'positron': -11 dim None type int32
+  '25meV': 2.5e-08 dim (0, 1, 0, 0) type float64
+  '4cm^2': 4.0 dim (2, 0, 0, 0) type float64
+  'cm^-1': 1.0 dim (-1, 0, 0, 0) type float64
+  '0.5m': 50.0 dim (1, 0, 0, 0) type float64
+  '1e308km': MCPLError: Multiplication gives NaN or infinite values in expression "1e308km"
+  'MeV': 1.0 dim (0, 1, 0, 0) type float64
+  'x': [1.0, -2.0, 0.5] dim (1, 0, 0, 0) type float64
+  'pdgcode': [2112, 22, 11] dim None type int32
+  'userflags': [0, 16, 4294967295] dim None type uint32
+  'fileidx': [0, 1, 2] dim None type int64
+  'pos': vector [[1.0, -2.0, 0.5], [0.0, 3.0, -1.0], [2.0, 2.0, 2.0]] dim (1, 0, 0, 0)
+  'dir.y': [0.0, 0.8, 0.0] dim None type float64
+  'pos.at(2)': [2.0, 2.0, 2.0] dim (1, 0, 0, 0) type float64
+  '(x,y)': vector [[1.0, -2.0, 0.5], [0.0, 3.0, -1.0]] dim (1, 0, 0, 0)
+  '(1cm,0,2m)': vector [1.0, 0, 200.0] dim (1, 0, 0, 0)
+  'wavelength': MCPLError: The wavelength is only defined for neutrons and gammas, so keep only those before using it, e.g. "pdgcode == neutron; wavelength > 1.8Aa" (in expression "wavelength")
+  'ekin/MeV': [2.5e-08, 1.0, 0.0] dim None type float64
+  'x + 1cm': [2.0, -1.0, 1.5] dim (1, 0, 0, 0) type float64
+  'x * ekin': [2.5e-08, -2.0, 0.0] dim (1, 1, 0, 0) type float64
+  'sqrt(ekin)': [0.000158114, 1.0, 0.0] dim (0, 0.5, 0, 0) type float64
+  'x^2': [1.0, 4.0, 0.25] dim (2, 0, 0, 0) type float64
+  '2^x': MCPLError: Exponent with units (length) in expression "2^x"
+  'pdgcode + 1': [2113, 23, 12] dim None type int32
+  'pdgcode * 1000000': [2112000000, 22000000, 11000000] dim None type int32
+  'userflags + 1': MCPLError: Addition of integers gives values outside the range of the result (unsigned 32-bit integers) in expression "userflags + 1"
+  'userflags - 1': MCPLError: Subtraction of integers gives values outside the range of the result (unsigned 32-bit integers) in expression "userflags - 1"
+  'userflags // 16': [0, 1, 268435455] dim None type uint32
+  '7 // 2': 3 dim None type int32
+  'mod(userflags,16)': [0, 0, 15] dim None type uint32
+  'userflags & 0x10': [0, 16, 16] dim None type uint32
+  'userflags | 1': [1, 17, 4294967295] dim None type uint32
+  '-pdgcode': [-2112, -22, -11] dim None type int32
+  '-userflags': MCPLError: Negation of unsigned integers (like userflags) gives negative values, which they can not have in expression "-userflags"
+  'abs(-x)': [1.0, 2.0, 0.5] dim (1, 0, 0, 0) type float64
+  'abs(pdgcode)': [2112, 22, 11] dim None type int32
+  'round(x/cm)': [1, -2, 0] dim None type int64
+  'floor(-2.5)': -3 dim None type int64
+  'max(x,y)': [1.0, 3.0, 0.5] dim (1, 0, 0, 0) type float64
+  'min(1,2,3)': 1 dim None type int32
+  'clamp(x,0,1cm)': [1.0, 0.0, 0.5] dim (1, 0, 0, 0) type float64
+  'hypot(x,y)': [1.0, 3.605551275, 1.118033989] dim (1, 0, 0, 0) type float64
+  'atan2(y,x)': [0.0, 2.15879893, -1.107148718] dim None type float64
+  'cos(90deg)': 0.0 dim None type float64
+  'exp(1)': 2.718281828 dim None type float64
+  'abs(pos)': [2.236067977, 4.123105626, 2.291287847] dim (1, 0, 0, 0) type float64
+  'dot(pos,dir)': [2.0, 1.2, 0.5] dim (1, 0, 0, 0) type float64
+  'cross(pos,dir)': vector [[0.0, -1.6, -0.0], [-1.0, 1.2, 2.0], [0.0, -3.4, 1.0]] dim (1, 0, 0, 0)
+  'angle(dir,(0,0,1))': [0.0, 1.570796327, 1.570796327] dim None type float64
+  'pos + (1cm,0,0)': vector [[2.0, -1.0, 1.5], [0.0, 3.0, -1.0], [2.0, 2.0, 2.0]] dim (1, 0, 0, 0)
+  'pos*2': vector [[2.0, -4.0, 1.0], [0.0, 6.0, -2.0], [4.0, 4.0, 4.0]] dim (1, 0, 0, 0)
+  'pos/2': vector [[0.5, -1.0, 0.25], [0.0, 1.5, -0.5], [1.0, 1.0, 1.0]] dim (1, 0, 0, 0)
+  'pos^2': [5.0, 17.0, 5.25] dim (2, 0, 0, 0) type float64
+  'through_sphere((0,0,2cm),1.5cm)': [True, False, True] dim None type bool
+  'x > 0': [True, False, True] dim None type bool
+  'x > 0 and y >= 0': [True, False, False] dim None type bool
+  'not x > 0': [False, True, False] dim None type bool
+  'x < y < z': [False, False, False] dim None type bool
+  'pdgcode in (neutron,gamma)': [True, True, False] dim None type bool
+  'pdgcode not in (11)': [True, True, False] dim None type bool
+  'x == 0': [False, False, False] dim None type bool
+  '-(x > 0)': [-1, 0, -1] dim None type int32
+Errors when evaluating:
+  'x + 1': MCPLError: Incompatible units in arithmetic: length and value without units (add units, e.g. 2cm) in expression "x + 1"
+  'x + ekin': MCPLError: Incompatible units in arithmetic: length and energy in expression "x + ekin"
+  'x > 1MeV': MCPLError: Incompatible units in comparison: length and energy in expression "x > 1MeV"
+  'cos(x)': MCPLError: cos(..) requires a value without units, not length in expression "cos(x)"
+  'x^y': MCPLError: Exponent with units (length) in expression "x^y"
+  'x^(1/3)': MCPLError: Raising to a power gives units with powers which are not whole or half numbers (length to the power 0.333333) in expression "x^(1/3)"
+  'sqrt(sqrt(ekin))': MCPLError: sqrt(..) gives units with powers which are not whole or half numbers (energy^0.5 to the power 0.5) in expression "sqrt(sqrt(ekin))"
+  'mod(x,2)': MCPLError: mod(a,b) requires integers without units (like userflags or pdgcode) in expression "mod(x,2)"
+  'mod(pdgcode,3)': [0, 1, 2] dim None type int32
+  'mod(userflags,0)': MCPLError: Division by zero in mod(a,b) in expression "mod(userflags,0)"
+  'x // 2': MCPLError: The operator // can only be used with integers (/ divides as floating point numbers) in expression "x // 2"
+  '7 // -2': MCPLError: The operator // can not be used with negative values in expression "7 // -2"
+  'userflags > -1': MCPLError: Unsigned integers (like userflags) can not be combined with negative values (in a comparison) in expression "userflags > -1"
+  'userflags & -1': MCPLError: Unsigned integers (like userflags) can not be combined with negative values (in the operation &) in expression "userflags & -1"
+  'x & 1': MCPLError: The bitwise operator & can only be used with integers (use "and" and "or" for logical and/or) in expression "x & 1"
+  '-userflags': MCPLError: Negation of unsigned integers (like userflags) gives negative values, which they can not have in expression "-userflags"
+  'userflags + 1': MCPLError: Addition of integers gives values outside the range of the result (unsigned 32-bit integers) in expression "userflags + 1"
+  'pdgcode * 1000000000': MCPLError: Multiplication of integers gives values outside the range of the result (32-bit integers) in expression "pdgcode * 1000000000"
+  'x / 0': MCPLError: Division gives NaN or infinite values in expression "x / 0"
+  'log(0)': MCPLError: log(..) gives NaN or infinite values in expression "log(0)"
+  'pos + 1': MCPLError: Vectors can only be added to or subtracted from vectors of the same size (not a 3D vector of lengths and a number) in expression "pos + 1"
+  'pos * pos': MCPLError: Vectors can be added and subtracted, multiplied and divided by numbers, and v^2 gives their lengths squared (dot(v,w) and cross(v,w) give their dot and cross products) in expression "pos * pos"
+  'cross((1,0),(0,1))': MCPLError: cross(v,w) takes two vectors of the same size (3D) in expression "cross((1,0),(0,1))"
+  'dot(pos,x)': MCPLError: dot(v,w) takes two vectors in expression "dot(pos,x)"
+  'abs(pos) + pos': MCPLError: Vectors can only be added to or subtracted from vectors of the same size (not a number and a 3D vector of lengths) in expression "abs(pos) + pos"
+  'pos > 0': MCPLError: A vector can not be compared (here a 3D vector of lengths; abs(v) is its length, and v.x or v.at(0) its first value) in expression "pos > 0"
+  'x.x': MCPLError: Only vectors have values like .x or .at(INDEX) in expression "x.x"
+  'pos.at(3)': MCPLError: The index 3 is too large for a 3D vector of lengths (the values are counted from 0) in expression "pos.at(3)"
+  'through_sphere((0,0,1),1)': MCPLError: Incompatible units in the center and radius of through_sphere(center,radius), which must be lengths: value without units and length (add units, e.g. 2cm) in expression "through_sphere((0,0,1),1)"
+  'round(1e30)': MCPLError: round(..) of values too large for integers in expression "round(1e30)"
+  'exp(1,2)': MCPLError: exp(..) takes one argument in expression "exp(1,2)"
+  'hypot(x)': MCPLError: hypot(..) takes two or more arguments in expression "hypot(x)"
+  'clamp(x,1)': MCPLError: clamp(value,low,high) takes three arguments in expression "clamp(x,1)"
+  'atan2(x)': MCPLError: atan2(..) takes two arguments in expression "atan2(x)"
+  'min(x)': MCPLError: Wrong number of arguments for min(..) in expression "min(x)"
+  'wavelength': MCPLError: The wavelength is only defined for neutrons and gammas, so keep only those before using it, e.g. "pdgcode == neutron; wavelength > 1.8Aa" (in expression "wavelength")
+  'pdgcode == gamma and wavelength > 0': [False, True, False] dim None type bool
+  'not pos': MCPLError: not can not be used for vectors (here a 3D vector of lengths) in expression "not pos"
+  '(x,ekin)': MCPLError: Incompatible units in a vector: length and energy in expression "(x,ekin)"
+Only where needed:
+  'pdgcode == neutron and wavelength > 1Aa': [True, False, False] dim None type bool
+  'pdgcode == electron or wavelength > 1Aa': [True, False, True] dim None type bool
+  'pdgcode != electron and ekin/ekin > 0': [True, True, False] dim None type bool
+  'ekin > 0 and 1/ekin > 1/MeV': [True, False, False] dim None type bool
+Without particles (checking units and types):
+  'x/cm': [] dim None type float64
+  'x + 1': MCPLError: Incompatible units in arithmetic: length and value without units (add units, e.g. 2cm) in expression "x + 1"
+  'userdata.t + x': [] dim unknown type float64
+  'userdata.t + 1': [] dim unknown type int64
+  'pdgcode + 1': [] dim None type int32
+  'ekin/MeV > 1': [] dim None type bool
+Trees built by hand:
+  Value(expr=Quantity(number=Float(value=2.5), unit='keV', power=1)): 0.0025 dim (0, 1, 0, 0)
+  Value(expr=Binary(op='*', left=Int(value=2, hex=False), right=Unit(unit='cm', power=2))): 2.0 dim (2, 0, 0, 0)
+  Value(expr=Binary(op='/', left=Name(id='ekin'), right=Unit(unit='eV', power=1))): [0.025, 1000000.0, 0.0] dim None
+Statements:
+  'x = 1cm': {'x': [1.0, 1.0, 1.0]}
+  'x += 1cm; weight *= 2': {'weight': [2.0, 1.0, 4.0], 'x': [2.0, -1.0, 1.5]}
+  'tmp = x; x = y; y = tmp': {'x': [0.0, 3.0, -1.0], 'y': [1.0, -2.0, 0.5]}
+  'swap(x,z)': {'x': [2.0, 2.0, 2.0], 'z': [1.0, -2.0, 0.5]}
+  'rotate_z(90deg)': {'polx': [0.0, 0.0, 0.0], 'poly': [0.0, 0.0, 0.0], 'ux': [0.0, -0.8, 0.0], 'uy': [0.0, 0.6, 1.0], 'x': [0.0, -3.0, 1.0], 'y': [1.0, -2.0, 0.5]}
+  'rotate_x(180deg)': {'poly': [0.0, 0.0, 0.0], 'polz': [0.0, 0.0, 0.0], 'uy': [0.0, -0.8, 0.0], 'uz': [-1.0, 0.0, 0.0], 'y': [0.0, -3.0, 1.0], 'z': [-2.0, -2.0, -2.0]}
+  'rotate_around((0,0,1),90deg)': {'polx': [0.0, 0.0, 0.0], 'poly': [0.0, 0.0, 0.0], 'polz': [0.0, 0.0, 0.0], 'ux': [0.0, -0.8, 0.0], 'uy': [0.0, 0.6, 1.0], 'uz': [1.0, 0.0, 0.0], 'x': [0.0, -3.0, 1.0], 'y': [1.0, -2.0, 0.5], 'z': [2.0, 2.0, 2.0]}
+  'pos = (0,0,1m)': {'x': [0.0, 0.0, 0.0], 'y': [0.0, 0.0, 0.0], 'z': [100.0, 100.0, 100.0]}
+  'pdgcode = neutron': {'pdgcode': [2112.0, 2112.0, 2112.0]}
+  'userflags = 7': {'userflags': [7.0, 7.0, 7.0]}
+  'x = 1MeV': MCPLError: Can not assign value with energy to x, which is a length, in expression "x = 1MeV"
+  'pos = (1,2,3)': MCPLError: Can not assign a 3D vector to pos, which is a 3D vector of lengths, in expression "pos = (1,2,3)"
+  'pdgcode = 2.5': MCPLError: Non-integer values assigned to pdgcode in expression "pdgcode = 2.5"
+  'pdgcode = 4294967295': MCPLError: Values assigned to pdgcode must be integers from -2147483648 to 2147483647, in expression "pdgcode = 4294967295"
+  'wavelength = 1.8Aa': MCPLError: wavelength can only be assigned to neutrons (pdgcode 2112) and gammas (pdgcode 22) in expression "wavelength = 1.8Aa"
+  'rotate_x(1cm)': MCPLError: rotate_x(..) requires an angle (e.g. 90deg), not length in expression "rotate_x(1cm)"
+  'rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,0,1))': {'polx': [0.0, 0.0, 0.0], 'poly': [0.0, 0.0, 0.0], 'polz': [0.0, 0.0, 0.0], 'ux': [1.0, 0.0, 0.0], 'uy': [0.0, 0.6, 1.0], 'uz': [0.0, 0.8, 0.0], 'x': [2.0, 2.0, 2.0], 'y': [1.0, -2.0, 0.5], 'z': [0.0, 3.0, -1.0]}

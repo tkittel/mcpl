@@ -11,7 +11,7 @@ mcpltool --dry-run --extract -l5 -s3 a1.mcpl out.mcpl: exit code 0, real run cha
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Would extract 5 / 30 particles from a1.mcpl into out.mcpl
    | MCPL: dry run, nothing was written
-mcpltool --dry-run --extract -p pdgcode == 2112 and ekin > 5keV a3.mcpl.gz out.mcpl: exit code 0, real run changed files
+mcpltool --dry-run --extract -e pdgcode == 2112 and ekin > 5keV a3.mcpl.gz out.mcpl: exit code 0, real run changed files
    | MCPL: Would extract 0 / 5 particles from a3.mcpl.gz into out.mcpl
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --extract --edit weight *= 2 a1.mcpl out.mcpl: exit code 0, real run changed files
@@ -21,10 +21,10 @@ mcpltool --dry-run --extract --edit weight *= 2 a1.mcpl out.mcpl: exit code 0, r
 mcpltool --dry-run --extract --edit weight *= 2 --keep-statsum a1.mcpl out.mcpl: exit code 0, real run changed files
    | MCPL: Would extract 30 / 30 particles from a1.mcpl into out.mcpl
    | MCPL: dry run, nothing was written
-mcpltool --dry-run --extract --pick ekin < 1 meV + a1.mcpl out.mcpl: exit code 1, real run did not change files
+mcpltool --dry-run --extract --edit ekin < 1 meV + a1.mcpl out.mcpl: exit code 1, real run did not change files
    | ERROR: Syntax error in expression "ekin < 1 meV +", at the end: a value is missing
    | 
-   | Run with "-p help" for how to pick particles with expressions
+   | Run with "-e help" for how to write edit expressions
 mcpltool --dry-run --extract a1.mcpl a2.mcpl: exit code 1, real run did not change files
    | ERROR: The output file "a2.mcpl" already exists.
    | 

@@ -150,7 +150,7 @@ def test_mixed_reading():
     #read() and read_block() continue where the other stopped, without
     #skipping or repeating particles: read_block() after read() gives the rest
     #of the block of the particle which read() returned (also when particles
-    #are picked or edited, or skipped with skip_forward):
+    #are edited, or skipped with skip_forward):
     with mcpl.MCPLOutFile('mixed.mcpl') as o:
         o.add_particles( x = np.arange(25.0), uz = 1.0, ekin = 1.0,
                          pdgcode = 2112, weight = 1.0 )
@@ -159,7 +159,7 @@ def test_mixed_reading():
             return None
         return round(float(v.x)) if isinstance(v,mcpl.MCPLParticle) else [ round(float(x)) for x in v.x ]
     calls = 'BPBPPBBP'
-    for kw in ( {}, { 'pick' : 'x != 3cm' }, { 'skip' : 2, 'limit' : 21 },
+    for kw in ( {}, { 'edit' : 'x != 3cm' }, { 'skip' : 2, 'limit' : 21 },
                 { 'edit' : 'x += 100cm' } ):
         with mcpl.MCPLFile('mixed.mcpl', blocklength = 10, **kw) as f:
             res = [ pos( f.read_block() if c == 'B' else f.read() ) for c in calls ]

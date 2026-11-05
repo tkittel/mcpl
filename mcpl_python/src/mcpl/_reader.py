@@ -23,12 +23,12 @@
 
 __all__ = ['MCPLFile', 'dump_file']
 
+import itertools
 import os
 
 from ._blocks import (
     MCPLParticleBlock,
     _concat_blocks,
-    _EditedParticleBlock,
     _nonfinite_masks,
     _surely_finite,
     record_dtype,
@@ -75,7 +75,7 @@ class MCPLFile:
         self._fileclose = lambda : None
 
     def __init__(self,filename,*,blocklength = 10000, raw_strings = False,
-                 pick = None, edit = None, skip = 0, limit = None,
+                 edit = None, skip = 0, limit = None,
                  _recover = True):
         """Open indicated mcpl file, which can either be uncompressed (.mcpl) or
         compressed (.mcpl.gz). The other arguments must be given by name. The
@@ -84,43 +84,38 @@ class MCPLFile:
         raw_strings will prevent UTF-8 decoding of string data loaded from the
         file.
 
-        If pick (an expression or a ParticleFilter) is given, only the
-        picked particles are returned by read(), read_block(), and the
-        particles and particle_blocks properties, and if edit (an expression or
-        a ParticleEdit) is given, it is applied to the particles before they are
-        returned. For instance:
+        If edit (an edit expression or a ParticleEdit) is given, read(),
+        read_block(), and the particles and particle_blocks properties only
+        return the particles it keeps, with its changes. For instance:
 
-           f = MCPLFile("in.mcpl", pick="pdgcode == neutron", edit="z += 1m")
+           f = MCPLFile("in.mcpl", edit="pdgcode == neutron; z += 1m")
            for block in f.particle_blocks:
                ...
 
         With skip and limit, only the particles in a range of the file are
-        returned (and then picked and edited): without the first skip
-        particles of the file, and at most limit particles (all if limit is
-        None), like the -s and -l options of mcpltool:
+        used (before the edit): without the first skip particles of the file,
+        and at most limit particles (all if limit is None), like the -s and -l
+        options of mcpltool:
 
-           f = MCPLFile("in.mcpl", skip=1000, limit=500, pick="ekin > 1MeV")
+           f = MCPLFile("in.mcpl", skip=1000, limit=500, edit="ekin > 1MeV")
 
-        The picked particles are returned in blocks of about blocklength
-        particles (small picks from several blocks in the file are
-        merged). The nparticles attribute is still the number of particles in
-        the file, and the fileidx of the particles their position in the
-        file. Picked particles (and those of a range) can not be skipped with
-        skip_forward(). Edited
-        particles can be passed to MCPLOutFile.add_particles like any other
-        particles, in which case their unmodified fields are transferred
-        exactly.
+        The particles kept are returned in blocks of about blocklength
+        particles (small blocks are merged). The nparticles attribute is still
+        the number of particles in the file, and the fileidx of the particles
+        their position in the file. These particles can not be skipped with
+        skip_forward(). Edited particles can be passed to
+        MCPLOutFile.add_particles like any other particles, in which case
+        their unchanged fields are transferred exactly.
         """
         #(set first, so cleaning up after errors below always works):
         self._fileclose = lambda : None
         if int(blocklength) < 1:
             raise MCPLError('blocklength must be at least 1')
         #(only importing the expressions module when needed):
-        self._flt = self._edt = None
-        if pick is not None or edit is not None:
-            from ._expressions import _as_edit, _as_filter
-            self._flt = None if pick is None else _as_filter(pick)
-            self._edt = None if edit is None else _as_edit(edit)
+        self._edt = None
+        if edit is not None:
+            from ._expressions import _as_edit
+            self._edt = _as_edit(edit)
         for name, value in ( ('skip',skip), ('limit',limit) ):
             if value is not None and ( not isinstance(value,(int,float,np.integer))
                                        or isinstance(value,bool) or int(value) != value
@@ -329,14 +324,8 @@ class MCPLFile:
         self._fileclose = lambda : None
 
     @property
-    def pick(self):
-        """ParticleFilter picking the particles when reading (None if not
-        given)"""
-        return self._flt
-
-    @property
     def edit(self):
-        """Edit (ParticleEdit) applied when reading (None if no edits)"""
+        """The ParticleEdit applied when reading (None if not given)"""
         return self._edt
 
     def read_block(self):
@@ -355,7 +344,7 @@ class MCPLFile:
                 self._fpending = None
                 return b if i == 0 else b[i:]
             if self._fblocks is None:
-                self._fblocks = self._picked_blocks()
+                self._fblocks = self._edited_blocks()
             return next(self._fblocks,None)
         cb = self._currentblock
         if cb.contains_ipos(self._ipos):
@@ -374,13 +363,12 @@ class MCPLFile:
 
     @property
     def _filtered(self):
-        """Whether the particles are picked, edited, or in a range"""
-        return not ( self._flt is None and self._edt is None
-                     and not self._skip and self._limit is None )
+        """Whether the particles are edited, or in a range"""
+        return not ( self._edt is None and not self._skip and self._limit is None )
 
-    def _picked_blocks(self):
-        """Blocks of picked and edited particles (in the range of skip and
-        limit), merging small picks"""
+    def _edited_blocks(self):
+        """Blocks of the edited particles (in the range of skip and limit),
+        merging small blocks"""
         start, end = _particle_range(self.nparticles,self._skip,self._limit)
         #(the blocks before the range are not read):
         first = start // self._blocklength
@@ -388,25 +376,20 @@ class MCPLFile:
             self._iblock, self._ipos = first, first * self._blocklength
             self._fileseek(self.headersize+first*self._blocklength*self.particlesize)
         pending, npending = [], 0
-        def finish():
-            b = _concat_blocks(pending)
-            if self._edt is not None:
-                b = _EditedParticleBlock(b,self._edt(b))
-            return b
         raw = iter(self._read_raw_block,None) if start < end else ()
         for b in _blocks_in_range(raw,start,end):
             if self._nonfinite_mask is not None:
                 self._warn_nonfinite()
-            if self._flt is not None:
-                b = b[self._flt(b)]
+            if self._edt is not None:
+                b = self._edt(b)
             if len(b):
                 pending.append(b)
                 npending += len(b)
             if npending >= self._blocklength:
-                yield finish()
+                yield _concat_blocks(pending)
                 pending, npending = [], 0
         if pending:
-            yield finish()
+            yield _concat_blocks(pending)
 
     def _read_raw_block(self):
         if self._iblock>=self._nblocks:
@@ -501,7 +484,7 @@ class MCPLFile:
            particle at the new position, otherwise True)"""
         if self._filtered:
             raise MCPLError('skip_forward can not be used with files opened'
-                            ' with pick, edit, skip, or limit')
+                            ' with edit, skip, or limit')
         inew = self._ipos + int(n)
         if inew <= self._ipos:
             if inew == self._ipos:
@@ -885,24 +868,20 @@ class MCPLFile:
         print(f"    Storage            : {h['particlesize']} bytes/particle")
         print()
 
-    def dump_particles(self,limit=10,skip=0,pick=None,_view=None):
+    def dump_particles(self,limit=10,skip=0):
         """Dump a list of particles to stdout (like the mcpltool command). The
         limit and skip parameters can be used to respectively limit the
         number of particles printed and to skip past the first particles
-        (after any skip, limit, and pick given when opening the file). Use limit=0 to disable the limit. If pick is given (an
-        expression or a ParticleFilter), only the picked particles are shown,
-        and limit and skip apply to those."""
+        (after any skip, limit, and edit given when opening the file). Use
+        limit=0 to disable the limit."""
 
         #1) update position
         self.rewind()
-        if _view is not None:
-            #(the particles of a _FileView of this file, for mcpltool):
-            particles = _picked_particles(_view,pick,skip)
-        elif pick is None and not self._filtered:
+        if not self._filtered:
             self.skip_forward(skip)
             particles = iter(self.read,None)
         else:
-            particles = _picked_particles(self,pick,skip)
+            particles = itertools.islice(iter(self.read,None),skip,None)
 
         #2) print column titles:
         opt_pol,opt_uf,opt_uw = self.opt_polarisation,self.opt_userflags,self.opt_universalweight
@@ -939,14 +918,12 @@ class MCPLFile:
                 s += '  ' + raw[:16].hex() + ( '...' if udsize > 16 else '' )
             print(s)
 
-    def to_scipp(self, *, skip = 0, limit = None, pick = None, coords = None,
+    def to_scipp(self, *, skip = 0, limit = None, coords = None,
                  vectors = False, variances = True, dim = 'particle'):
         """Particles of the file as a scipp DataArray. The particles are read
-        from the start of the file (after any skip, limit, pick, and edit given
-        when opening the file), skipping the first skip of them, and picking
-        only those matching pick if given (an expression or a
-        ParticleFilter, in which case skip applies to the picked
-        particles). At most limit particles are converted: by default at most
+        from the start of the file (after any skip, limit, and edit given
+        when opening the file), skipping the first skip of them. At most
+        limit particles are converted: by default at most
         100 million, with a warning if particles are left out, and limit=0
         converts all of them. See also scipp_blocks, which converts the
         particles block by block.
@@ -963,7 +940,7 @@ class MCPLFile:
         3-vectors named position, direction, and polarisation.
 
         Extra coordinates can be calculated with expressions (see
-        ParticleFilter), given as a dictionary of names and expressions. The
+        ParticleValue), given as a dictionary of names and expressions. The
         units of the values follow from the expressions (in combinations of
         cm, MeV, and ms, which scipp can convert), for instance:
 
@@ -973,49 +950,33 @@ class MCPLFile:
            da.hist( wavelength = 100 ).plot()
 
         This requires the scipp package (pip install "mcpl-python[scipp]")."""
-        flt, fcts = self._scipp_args(pick,coords)
         from ._scipp import file_to_scipp
-        return file_to_scipp( self, skip = skip, limit = limit, flt = flt,
-                              coord_functions = fcts, vectors = vectors,
+        return file_to_scipp( self, skip = skip, limit = limit,
+                              coord_functions = _coord_functions(coords), vectors = vectors,
                               variances = variances, dim = dim )
 
-    def scipp_blocks(self, *, pick = None, coords = None, vectors = False,
+    def scipp_blocks(self, *, coords = None, vectors = False,
                      variances = True, dim = 'particle'):
         """Iterate over the particles of the file as scipp DataArrays, one for
         each block of particles (see the particle_blocks property), with the
         same contents and parameters as for to_scipp. For instance:
 
-           for da in f.scipp_blocks( pick = 'pdgcode == neutron' ):
-               print( da.sum().value )
+           with MCPLFile( 'f.mcpl', edit = 'pdgcode == neutron' ) as f:
+               for da in f.scipp_blocks():
+                   print( da.sum().value )
 
         This requires the scipp package (pip install "mcpl-python[scipp]")."""
-        flt, fcts = self._scipp_args(pick,coords)
         from ._scipp import file_scipp_blocks
-        return file_scipp_blocks( self, flt = flt, coord_functions = fcts,
+        return file_scipp_blocks( self, coord_functions = _coord_functions(coords),
                                   vectors = vectors, variances = variances,
                                   dim = dim )
 
-    def _scipp_args(self, pick, coords):
-        flt, fcts = None, None
-        if pick is not None or coords is not None:
-            from ._expressions import _as_filter, _quantity_functions
-            flt = _as_filter(pick) if pick is not None else None
-            fcts = _quantity_functions(coords) if coords is not None else None
-        return flt, fcts
-
-def _picked_particles(mcplfile,pick,skip=0):
-    """Iterate over picked particles in file, skipping the first skip of
-    them."""
-    flt = None
-    if pick is not None:
-        from ._expressions import _as_filter
-        flt = _as_filter(pick)
-    for b in mcplfile.particle_blocks:
-        for i in ( np.flatnonzero(flt(b)) if flt is not None else range(len(b)) ):
-            if skip > 0:
-                skip -= 1
-                continue
-            yield b[int(i)]
+def _coord_functions(coords):
+    """The functions of the coordinates of to_scipp (None if not given)"""
+    if coords is None:
+        return None
+    from ._expressions import _quantity_functions
+    return _quantity_functions(coords)
 
 
 
@@ -1038,50 +999,20 @@ def _blocks_in_range( blocks, first, end ):
             break
         yield b[max(0,first-off):min(len(b),end-off)]
 
-class _FileView:
-    """Read-only view of the particles of an MCPLFile, for the -s, -l, -p and
-    -E options of mcpltool: in a range of the file (without the first skip
-    particles, and with at most limit particles, all if limit is None or 0),
-    then picked with pick (a ParticleFilter, or None), then edited with edit
-    (a ParticleEdit, or None)."""
-    def __init__(self, mcplfile, skip = 0, limit = None, pick = None,
-                 edit = None):
-        self._f = mcplfile
-        self._skip, self._end = _particle_range(mcplfile.nparticles,skip,limit or None)
-        self.pick, self.edit = pick, edit
-        self._n = None if pick is not None else self._end - self._skip
-    def __getattr__(self, name):
-        return getattr(self._f, name)
-    def __enter__(self):
-        return self
-    def __exit__(self, ttype, value, traceback):
-        self._f.__exit__(ttype,value,traceback)
-    @property
-    def nparticles(self):
-        if self._n is None:
-            self._n = sum( len(b) for b in self.particle_blocks )
-        return self._n
-    @property
-    def particle_blocks(self):
-        for b in _blocks_in_range(self._f.particle_blocks,self._skip,self._end):
-            if self.pick is not None:
-                b = b[self.pick(b)]
-            if self.edit is not None:
-                b = _EditedParticleBlock(b,self.edit(b))
-            yield b
-
-def dump_file(filename,header=True,particles=True,limit=10,skip=0,pick=None,**kwargs):
+def dump_file(filename,header=True,particles=True,limit=10,skip=0,**kwargs):
     """Python equivalent of mcpl_dump(..) function from mcpl.h, which can be used to
-    dump both header and particle contents of a file to stdout. If pick is
-    given (an expression or a ParticleFilter), only the picked particles are
-    shown."""
+    dump both header and particle contents of a file to stdout. The other
+    arguments (e.g. edit) are passed to MCPLFile."""
     with MCPLFile(filename,**kwargs) as f:
-        print(f"Opened MCPL file {os.path.basename(filename)}:")
-        if header:
-            f.dump_hdr()
-        if particles:
-            if pick is not None:
-                from ._expressions import _as_filter
-                print(f"Showing particles picked with: {_as_filter(pick).expression}")
-                print()
-            f.dump_particles(limit=limit,skip=skip,pick=pick)
+        _dump(f,header,particles,limit,skip)
+
+def _dump(f,header,particles,limit,skip=0):
+    """The dump of dump_file of the file f (an MCPLFile)"""
+    print(f"Opened MCPL file {os.path.basename(f._filename)}:")
+    if header:
+        f.dump_hdr()
+    if particles:
+        if f.edit is not None:
+            print(f"Showing particles edited with: {f.edit.expression}")
+            print()
+        f.dump_particles(limit=limit,skip=skip)

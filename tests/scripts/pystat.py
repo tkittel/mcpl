@@ -66,13 +66,13 @@ def main():
     print('Testing ref/ref_statsum_crash.mcpl')
     mcpl.dump_stats(mcpl.collect_stats(test_data_dir.joinpath('ref','ref_statsum_crash.mcpl'),bin_data=False))
 
-    #Picks leaving blocks without particles, and picking none at all:
+    #Conditions leaving blocks without particles, and keeping none at all:
     print('\n'*3+'='*100+'\n'*3)
     f1 = test_data_dir.joinpath('ref','reffile_1.mcpl')
-    print('Testing ref/reffile_1.mcpl with blocklength=2 and a pick of the last particle')
+    print('Testing ref/reffile_1.mcpl with blocklength=2 and a condition keeping the last particle')
     with mcpl.MCPLFile(f1,blocklength=2) as f:
-        mcpl.dump_stats(mcpl.collect_stats(f,pick='fileidx >= 4'))
-    print('Pick of no particles gives:',mcpl.collect_stats(f1,pick='fileidx > 100'))
+        mcpl.dump_stats(mcpl.collect_stats(f,edit='fileidx >= 4'))
+    print('Edit keeping no particles gives:',mcpl.collect_stats(f1,edit='fileidx > 100'))
 
 if __name__ == '__main__':
     main()

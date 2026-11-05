@@ -21,14 +21,17 @@
 
 """Histogram strings, as in mcpltool -w and -t: an expression (or two separated
 by ":" for 2D histograms, or three for 3D plots), followed by options
-NAME=VALUE separated by ";", like "ekin/MeV;logx;bins=50"."""
+NAME=VALUE separated by ";", like "ekin/MeV;logx;bins=50". The option
+display_edit is last, and its value is all of the rest (an edit expression,
+whose statements are also separated by ";")."""
 
 __all__ = []
 
 import math
 
 from ._common import MCPLError
-from ._expr_eval import _dimstr, _expr_unit_hints
+from ._expr_eval import _dimstr
+from ._expr_vocab import _expr_unit_hints
 from ._exprplot import _range_value
 from ._exprunits import _dim_unknown
 from ._numpy import np
@@ -39,7 +42,7 @@ _hist_options = { 'bins' : 'bins', 'range' : 'range', 'xrange' : 'range',
                   'yrange' : 'range', 'logx' : 'auto', 'logy' : 'auto', 'logz' : 'bool',
                   'lethargy' : 'bool', 'display_by' : 'expr',
                   'bar' : 'count', 'unweighted' : 'bool', 'print' : 'bool',
-                  'points' : 'count', 'equal' : 'bool', 'display_only' : 'pick' }
+                  'points' : 'count', 'equal' : 'bool', 'display_edit' : 'edit' }
 #The values of the options given without a value (as "logy" or "bar"):
 _hist_implied = { 'logx' : '1', 'logy' : '1', 'logz' : '1', 'lethargy' : '1', 'unweighted' : '1',
                   'print' : '1', 'bar' : 'auto', 'equal' : '1' }
@@ -78,7 +81,7 @@ def _hist_defaults( exprs ):
     return { 'exprs' : list(exprs), 'bins' : None, 'range' : None, 'xrange' : None,
              'yrange' : None, 'logx' : False, 'logy' : None, 'logz' : None, 'lethargy' : False,
              'display_by' : None, 'unweighted' : False, 'print' : False,
-             'bar' : False, 'points' : None, 'equal' : False, 'display_only' : None }
+             'bar' : False, 'points' : None, 'equal' : False, 'display_edit' : None }
 
 def _parse_hist( text ):
     """Parse a histogram string: an expression (or two separated by ":" for 2D
@@ -87,7 +90,7 @@ def _parse_hist( text ):
     "ekin/MeV;logx;bins=50" or "x/cm : y/cm;xrange=-10:10". Returns a
     dict with the expressions (a list of one, two, or three), and the options (with
     defaults for those not given)."""
-    from ._expr_eval import _check_chars
+    from ._expr_str2ast import _check_chars
     _check_chars(text,'histogram')
     exprs = _hist_exprs(text)
     opts = _hist_parts(text)[1]
@@ -128,9 +131,9 @@ def _parse_hist( text ):
         elif name in ('range','xrange','yrange'):
             _check_range_option(name,len(exprs),text)
             res[name] = _as_range(value,name,text)
-        elif name == 'display_only':
-            _display_only_condition(value,text)
-            res['display_only'] = value
+        elif name == 'display_edit':
+            _check_display_edit(value,text)
+            res['display_edit'] = value
         else:
             res['display_by'] = value
     _check_hist_options(res,text)
@@ -178,21 +181,15 @@ def _display_by( o ):
     return 'pdgcode' if len(o['exprs']) != 2 and o['bar'] is False else None
 
 
-def _display_only_condition( value, text = None ):
-    """The condition of the option display_only (a single condition, as in
-    picks, without variables, since the options are separated by ";", or the
-    name of a particle type, like neutron for pdgcode == neutron), checked"""
-    from ._expressions import ParticleFilter
-    from ._particles import _particle_names
-    cond = f'pdgcode == {value}' if value in _particle_names else value
+def _check_display_edit( value, text = None ):
+    """Check the edit expression of the option display_edit"""
+    from ._expressions import ParticleEdit
     try:
-        ParticleFilter(cond)
+        ParticleEdit(value)
     except MCPLError as e:
-        where = f', in "{text}"' if text else ''
-        raise MCPLError(f'Histogram option "display_only" must be a condition as in picks'
-                        f' or a particle type (like display_only=ekin > 1MeV or'
-                        f' display_only=neutron){where}: {e}') from None
-    return cond
+        where = f' in "{text}"' if text else ''
+        raise MCPLError(f'Histogram option "display_edit"{where} (the last option):'
+                        f' {e}') from None
 
 def _auto_logx( lo, hi ):
     """Whether values from lo to hi get a logarithmic axis with logx='auto':
@@ -280,12 +277,15 @@ def _check_range( rng, vals, name ):
 def _hist_parts( text ):
     """The expressions of a histogram string, and its options as a list of
     (name, value text), as written (value None for an option without a
-    value)"""
+    value), where display_edit takes the rest"""
     parts = [ e.strip() for e in text.split(';') ]
     opts = []
-    for opt in parts[1:]:
+    for i, opt in enumerate(parts[1:],1):
         if opt:
             name, eq, value = ( e.strip() for e in opt.partition('=') )
+            if name == 'display_edit' and eq:
+                opts.append( ( name, ';'.join([ value ] + parts[i+1:]) ) )
+                break
             opts.append( ( name, value if eq else None ) )
     return parts[0], opts
 
@@ -310,8 +310,8 @@ def _hist_with_args( expression, given ):
         if name == 'bar' and not ( v is True or ( type(v) is int and v >= 2 ) ):
             raise MCPLError('The histogram argument bar must be True or a number of at least 2'
                             f' (not {v!r})')
-        if name == 'display_only':
-            _display_only_condition(v)
+        if name == 'display_edit':
+            _check_display_edit(v)
         if name == 'bins':
             v = _bins_arg(v,len(o['exprs']))
         if name == 'range':

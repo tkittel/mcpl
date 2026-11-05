@@ -49,7 +49,7 @@ plot_modules = { 'matplotlib', 'PIL', 'tkinter', 'curses', 'scipp', 'IPython',
 #modules of the scenarios are those imported in addition to these):
 core_modules = '_blocks _common _messages _numpy _reader'
 
-_expr = '_exprcore _expressions _exprrotation _exprsyntax _exprunits _particles _physics constants'
+_expr = '_expr_ast _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprrotation _exprunits _particles _physics constants'
 _plot_tool = '_exprplot _figures _histfigures _histfill _histstring _plotbackend _plotbackend_text _plotregistry _termcolor'
 _plot = f'{_plot_tool} _histogram _plotting'
 
@@ -67,12 +67,12 @@ expected = {
     'text' : '_ascii',
     'repair' : '_fileops _statsum _records _writer',
     #Optional functionality, which must only import what it needs:
-    'pick' : _expr,
+    'edit' : _expr,
     'stats' : '_particles _physics _stats _statsum constants',
-    'stats_pick' : f'{_expr} _stats _statsum',
+    'stats_edit' : f'{_expr} _stats _statsum',
     'hist' : f'{_expr} _exprplot _histfill _histogram _histstring',
     'tool' : '_cli',
-    'tool_pick' : f'_cli {_expr}',
+    'tool_edit' : f'_cli {_expr}',
     'tool_stats' : '_cli _clistats _particles _physics _stats _statsum constants',
     'tool_hist' : f'_cli _clistats {_expr} _exprplot _histfill _histstring',
     'tool_extract' : '_cli _extract _statsum _records _writer',

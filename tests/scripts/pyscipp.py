@@ -87,10 +87,9 @@ def test_basic():
         for d, b in zip(das,blocks7):
             check_values(d,[b])
         assert sc.identical(sc.concat(das,'particle'),da)
-        sel = list(f.scipp_blocks(pick='pdgcode == neutron',
-                                  coords={'r':'hypot(x,y)'},vectors=True))
-        dsel = f.to_scipp(pick='pdgcode == neutron',
-                          coords={'r':'hypot(x,y)'},vectors=True)
+    with mcpl.MCPLFile(example_file,edit='pdgcode == neutron') as f:
+        sel = list(f.scipp_blocks(coords={'r':'hypot(x,y)'},vectors=True))
+        dsel = f.to_scipp(coords={'r':'hypot(x,y)'},vectors=True)
         assert sc.identical(sc.concat(sel,'particle'),dsel)
     #scipp can then do the rest:
     h = da.hist(ekin=10)
@@ -145,27 +144,28 @@ def test_userdata():
 def test_select_skip_limit():
     blocks = all_blocks(example_file)
     sel = 'pdgcode == neutron and ekin > 1keV'
-    flt = mcpl.ParticleFilter(sel)
-    selected = [ b[flt(b)] for b in blocks ]
+    edit = mcpl.ParticleEdit(sel)
+    selected = [ edit(b) for b in blocks ]
     allsel = { k : concat(selected,k) for k in ('ekin','x') }
     nsel = len(allsel['ekin'])
     assert nsel > 10
-    with mcpl.MCPLFile(example_file,blocklength=3) as f:
+    with mcpl.MCPLFile(example_file,blocklength=3,edit=sel) as f:
         for skip, limit in [ (0,0), (2,0), (2,5), (0,1), (nsel-1,0),
                              (nsel,0), (nsel+5,3) ]:
-            da = f.to_scipp(pick=sel,skip=skip,limit=limit)
+            da = f.to_scipp(skip=skip,limit=limit)
             end = nsel if not limit else min(nsel,skip+limit)
             assert np.array_equal(da.coords['ekin'].values,allsel['ekin'][skip:end]),(skip,limit)
             assert np.array_equal(da.coords['x'].values,allsel['x'][skip:end]),(skip,limit)
-        #skip and limit without selection:
+    #skip and limit without selection:
+    with mcpl.MCPLFile(example_file,blocklength=3) as f:
         n = f.nparticles
         allx = concat(blocks,'x')
         da = f.to_scipp(skip=n-4,limit=2)
         assert np.array_equal(da.coords['x'].values,allx[n-4:n-2])
-    #Selection and edit given when opening the file are applied first:
-    with mcpl.MCPLFile(example_file,pick='pdgcode == neutron',edit='x += 1m') as f:
+    #The edit given when opening the file is applied first:
+    with mcpl.MCPLFile(example_file,edit='pdgcode == neutron; x += 1m') as f:
         da = f.to_scipp()
-        nb = all_blocks(example_file,pick='pdgcode == neutron',edit='x += 1m')
+        nb = all_blocks(example_file,edit='pdgcode == neutron; x += 1m')
         assert np.array_equal(da.coords['x'].values,concat(nb,'x'))
         assert np.all(da.coords['pdgcode'].values == 2112)
     print("Selection, skip and limit OK")
@@ -186,7 +186,7 @@ def test_default_limit():
         #No warning if there are no more particles:
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            mcpl.MCPLFile(example_file).to_scipp(pick='x > 1e30cm')
+            mcpl.MCPLFile(example_file,edit='x > 1e30cm').to_scipp()
         assert not out.getvalue()
     finally:
         mcpldev._scipp._default_limit = 100_000_000
@@ -195,10 +195,9 @@ def test_default_limit():
 def test_coords():
     blocks = all_blocks(example_file)
     x, y = concat(blocks,'x'), concat(blocks,'y')
-    da = mcpl.MCPLFile(example_file).to_scipp(
+    da = mcpl.MCPLFile(example_file,edit='pdgcode == neutron or pdgcode == gamma').to_scipp(
         coords = { 'r' : 'hypot(x,y)', 'ex' : 'ekin*x', 'cosz' : 'uz',
-                   'isn' : 'pdgcode == neutron', 'r_mm' : 'hypot(x,y)/mm' },
-        pick = 'pdgcode == neutron or pdgcode == gamma' )
+                   'isn' : 'pdgcode == neutron', 'r_mm' : 'hypot(x,y)/mm' } )
     sel = np.isin(concat(blocks,'pdgcode'),(2112,22))
     assert da.coords['r'].unit == sc.Unit('cm')
     assert np.allclose(da.coords['r'].values,np.hypot(x,y)[sel])
@@ -209,9 +208,9 @@ def test_coords():
     assert da.coords['r_mm'].unit == sc.units.dimensionless
     assert np.allclose(da.coords['r_mm'].values,10*np.hypot(x,y)[sel])
     #Wavelengths (calculated in cm, but scipp converts them):
-    wl = mcpl.MCPLFile(example_file).to_scipp( coords = { 'wl' : 'wavelength' },
-                                               pick = 'pdgcode == neutron' )
-    nb = all_blocks(example_file,pick='pdgcode == neutron')
+    wl = mcpl.MCPLFile(example_file,edit='pdgcode == neutron').to_scipp(
+        coords = { 'wl' : 'wavelength' } )
+    nb = all_blocks(example_file,edit='pdgcode == neutron')
     assert np.allclose(wl.coords['wl'].to(unit='angstrom').values,
                        np.concatenate([b.wavelength for b in nb]))
     print("Extra coordinates OK")
@@ -220,7 +219,7 @@ def test_errors():
     f = mcpl.MCPLFile(example_file)
     for kwargs in [ {'skip':-1}, {'limit':-1}, {'coords':'r'},
                     {'coords':{'':'x'}}, {'coords':{'r':'nosuchfield'}},
-                    {'coords':{'x':'x'}}, {'pick':'x >'} ]:
+                    {'coords':{'x':'x'}} ]:
         try:
             f.to_scipp(**kwargs)
         except mcpl.MCPLError as e:

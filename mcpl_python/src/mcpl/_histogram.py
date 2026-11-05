@@ -140,7 +140,7 @@ class PointSet3D(_Result):
     with the largest values of u^(1/w), where w is the weight and u a number
     from a fixed hash of the position of the particle in the file. So the
     same particles are always chosen for the same file, and particles which
-    remain after a stricter pick stay. With fewer particles, all are used.
+    remain after a stricter condition stay. With fewer particles, all are used.
     Their plots say which particles they show."""
     __slots__ = ()
     @property
@@ -160,13 +160,13 @@ class PointSet3D(_Result):
 _public_classes = { _Hist1DData : Hist1D, _HistDiscreteData : HistDiscrete,
                     _Hist2DData : Hist2D, _PointSet3DData : PointSet3D }
 
-def histogram( file, expression, *, pick = None ):
+def histogram( file, expression, *, edit = None ):
     """Histogram of the values of one or more expressions (see ParticleValue)
-    for the particles in an MCPL file (picked with pick, see ParticleFilter),
-    for instance:
+    for the particles in an MCPL file (after edit, see ParticleEdit), for
+    instance:
 
        h = mcpl.histogram( "myfile.mcpl", "ekin/eV;logx;lethargy",
-                           pick = "pdgcode == neutron" )
+                           edit = "pdgcode == neutron" )
        h.plot()
        print( h.edges, h.contents )
 
@@ -186,7 +186,7 @@ def histogram( file, expression, *, pick = None ):
     o = _parse_hist(expression)
     if o['print']:
         raise MCPLError('The histogram option print is only for the mcpltool command')
-    data = _fill([ file ],o,pick = pick)
+    data = _fill([ file ],o,edit = edit)
     res = object.__new__(_public_classes[type(data)])
     res._d = data
     return res

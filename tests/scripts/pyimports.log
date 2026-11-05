@@ -9,19 +9,19 @@ copy blocks with numpy mask             : _records _writer
 merge files                             : _fileops _records _statsum _writer
 convert to text                         : _ascii
 repair                                  : _fileops _records _statsum _writer
-read with pick and edit                 : _exprcore _expressions _exprrotation _exprsyntax _exprunits _particles _physics constants
+read with an edit                       : _expr_ast _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprrotation _exprunits _particles _physics constants
 statistics                              : _particles _physics _stats _statsum constants
-statistics with pick                    : _exprcore _expressions _exprrotation _exprsyntax _exprunits _particles _physics _stats _statsum constants
-histogram contents                      : _exprcore _expressions _exprplot _exprrotation _exprsyntax _exprunits _histfill _histogram _histstring _particles _physics constants
+statistics with an edit                 : _expr_ast _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprrotation _exprunits _particles _physics _stats _statsum constants
+histogram contents                      : _expr_ast _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprplot _exprrotation _exprunits _histfill _histogram _histstring _particles _physics constants
 mcpltool FILE                           : _cli
-mcpltool --pick                         : _cli _exprcore _expressions _exprrotation _exprsyntax _exprunits _particles _physics constants
+mcpltool --edit                         : _cli _expr_ast _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprrotation _exprunits _particles _physics constants
 mcpltool --stats                        : _cli _clistats _particles _physics _stats _statsum constants
-mcpltool --window with print            : _cli _clistats _exprcore _expressions _exprplot _exprrotation _exprsyntax _exprunits _histfill _histstring _particles _physics constants
+mcpltool --window with print            : _cli _clistats _expr_ast _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprplot _exprrotation _exprunits _histfill _histstring _particles _physics constants
 mcpltool --extract                      : _cli _extract _records _statsum _writer
-mcpltool --extract --edit               : _cli _exprcore _expressions _exprrotation _exprsyntax _exprunits _extract _particles _physics _records _statsum _writer constants
+mcpltool --extract --edit               : _cli _expr_ast _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprrotation _exprunits _extract _particles _physics _records _statsum _writer constants
 mcpltool --merge                        : _cli _extract _fileops _records _statsum _writer
 mcpltool --repair                       : _cli _fileops _records _statsum _writer
 mcpltool --text                         : _ascii _cli
-plot saved as text                      : _exprcore _expressions _exprplot _exprrotation _exprsyntax _exprunits _figures _histfigures _histfill _histogram _histstring _particles _physics _plotbackend _plotbackend_text _plotregistry _plotting _termcolor constants
-mcpltool --terminal saved as text       : _cli _clistats _exprcore _expressions _exprplot _exprrotation _exprsyntax _exprunits _figures _histfigures _histfill _histstring _particles _physics _plotbackend _plotbackend_text _plotregistry _termcolor constants
+plot saved as text                      : _expr_ast _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprplot _exprrotation _exprunits _figures _histfigures _histfill _histogram _histstring _particles _physics _plotbackend _plotbackend_text _plotregistry _plotting _termcolor constants
+mcpltool --terminal saved as text       : _cli _clistats _expr_ast _expr_ast2str _expr_astcheck _expr_eval _expr_str2ast _expr_vocab _expressions _exprplot _exprrotation _exprunits _figures _histfigures _histfill _histstring _particles _physics _plotbackend _plotbackend_text _plotregistry _termcolor constants
 The imports agree with the imports in the code.

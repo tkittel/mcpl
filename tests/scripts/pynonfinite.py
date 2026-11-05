@@ -56,8 +56,8 @@ def test_reading():
             print(f'==> {title} of {fn}:')
             with mcpl.MCPLFile(fn,blocklength=10) as f:
                 fct(f)
-    print('==> pick (with blocklength 10):')
-    with mcpl.MCPLFile('nan.mcpl',blocklength=10,pick='ekin > 1.5MeV') as f:
+    print('==> condition (with blocklength 10):')
+    with mcpl.MCPLFile('nan.mcpl',blocklength=10,edit='ekin > 1.5MeV') as f:
         print(f'   selected {sum(len(b) for b in f.particle_blocks)} particles')
 
 def test_errors():
@@ -70,9 +70,9 @@ def test_errors():
         except mcpl.MCPLError as e:
             print(f'{title}: MCPLError: {e}')
     expect_error('collect_stats', lambda : mcpl.collect_stats('nan.mcpl'))
-    expect_error('ParticleFilter("x > 10cm")', lambda : mcpl.ParticleFilter('x > 10cm')(b))
-    print('ParticleFilter("ekin > 1.2MeV") selects'
-          f' {np.sum(mcpl.ParticleFilter("ekin > 1.2MeV")(b))}')
+    expect_error('ParticleEdit("x > 10cm")', lambda : mcpl.ParticleEdit('x > 10cm')(b))
+    print('ParticleEdit("ekin > 1.2MeV") keeps'
+          f' {len(mcpl.ParticleEdit("ekin > 1.2MeV")(b))}')
     with mcpl.MCPLOutFile('out.mcpl') as o:
         expect_error('add_particles(block)', lambda : o.add_particles(b))
         expect_error('add_particles(block of finite particles)',

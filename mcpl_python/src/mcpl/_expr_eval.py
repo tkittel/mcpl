@@ -64,7 +64,15 @@ from ._expr_vocab import (
     _rotation_planes,
 )
 from ._exprrotation import _exact_cos_sin, _rotation_matrix
-from ._exprunits import _dim_E, _dim_L, _dim_none, _dim_unknown, _expr_units
+from ._exprunits import (
+    _dim_E,
+    _dim_L,
+    _dim_none,
+    _dim_unknown,
+    _expr_units,
+    _quantity_value,
+    _unit_size,
+)
 from ._numpy import np
 from ._particles import _particle_names, _wavelength_pdgcodes
 from ._physics import ekin_from_wavelength, wavelength_from_ekin
@@ -176,9 +184,9 @@ def _userdata_unit( layout, field ):
     factor, dim = 1.0, [ 0, 0, 0, 0 ]
     for part in ( unit.split('.') if unit else () ):
         name, _, power = part.partition('^')
-        size, d = _expr_units[name]
+        d = _expr_units[name][1]
         e = int(power) if power else 1
-        factor *= size ** e
+        factor *= _unit_size(name,e)
         if d is not None:
             dim = [ a + b * e for a, b in zip(dim,d) ]
     return factor, ( tuple(dim) if any(dim) else None )
@@ -368,12 +376,13 @@ class _ExprEvaluator:
         v = node.value
         return self.finite(_Q(v,zero=(v==0)),'A constant has')
     def _quantity( self, node ):
-        #(the number multiplied by the unit):
-        q = self.binop('*',self(node.number),self(Unit(node.unit,node.power)))
-        return self.finite(q,'Multiplication gives')
+        #(exact for units which are powers of ten, see _quantity_value):
+        d = self.dimpow(_expr_units[node.unit][1],node.power,f'The unit {node.unit}')
+        v = _quantity_value(node.number.value,node.unit,node.power)
+        return self.finite(_Q(v,d),'A constant has')
     def _unit( self, node ):
-        v, d = _expr_units[node.unit]
-        return _Q(v ** node.power,self.dimpow(d,node.power,f'The unit {node.unit}'))
+        d = self.dimpow(_expr_units[node.unit][1],node.power,f'The unit {node.unit}')
+        return _Q(_unit_size(node.unit,node.power),d)
     def _name( self, node ):
         return self.name(node.id)
     def _particle( self, node ):

@@ -32,6 +32,7 @@ import subprocess
 import sys
 
 import mcpldev as mcpl
+import numpy as np
 from MCPLTestUtils import clib
 from MCPLTestUtils.dirs import test_data_dir
 from MCPLTestUtils.loadlib import getlib
@@ -112,7 +113,7 @@ def test_mcpltool():
         ['--forcemerge','out.mcpl','empty.mcpl','raw.mcpl'],
         ['--extract','std.mcpl','out.mcpl'],
         ['--extract','-l2','-s1','stddp.mcpl','out.mcpl'],
-        ['--extract','--no-comment','-p','pdgcode == 2112','raw.mcpl','out.mcpl'],
+        ['--extract','--no-comment','-e','pdgcode == 2112','raw.mcpl','out.mcpl'],
         ['--text','std.mcpl','out.txt'],
         ['--repair','trunc.mcpl'],
     ]
@@ -216,11 +217,11 @@ def test_python_api():
         o.add_particle(x=1.0,uz=1.0,ekin=1.0,pdgcode=22,userdata={})#zeros
     cprint(lib.mcpltest_ud_read,(d/'w2.mcpl').as_posix())
     cprint(lib.mcpltest_ud_read,(d/'w3.mcpl').as_posix())
-    #Edits and selections when extracting:
-    rc = subprocess.run([sys.executable,'-m','mcpldev','--extract','--pick',
-                         'x > 1.5cm','--edit','z += 1cm',str(d/'std.mcpl'),
+    #Edits when extracting:
+    rc = subprocess.run([sys.executable,'-m','mcpldev','--extract','--edit',
+                         'x > 1.5cm; z += 1cm',str(d/'std.mcpl'),
                          str(d/'w4.mcpl')],capture_output=True,check=False).returncode
-    print('mcpltool --extract --pick --edit:',rc)
+    print('mcpltool --extract --edit:',rc)
     cprint(lib.mcpltest_ud_read,(d/'w4.mcpl').as_posix())
     #Different layouts:
     try:
@@ -283,7 +284,7 @@ def test_python_writing():
     ud = b.userdata.copy()
     ud['temp'] += 100
     with mcpl.MCPLOutFile(d/'sel1.mcpl',userdata_layout=stdlayout,
-                          pick='x > 1.5cm',edit='z += 1cm') as o:
+                          edit='x > 1.5cm; z += 1cm') as o:
         o.add_particles(b,userdata=ud)
         o.add_particles(x=b.x,uz=1.0,ekin=1.0,pdgcode=22,weight=1.0,userdata=ud)
     cprint(lib.mcpltest_ud_read,(d/'sel1.mcpl').as_posix())
@@ -418,8 +419,13 @@ def test_expressions():
     with mcpl.MCPLFile('udexpr.mcpl') as f:
         b = f.read_block()
     def show( cls, expr ):
+        #(the mask of the particles kept, or the values, or the changes):
         try:
-            res = cls(expr)(b)
+            if cls is mcpl.ParticleEdit:
+                kept, res = cls(expr)._apply(b)
+                res = res or np.isin(np.arange(len(b)),np.arange(len(b)) if kept is None else kept)
+            else:
+                res = cls(expr)(b)
             print(f'  {expr}: {res.tolist() if hasattr(res,"tolist") else res}')
         except mcpl.MCPLError as e:
             print(f'  {expr}: MCPLError: {e}')
@@ -435,7 +441,7 @@ def test_expressions():
                'userdata.nope > 0', 'userdata > 0', 'userdata.d.x > 0',
                'userdata.d.at(x) > 0', 'userdata.big + 1 > 0',
                'userdata.big > -1', 'userdata.big - 1 > 0' ):
-        show(mcpl.ParticleFilter,e)
+        show(mcpl.ParticleEdit,e)
     for e in ( 'userdata.temp/K', 'userdata.d.at(0)/mm', 'userdata.nscat',
                'userdata.temp' ):
         show(mcpl.ParticleValue,e)
@@ -445,27 +451,27 @@ def test_expressions():
     #Without userdata:
     with mcpl.MCPLFile(test_data_dir.joinpath('example.mcpl')) as f:
         b = f.read_block()
-        show(mcpl.ParticleFilter,'userdata.temp > 0K')
-    #Picks of particles added as arrays to output files:
+        show(mcpl.ParticleEdit,'userdata.temp > 0K')
+    #Conditions on particles added as arrays to output files:
     with mcpl.MCPLOutFile('udexpr2.mcpl', userdata_layout = layout,
-                          pick = 'userdata.temp > 295K') as o:
+                          edit = 'userdata.temp > 295K') as o:
         o.add_particles( ekin = [1.0,2.0,3.0], uz = 1.0, pdgcode = 2112,
                          weight = 1.0,
                          userdata = { 'temp' : [290,300,310] } )
     with mcpl.MCPLFile('udexpr2.mcpl') as f:
-        print('  picked from arrays added to MCPLOutFile:',
+        print('  kept from arrays added to MCPLOutFile:',
               f.read_block().userdata['temp'].tolist())
-    #Picks of blocks added with other userdata use that userdata:
+    #Conditions on blocks added with other userdata use that userdata:
     with mcpl.MCPLFile('udexpr.mcpl') as f, mcpl.MCPLOutFile(
             'udexpr3.mcpl', userdata_layout = layout,
-            pick = 'userdata.temp > 295K') as o:
+            edit = 'userdata.temp > 295K') as o:
         o.add_particles( f.read_block(),
                          userdata = { 'temp' : [300,10,320] } )
     with mcpl.MCPLFile('udexpr3.mcpl') as f:
-        print('  picked from a block added with other userdata:',
+        print('  kept from a block added with other userdata:',
               f.read_block().userdata['temp'].tolist())
     #mcpltool:
-    for args in ( [ '-p', 'userdata.temp > 295K', '-n', 'udexpr.mcpl' ],
+    for args in ( [ '-e', 'userdata.temp > 295K', '-n', 'udexpr.mcpl' ],
                   [ '-t', 'userdata.temp/K;print;bins=3', 'udexpr.mcpl' ] ):
         print(f'  mcpltool {" ".join(args)}:',flush=True)
         try:
@@ -486,11 +492,11 @@ def test_units():
     for e in ( 'userdata.temp/K', 'userdata.theta/deg', 'userdata.d/mm', '(userdata.d + x)/cm',
                'userdata.q*cm', 'userdata.n' ):
         print(f'{e}:', [ round(float(v),4) for v in mcpl.ParticleValue(e)(b) ])
-    print('userdata.temp > 293K:', [ bool(v) for v in mcpl.ParticleFilter('userdata.temp > 293K')(b) ])
+    print('userdata.temp > 293K:', mcpl.ParticleEdit('userdata.temp > 293K')(b).userdata['temp'].tolist())
     for e in ( 'userdata.temp + x', 'userdata.temp > 293', 'userdata.q + userdata.d',
                'userdata.temp' ):
         try:
-            v = ( mcpl.ParticleFilter if '>' in e else mcpl.ParticleValue )(e)(b)
+            v = mcpl.ParticleEdit(e)(b).userdata['temp'] if '>' in e else mcpl.ParticleValue(e)(b)
             print(f'{e}: {list(v)}')
         except mcpl.MCPLError as err:
             print(f'{e}: MCPLError: {err}')

@@ -65,7 +65,7 @@ with mcpl.MCPLFile(infilename) as fi:
 
 #Wavelengths can also be obtained from particles and blocks of particles with
 #their wavelength attribute (which gives an error for particles which are not
-#neutrons or gammas, so those must be picked first):
+#neutrons or gammas, so keep only those first):
 with mcpl.MCPLFile('neutrons.mcpl') as f:
     b = f.read_block()
     wl = b.wavelength
@@ -75,10 +75,9 @@ with mcpl.MCPLFile('neutrons.mcpl') as f:
 #The same edits can be expressed as strings, which is convenient when they are
 #for instance provided by users of a script:
 #
-#   edit = mcpl.ParticleEdit('rotate_z(90deg); z += 10cm; wavelength = 1.8Aa')
-#   flt = mcpl.ParticleFilter('pdgcode == neutron')
+#   edit = mcpl.ParticleEdit('pdgcode == neutron; rotate_z(90deg); z += 10cm;'
+#                            ' wavelength = 1.8Aa')
 #   for block in fi.particle_blocks:
-#       b = block[ flt(block) ]
-#       fo.add_particles( b, **edit(b) )
+#       fo.add_particles( edit(block) )
 #
-#This is also what the command "mcpltool -e -p EXPR1 -E EXPR2" does.
+#This is also what the command "mcpltool -x -e EDIT" does.

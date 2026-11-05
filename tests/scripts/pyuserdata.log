@@ -218,7 +218,7 @@ mcpltool --extract -l2 -s1 stddp.mcpl out.mcpl: exit code 0
 py/out.mcpl: format version 4, userdata layout "temp:float32,origin:int32,tags:uint8[3],big:float64,id:uint64,s:int16", size 29, particle size 121
   particle 0 x=2 ekin=1: temp=294.15 origin=-1000 tags=10,11,12 big=2e+300 id=18446744073709551614 s=-32767
   particle 1 x=3 ekin=1.5: temp=295.15 origin=-2000 tags=20,21,22 big=3e+300 id=18446744073709551613 s=-32766
-mcpltool --extract --no-comment -p pdgcode == 2112 raw.mcpl out.mcpl: exit code 0
+mcpltool --extract --no-comment -e pdgcode == 2112 raw.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 4 / 4 particles from raw.mcpl into out.mcpl
 py/out.mcpl: format version 4, userdata layout "data:uint8[27]", size 27, particle size 63
   particle 0 x=1 ekin=0.5: 000102030405060708090a0b...
@@ -298,7 +298,7 @@ api/w3.mcpl: format version 3, userdata layout NULL, size 0, particle size 36
   particle 0 x=1 ekin=0.5: no userdata
   particle 1 x=2 ekin=1: no userdata
   particle 2 x=3 ekin=1.5: no userdata
-mcpltool --extract --pick --edit: 0
+mcpltool --extract --edit: 0
 api/w4.mcpl: format version 4, userdata layout "temp:float32,origin:int32,tags:uint8[3],big:float64,id:uint64,s:int16", size 29, particle size 65
   particle 0 x=2 ekin=1: temp=294.15 origin=-1000 tags=10,11,12 big=2e+300 id=18446744073709551614 s=-32767
   particle 1 x=3 ekin=1.5: temp=295.15 origin=-2000 tags=20,21,22 big=3e+300 id=18446744073709551613 s=-32766
@@ -1444,11 +1444,11 @@ Userdata fields in expressions:
   userdata.temp = 3K: MCPLError: Syntax error in expression "userdata.temp = 3K", at the start: fields of the userdata can not be changed
   swap(userdata.temp,x): MCPLError: Fields of the userdata (userdata.temp) can not be changed, in "swap(userdata.temp,x)"
   userdata.temp > 0K: MCPLError: The particles have no userdata (for userdata.temp) in expression "userdata.temp > 0K"
-  picked from arrays added to MCPLOutFile: [300.0, 310.0]
-  picked from a block added with other userdata: [300.0, 320.0]
-  mcpltool -p userdata.temp > 295K -n udexpr.mcpl:
+  kept from arrays added to MCPLOutFile: [300.0, 310.0]
+  kept from a block added with other userdata: [300.0, 320.0]
+  mcpltool -e userdata.temp > 295K -n udexpr.mcpl:
 Opened MCPL file udexpr.mcpl:
-Showing particles picked with: userdata.temp > 295K
+Showing particles edited with: userdata.temp > 295K
 
 index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight  userdata
     1        2112           2           0           0           0           0           0           1           0           1  0000964301000080400000a0400000c0...
@@ -1469,7 +1469,7 @@ userdata.d/mm: [0.0, 100.0, 200.0, 300.0]
 (userdata.d + x)/cm: [0.0, 11.0, 22.0, 33.0]
 userdata.q*cm: [0.0, 0.5, 1.0, 1.5]
 userdata.n: [0.0, 1.0, 2.0, 3.0]
-userdata.temp > 293K: [False, False, True, True]
+userdata.temp > 293K: [294.0, 296.0]
 userdata.temp + x: MCPLError: Incompatible units in arithmetic: temperature and length in expression "userdata.temp + x"
 userdata.temp > 293: MCPLError: Incompatible units in comparison: temperature and value without units (add units, e.g. 2K) in expression "userdata.temp > 293"
 userdata.q + userdata.d: MCPLError: Incompatible units in arithmetic: length^-1 and length in expression "userdata.q + userdata.d"

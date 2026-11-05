@@ -54,7 +54,7 @@ def check_empty( b, what ):
 def empty_variants( b ):
     """Empty blocks obtained in different ways from block b"""
     e = b[b.x > 1e30]
-    yield 'pick', e
+    yield 'mask', e
     yield 'slice', b[len(b):]
     yield 'index array', b[np.zeros(0,dtype=int)]
     yield 'slice of selection', e[:]
@@ -91,7 +91,7 @@ def test_userdata():
 
 def test_no_selected_particles():
     #A selection which matches nothing gives no blocks at all:
-    with mcpl.MCPLFile(example_file,pick='x > 1e30cm') as f:
+    with mcpl.MCPLFile(example_file,edit='x > 1e30cm') as f:
         assert list(f.particle_blocks) == []
     print("No blocks for empty selections: OK")
 
@@ -99,7 +99,7 @@ def main():
     test_file(example_file)
     test_file(miscphys_file)
     test_file(example_file,edit='x += 1cm')
-    test_file(example_file,pick='ekin > 0MeV',blocklength=7)
+    test_file(example_file,edit='ekin > 0MeV',blocklength=7)
     test_userdata()
     test_no_selected_particles()
 

@@ -29,7 +29,7 @@ import sys
 
 from ._common import MCPLError, _determine_version, _output_bytearray_raw, _parse_count
 from ._messages import _ForcePrinting, _info
-from ._reader import MCPLFile, dump_file
+from ._reader import MCPLFile
 
 _short_help = """
 Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
@@ -39,28 +39,27 @@ Usage:
   PROGNAME -S [options] FILE               Summary of the particles
   PROGNAME -w HIST [options] FILE [...]    Histogram in a window
   PROGNAME -t HIST [options] FILE [...]    Histogram in the terminal
-  PROGNAME -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  PROGNAME -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
   PROGNAME -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   PROGNAME -r FILE                         Repair a file not properly closed
 
 Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
-  -p PICK        Only particles for which PICK is true, e.g.
-                 -p "pdgcode == neutron and ekin < 25meV".
-  -E EDIT        Change particles, e.g. -E "z += 1cm;weight *= 0.5".
+  -e EDIT        Pick and change particles, e.g.
+                 -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
   -o FILE        Save the histogram in FILE (.png, .pdf, or .svg with -w, .txt
                  with -t).
   -d             Dry run: do everything except writing files.
 
 Examples:
-  PROGNAME -w "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
-  PROGNAME -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
+  PROGNAME -w "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
+  PROGNAME -x -e "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   PROGNAME -S file.mcpl.gz
 
 More help:
   --full-help              All options.
-  -p help, -E help, --hist-help
-                           How to write PICK, EDIT, and HIST.
+  -e help                  How to write EDIT.
+  --hist-help              How to write HIST.
 """
 
 _full_help = """
@@ -71,7 +70,7 @@ Usage:
   PROGNAME -S [options] FILE               Summary of the particles
   PROGNAME -w HIST [options] FILE [...]    Histogram in a window
   PROGNAME -t HIST [options] FILE [...]    Histogram in the terminal
-  PROGNAME -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  PROGNAME -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
   PROGNAME -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   PROGNAME --forcemerge OUT.mcpl.gz FILE1 FILE2 ...
   PROGPADS                                 Merge also incompatible files
@@ -80,14 +79,14 @@ Usage:
   PROGNAME --create-examples[=N]           Create example files
   PROGNAME -v | -h | --full-help
 
-Particles (when showing particles, and with -S, -w, -t, and -e):
+Particles (when showing particles, and with -S, -w, -t, and -x):
   -lN, -sN         Use only N particles (all with -l0), or skip the first N
                    particles in the file. Without -l, at most 10 particles are
                    shown when showing particles.
-  -p, --pick PICK  Only particles for which PICK is true (see -p help). The
-                   particles are picked before -E is applied.
-  -E, --edit EDIT  Change the particles with the statements in EDIT (see -E
-                   help).
+  -e, --edit EDIT  Pick and change the particles with the statements in EDIT,
+                   executed in order, e.g. -e "pdgcode == neutron; z += 1m;
+                   through_sphere((0,0,2m),10cm)" (see -e help).
+  -s and -l choose particles by their position in the file, before -e.
 
 Showing particles:
   -j, --justhead   Show just the header.
@@ -96,11 +95,11 @@ Showing particles:
 
 Histogram (-w, --window HIST or -t, --terminal HIST):
   HIST is an expression with options, e.g.
-  "ekin/MeV;logx;display_only=neutron" (see --hist-help), given as -w HIST,
-  -w=HIST, --window HIST, or --window=HIST (and likewise with -t). -w shows the
-  histogram in a window (with matplotlib), and -t in the terminal (with
-  Unicode characters, or else ASCII). With more files, there is a curve for
-  each file.
+  "ekin/MeV;logx;display_edit=pdgcode==neutron" (see --hist-help), given as
+  -w HIST, -w=HIST, --window HIST, or --window=HIST (and likewise with -t). -w
+  shows the histogram in a window (with matplotlib), and -t in the terminal
+  (with Unicode characters, or else ASCII). With more files, 1D histograms
+  have a curve for each file (2D histograms and 3D plots combine them).
   -o, --output FILE
                    Save the histogram in FILE instead: .png, .pdf, or .svg with
                    -w, or .txt with -t.
@@ -108,10 +107,10 @@ Histogram (-w, --window HIST or -t, --terminal HIST):
                    terminals, unless the NO_COLOR environment variable is set,
                    or always if FORCE_COLOR is set), always, or never.
 
-Extract (-e, --extract FILE OUT.mcpl.gz):
+Extract (-x, --extract FILE OUT.mcpl.gz):
   --no-comment     Do not add comments to the header of OUT about how the
                    particles were extracted.
-  --keep-statsum   Keep stat:sum entries when -E changes weights (if the edit
+  --keep-statsum   Keep stat:sum entries when -e changes weights (if the edit
                    is known to be compatible with them). Otherwise they are
                    marked as not available (-1), as they are with -l or -s.
 
@@ -127,14 +126,14 @@ Other options:
   -d, --dry-run    Do everything except writing files (ignored by commands
                    which do not write files).
   --allow-overwrite
-                   Allow the output files of -m, --forcemerge, -e, --text, -o,
+                   Allow the output files of -m, --forcemerge, -x, --text, -o,
                    and --create-examples to overwrite existing files.
   --traceback      Show the Python traceback of errors (for debugging).
   -v, --version    Show the version of MCPL.
   -h, --help       Show the short usage information.
   --full-help      Show this usage information.
-  -p help, -E help, --hist-help
-                   How to write PICK, EDIT, and HIST.
+  -e help          How to write EDIT.
+  --hist-help      How to write HIST.
 
 Long options can be abbreviated, as long as they are unique (e.g. --ext for
 --extract).
@@ -143,8 +142,7 @@ Output files are gzipped if their names end with .mcpl.gz.
 """
 
 #Where errors in the values of options are explained (see _mcpltool_usage):
-_option_help = { '--pick' : 'Run with "-p help" for how to pick particles with expressions',
-                 '--edit' : 'Run with "-E help" for how to edit particles with expressions',
+_option_help = { '--edit' : 'Run with "-e help" for how to write edit expressions',
                  '--hist' : 'Run with "--hist-help" for how to write histograms' }
 
 def _mcpltool_usage(progname,errmsg=None,full=False,option=None):
@@ -176,8 +174,8 @@ def app_mcpltool(argv=None):
         _app_mcpltool(argv)
 
 #Options which take a value (given in the next argument, or attached as in
-#-pVALUE or --pick=VALUE), by short and long names:
-_value_opts = { '-p' : '--pick', '-E' : '--edit', '-o' : '--output' }
+#-eVALUE or --edit=VALUE), by short and long names:
+_value_opts = { '-e' : '--edit', '-o' : '--output' }
 #(and those without short names):
 _long_value_opts = ( '--color', )
 #Options with an optional value (a histogram): given as -w=VALUE or
@@ -185,7 +183,7 @@ _long_value_opts = ( '--color', )
 #_optional_value):
 _optional_value_opts = { '-w' : '--window', '-t' : '--terminal' }
 #Flags, by long name (with short name, if any):
-_flag_opts = { '--stats' : '-S', '--extract' : '-e', '--merge' : '-m',
+_flag_opts = { '--stats' : '-S', '--extract' : '-x', '--merge' : '-m',
                '--repair' : '-r', '--dry-run' : '-d', '--justhead' : '-j',
                '--nohead' : '-n', '--version' : '-v',
                '--help' : '-h', '--forcemerge' : None, '--inplace' : None,
@@ -199,6 +197,12 @@ _removed_opts = {
     '--pdf' : 'a similar option now is: -w HIST -o FILE.pdf',
     '--gui' : 'use -w instead',
 }
+
+#The options -e (--extract) and -pPDGCODE of earlier versions:
+_old_extract = '-e takes an edit expression (to extract particles, use -x)'
+def _old_pick( value ):
+    example = f'pdgcode == {value}' if re.fullmatch(r'[-+]?[0-9]+',value) else 'pdgcode == neutron'
+    return f'-p is not an option (use -e, e.g. -e "{example}")'
 
 def _long_option( arg, bad ):
     """The long option given by arg (as --name or --name=value), also when
@@ -325,10 +329,12 @@ def _app_mcpltool(argv):
                     name = short_values[f'-{f}']
                     if not a:
                         if not args:
-                            bad(f"Missing argument for -{f}")
+                            bad(_old_extract if f == 'e' else f"Missing argument for -{f}")
                         a = args.pop(0)
                     set_value(name,a)
                     a = ''
+                elif f == 'p':#(see _old_pick)
+                    bad(_old_pick(a or ( args[0] if args else '' )))
                 elif f'-{f}' in short_flags:
                     flags.add(short_flags[f'-{f}'])
                 elif f == 'b':
@@ -367,16 +373,15 @@ def _app_mcpltool(argv):
         _mcpltool_usage(progname,full=True)
     if '--hist-help' in flags:
         _topic_help('hist')
-    for name, topic in (('--pick','pick'),('--edit','edit')):
-        if values.get(name,'').strip().lower() == 'help':
-            _topic_help(topic)
+    if values.get('--edit','').strip().lower() == 'help':
+        _topic_help('edit')
 
     #The mode:
     modes = [ m for m in ('--stats','--window','--terminal','--extract','--merge',
                           '--forcemerge','--repair','--text','--version')
               if m in flags or m in values or m in optional ]
     modenames = { 'dump' : 'when showing particles', '--stats' : '-S',
-                  '--window' : '-w', '--terminal' : '-t', '--extract' : '-e',
+                  '--window' : '-w', '--terminal' : '-t', '--extract' : '-x',
                   '--merge' : '-m', '--forcemerge' : '--forcemerge', '--repair' : '-r',
                   '--text' : '--text', '--version' : '-v' }
     if len(modes) > 1:
@@ -399,8 +404,7 @@ def _app_mcpltool(argv):
     histmodes = ('--window','--terminal')
     allowed('-l',datamodes,opt_limit is not None)
     allowed('-s',datamodes,opt_skip is not None)
-    allowed('-p',datamodes,'--pick' in values)
-    allowed('-E',datamodes,'--edit' in values)
+    allowed('-e',datamodes,'--edit' in values)
     allowed('-j',('dump',),'--justhead' in flags)
     allowed('-n',('dump',),'--nohead' in flags)
     allowed('-b',('dump',),opt_blobkey is not None)
@@ -440,20 +444,12 @@ def _app_mcpltool(argv):
     if opt_dryrun and '--output' in values:
         bad("-d can not be used with -o (which saves plots in files).")
 
-    #-p and -E, which are checked here to give errors before reading files:
-    pick = edit = None
-    if '--pick' in values:
-        v = values['--pick'].strip()
-        from ._particles import _particle_names
-        if v in _particle_names or re.fullmatch(r'[-+]?[0-9]+',v):
-            bad(f'-p takes an expression (PICK): to pick particles of a type,'
-                f' use -p "pdgcode == {v}"','--pick')
-        from ._expressions import ParticleFilter
-        try:
-            pick = ParticleFilter(values['--pick'])
-        except MCPLError as e:
-            bad(str(e),'--pick')
+    #-e, which is checked here to give errors before reading files:
+    edit = None
     if '--edit' in values:
+        v = values['--edit'].strip()
+        if v.endswith(('.mcpl','.gz')) or os.path.exists(v):
+            bad(_old_extract)
         from ._expressions import ParticleEdit
         try:
             edit = ParticleEdit(values['--edit'])
@@ -483,7 +479,7 @@ def _app_mcpltool(argv):
 
     if mode == '--extract':
         from ._extract import _mcpltool_extract
-        _mcpltool_extract(filelist,opt_limit,opt_skip,pick,edit,
+        _mcpltool_extract(filelist,opt_limit,opt_skip,edit,
                           bool(flags & {'--no-comment','--preventcomment'}),
                           '--keep-statsum' in flags,opt_dryrun,bad,
                           allow_overwrite = opt_allow_overwrite)
@@ -492,7 +488,7 @@ def _app_mcpltool(argv):
 
     if mode in histmodes:
         from ._clistats import mcpltool_hist
-        mcpltool_hist(filelist,hist,opt_skip,opt_limit,pick,edit,
+        mcpltool_hist(filelist,hist,opt_skip,opt_limit,edit,
                       values.get('--output'),mode == '--terminal',bad,
                       color=values.get('--color'),
                       allow_overwrite=opt_allow_overwrite)
@@ -545,14 +541,14 @@ def _app_mcpltool(argv):
 
     if mode == '--stats':
         from ._clistats import mcpltool_stats
-        mcpltool_stats(filelist[0],opt_skip,opt_limit,pick,edit,bad)
+        mcpltool_stats(filelist[0],opt_skip,opt_limit,edit,bad)
         sys.exit(0)
 
     #Dump
     opt_justhead, opt_nohead = '--justhead' in flags, '--nohead' in flags
     if opt_blobkey:
         if ( opt_justhead or opt_nohead or opt_limit is not None
-             or opt_skip is not None or pick is not None or edit is not None ):
+             or opt_skip is not None or edit is not None ):
             bad("Do not specify other dump options with -b.")
         with MCPLFile(filelist[0]) as f:
             thedata = f.blobs.get(opt_blobkey,None)
@@ -568,28 +564,14 @@ def _app_mcpltool(argv):
             sys.exit(0)
     if (opt_limit is not None or opt_skip is not None) and opt_justhead:
         bad("Do not specify -l or -s with --justhead")
-    if (pick is not None or edit is not None) and opt_justhead:
-        bad("Do not specify -p or -E with --justhead")
+    if edit is not None and opt_justhead:
+        bad("Do not specify -e with --justhead")
     if opt_justhead and opt_nohead:
         bad("Do not supply both --justhead and --nohead.")
-    if pick is None and edit is None:
-        dump_file(filelist[0],header=not opt_nohead,particles=not opt_justhead,
-                  limit=10 if opt_limit is None else opt_limit,
-                  skip=opt_skip or 0)
-        sys.exit(0)
-    #With -p or -E, -l and -s pick the range of particles in the file:
-    from ._reader import _FileView
-    f = MCPLFile(filelist[0])
-    print(f"Opened MCPL file {os.path.basename(filelist[0])}:")
-    if not opt_nohead:
-        f.dump_hdr()
-    if not opt_justhead:
-        for what, e in (('picked',pick),('edited',edit)):
-            if e is not None:
-                print(f"Showing particles {what} with: {e.expression}")
-        print()
-        view = _FileView(f,opt_skip,opt_limit,pick,edit)
-        f.dump_particles(limit=10 if opt_limit is None else 0,_view=view)
+    #(-l and -s give the range of particles in the file, before -e):
+    from ._reader import _dump
+    with MCPLFile(filelist[0],skip=opt_skip,limit=opt_limit,edit=edit) as f:
+        _dump(f,not opt_nohead,not opt_justhead,10 if opt_limit is None else 0)
     sys.exit(0)
 
 def _mcpltool_dryrun_note(dry_run):

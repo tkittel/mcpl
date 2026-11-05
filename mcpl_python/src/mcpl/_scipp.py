@@ -180,15 +180,12 @@ class _Columns:
                                        unit = units.get(k,'dimensionless') ) )
         return sc.DataArray( data, coords = coords )
 
-def file_scipp_blocks( mcplfile, flt = None, coord_functions = None,
+def file_scipp_blocks( mcplfile, coord_functions = None,
                        vectors = False, variances = True, dim = 'particle' ):
-    """See MCPLFile.scipp_blocks (flt is a ParticleFilter or None, and
-    coord_functions are as for _Columns)."""
+    """See MCPLFile.scipp_blocks (coord_functions are as for _Columns)."""
     sc = _import_scipp()#(here, so a missing scipp is reported immediately)
     def blocks():
         for b in mcplfile.particle_blocks:
-            if flt is not None:
-                b = b[flt(b)]
             if not len(b):
                 continue
             c = _Columns(coord_functions,vectors,variances,dim)
@@ -196,11 +193,10 @@ def file_scipp_blocks( mcplfile, flt = None, coord_functions = None,
             yield c.data_array(sc)
     return blocks()
 
-def file_to_scipp( mcplfile, skip = 0, limit = None, flt = None,
+def file_to_scipp( mcplfile, skip = 0, limit = None,
                    coord_functions = None, vectors = False, variances = True,
                    dim = 'particle' ):
-    """See MCPLFile.to_scipp (flt is a ParticleFilter or None, and
-    coord_functions are as for _Columns)."""
+    """See MCPLFile.to_scipp (coord_functions are as for _Columns)."""
     sc = _import_scipp()
     skip = int(skip)
     if skip < 0:
@@ -215,8 +211,6 @@ def file_to_scipp( mcplfile, skip = 0, limit = None, flt = None,
     nleft = limit if limit else None
     dropped = False
     for b in mcplfile.particle_blocks:
-        if flt is not None:
-            b = b[flt(b)]
         if not len(b):
             continue
         if skip:

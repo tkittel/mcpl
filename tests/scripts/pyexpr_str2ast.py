@@ -21,81 +21,99 @@
 
 # NEEDS: numpy
 
-# Tests of the parser of expressions alone (_exprsyntax): the trees of valid
-# expressions and statements (by precedence, units, vectors, userdata, in,
-# numbers), that writing and parsing them again gives the same trees, the
-# errors of invalid ones, and random expressions and random input. The output
-# is the same with all Python versions.
+# Tests of the parser of expressions alone (_expr_str2ast): the trees of valid
+# values and edit expressions (by precedence, units, vectors, userdata, in,
+# numbers, and particles), that writing and parsing them again gives the same
+# trees, the errors of invalid ones, and random expressions and random input.
+# The output is the same with all Python versions.
 
-import ast
 import random
 
 from mcpldev._common import MCPLError
-from mcpldev._exprsyntax import _expr_parse, _expr_unparse, _Unit
+from mcpldev._expr_ast import (
+    Assign,
+    Binary,
+    Call,
+    Compare,
+    Edit,
+    Float,
+    In,
+    Int,
+    Logical,
+    Name,
+    Part,
+    Particle,
+    Quantity,
+    Unary,
+    Unit,
+    Userdata,
+    Value,
+    Vector,
+)
+from mcpldev._expr_ast2str import _expr_ast2str
+from mcpldev._expr_str2ast import _expr_str2ast
 
-#(units for the tests of the parser, which gets the names of the units):
-units = ( 'cm', 'mm', 'm', 'MeV', 'meV', 'eV', 'ms', 'deg', 'K' )
-
-_symbols = { ast.Add : '+', ast.Sub : '-', ast.Mult : '*', ast.Div : '/',
-             ast.FloorDiv : '//', ast.Pow : '^', ast.BitOr : '|', ast.BitAnd : '&',
-             ast.USub : 'neg', ast.UAdd : 'pos', ast.Not : 'not', ast.And : 'and',
-             ast.Or : 'or', ast.Eq : '==', ast.NotEq : '!=', ast.Lt : '<',
-             ast.LtE : '<=', ast.Gt : '>', ast.GtE : '>=', ast.In : 'in',
-             ast.NotIn : 'not in' }
+_unary = { '-' : 'neg', '+' : 'pos', 'not' : 'not' }
 
 def show( node ):
     """Compact text of a tree (in prefix notation), for all the kinds of nodes
     which the parser gives (and an error for others)"""
     t = type(node)
-    if t in ( ast.Expression, ast.Expr ):
-        return show(node.value if t is ast.Expr else node.body)
-    if t is ast.Module:
-        return '{' + '; '.join( show(s) for s in node.body ) + '}'
-    if t is ast.Assign:
-        return f'(= {node.targets[0].id} {show(node.value)})'
-    if t is ast.AugAssign:
-        return f'({_symbols[type(node.op)]}= {node.target.id} {show(node.value)})'
-    if t is ast.BinOp:
-        return f'({_symbols[type(node.op)]} {show(node.left)} {show(node.right)})'
-    if t is ast.UnaryOp:
-        return f'({_symbols[type(node.op)]} {show(node.operand)})'
-    if t is ast.BoolOp:
-        return f'({_symbols[type(node.op)]} ' + ' '.join( show(v) for v in node.values ) + ')'
-    if t is ast.Compare:
-        parts = [ show(node.left) ]
-        for op, c in zip(node.ops,node.comparators):
-            parts += [ _symbols[type(op)], show(c) ]
+    if t is Value:
+        return show(node.expr)
+    if t is Edit:
+        return '{' + '; '.join( show(s) for s in node.statements ) + '}'
+    if t is Assign:
+        return f'({node.op or ""}= {node.target} {show(node.value)})'
+    if t is Binary:
+        return f'({node.op} {show(node.left)} {show(node.right)})'
+    if t is Unary:
+        return f'({_unary[node.op]} {show(node.operand)})'
+    if t is Logical:
+        return f'({node.op} ' + ' '.join( show(v) for v in node.values ) + ')'
+    if t is Compare:
+        parts = [ show(node.first) ]
+        for op, v in zip(node.ops,node.values):
+            parts += [ op, show(v) ]
         return '(cmp ' + ' '.join(parts) + ')'
-    if t is ast.Call:
-        return f'{node.func.id}(' + ', '.join( show(a) for a in node.args ) + ')'
-    if t is ast.Tuple:
-        return '[' + ', '.join( show(e) for e in node.elts ) + ']'
-    if t is ast.Subscript:
-        return f'(at {show(node.value)} {node.slice.value})'
-    if t is ast.Name:
+    if t is In:
+        values = ', '.join( show(v) for v in node.values )
+        return f'({"not in" if node.negated else "in"} {show(node.value)} [{values}])'
+    if t is Call:
+        return f'{node.name}(' + ', '.join( show(a) for a in node.args ) + ')'
+    if t is Vector:
+        return '[' + ', '.join( show(c) for c in node.components ) + ']'
+    if t is Part:
+        return f'(at {show(node.vector)} {node.index})'
+    if t is Name:
         return node.id
-    if t is ast.Constant:
+    if t is Particle:
+        return f'p:{node.name}'
+    if t is Userdata:
+        return node.text
+    if t is Int:
+        return f'hex:{node.value}' if node.hex else repr(node.value)
+    if t is Float:
         return repr(node.value)
-    if t is _Unit:
+    if t is Quantity:
+        return f'{show(node.number)}{show(Unit(node.unit,node.power))}'
+    if t is Unit:
         return f'<{node.unit}>' if node.power == 1 else f'<{node.unit}^{node.power}>'
     raise AssertionError(f'Unexpected node {t.__name__}')
 
-def parse( text, mode = 'eval' ):
-    return _expr_parse(text,mode,units = units)
-
-def check( text, mode = 'eval' ):
+def check( text, kind = 'value' ):
     """Parse, show the tree and the written text, and check that writing and
     parsing again gives the same tree (and the same text)"""
-    tree = parse(text,mode)
-    out = _expr_unparse(tree)
-    again = parse(out,mode)
-    assert show(again) == show(tree), ( text, out, show(tree), show(again) )
-    assert _expr_unparse(again) == out, ( text, out, _expr_unparse(again) )
+    tree = _expr_str2ast(text,kind)
+    out = _expr_ast2str(tree)
+    again = _expr_str2ast(out,kind)
+    assert again == tree, ( text, out, show(tree), show(again) )
+    assert _expr_ast2str(again) == out, ( text, out, _expr_ast2str(again) )
     print(f'  {text!r:34} -> {show(tree)}   written: {out!r}')
 
-def error( text, mode = 'eval' ):
+def error( text, kind = 'value' ):
     try:
-        tree = parse(text,mode)
+        tree = _expr_str2ast(text,kind)
     except MCPLError as e:
         print(f'  {text!r:24} -> {e}')
         return
@@ -113,7 +131,8 @@ def test_valid():
         'Units' : (
             '25meV', '25 meV', '1e3cm', '0.5m', 'x/cm', 'MeV', '4cm^2', '2cm^-1 * x',
             'cm^(1/2)', 'cm^-0.5', 'cm^2.5', 'cm^+2', 'cm^--2', '2^(x)MeV', '(a + b)cm',
-            '1/cm^2', 'x > 0', 'x > 2cm - 1mm', 'ekin/MeV ^ 2', 'deg' ),
+            '1/cm^2', 'x > 0', 'x > 2cm - 1mm', 'ekin/MeV ^ 2', 'deg', '2*MeV', '(2)MeV',
+            '-2MeV', '2^3MeV', '0x10 mm', '0x10*mm', '1e-9cm' ),
         'Vectors and their values' : (
             '(a,b)', '(a,b,c)', '(0,0,1m)', 'pos.x', 'pos.y.z', 'pos.at(2)',
             '(x,y,z).y', 'dir.x ^ 2', '-pos.x', 'f(a,b)', 'f()', 'abs((0,0,1m))',
@@ -123,7 +142,10 @@ def test_valid():
         'In and not in' : ( 'pdgcode in (neutron,gamma)', 'x not in (1,2)', 'a in (b)',
                             'not a in (1,2)', 'a + 1 in (2,3) and b' ),
         'Numbers (decimal and hexadecimal, as in C)' : (
-            '0', '7', '0.5', '.5', '5.', '1e-3', '1E3', '1.e3', '0x10', '0X1F', '0.0', '007.5', '1eV' ),
+            '0', '7', '0.5', '.5', '5.', '1e-3', '1E3', '1.e3', '0x10', '0X1F', '0x0', '0.0',
+            '007.5', '1eV' ),
+        'Particles (but not functions or variables with their names)' : (
+            'neutron', 'pdgcode == positron', 'neutron(1)', 'abs(antielectron)' ),
     }
     for title, texts in groups.items():
         print(f'{title}:')
@@ -132,8 +154,14 @@ def test_valid():
     print('Statements of edits:')
     for text in ( 'x = 1cm', 'x += 2', 'x -= y', 'x *= 2', 'x /= 2', 'x //= 2',
                   'x ^= 2', 'x **= 2', 'x &= 3', 'x |= 4', 'tmp = x + y',
-                  'swap(x,y)', 'rotate_z(90deg)', 'pos += (0,0,1m)', 'x > 0' ):
-        check(text,'exec')
+                  'swap(x,y)', 'rotate_z(90deg)', 'pos += (0,0,1m)', 'x > 0',
+                  'z += 1cm; weight *= 0.5', ' x = 1 ;; y = 2 ; ', '', ' ; ; ' ):
+        check(text,'edit')
+    print('Conditions in edits (anywhere), and inactive statements (left out):')
+    for text in ( 'x > 0', 'r = hypot(x,y); r > 2cm', 'pdgcode == neutron;', 'a = 1; b = a; b > 0',
+                  'x > 0; y > 0', 'rotate_y(90deg); x > 0cm', 'x > 0; inactive(y += 1cm); z = 1',
+                  ' inactive( swap(x,y) ) ; x > 0', 'inactive (x > 0)', 'inactive(x)+1 > 0' ):
+        check(text,'edit')
 
 def test_errors():
     print('Errors:')
@@ -145,18 +173,22 @@ def test_errors():
                   '!x', 'x % 2', '~x', '"a"', "'a'", 'x[0]', 'lambda: 1',
                   'x if y else z', '[1]', '{1}', 'f(x=1)', 'cm^x', 'cm^(1/0)', 'cm^0.3',
                   'cm^', 'and', 'x and', 'not', '@', '$', 'x # comment', '\u03b1',
-                  'a,b', '1j', 'x == = 1', 'x =< 1' ):
+                  'a,b', '1j', 'x == = 1', 'x =< 1', 'x; y', 'x > 0;', 0, None ):
         error(text)
     print('Errors of statements:')
     for text in ( 'x =', '= 1', 'userdata.t = 1', 'userdata.t.at(0) += 1', 'x = y = 1',
-                  'x += ', '1 = x', 'x, y = 1, 2' ):
-        error(text,'exec')
+                  'x += ', '1 = x', 'x, y = 1, 2', 'x = 1; y +', 'x = (1;y = 2)', 'rotate_x(90deg;x=1cm)' ):
+        error(text,'edit')
+    print('Errors of statements with conditions, and of inactive statements:')
+    for text in ( 'r = hypot(x,y); r >', 'r = 1, r > 0', 'inactive()', 'inactive(x +)',
+                  'inactive(x;y)', 'x > 0; inactive(1 2)' ):
+        error(text,'edit')
 
 def random_tree( rnd, depth ):
     """Random expression text from the grammar"""
     if depth == 0 or rnd.random() < 0.25:
-        return rnd.choice(( 'x', 'y', 'ekin', '2', '0.5', '1e3', '7cm', 'MeV', 'cm^2',
-                            'pos.x', 'userdata.t', 'userdata.a.at(1)', '(0,0,1m)' ))
+        return rnd.choice(( 'x', 'y', 'ekin', '2', '0.5', '1e3', '7cm', 'MeV', 'cm^2', '0x1f',
+                            'pos.x', 'userdata.t', 'userdata.a.at(1)', '(0,0,1m)', 'neutron' ))
     def sub():
         return random_tree(rnd,depth-1)
     kind = rnd.randrange(9)
@@ -184,29 +216,31 @@ def test_random():
     for _ in range(2000):
         text = random_tree(rnd,4)
         try:
-            tree = parse(text)
+            tree = _expr_str2ast(text)
         except MCPLError:
             errors += 1#(e.g. "in" in a chain of comparisons)
             continue
-        out = _expr_unparse(tree)
-        assert show(parse(out)) == show(tree), ( text, out )
-        assert _expr_unparse(parse(out)) == out, ( text, out )
+        out = _expr_ast2str(tree)
+        assert _expr_str2ast(out) == tree, ( text, out )
+        assert _expr_ast2str(_expr_str2ast(out)) == out, ( text, out )
         ok += 1
     print(f'Random expressions: {ok} written and parsed again to the same trees, {errors} errors')
     tokens = ( 'x', 'cm', '2', '0.5', '(', ')', ',', '.', 'at', '+', '-', '*', '/', '//',
                '^', '**', '&', '|', '<', '==', 'and', 'or', 'not', 'in', '=', '+=', ';',
-               'userdata', 'f', ' ', '!', '%', '"', '[', '090', 'e', '1e' )
+               'userdata', 'f', ' ', '!', '%', '"', '[', '090', 'e', '1e', '0x1', 'neutron' )
     results = { 'trees' : 0, 'errors' : 0 }
     for _ in range(5000):
         text = ''.join( rnd.choice(tokens) for _ in range(rnd.randrange(1,9)) )
-        for mode in ( 'eval', 'exec' ):
+        for kind in ( 'value', 'edit' ):
             try:
-                parse(text,mode)
-                results['trees'] += 1
+                tree = _expr_str2ast(text,kind)
             except MCPLError:
                 results['errors'] += 1
-    print(f'Random input: only trees or MCPLError (in total {results["trees"]} trees'
-          f' and {results["errors"]} errors)')
+                continue
+            assert _expr_str2ast(_expr_ast2str(tree),kind) == tree, ( text, kind )
+            results['trees'] += 1
+    print(f'Random input: only trees or MCPLError, and the trees are written and parsed again'
+          f' to the same trees (in total {results["trees"]} trees and {results["errors"]} errors)')
 
 if __name__ == '__main__':
     test_valid()

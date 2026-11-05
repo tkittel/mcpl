@@ -49,11 +49,11 @@ with mcpl.MCPLFile(infilename) as fi, mcpl.MCPLOutFile(outfilename) as fo:
     #The same selection could also have been expressed as a string, which is
     #convenient when it is for instance provided by users of a script:
     #
-    #    flt = mcpl.ParticleFilter('pdgcode == neutron and ekin < 0.1MeV')
+    #    edit = mcpl.ParticleEdit('pdgcode == neutron and ekin < 0.1MeV')
     #    for block in fi.particle_blocks:
-    #        fo.add_particles( block[ flt(block) ] )
+    #        fo.add_particles( edit(block) )
     #
-    #This is also what the command "mcpltool -e -p EXPR" does.
+    #This is also what the command "mcpltool -x -e EDIT" does.
 
 #Note that any stat:sum:... statistics in the files will still be fine, since
 #we only filtered the particles based on their properties. If we had instead

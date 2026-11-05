@@ -8,28 +8,27 @@ Usage:
   python -m mcpl -S [options] FILE               Summary of the particles
   python -m mcpl -w HIST [options] FILE [...]    Histogram in a window
   python -m mcpl -t HIST [options] FILE [...]    Histogram in the terminal
-  python -m mcpl -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
   python -m mcpl -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   python -m mcpl -r FILE                         Repair a file not properly closed
 
 Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
-  -p PICK        Only particles for which PICK is true, e.g.
-                 -p "pdgcode == neutron and ekin < 25meV".
-  -E EDIT        Change particles, e.g. -E "z += 1cm;weight *= 0.5".
+  -e EDIT        Pick and change particles, e.g.
+                 -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
   -o FILE        Save the histogram in FILE (.png, .pdf, or .svg with -w, .txt
                  with -t).
   -d             Dry run: do everything except writing files.
 
 Examples:
-  python -m mcpl -w "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
-  python -m mcpl -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
+  python -m mcpl -w "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
+  python -m mcpl -x -e "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   python -m mcpl -S file.mcpl.gz
 
 More help:
   --full-help              All options.
-  -p help, -E help, --hist-help
-                           How to write PICK, EDIT, and HIST.
+  -e help                  How to write EDIT.
+  --hist-help              How to write HIST.
 
 ----------------------------------------------
 Running mcpltool --help
@@ -41,28 +40,27 @@ Usage:
   python -m mcpl -S [options] FILE               Summary of the particles
   python -m mcpl -w HIST [options] FILE [...]    Histogram in a window
   python -m mcpl -t HIST [options] FILE [...]    Histogram in the terminal
-  python -m mcpl -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
   python -m mcpl -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   python -m mcpl -r FILE                         Repair a file not properly closed
 
 Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
-  -p PICK        Only particles for which PICK is true, e.g.
-                 -p "pdgcode == neutron and ekin < 25meV".
-  -E EDIT        Change particles, e.g. -E "z += 1cm;weight *= 0.5".
+  -e EDIT        Pick and change particles, e.g.
+                 -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
   -o FILE        Save the histogram in FILE (.png, .pdf, or .svg with -w, .txt
                  with -t).
   -d             Dry run: do everything except writing files.
 
 Examples:
-  python -m mcpl -w "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
-  python -m mcpl -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
+  python -m mcpl -w "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
+  python -m mcpl -x -e "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   python -m mcpl -S file.mcpl.gz
 
 More help:
   --full-help              All options.
-  -p help, -E help, --hist-help
-                           How to write PICK, EDIT, and HIST.
+  -e help                  How to write EDIT.
+  --hist-help              How to write HIST.
 
 ----------------------------------------------
 Running mcpltool --h
@@ -206,7 +204,7 @@ Run with -h or --help for usage information
 ----------------------------------------------
 Running mcpltool rf16cp.mcpl -l2 -r
 ----------------------------------------------
-ERROR: -l can only be used when showing particles, or with -S, -w, -t, or -e.
+ERROR: -l can only be used when showing particles, or with -S, -w, -t, or -x.
 
 Run with -h or --help for usage information
 
@@ -1371,12 +1369,12 @@ MCPL ERROR: File is not an MCPL file!
 
 ===> Command failed!
 ----------------------------------------------
-Running mcpltool -e miscphys.mcpl.gz extracted_0
+Running mcpltool -x miscphys.mcpl.gz extracted_0
 ----------------------------------------------
 MCPL: Successfully extracted 195 / 195 particles from miscphys.mcpl.gz into extracted_0.mcpl
 
 ----------------------------------------------
-Running mcpltool -e miscphys.mcpl.gz extracted_0
+Running mcpltool -x miscphys.mcpl.gz extracted_0
 ----------------------------------------------
 ERROR: The output file "extracted_0.mcpl" already exists.
 
@@ -1384,51 +1382,51 @@ Run with -h or --help for usage information
 
 ===> Command failed!
 ----------------------------------------------
-Running mcpltool --extract -p 'pdgcode == 2112' --no-comment miscphys.mcpl.gz extracted_1.mcpl.gz
+Running mcpltool --extract -e 'pdgcode == 2112' --no-comment miscphys.mcpl.gz extracted_1.mcpl.gz
 ----------------------------------------------
 MCPL: Compressing file extracted_1.mcpl
 MCPL: Compressed file into extracted_1.mcpl.gz
 MCPL: Successfully extracted 15 / 195 particles from miscphys.mcpl.gz into extracted_1.mcpl.gz
 
 ----------------------------------------------
-Running mcpltool --extract -p 'pdgcode == -11' --no-comment miscphys.mcpl.gz extracted_2.mcpl.gz
+Running mcpltool --extract -e 'pdgcode == -11' --no-comment miscphys.mcpl.gz extracted_2.mcpl.gz
 ----------------------------------------------
 MCPL: Compressing file extracted_2.mcpl
 MCPL: Compressed file into extracted_2.mcpl.gz
 MCPL: Successfully extracted 10 / 195 particles from miscphys.mcpl.gz into extracted_2.mcpl.gz
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == -1000020040' --no-comment miscphysnogz.mcpl extracted_3.mcpl.gz
+Running mcpltool -x -e 'pdgcode == -1000020040' --no-comment miscphysnogz.mcpl extracted_3.mcpl.gz
 ----------------------------------------------
 MCPL: Compressing file extracted_3.mcpl
 MCPL: Compressed file into extracted_3.mcpl.gz
 MCPL: Successfully extracted 5 / 195 particles from miscphysnogz.mcpl into extracted_3.mcpl.gz
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == 1000922350' --no-comment miscphys.mcpl.gz extracted_4.mcpl.gz
+Running mcpltool -x -e 'pdgcode == 1000922350' --no-comment miscphys.mcpl.gz extracted_4.mcpl.gz
 ----------------------------------------------
 MCPL: Compressing file extracted_4.mcpl
 MCPL: Compressed file into extracted_4.mcpl.gz
 MCPL: Successfully extracted 5 / 195 particles from miscphys.mcpl.gz into extracted_4.mcpl.gz
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == 111' -l999999 -s150 --no-comment miscphysnogz.mcpl extracted_5.mcpl.gz
+Running mcpltool -x -e 'pdgcode == 111' -l999999 -s150 --no-comment miscphysnogz.mcpl extracted_5.mcpl.gz
 ----------------------------------------------
 MCPL: Compressing file extracted_5.mcpl
 MCPL: Compressed file into extracted_5.mcpl.gz
 MCPL: Successfully extracted 5 / 195 particles from miscphysnogz.mcpl into extracted_5.mcpl.gz
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == 0' miscphysnogz.mcpl badpdg.mcpl
+Running mcpltool -x -e 'pdgcode == 0' miscphysnogz.mcpl badpdg.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 0 / 195 particles from miscphysnogz.mcpl into badpdg.mcpl
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == 99999999999999999999' miscphysnogz.mcpl badpdg.mcpl
+Running mcpltool -x -e 'pdgcode == 99999999999999999999' miscphysnogz.mcpl badpdg.mcpl
 ----------------------------------------------
 ERROR: The integer 99999999999999999999 is too large (integers must fit in 64 bits) in expression "pdgcode == 99999999999999999999"
 
-Run with "-p help" for how to pick particles with expressions
+Run with "-e help" for how to write edit expressions
 
 ===> Command failed!
 ----------------------------------------------
@@ -1440,15 +1438,15 @@ Run with -h or --help for usage information
 
 ===> Command failed!
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == 022' --no-comment miscphys.mcpl.gz extracted_6.mcpl.gz
+Running mcpltool -x -e 'pdgcode == 022' --no-comment miscphys.mcpl.gz extracted_6.mcpl.gz
 ----------------------------------------------
 ERROR: Invalid number 022 (integers can not start with 0) in expression "pdgcode == 022"
 
-Run with "-p help" for how to pick particles with expressions
+Run with "-e help" for how to write edit expressions
 
 ===> Command failed!
 ----------------------------------------------
-Running mcpltool -e miscphys.mcpl.gz dirout.mcpl.gz
+Running mcpltool -x miscphys.mcpl.gz dirout.mcpl.gz
 ----------------------------------------------
 ERROR: The output file "dirout.mcpl.gz" already exists.
 
@@ -1456,43 +1454,89 @@ Run with -h or --help for usage information
 
 ===> Command failed!
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == abc' miscphysnogz.mcpl badpdg.mcpl
+Running mcpltool -x -e 'pdgcode == abc' miscphysnogz.mcpl badpdg.mcpl
 ----------------------------------------------
 ERROR: Unknown name "abc" in expression "pdgcode == abc" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 
-Run with "-p help" for how to pick particles with expressions
+Run with "-e help" for how to write edit expressions
 
 ===> Command failed!
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == Neutron' miscphysnogz.mcpl badpdg.mcpl
+Running mcpltool -x -e 'pdgcode == Neutron' miscphysnogz.mcpl badpdg.mcpl
 ----------------------------------------------
 ERROR: Unknown name "Neutron" in expression "pdgcode == Neutron" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 
-Run with "-p help" for how to pick particles with expressions
+Run with "-e help" for how to write edit expressions
 
 ===> Command failed!
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == neutron' miscphysnogz.mcpl extracted_names_1.mcpl
+Running mcpltool -x -e 'pdgcode == neutron' miscphysnogz.mcpl extracted_names_1.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 15 / 195 particles from miscphysnogz.mcpl into extracted_names_1.mcpl
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == antiproton' -l200 miscphysnogz.mcpl extracted_names_2.mcpl
+Running mcpltool -x -e 'rotate_y(90deg); x > 0cm; weight *= 2' --no-comment miscphysnogz.mcpl extracted_rotated.mcpl
+----------------------------------------------
+MCPL: Successfully extracted 65 / 195 particles from miscphysnogz.mcpl into extracted_rotated.mcpl
+
+----------------------------------------------
+Running mcpltool -n -l3 extracted_rotated.mcpl
+----------------------------------------------
+Opened MCPL file extracted_rotated.mcpl:
+index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight       pol-x       pol-y       pol-z  userflags
+    0        2112        6000          10           0           0           0          -1           0           0           2           0           1           0 0x00000000
+    1        2112        6000          10           0           0           0           1           0           0           2           0           0           0 0xdeadbeef
+    2        2112  2.5248e-08          10           0           0           0          -1           0       60000           2           0           0           0 0x00000000
+
+----------------------------------------------
+Running mcpltool -e miscphysnogz.mcpl old.mcpl
+----------------------------------------------
+ERROR: -e takes an edit expression (to extract particles, use -x)
+
+Run with -h or --help for usage information
+
+===> Command failed!
+----------------------------------------------
+Running mcpltool -e -p2112 miscphysnogz.mcpl old.mcpl
+----------------------------------------------
+ERROR: Unknown name "p2112" in expression "-p2112" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+
+Run with "-e help" for how to write edit expressions
+
+===> Command failed!
+----------------------------------------------
+Running mcpltool -x -p2112 miscphysnogz.mcpl old.mcpl
+----------------------------------------------
+ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == 2112")
+
+Run with -h or --help for usage information
+
+===> Command failed!
+----------------------------------------------
+Running mcpltool -x -p 'pdgcode == 22' miscphysnogz.mcpl old.mcpl
+----------------------------------------------
+ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
+
+Run with -h or --help for usage information
+
+===> Command failed!
+----------------------------------------------
+Running mcpltool -x -e 'pdgcode == antiproton' -l200 miscphysnogz.mcpl extracted_names_2.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 5 / 195 particles from miscphysnogz.mcpl into extracted_names_2.mcpl
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == photon' miscphysnogz.mcpl extracted_names_3.mcpl
+Running mcpltool -x -e 'pdgcode == photon' miscphysnogz.mcpl extracted_names_3.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 15 / 195 particles from miscphysnogz.mcpl into extracted_names_3.mcpl
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == antielectron' miscphysnogz.mcpl extracted_names_4.mcpl
+Running mcpltool -x -e 'pdgcode == antielectron' miscphysnogz.mcpl extracted_names_4.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 10 / 195 particles from miscphysnogz.mcpl into extracted_names_4.mcpl
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == -11' miscphysnogz.mcpl extracted_names_5.mcpl
+Running mcpltool -x -e 'pdgcode == -11' miscphysnogz.mcpl extracted_names_5.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 10 / 195 particles from miscphysnogz.mcpl into extracted_names_5.mcpl
 
@@ -1748,17 +1792,17 @@ Running mcpltool --merge --inplace extracted_1.mcpl extracted_3.mcpl.gz extracte
 
 ===> Checking that extracted_1.mcpl and merged_1to5_new_fileb.mcpl have identical contents.
 ----------------------------------------------
-Running mcpltool --extract -p 'pdgcode == 2112' --no-comment miscphysnogz.mcpl extracted_1_new.mcpl
+Running mcpltool --extract -e 'pdgcode == 2112' --no-comment miscphysnogz.mcpl extracted_1_new.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 15 / 195 particles from miscphysnogz.mcpl into extracted_1_new.mcpl
 
 ----------------------------------------------
-Running mcpltool --extract -p 'pdgcode == -11' --no-comment miscphysnogz.mcpl extracted_2_new.mcpl
+Running mcpltool --extract -e 'pdgcode == -11' --no-comment miscphysnogz.mcpl extracted_2_new.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 10 / 195 particles from miscphysnogz.mcpl into extracted_2_new.mcpl
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == 1000922350' --no-comment miscphysnogz.mcpl extracted_4_new.mcpl
+Running mcpltool -x -e 'pdgcode == 1000922350' --no-comment miscphysnogz.mcpl extracted_4_new.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 5 / 195 particles from miscphysnogz.mcpl into extracted_4_new.mcpl
 
@@ -1874,32 +1918,32 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
     9        2112       1.234           0           0        0.04        0.04           0      0.9992           0           1       -0.04           0           0 0xdeadbeef
 
 ----------------------------------------------
-Running mcpltool -e difficult_unitvector.mcpl extracted_all -l0 --preventcomment
+Running mcpltool -x difficult_unitvector.mcpl extracted_all -l0 --preventcomment
 ----------------------------------------------
 MCPL: Successfully extracted 10 / 10 particles from difficult_unitvector.mcpl into extracted_all.mcpl
 
 ----------------------------------------------
-Running mcpltool -e difficult_unitvector.mcpl extracted_none -s999999999 --preventcomment
+Running mcpltool -x difficult_unitvector.mcpl extracted_none -s999999999 --preventcomment
 ----------------------------------------------
 MCPL: Successfully extracted 0 / 10 particles from difficult_unitvector.mcpl into extracted_none.mcpl
 
 ----------------------------------------------
-Running mcpltool -e -l3 -s2 -p 'pdgcode == neutron' miscphysnogz.mcpl extracted_comment_1.mcpl
+Running mcpltool -x -l3 -s2 -e 'pdgcode == neutron' miscphysnogz.mcpl extracted_comment_1.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 3 / 195 particles from miscphysnogz.mcpl into extracted_comment_1.mcpl
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == -11' miscphysnogz.mcpl extracted_comment_2.mcpl
+Running mcpltool -x -e 'pdgcode == -11' miscphysnogz.mcpl extracted_comment_2.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 10 / 195 particles from miscphysnogz.mcpl into extracted_comment_2.mcpl
 
 ----------------------------------------------
-Running mcpltool -e miscphysnogz.mcpl extracted_comment_3.mcpl
+Running mcpltool -x miscphysnogz.mcpl extracted_comment_3.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 195 / 195 particles from miscphysnogz.mcpl into extracted_comment_3.mcpl
 
 ----------------------------------------------
-Running mcpltool -e --no-comment -p 'pdgcode == 22' miscphysnogz.mcpl extracted_comment_4.mcpl
+Running mcpltool -x --no-comment -e 'pdgcode == 22' miscphysnogz.mcpl extracted_comment_4.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 15 / 195 particles from miscphysnogz.mcpl into extracted_comment_4.mcpl
 
@@ -1918,7 +1962,7 @@ Opened MCPL file extracted_comment_1.mcpl:
     Source             : "ESS/dgcode/MCPLTests/miscphys"
     Number of comments : 2
           -> comment 0 : "A simple file with various particle species intended as test input."
-          -> comment 1 : "mcpltool: extracted particles with -l3 -s2 -p "pdgcode == neutron""
+          -> comment 1 : "mcpltool: extracted particles with -l3 -s2 -e "pdgcode == neutron""
     Number of blobs    : 0
 
   Particle data format
@@ -1946,7 +1990,7 @@ Opened MCPL file extracted_comment_2.mcpl:
     Source             : "ESS/dgcode/MCPLTests/miscphys"
     Number of comments : 2
           -> comment 0 : "A simple file with various particle species intended as test input."
-          -> comment 1 : "mcpltool: extracted particles with -p "pdgcode == -11""
+          -> comment 1 : "mcpltool: extracted particles with -e "pdgcode == -11""
     Number of blobs    : 0
 
   Particle data format
@@ -2017,23 +2061,23 @@ Opened MCPL file extracted_comment_4.mcpl:
 ----------------------------------------------
 Running mcpltool --no-comment miscphysnogz.mcpl
 ----------------------------------------------
-ERROR: --no-comment can only be used with -e.
+ERROR: --no-comment can only be used with -x.
 
 Run with -h or --help for usage information
 
 ===> Command failed!
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == neutron' -s5 miscphysnogz.mcpl extracted_comment_5.mcpl
+Running mcpltool -x -e 'pdgcode == neutron' -s5 miscphysnogz.mcpl extracted_comment_5.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 10 / 195 particles from miscphysnogz.mcpl into extracted_comment_5.mcpl
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == neutron' -l5 miscphysnogz.mcpl extracted_comment_6.mcpl
+Running mcpltool -x -e 'pdgcode == neutron' -l5 miscphysnogz.mcpl extracted_comment_6.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 5 / 195 particles from miscphysnogz.mcpl into extracted_comment_6.mcpl
 
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == 2112' miscphys.mcpl.gz extracted_comment_7.mcpl
+Running mcpltool -x -e 'pdgcode == 2112' miscphys.mcpl.gz extracted_comment_7.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 15 / 195 particles from miscphys.mcpl.gz into extracted_comment_7.mcpl
 
@@ -2054,7 +2098,7 @@ Run with -h or --help for usage information
 
 ===> Command failed!
 ----------------------------------------------
-Running mcpltool -e -p 'pdgcode == neutron' miscphys.mcpl.gz extracted_comment_8.mcpl
+Running mcpltool -x -e 'pdgcode == neutron' miscphys.mcpl.gz extracted_comment_8.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 15 / 195 particles from miscphys.mcpl.gz into extracted_comment_8.mcpl
 
@@ -2361,7 +2405,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
     9          22      9.3082     -92.144     -12.472      86.367           0           0           1      72.095      2.8501
 
 ----------------------------------------------
-Running mcpltool -e -l40 -s1 -p 'pdgcode == 22' statsum_copy.mcpl.gz statsum_extract5photons.mcpl
+Running mcpltool -x -l40 -s1 -e 'pdgcode == 22' statsum_copy.mcpl.gz statsum_extract5photons.mcpl
 ----------------------------------------------
 MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
 MCPL: Successfully extracted 21 / 100 particles from statsum_copy.mcpl.gz into statsum_extract5photons.mcpl
@@ -2384,7 +2428,7 @@ Opened MCPL file statsum_extract5photons.mcpl:
           -> comment 1 : "stat:sum:some_stat_key:                      -1"
           -> comment 2 : "Some comment."
           -> comment 3 : "Another comment."
-          -> comment 4 : "mcpltool: extracted particles with -l40 -s1 -p "pdgcode == 22""
+          -> comment 4 : "mcpltool: extracted particles with -l40 -s1 -e "pdgcode == 22""
     Number of blobs    : 0
 
   Particle data format
@@ -2409,7 +2453,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
     9          22      1.7629      90.021     -89.494      4.3127           0           0           1      24.006        7.98
 
 ----------------------------------------------
-Running mcpltool --extract -p 'pdgcode == 22' statsum_copy.mcpl.gz statsum_extractphotons_all.mcpl
+Running mcpltool --extract -e 'pdgcode == 22' statsum_copy.mcpl.gz statsum_extractphotons_all.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 50 / 100 particles from statsum_copy.mcpl.gz into statsum_extractphotons_all.mcpl
 
@@ -2431,7 +2475,7 @@ Opened MCPL file statsum_extractphotons_all.mcpl:
           -> comment 1 : "stat:sum:some_stat_key: 1.2345678912345678e-201"
           -> comment 2 : "Some comment."
           -> comment 3 : "Another comment."
-          -> comment 4 : "mcpltool: extracted particles with -p "pdgcode == 22""
+          -> comment 4 : "mcpltool: extracted particles with -e "pdgcode == 22""
     Number of blobs    : 0
 
   Particle data format
@@ -2456,7 +2500,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
     9          22      1.7629      90.021     -89.494      4.3127           0           0           1      24.006        7.98
 
 ----------------------------------------------
-Running mcpltool --extract -p 'pdgcode == 22' -l400 statsum_copy.mcpl.gz statsum_extractphotons_all2.mcpl
+Running mcpltool --extract -e 'pdgcode == 22' -l400 statsum_copy.mcpl.gz statsum_extractphotons_all2.mcpl
 ----------------------------------------------
 MCPL: Successfully extracted 50 / 100 particles from statsum_copy.mcpl.gz into statsum_extractphotons_all2.mcpl
 
@@ -2478,7 +2522,7 @@ Opened MCPL file statsum_extractphotons_all2.mcpl:
           -> comment 1 : "stat:sum:some_stat_key: 1.2345678912345678e-201"
           -> comment 2 : "Some comment."
           -> comment 3 : "Another comment."
-          -> comment 4 : "mcpltool: extracted particles with -l400 -p "pdgcode == 22""
+          -> comment 4 : "mcpltool: extracted particles with -l400 -e "pdgcode == 22""
     Number of blobs    : 0
 
   Particle data format

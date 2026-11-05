@@ -16,20 +16,20 @@ v2.2.9  (work in progress)
       * New header-only C++ interface, mcplcpp.h (C++17), with errors as
         exceptions, range-based loops over particles, and typed userdata
         fields. See examples/example_cppmcpl.cc.
-      * Expressions pick and change particles: picks like "pdgcode == neutron
-        and ekin < 1MeV", and edits like "rotate_z(90deg); z += 1cm". Values
-        with units must be given with units, and errors say where the problem
-        is. Expressions have vectors, rotations, through_sphere, userdata
-        fields, and C-like integers. Available as ParticleFilter,
-        ParticleEdit, and the pick and edit arguments in Python, and -p and -E
-        in mcpltool.
+      * Edit expressions filter and change particles, e.g. "pdgcode ==
+        neutron; rotate_z(90deg); z += 1cm; ekin < 1MeV": statements executed
+        in order, where filter conditions keep the particles for which they
+        are true. Values with units must be given with units, and errors say
+        where the problem is. Expressions have vectors, rotations,
+        through_sphere, userdata fields, and C-like integers. Available as
+        ParticleEdit and the edit argument in Python, and -e in mcpltool.
       * Histograms of expressions: mcpl.histogram(FILE,HIST) in Python and
         mcpltool -w HIST (or -t HIST), shown with matplotlib, as text in the
         terminal (in colour), or saved as .pdf, .png, .svg, or .txt, also 2D
         histograms, bar charts, and 3D plots of points.
       * mcpltool is now the command-line tool of the mcpl-python package (the
-        compiled one is removed), with all the old commands and -p, -E, -w,
-        -t, --create-examples, --dry-run, and --allow-overwrite.
+        compiled one is removed), with all the old commands and -e, -w, -t,
+        --create-examples, --dry-run, and --allow-overwrite.
       * MCPLFile.to_scipp and scipp_blocks give the particles as scipp
         DataArrays (needs the "scipp" extra).
 
@@ -48,13 +48,14 @@ v2.2.9  (work in progress)
 
     Changes to the Python API:
 
-      * New: MCPLOutFile, the file operations above, ParticleFilter,
-        ParticleEdit, ParticleValue, histogram, to_scipp, mcpl.constants, a
-        wavelength attribute of particles and blocks, use_logging() to send
-        messages to the logging module, and indexing of blocks with masks,
-        indices, or slices.
-      * MCPLFile takes skip, limit, pick, and edit; its arguments after the
-        file name must be given by name.
+      * New: MCPLOutFile, the file operations above, ParticleEdit,
+        ParticleValue, histogram, to_scipp, mcpl.constants, a wavelength
+        attribute of particles and blocks, use_logging() to send messages to
+        the logging module, and indexing of blocks with masks, indices, or
+        slices.
+      * MCPLFile takes skip, limit, and edit (with stat_sum_sliced for the
+        stat:sum values of the range used); its arguments after the file
+        name must be given by name.
       * x, y, z, and time are always double precision.
       * Headers can be edited when copying files: after
         transfer_metadata(..., editable=True), the settings copied can be
@@ -70,10 +71,11 @@ v2.2.9  (work in progress)
 
     Changes to the command line:
 
-      * mcpltool: -p PICK picks particles (it took a particle type), -E EDIT
-        edits them, -w HIST and -t HIST show histograms, and there are
-        --keep-statsum, --no-comment, --dry-run, --allow-overwrite,
-        --create-examples, and --color. --pdf and --gui are removed.
+      * mcpltool: -x extracts (was -e), -e EDIT edits (-p and -E are replaced
+        by it; the old forms give errors saying what to use), -w HIST and -t
+        HIST show histograms, and there are --keep-statsum, --no-comment,
+        --dry-run, --allow-overwrite, --create-examples, and --color. --pdf
+        and --gui are removed.
       * The comment of extracted files describes the extraction (so files
         extracted in the same way can be merged).
       * ssw2mcpl and phits2mcpl: the -n option is no longer needed (and gives

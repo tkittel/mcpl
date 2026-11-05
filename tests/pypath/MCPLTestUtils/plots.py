@@ -34,20 +34,28 @@ def plotting( mcpl ):
     """The (internal) module showing and saving plots (mcpl is the mcpl module)"""
     return _module(mcpl,'_plotting')
 
-def internal_histogram( mcpl, files, expression, *, pick = None, bins = None, range = None,
+def _fill( mcpl, files, o, edit, _maxbins ):
+    """_histfill._fill of the files, opened with the edit if given"""
+    if edit is None:
+        return _module(mcpl,'_histfill')._fill(files,o,_maxbins = _maxbins)
+    names = files if isinstance(files,(list,tuple)) else [ files ]
+    with contextlib.ExitStack() as stack:
+        opened = [ stack.enter_context(mcpl.MCPLFile(fn,edit = edit)) for fn in names ]
+        return _module(mcpl,'_histfill')._fill(opened,o,_maxbins = _maxbins)
+
+def internal_histogram( mcpl, files, expression, *, edit = None, bins = None, range = None,
                         logx = False, unweighted = False, display_by = None,
-                        display_only = None, lethargy = False, bar = False, _maxbins = None ):
+                        display_edit = None, lethargy = False, bar = False, _maxbins = None ):
     """The histogram (of _histfill, with all its details) of the expression for
     the particles in the files, with the options of histogram strings also as
     keyword arguments (mcpl is the mcpl module)"""
     hs = _module(mcpl,'_histstring')
     given = { 'bins' : bins, 'range' : range, 'logx' : logx, 'unweighted' : unweighted,
-              'display_by' : display_by, 'display_only' : display_only,
+              'display_by' : display_by, 'display_edit' : display_edit,
               'lethargy' : lethargy, 'bar' : bar }
-    return _module(mcpl,'_histfill')._fill(files,hs._hist_with_args(expression,given),
-                                           pick = pick,_maxbins = _maxbins)
+    return _fill(mcpl,files,hs._hist_with_args(expression,given),edit,_maxbins)
 
-def internal_histogram2d( mcpl, files, xexpression, yexpression, *, pick = None, bins = None,
+def internal_histogram2d( mcpl, files, xexpression, yexpression, *, edit = None, bins = None,
                           xrange = None, yrange = None, unweighted = False, logx = False,
                           logy = False, _maxbins = None ):
     """The 2D histogram (see internal_histogram) of the two expressions"""
@@ -56,7 +64,7 @@ def internal_histogram2d( mcpl, files, xexpression, yexpression, *, pick = None,
     o.update( bins = hs._bins_arg(bins,2), xrange = hs._as_range(xrange,'xrange'),
               yrange = hs._as_range(yrange,'yrange'), unweighted = unweighted,
               logx = logx, logy = logy )
-    return _module(mcpl,'_histfill')._fill(files,o,pick = pick,_maxbins = _maxbins)
+    return _fill(mcpl,files,o,edit,_maxbins)
 
 def hist_panel( mcpl, h ):
     """The panel of the plot of a histogram (of mcpl.histogram, or of

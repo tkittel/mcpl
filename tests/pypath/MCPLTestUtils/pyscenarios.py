@@ -38,8 +38,8 @@ import sys
 def _tool(*args):
     return f"mcpl.app_mcpltool(['mcpltool',{','.join(repr(a) for a in args)}])"
 
-_pick_edit = ( "for b in mcpl.MCPLFile('example.mcpl', pick='pdgcode == neutron',"
-               " edit='rotate_z(90deg)').particle_blocks: pass" )
+_edit = ( "for b in mcpl.MCPLFile('example.mcpl',"
+          " edit='pdgcode == neutron; rotate_z(90deg)').particle_blocks: pass" )
 
 #( key, title, code ), the code using the files made by prepare_files:
 scenarios = [
@@ -71,14 +71,14 @@ scenarios = [
         "mcpl.merge_inplace('w3.mcpl', 'example.mcpl')" ) ),
     ( 'text', 'convert to text', "mcpl.convert2ascii('example.mcpl','t2.txt')" ),
     ( 'repair', 'repair', "mcpl.repair('torepair.mcpl')" ),
-    ( 'pick', 'read with pick and edit', _pick_edit ),
+    ( 'edit', 'read with an edit', _edit ),
     ( 'stats', 'statistics', "mcpl.dump_stats(mcpl.collect_stats('example.mcpl'))" ),
-    ( 'stats_pick', 'statistics with pick',
-      "mcpl.dump_stats(mcpl.collect_stats('example.mcpl', pick='x > 0cm'))" ),
+    ( 'stats_edit', 'statistics with an edit',
+      "mcpl.dump_stats(mcpl.collect_stats(mcpl.MCPLFile('example.mcpl', edit='x > 0cm')))" ),
     ( 'hist', 'histogram contents',
       "print(mcpl.histogram('example.mcpl','ekin/MeV;bins=4').contents)" ),
     ( 'tool', 'mcpltool FILE', _tool('example.mcpl') ),
-    ( 'tool_pick', 'mcpltool --pick', _tool('-l3','--pick','pdgcode == gamma','example.mcpl') ),
+    ( 'tool_edit', 'mcpltool --edit', _tool('-l3','--edit','pdgcode == gamma','example.mcpl') ),
     ( 'tool_stats', 'mcpltool --stats', _tool('--stats','example.mcpl') ),
     ( 'tool_hist', 'mcpltool --window with print', _tool('--window','ekin/MeV;print','example.mcpl') ),
     ( 'tool_extract', 'mcpltool --extract', _tool('--extract','example.mcpl','e1.mcpl') ),

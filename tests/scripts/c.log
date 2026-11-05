@@ -48,28 +48,27 @@ Usage:
   mcpltool -S [options] FILE               Summary of the particles
   mcpltool -w HIST [options] FILE [...]    Histogram in a window
   mcpltool -t HIST [options] FILE [...]    Histogram in the terminal
-  mcpltool -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  mcpltool -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
   mcpltool -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   mcpltool -r FILE                         Repair a file not properly closed
 
 Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
-  -p PICK        Only particles for which PICK is true, e.g.
-                 -p "pdgcode == neutron and ekin < 25meV".
-  -E EDIT        Change particles, e.g. -E "z += 1cm;weight *= 0.5".
+  -e EDIT        Pick and change particles, e.g.
+                 -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
   -o FILE        Save the histogram in FILE (.png, .pdf, or .svg with -w, .txt
                  with -t).
   -d             Dry run: do everything except writing files.
 
 Examples:
-  mcpltool -w "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
-  mcpltool -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
+  mcpltool -w "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
+  mcpltool -x -e "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   mcpltool -S file.mcpl.gz
 
 More help:
   --full-help              All options.
-  -p help, -E help, --hist-help
-                           How to write PICK, EDIT, and HIST.
+  -e help                  How to write EDIT.
+  --hist-help              How to write HIST.
 ===> mcpltool ended with exit code 0
 MCPL version 99.99.99
 ===> mcpltool ended with exit code 0
@@ -88,28 +87,27 @@ Usage:
   mcpltool -S [options] FILE               Summary of the particles
   mcpltool -w HIST [options] FILE [...]    Histogram in a window
   mcpltool -t HIST [options] FILE [...]    Histogram in the terminal
-  mcpltool -e [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  mcpltool -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
   mcpltool -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   mcpltool -r FILE                         Repair a file not properly closed
 
 Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
-  -p PICK        Only particles for which PICK is true, e.g.
-                 -p "pdgcode == neutron and ekin < 25meV".
-  -E EDIT        Change particles, e.g. -E "z += 1cm;weight *= 0.5".
+  -e EDIT        Pick and change particles, e.g.
+                 -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
   -o FILE        Save the histogram in FILE (.png, .pdf, or .svg with -w, .txt
                  with -t).
   -d             Dry run: do everything except writing files.
 
 Examples:
-  mcpltool -w "ekin/MeV;logx;display_only=neutron" file.mcpl.gz
-  mcpltool -e -p "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
+  mcpltool -w "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
+  mcpltool -x -e "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   mcpltool -S file.mcpl.gz
 
 More help:
   --full-help              All options.
-  -p help, -E help, --hist-help
-                           How to write PICK, EDIT, and HIST.
+  -e help                  How to write EDIT.
+  --hist-help              How to write HIST.
 ===> mcpltool ended with exit code 0
 ERROR: Too many arguments.
 

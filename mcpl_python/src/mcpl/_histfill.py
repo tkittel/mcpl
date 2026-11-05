@@ -93,7 +93,7 @@ class _DisplayByValue:
             self._is_bool = b01 if self._is_bool is None else self._is_bool and b01
         keys, index = np.unique(values,return_inverse=True)
         if len(keys) > 1000:
-            raise MCPLError(f'The expression "{self.expression}" of display_by has too many'
+            raise MCPLError(f'The expression "{self._v.expression_original}" of display_by has too many'
                             ' different values (more than 1000)')
         return keys, index.ravel()
 
@@ -601,7 +601,7 @@ class _Filler:
         _nice_range)"""
         lo, hi = self._lims[i]
         if not lo <= hi:
-            only = ( f', or none with display_only={self._only.expression}'
+            only = ( f', or none with display_only={self._only.expression_original}'
                      if self._only is not None else '' )
             raise MCPLError(f'No values to histogram (no particles picked{only}?)')
         if lo == hi:
@@ -728,7 +728,7 @@ class _HistDiscreteFiller(_Filler):
 
     def _not_whole( self ):
         raise MCPLError('Bar charts are of whole numbers without units, like pdgcode'
-                        f' or round(x/cm), not of "{self._vals[0].expression}"')
+                        f' or round(x/cm), not of "{self._vals[0].expression_original}"')
 
     def add( self, flabel, b ):
         ( v, ), w, _ = self._values(b)
@@ -739,7 +739,7 @@ class _HistDiscreteFiller(_Filler):
         for k, s in zip(keys.tolist(),np.bincount(idx,weights=w,minlength=len(keys))):
             sums[int(k)] = sums.get(int(k),0.0) + float(s)
         if len(sums) > 1000:
-            raise MCPLError(f'Bar chart of "{self._vals[0].expression}" has too many'
+            raise MCPLError(f'Bar chart of "{self._vals[0].expression_original}" has too many'
                             ' different values (more than 1000)')
 
     def result( self ):
@@ -791,7 +791,8 @@ class _Hist2DFiller(_Filler):
             raise MCPLError('Equal scales of the axes (the histogram option "equal")'
                             ' need expressions with the same units, not'
                             f' {_dimstr(self._vals[0].dim)} and {_dimstr(self._vals[1].dim)}'
-                            f' (of {self._vals[0].expression} and {self._vals[1].expression})')
+                            f' (of {self._vals[0].expression_original} and'
+                            f' {self._vals[1].expression_original})')
 
     def start_fill( self ):
         for i, r in enumerate(self._ranges):

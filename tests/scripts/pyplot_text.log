@@ -54,9 +54,9 @@
          ++-----------------------------------------------------------+
          0                             90                           180
                                    acos(uz)/deg
-* x > 0cm         o not (x > 0cm)
+* x>0m         o not (x>0m)
 ==> unicode backend, width 72, height 12:
-                        pick: pdgcode == neutron
+                         pick: pdgcode==neutron
 (y: y/cm)
       60 ┤          ▒▒░     ▒▒▒       ░▒░
          │            ▒▒░   ░▒░     ▒▒▒▒▒   ░▒▒ ░▒▒     ░▒▒
@@ -75,7 +75,7 @@
                                        x/cm
 per cell: · = 0.006667 ... ▒ = 0.4531 ... █ = 30.8 (log scale)
 ==> ascii backend, width 72, height 12:
-                        pick: pdgcode == neutron
+                         pick: pdgcode==neutron
 (y: y/cm)
       60 +          ++-     ++=       -=-
          |            ++-   ==-     =++++   =+= =+=     -++

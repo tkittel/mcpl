@@ -20,8 +20,10 @@
 ################################################################################
 
 """Particle expressions (picks and edits), which are evaluated with numpy
-on blocks of particles. They are parsed (_expr_str2ast) and checked
-(_expr_astcheck) once, and their trees are evaluated (_expr_eval)."""
+on blocks of particles. They are parsed (_expr_str2ast), checked
+(_expr_astcheck), and normalised (_expr_ast2astnorm) once, and their
+normalised trees are evaluated (_expr_eval), and written as their canonical
+texts (_expr_ast2str)."""
 
 __all__ = [ 'ParticleEdit', 'ParticleFilter', 'ParticleValue' ]
 
@@ -30,6 +32,7 @@ import re
 
 from ._common import MCPLError
 from ._expr_ast import Name, _names
+from ._expr_ast2astnorm import _expr_ast2astnorm
 from ._expr_ast2str import _expr_ast2str
 from ._expr_astcheck import _expr_astcheck
 from ._expr_eval import (
@@ -53,31 +56,28 @@ from ._numpy import np
 
 
 def _parsed( expression, kind ):
-    """The text (with normalised whitespace) and the checked tree of an
-    expression of the kind (see _expr_str2ast)"""
+    """The text (with normalised whitespace), the checked and normalised tree,
+    and the canonical text of an expression of the kind (see _expr_str2ast)"""
     text = _expr_normalise(expression)
     tree = _expr_str2ast(text,kind)
     _expr_astcheck(tree,text)
-    return text, tree
+    tree = _expr_ast2astnorm(tree)
+    return text, tree, _expr_ast2str(tree)
 
 def _expr_canonical( expr, edit = False ):
-    """The normalised form of an expression (or of the statements of an edit,
-    or of a pick with statements), generated from its parsed form: the same
-    for all ways of writing it which are parsed the same, e.g. "ekin/MeV" and
-    "(ekin) / MeV", or "25meV" and "25 meV". Raises MCPLError for invalid
-    syntax."""
-    return _expr_ast2str(_expr_str2ast(expr,'edit' if edit else 'pick'))
+    """The canonical text of an expression (or of the statements of an edit,
+    or of a pick with statements), from its normalised tree: the same for
+    all ways of writing it which are recognised as the same, e.g. "ekin/MeV"
+    and "(ekin) / MeV", or "ekin > 5000eV" and "ekin > 5keV". Raises
+    MCPLError for invalid syntax."""
+    return _expr_ast2str(_expr_ast2astnorm(_expr_str2ast(expr,'edit' if edit else 'pick')))
 
 class _Expr:
-    """A parsed and checked expression of a value, with the properties derived
+    """A parsed, checked, and normalised expression of a value, with its text
+    (with normalised whitespace) and canonical text, the properties derived
     from its tree, and its evaluation"""
     def __init__( self, text ):
-        self.text, self.tree = _parsed(text,'value')
-
-    @functools.cached_property
-    def canonical( self ):
-        """The normalised text, generated from the tree (see _expr_canonical)"""
-        return _expr_ast2str(self.tree)
+        self.text, self.tree, self.canonical = _parsed(text,'value')
 
     @functools.cached_property
     def names( self ):
@@ -195,14 +195,20 @@ class ParticleFilter:
     """
     def __init__( self, expression ):
         #(statements before the condition, as in "r = hypot(x,y); r > 2cm"):
-        self._expr, self._tree = _parsed(expression,'pick')
+        self._expr, self._tree, self._canonical = _parsed(expression,'pick')
         self(_EmptyBlock())#check units etc.
         #(for marking stat:sum entries as not available when particles are
         #picked by their positions in the file):
         self._uses_fileidx = 'fileidx' in _fields_used(self._tree)
     @property
     def expression( self ):
-        """The expression (with normalised whitespace)"""
+        """The expression in its canonical form, which is the same for all
+        ways of writing it which are recognised as the same (e.g. "ekin >
+        5000 eV" and "ekin>5keV" are both "ekin>5keV")"""
+        return self._canonical
+    @property
+    def expression_original( self ):
+        """The expression as given (with normalised whitespace)"""
         return self._expr
     def __call__( self, block ):
         """Return boolean array picking particles in the block"""
@@ -216,7 +222,7 @@ class ParticleFilter:
                             ' (e.g. a comparison)')
         return np.broadcast_to(res,(len(block),))
     def __repr__( self ):
-        return f'ParticleFilter({self._expr!r})'
+        return f'ParticleFilter({self._canonical!r})'
 
 def _values( q, block ):
     """The values of an evaluated expression (a _Q) for each particle of the
@@ -243,7 +249,11 @@ class ParticleValue:
         self(_EmptyBlock())#check units etc.
     @property
     def expression( self ):
-        """The expression (with normalised whitespace)"""
+        """The expression in its canonical form (see ParticleFilter.expression)"""
+        return self._e.canonical
+    @property
+    def expression_original( self ):
+        """The expression as given (with normalised whitespace)"""
         return self._expr
     def __call__( self, block ):
         """Return array with the values for the particles in the block"""
@@ -259,7 +269,7 @@ class ParticleValue:
                             f' ({_dimstr(q.d)}), so divide it by a unit{hint}')
         return _values(q,block)
     def __repr__( self ):
-        return f'ParticleValue({self._expr!r})'
+        return f'ParticleValue({self._e.canonical!r})'
 
 class ParticleEdit:
     """Modification of particle fields given by an expression with statements
@@ -306,13 +316,19 @@ class ParticleEdit:
         between vout and uout, and v and u must not be parallel.
     """
     def __init__( self, expression ):
-        self._expr, self._tree = _parsed(expression,'edit')
+        self._expr, self._tree, self._canonical = _parsed(expression,'edit')
         self._modified = _modified_fields(self._tree.statements)
         self(_EmptyBlock())#check units etc.
 
     @property
     def expression( self ):
-        """The expression (with normalised whitespace)"""
+        """The expression in its canonical form, which is the same for all
+        ways of writing it which are recognised as the same (e.g. "ekin >
+        5000 eV" and "ekin>5keV" are both "ekin>5keV")"""
+        return self._canonical
+    @property
+    def expression_original( self ):
+        """The expression as given (with normalised whitespace)"""
         return self._expr
 
     @property
@@ -339,7 +355,7 @@ class ParticleEdit:
         return res
 
     def __repr__( self ):
-        return f'ParticleEdit({self._expr!r})'
+        return f'ParticleEdit({self._canonical!r})'
 
 def _quantity_functions( coords ):
     """Functions calculating the values of expressions for a block, given as a

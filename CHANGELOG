@@ -328,6 +328,13 @@ v2.2.9  (work in progress)
         the expression the problem is. Numbers are decimal or hexadecimal
         (like 0x1f), as in C, and numbers with units are exact (5000eV is
         exactly 5keV).
+      * The expression of picks, edits, and values (e.g. ParticleFilter) is in
+        a canonical form, which is the same for all ways of writing it which
+        are recognised as the same (both "pdgcode == 2112" and
+        "(pdgcode==neutron)" give "pdgcode==neutron"), and expression_original
+        is the expression as given. The comments of files extracted with
+        mcpltool use the canonical forms, so files extracted with picks
+        written in different ways can be merged.
       * Plots can be drawn as text, with Unicode characters (or else ASCII):
         in the terminal (with mcpltool -t HIST), or in .txt files. This needs
         no extra Python packages, so plots can always be made. Histograms with

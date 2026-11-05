@@ -1,0 +1,145 @@
+Examples of the help:
+  'pdgcode == neutron' -> 'pdgcode==neutron'
+  'pdgcode in (neutron,gamma)' -> 'pdgcode in (gamma,neutron)'
+  'abs(pdgcode) in (electron,muon)' -> 'abs(pdgcode) in (11,13)'
+  'ekin < 25meV' -> 'ekin<25meV'
+  '0cm < z < 10cm' -> '0m<z<10cm'
+  'pdgcode == neutron and wavelength > 1.8Aa' -> 'pdgcode==neutron and wavelength>1.8Aa'
+  'not ( time > 10us or weight < 0.1 )' -> 'not (time>10us or weight<0.1)'
+  'r = hypot(x,y); r > 2cm and r < 5cm' -> 'r=hypot(x,y);r>2cm and r<5cm'
+  'e = ekin/MeV; e > 1 and e < 10' -> 'e=ekin/MeV;e>1 and e<10'
+  'angle(dir,(0,0,1)) < 1deg' -> 'angle(dir,(0,0,1))<1deg'
+  'd = pos - (0,0,1m); abs(d) < 10cm' -> 'd=pos-(0,0,1m);abs(d)<10cm'
+  'dot(dir,(1,0,0)) < 0' -> 'dot(dir,(1,0,0))<0'
+  'through_sphere((0,0,1m),5cm)' -> 'through_sphere((0,0,1m),5cm)'
+  '(userflags & 0xff) == 7' -> 'userflags&0xff==7'
+  'mod(fileidx,10) == 0' -> 'mod(fileidx,10)==0'
+  'userdata.nscat >= 2': The particles have no userdata (for userdata.nscat) in expression "userdata.nscat >= 2"
+  'userdata.origdir.at(2) > 0.99': The particles have no userdata (for userdata.origdir.at(2)) in expression "userdata.origdir.at(2) > 0.99"
+  'z += 1cm' -> 'z+=1cm'
+  'weight *= 0.5' -> 'weight*=0.5'
+  'wavelength = 1.8Aa': wavelength can only be assigned to neutrons (pdgcode 2112) and gammas (pdgcode 22) in expression "wavelength = 1.8Aa"
+  'swap(x,y)' -> 'swap(x,y)'
+  'time += hypot(x,y,z)/(2200m/s)' -> 'time+=hypot(x,y,z)/(2.2km/s)'
+  'rotate_y(90deg);x += 10cm' -> 'rotate_y(90deg);x+=10cm'
+  'rotate_around((1,1,0),30deg)' -> 'rotate_around((1,1,0),30deg)'
+  'rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))' -> 'rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))'
+  'r = hypot(x,y);x = r;y = 0cm' -> 'r=hypot(x,y);x=r;y=0m'
+  'pos += 50cm*dir' -> 'pos+=50cm*dir'
+  'dir = (0,0,1)' -> 'dir=(0,0,1)'
+Histogram strings of the help:
+  'ekin' -> 'ekin'
+  'ekin/MeV;logx' -> 'ekin/MeV;logx'
+  'ux;display_only=ekin > 1MeV' -> 'ux;display_only=ekin>1MeV'
+  'ekin;logx;lethargy' -> 'ekin;logx;lethargy'
+  'wavelength/Aa;range=0:10' -> 'wavelength/Aa;range=0:10'
+  'angle(dir,(0,0,1))/deg;logy;display_by=pdgcode in (neutron,gamma)' -> 'angle(dir,(0,0,1))/deg;logy;display_by=pdgcode in (gamma,neutron)'
+  'time;logx;display_by=single' -> 'time;logx;display_by=single'
+  'x : y;xrange=-10cm:10cm;yrange=-10cm:10cm' -> 'x:y;xrange=-10cm:10cm;yrange=-10cm:10cm'
+  'atan2(uy,ux)/deg : uz' -> 'atan2(uy,ux)/deg:uz'
+  'x : y : z' -> 'x:y:z'
+  'pdgcode;bar' -> 'pdgcode;bar'
+  'userdata.nscat;bar;unweighted' -> 'userdata.nscat;bar;unweighted'
+Canonical forms (pick):
+  'pdgcode == neutron' -> 'pdgcode==neutron'
+  '(pdgcode==2112)' -> 'pdgcode==neutron'
+  'pdgcode == positron' -> 'pdgcode==positron'
+  'pdgcode == antielectron' -> 'pdgcode==positron'
+  'pdgcode == -11' -> 'pdgcode==positron'
+  'pdgcode in (neutron, gamma)' -> 'pdgcode in (gamma,neutron)'
+  'pdgcode in (22,2112,neutron)' -> 'pdgcode in (gamma,neutron)'
+  'pdgcode not in (proton,antiproton)' -> 'pdgcode not in (antiproton,proton)'
+  'abs(pdgcode) in (11,electron)' -> 'abs(pdgcode) in (11)'
+  'ekin > 5000 eV and pdgcode == neutron' -> 'ekin>5keV and pdgcode==neutron'
+  '(pdgcode==2112) and ekin>5keV' -> 'pdgcode==neutron and ekin>5keV'
+  'ekin > 5e3eV' -> 'ekin>5keV'
+  'ekin > 0.001MeV' -> 'ekin>1keV'
+  'ekin > 1e-12MeV' -> 'ekin>0.001meV'
+  'ekin > 0keV' -> 'ekin>0eV'
+  'ekin > 0.0 MeV' -> 'ekin>0eV'
+  'x > 10mm' -> 'x>1cm'
+  'x>0.5mm' -> 'x>500um'
+  'x > -2 cm' -> 'x>-2cm'
+  'x > -0.02m' -> 'x>-2cm'
+  'z < 1.8Aa' -> 'z<1.8Aa'
+  'z<20Aa' -> 'z<2nm'
+  'abs(y) < 1e5um' -> 'abs(y)<10cm'
+  'time > 2000us' -> 'time>2ms'
+  'time < 5e-4ns' -> 'time<0.0005ns'
+  'ux > cos(90.0deg)' -> 'ux>cos(90deg)'
+  'x^2+y^2 < 40000mm^2' -> 'x^2+y^2<400cm^2'
+  '1/x^2 > 1e-6mm^-2': Division gives NaN or infinite values in expression "1/x^2 > 1e-6mm^-2"
+  'not (x > 1cm)' -> 'not x>1cm'
+  'x > 0x10 mm' -> 'x>1.6cm'
+  'r = sqrt(x^2+y^2); r < 10mm' -> 'r=sqrt(x^2+y^2);r<1cm'
+  'pdgcode == neutron and wavelength > 1.8Aa' -> 'pdgcode==neutron and wavelength>1.8Aa'
+  'ekin > (1/2) keV' -> 'ekin>(1/2)keV'
+  'weight > 2.0' -> 'weight>2.0'
+  'userflags & 0x2 == 2' -> 'userflags&0x2==2'
+  'x > neutron*1cm' -> 'x>2112*1cm'
+  'ekin > 1.5e20 eV' -> 'ekin>150000000TeV'
+  'mod(fileidx,2) == 0' -> 'mod(fileidx,2)==0'
+  'pdgcode == 12345' -> 'pdgcode==12345'
+  'x < 123456789012345678901234567890Aa' -> 'x<1.2345678901234568e+16km'
+Canonical forms (value):
+  'ekin/MeV' -> 'ekin/MeV'
+  '(ekin) / MeV' -> 'ekin/MeV'
+  'ekin/0.001keV' -> 'ekin/1eV'
+  'x/10mm' -> 'x/1cm'
+  '2.5e-3MeV*ekin/MeV^2' -> '2.5keV*ekin/MeV^2'
+  'angle(dir,(0,0,1))/deg' -> 'angle(dir,(0,0,1))/deg'
+  '(pos - (0,0,1m)).z/cm' -> '(pos-(0,0,1m)).z/cm'
+  'pdgcode == neutron' -> 'pdgcode==neutron'
+  'abs(pdgcode)' -> 'abs(pdgcode)'
+  'hypot(x,y)/0.1m' -> 'hypot(x,y)/10cm'
+  'x/cm^0.5/cm^0.5' -> 'x/cm^0.5/cm^0.5'
+  'pdgcode*1' -> 'pdgcode*1'
+Canonical forms (edit):
+  'weight *= 2' -> 'weight*=2'
+  'weight*=2.0' -> 'weight*=2.0'
+  'x = x + 10mm' -> 'x=x+1cm'
+  'x += 0.01m' -> 'x+=1cm'
+  'ekin = 25meV; pdgcode = neutron' -> 'ekin=25meV;pdgcode=neutron'
+  'ekin=0.025eV;pdgcode=2112' -> 'ekin=25meV;pdgcode=neutron'
+  'rotate_z(90.0deg)' -> 'rotate_z(90deg)'
+  'z -= 1.5km' -> 'z-=1.5km'
+  'pdgcode = -11' -> 'pdgcode=positron'
+  'tmp = x; x = y; y = tmp' -> 'tmp=x;x=y;y=tmp'
+  'pos += (0,0,1e3mm)' -> 'pos+=(0,0,1m)'
+  'wavelength = 0.18nm': wavelength can only be assigned to neutrons (pdgcode 2112) and gammas (pdgcode 22) in expression "wavelength = 0.18nm"
+8 groups of expressions have the same canonical forms, and 18 different ones different forms
+Errors:
+  'x > 1MeV': Incompatible units in comparison: length and energy in expression "x > 1MeV"
+  'mod(pdgcode,3) == 1': mod(a,b) can not be used with negative values in expression "mod(pdgcode,3) == 1"
+  'pdgcode * 1000000000 > 0': Multiplication of integers gives values outside the range of the result (32-bit integers) in expression "pdgcode * 1000000000 > 0"
+  'x < 1e400cm': A constant has NaN or infinite values in expression "x < 1e400cm"
+  'x > 1e308km': A constant has NaN or infinite values in expression "x > 1e308km"
+  'wavelength > 1Aa': The wavelength is only defined for neutrons and gammas, so pick those before using it, e.g. "pdgcode == neutron and wavelength > 1.8Aa" (in expression "wavelength > 1Aa")
+  'pdgcode in (neutron) and ekin/(ekin-ekin) > 0': Division gives NaN or infinite values in expression "pdgcode in (neutron) and ekin/(ekin-ekin) > 0"
+  'x': Expression "x" has units (length), so divide it by a unit, e.g. x/cm
+  'pdgcode = 2.5': Non-integer values assigned to pdgcode in expression "pdgcode = 2.5"
+  'x = 1MeV': Can not assign value with energy to x, which is a length, in expression "x = 1MeV"
+  'ekin < 5000 eV + x': Incompatible units in arithmetic: energy and length in expression "ekin < 5000 eV + x"
+  'neutron': neutron is a PDG code (2112), not a condition (e.g. pdgcode == neutron), in expression "neutron"
+  'pdgcode in (1cm)': Syntax error in expression "pdgcode in (1cm)", after "pdgcode in (1": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
+Random expressions: 389 valid ones (and 211 errors), all with the same values (or errors) from the normalised trees, and canonical forms
+Canonical histogram strings:
+  'ekin / MeV ; logx ; bins = 50' -> 'ekin/MeV;bins=50;logx'
+  'ekin/MeV;bins=50;logx=1' -> 'ekin/MeV;bins=50;logx'
+  'ekin/MeV;logx=0;bar=0' -> 'ekin/MeV'
+  'x/cm : y/cm;xrange=-10:10;yrange=0cm:0.1m;bins=50,40;logz' -> 'x/cm:y/cm;bins=50,40;xrange=-10:10;yrange=0m:10cm;logz'
+  'pdgcode;bar=5;logy' -> 'pdgcode;logy;bar=5'
+  'ux:uy:uz;points=50;display_only=pdgcode == 2112' -> 'ux:uy:uz;points=50;display_only=neutron'
+  'ekin/MeV;display_only=ekin > 5000eV' -> 'ekin/MeV;display_only=ekin>5keV'
+  'ekin/MeV;display_by=1' -> 'ekin/MeV;display_by=single'
+  'ekin/MeV;display_by=pdgcode in (neutron,gamma)' -> 'ekin/MeV;display_by=pdgcode in (gamma,neutron)'
+  'x/cm:y/cm;equal;logz=0' -> 'x/cm:y/cm;logz=0;equal'
+  'ekin/MeV;logx=auto;logy=auto;unweighted;print;lethargy=0' -> 'ekin/MeV;logx=auto;logy=auto;unweighted;print'
+  'ekin/eV;range=0:1e3' -> 'ekin/eV;range=0:1000.0'
+  'ekin/MeV;foo': Unknown histogram option "foo" in "ekin/MeV;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, points, equal, display_only)
+  'ekin/MeV;bins=x': bins must be a positive integer (or two for 2D histograms, like bins=50,40) in "ekin/MeV;bins=x"
+  'x > 1MeV': Incompatible units in comparison: length and energy in expression "x > 1MeV"
+Files extracted with picks written in different ways can be merged:
+  a.mcpl (-p "pdgcode == neutron and ekin > 5000 eV"): mcpltool: extracted particles with -p "pdgcode==neutron and ekin>5keV"
+  b.mcpl (-p "(pdgcode==2112) and ekin>5keV"): mcpltool: extracted particles with -p "pdgcode==neutron and ekin>5keV"
+  merged.mcpl: 5 + 5 = 10 particles

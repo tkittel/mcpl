@@ -79,17 +79,17 @@ mcpltool --extract -l100 -s0 a1.mcpl out.mcpl: exit code 0
    file out.mcpl: md5 0b950a1d28a8ab8016c59bae3b6537ed
 mcpltool --extract -p pdgcode == 22 a1.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 182304f1bd2122e081db063e23bf67e9
+   file out.mcpl: md5 b581e0b9bdbd4edb2e3e87bb985b1b86
 mcpltool -e -p pdgcode == -11 b_dp.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 0 / 12 particles from b_dp.mcpl into out.mcpl
-   file out.mcpl: md5 96e2ecad40c10c8562675405b60e1829
+   file out.mcpl: md5 9325d62172157e71a40b3d18ce1e7aac
 mcpltool -e -p pdgcode == 11 -l10 -s3 a1.mcpl out.mcpl: exit code 0
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 3 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 fead3d1f205834035c479e0cff476517
+   file out.mcpl: md5 f82cdb21b07d36f32c0c3f02ecb3dded
 mcpltool --extract -p pdgcode == 2112 c_nostat.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 3 / 9 particles from c_nostat.mcpl into out.mcpl
-   file out.mcpl: md5 7a5fda1424457c49190e588c2e95ebbe
+   file out.mcpl: md5 f7613b331ceaea41d3d5a2f5f6f4ef33
 mcpltool --extract -s5 c_nostat.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 4 / 9 particles from c_nostat.mcpl into out.mcpl
    file out.mcpl: md5 b6b1953247e891d4c5eed886fc1de52a
@@ -123,24 +123,24 @@ mcpltool --extract --no-comment -p pdgcode == 22 -l5 a1.mcpl out.mcpl: exit code
 mcpltool --extract -p pdgcode == 11 -l3 -s4 a1.mcpl out.mcpl: exit code 0
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 1 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 fe0d1b6c369474c670c7aa42d4747d81
+   file out.mcpl: md5 dd71785be79b5637b74c412914001a63
 mcpltool --no-comment a1.mcpl: exit code 1
    | ERROR: --no-comment can only be used with -e.
    | 
    | Run with -h or --help for usage information
 mcpltool --extract -p pdgcode == gamma a1.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 5e60df9321660cb23300569ef5e93b8e
+   file out.mcpl: md5 b581e0b9bdbd4edb2e3e87bb985b1b86
 mcpltool --extract -p pdgcode == photon -l10 a1.mcpl out.mcpl: exit code 0
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 3 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 76235c54f0c516a51f445d79e655f81a
+   file out.mcpl: md5 56e7d01d5387e6733aa498b97fb627eb
 mcpltool --extract -p pdgcode == antielectron b_dp.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 0 / 12 particles from b_dp.mcpl into out.mcpl
-   file out.mcpl: md5 24b9b617422cb4b9f07f866abaa7c387
+   file out.mcpl: md5 9325d62172157e71a40b3d18ce1e7aac
 mcpltool --extract -p pdgcode == neutron c_nostat.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 3 / 9 particles from c_nostat.mcpl into out.mcpl
-   file out.mcpl: md5 d5dd46058a1fdfbf28aac41047928bff
+   file out.mcpl: md5 f7613b331ceaea41d3d5a2f5f6f4ef33
 mcpltool --inplace a1.mcpl a2.mcpl: exit code 1
    | ERROR: --inplace can only be used with -m.
    | 
@@ -476,7 +476,7 @@ mcpltool --extract -l12 nan.mcpl out.mcpl: exit code 0
 mcpltool --extract -p pdgcode == 22 nan.mcpl out.mcpl: exit code 0
    | MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 12). They can not be added to other MCPL files.
    | MCPL: Successfully extracted 10 / 30 particles from nan.mcpl into out.mcpl
-   file out.mcpl: md5 182304f1bd2122e081db063e23bf67e9
+   file out.mcpl: md5 b581e0b9bdbd4edb2e3e87bb985b1b86
 mcpltool --extract -p pdgcode == 2112 inf.mcpl out.mcpl: exit code 1
    | MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 3). They can not be added to other MCPL files.
    | MCPL ERROR: add_particles asked to transfer particle with NaN or infinite kinetic energy

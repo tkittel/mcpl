@@ -85,6 +85,36 @@ def _mcpltool_close(outfile):
         return outfile.filename
     return outfile.filename + '.gz'
 
+def _extraction_comment( skip, limit, edit ):
+    """The comment of mcpltool -x describing which particles were extracted
+    (but nothing specific to the input file, to keep files extracted in the
+    same way mergeable)"""
+    opts = _range_options(skip,limit,None if edit is None else edit.expression)
+    return 'mcpltool: extracted particles' + ( ' with ' + ' '.join(opts) if opts else '' )
+
+def _mcpltool_code(filelist, lang, limit, skip, edit, preventcomment, keepstatsum, bad):
+    """Print the program in the language (c or cpp) which does what mcpltool
+    -x does with the options, for files like the given one (with its
+    userdata layout and stat:sum entries), see _expr_ast2c"""
+    from ._common import MCPLError
+    if len(filelist) != 1:
+        bad("Must specify one input file (and no output file) with --code.")
+    skip, limit = skip or 0, limit or 0
+    with MCPLFile(filelist[0]) as f:
+        layout = f.userdata_layout
+        marking = _statsum_marking(f,skip,limit,edit,keepstatsum)
+    if lang == 'c':
+        from ._expr_ast2c import _expr_ast2c as generate
+    else:
+        from ._expr_ast2cpp import _expr_ast2cpp as generate
+    try:
+        print(generate(edit,layout,skip = skip,limit = limit or None,
+                       mark_statsums = marking is not None,
+                       comment = None if preventcomment else _extraction_comment(skip,limit,edit)),
+              end='')
+    except MCPLError as e:
+        bad(str(e))
+
 def _mcpltool_extract(filelist, limit, skip, edit, preventcomment,
                       keepstatsum, dry_run, bad, allow_overwrite = False):
     if len(filelist) > 2:
@@ -107,13 +137,7 @@ def _mcpltool_extract(filelist, limit, skip, edit, preventcomment,
             fo.transfer_metadata(fi)
             n_in = fi.nparticles
             if not preventcomment:
-                #Describe which particles were extracted (but nothing specific
-                #to the input file, to keep files extracted in the same way
-                #mergeable):
-                opts = _range_options(skip,limit,None if edit is None else edit.expression)
-                fo.hdr_add_comment('mcpltool: extracted particles'
-                                   + ( ' with ' + ' '.join(opts)
-                                       if opts else '' ))
+                fo.hdr_add_comment(_extraction_comment(skip,limit,edit))
             marking = _statsum_marking(fi,skip,limit,edit,keepstatsum)
             if marking == 'positions':
                 _warning("Marking stat:sum entries in output file as "

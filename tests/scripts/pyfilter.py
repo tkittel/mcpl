@@ -548,8 +548,9 @@ def test_in_and_userdata():
     for e, ref in ( ( 'pdgcode in (neutron,gamma)', np.isin(p,[2112,22]) ),
                     ( 'pdgcode not in ( neutron, gamma )', ~np.isin(p,[2112,22]) ),
                     ( 'abs(pdgcode) in (11)', np.abs(p) == 11 ),
-                    ( 'not ekin in (1MeV,2MeV) and pdgcode in (22,2112)',
-                      ~np.isin(b.ekin,[1,2]) & np.isin(p,[22,2112]) ) ):
+                    ( 'not userflags in (1,0x10) and pdgcode in (22,2112)',
+                      ~np.isin(b.userflags,[1,16]) & np.isin(p,[22,2112]) ),
+                    ( 'pdgcode in (-11,+11,positron)', np.abs(p) == 11 ) ):
         k = _expr_canonical(e)
         ok = ( np.array_equal(keeps(e,b),ref)
                and np.array_equal(keeps(k,b),ref) and _expr_canonical(k) == k )
@@ -567,7 +568,8 @@ def test_in_and_userdata():
     #(abs of integers gives integers):
     print('abs(pdgcode):', mcpl.ParticleValue('abs(pdgcode)')(b).dtype.kind)
     for bad in ( 'pdgcode in neutron', 'pdgcode in ()', 'pdgcode in (1cm)', '0 < pdgcode in (1,2)',
-                 'pdgcode in (1,2) < 3' ):
+                 'pdgcode in (1,2) < 3', 'ekin in (1MeV,2MeV)', 'pdgcode in (1+1)', 'pdgcode in (x)',
+                 'pdgcode in (-neutron)', 'pdgcode in (1.0)', 'x in (1,2)' ):
         try:
             mcpl.ParticleEdit(bad)
         except mcpl.MCPLError as e:

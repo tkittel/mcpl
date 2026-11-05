@@ -27,7 +27,15 @@ from ._common import MCPLError
 from ._expr_eval import _EmptyBlock
 from ._expr_vocab import _expr_value_names
 from ._expressions import ParticleValue, _Expr, _values
-from ._exprunits import _dim_E, _dim_K, _dim_L, _dim_T, _dim_unknown, _expr_units
+from ._exprunits import (
+    _dim_E,
+    _dim_K,
+    _dim_L,
+    _dim_T,
+    _dim_unknown,
+    _expr_units,
+    _unit_size,
+)
 from ._numpy import np
 
 
@@ -126,7 +134,7 @@ def _plot_unit( dim, lo, hi, log = False, wavelength = False ):
         unit = _plot_units_mcpl[i]
     units = list(_plot_units_mcpl)
     units[i] = unit
-    return text(units), _expr_units[unit][0] ** e
+    return text(units), _unit_size(unit,e)
 
 def _range_value( text ):
     """The value (in the units of MCPL) and dimension of a constant in the range

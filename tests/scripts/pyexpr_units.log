@@ -1,0 +1,48 @@
+Sizes of units (exact for powers of ten, also with whole powers):
+  mm^1: 0.1
+  mm^2: 0.01 (not 0.010000000000000002)
+  mm^3: 0.001 (not 0.0010000000000000002)
+  um^-2: 100000000.0 (not 99999999.99999999)
+  nm^2: 1e-14 (not 9.999999999999998e-15)
+  Aa^-1: 100000000.0
+  m^0.5: 10.0
+  mm^0.5: 0.31622776601683794
+  eV^-0.5: 1000.0
+  deg^1: 0.017453292519943295
+  deg^2: 0.00030461741978670857
+  rad^1: 1.0
+  K^2: 1.0
+  km^-3: 1e-15
+Numbers with units (exact, with the decimal digits of the numbers):
+  5000 eV^1: 0.005
+  5 keV^1: 0.005
+  0.005 MeV^1: 0.005
+  0.1 keV^1: 0.0001
+  0.3 nm^1: 3e-08
+  3 Aa^1: 3e-08 (not 3.0000000000000004e-08)
+  25 meV^1: 2.5e-08 (not 2.5000000000000002e-08)
+  0.07 m^1: 7.0 (not 7.000000000000001)
+  7 cm^1: 7.0
+  40000 mm^2: 400.0 (not 400.00000000000006)
+  400 cm^2: 400.0
+  2 cm^-1: 2.0
+  1e-30 MeV^1: 1e-30
+  1000000000000000000000000000000 eV^1: 1e+24
+  123456789012345678901234567890 Aa^1: 1.2345678901234568e+21
+  2.5 mm^0.5: 0.7905694150420949
+  90 deg^1: 1.5707963267948966
+  0 m^1: 0.0
+  -0.0 m^1: -0.0
+  -1.5 us^1: -0.0015
+  1e+308 km^1: inf
+  inf cm^1: inf
+The same values for all ways of writing them: ok
+Constant expressions:
+  '5000eV == 5keV': True
+  '0.07m == 7cm': True
+  '40000mm^2 == 400cm^2': True
+  '0.1keV': 0.0001
+  'mm^2': 0.01
+  '1/um^2': 100000000.0
+  '90deg': 1.5707963267948966
+  '1e308km': MCPLError: A constant has NaN or infinite values in expression "1e308km"

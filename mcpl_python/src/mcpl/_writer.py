@@ -141,7 +141,7 @@ class MCPLOutFile:
                   blobs = None, stat_sum = None, opt_userflags = False,
                   opt_polarisation = False, opt_singleprec = True,
                   opt_universalpdgcode = 0, opt_universalweight = 0.0,
-                  blocklength = 10000, pick = None, edit = None,
+                  blocklength = 10000, edit = None,
                   userdata_layout = None, allow_overwrite = False,
                   _dry_run = False ):
         """Create new file. Like in the C API, ".mcpl" is appended to the
@@ -159,11 +159,9 @@ class MCPLOutFile:
         particles added with add_particle(..) are buffered before being
         written.
 
-        If pick (an expression or a ParticleFilter) is given, only the
-        picked particles are written, and if edit (an expression or a
-        ParticleEdit) is given, it is applied to all particles before they are
-        written. For instance, MCPLOutFile("out.mcpl",pick="pdgcode ==
-        neutron",edit="z += 1m").
+        If edit (an edit expression or a ParticleEdit) is given, only the
+        particles it keeps are written, with its changes. For instance,
+        MCPLOutFile("out.mcpl",edit="pdgcode == neutron; z += 1m").
         Note that stat:sum entries are not modified, so they should for
         instance be scaled with hdr_scale_stat_sums(-1) when particle weights
         are edited (see the guidelines for stat:sum entries).
@@ -173,11 +171,10 @@ class MCPLOutFile:
         #and mcpltool, everything is done except writing):
         self._dry_run = bool(_dry_run)
         #(only importing the expressions module when needed):
-        self._flt = self._edt = None
-        if pick is not None or edit is not None:
-            from ._expressions import _as_edit, _as_filter
-            self._flt = None if pick is None else _as_filter(pick)
-            self._edt = None if edit is None else _as_edit(edit)
+        self._edt = None
+        if edit is not None:
+            from ._expressions import _as_edit
+            self._edt = _as_edit(edit)
         if hasattr(filename,'__fspath__'):
             filename = os.fspath(filename)
         if isinstance(filename,bytes):
@@ -767,7 +764,7 @@ class MCPLOutFile:
             else:
                 raise MCPLError('Unsupported type of particles object (should'
                                 ' be MCPLParticleBlock or MCPLParticle)')
-            if self._flt is None and self._edt is None:
+            if self._edt is None:
                 if udarr is not None:
                     fields = dict(fields, userdata = udarr)
                 self._transfer(b,sel,fields)
@@ -779,16 +776,15 @@ class MCPLOutFile:
                 ocols, _ = collect_fields(fields)
                 self._fmt().resolve_wavelength(ocols, ocols.get('pdgcode', b.pdgcode))
                 b = _EditedParticleBlock(b,ocols)
-            #(picks and edits use the userdata given, if any):
-            def view( b ):
-                return b if udarr is None else _UserdataView(b,udarr,self._udlayout)
-            if self._flt is not None:
-                keep = self._flt(view(b))
-                b = b[keep]
+            #(the edit uses the userdata given, if any):
+            kept, efields = self._edt._apply( b if udarr is None else
+                                              _UserdataView(b,udarr,self._udlayout) )
+            if kept is not None:
+                b = b[kept]
                 if udarr is not None:
-                    udarr = udarr[keep]
-            if self._edt is not None and len(b):
-                b = _EditedParticleBlock(b,self._edt(view(b)))
+                    udarr = udarr[kept]
+            if efields:
+                b = _EditedParticleBlock(b,efields)
             self._transfer(b,slice(None),
                            None if udarr is None else { 'userdata' : udarr })
             return
@@ -800,23 +796,21 @@ class MCPLOutFile:
                 n = len(udarr)
             udarr = _broadcast_userdata(udarr,n)
         self._fmt().resolve_wavelength(cols, cols.get('pdgcode'))
-        if self._flt is not None or self._edt is not None:
+        if self._edt is not None:
             defaults = { 'pdgcode' : self._opt_universalpdgcode,
                          'weight' : self._opt_universalweight }
             blk = _ArrayBlock(cols,n,defaults,udarr,self._udlayout)
-            if self._flt is not None:
-                keep = np.flatnonzero(self._flt(blk))
-                if not len(keep):
-                    return
-                n = len(keep)
-                if udarr is not None:
-                    udarr = udarr[keep]
-                blk = _ArrayBlock({ f : getattr(blk,f)[keep] for f in _block_fields },
-                                  n,defaults,udarr,self._udlayout)
+            kept, efields = self._edt._apply(blk)
             cols = { f : getattr(blk,f) for f in _block_fields if f in cols }
-            if self._edt is not None:
-                cols.update(self._edt(blk))
-                self._fmt().resolve_wavelength(cols, cols.get('pdgcode'))
+            if kept is not None:
+                if not len(kept):
+                    return
+                cols = { k : np.broadcast_to(v,(n,))[kept] for k, v in cols.items() }
+                n = len(kept)
+                if udarr is not None:
+                    udarr = udarr[kept]
+            cols.update(efields)
+            self._fmt().resolve_wavelength(cols, cols.get('pdgcode'))
         if udarr is not None:
             cols['userdata'] = udarr
         if self._hdr_notwritten:
@@ -853,7 +847,7 @@ class MCPLOutFile:
             return
         if particle is None:
             self._check_userdata_given('add_particle')
-        if ( self._flt is not None or self._edt is not None ) and particle is None:
+        if self._edt is not None and particle is None:
             vecs = ('position','direction','polarisation')
             self.add_particles(**{ k : ( [v] if k in vecs else np.atleast_1d(v) )
                                    for k,v in fields.items() })

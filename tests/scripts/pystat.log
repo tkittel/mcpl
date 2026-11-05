@@ -5336,9 +5336,9 @@ userflags    :           0 (0x00000000)      37.0735 (100.00%)
 
 
 
-Testing ref/reffile_1.mcpl with blocklength=2 and a pick of the last particle
+Testing ref/reffile_1.mcpl with blocklength=2 and a condition keeping the last particle
 ------------------------------------------------------------------------------
-pick         : fileidx >= 4
+edit         : fileidx >= 4
 nparticles   : 1
 sum(weights) : 1
 ------------------------------------------------------------------------------
@@ -5363,5 +5363,5 @@ pdgcode      :        2112 (n)                     1 (100.00%)
 userflags    :           0 (0x00000000)            1 (100.00%)
                      [ values ]             [ weighted counts ]
 ------------------------------------------------------------------------------
-MCPL WARNING: Can not calculate stats when no particles are picked
-Pick of no particles gives: {}
+MCPL WARNING: Can not calculate stats when no particles are kept
+Edit keeping no particles gives: {}

@@ -75,7 +75,7 @@ def test_histograms():
     h = ihist(example_file, 'ekin/MeV', logx=True, display_by='pdgcode')
     show(h)
     assert np.isclose(sum(c.sum() for c in h.contents.values()), b.weight.sum())
-    h = ihist(example_file, 'ekin/eV', pick='pdgcode == neutron',
+    h = ihist(example_file, 'ekin/eV', edit='pdgcode == neutron',
                        lethargy=True, bins=20, display_by='single')
     show(h)
     ref = np.histogram(b.ekin[b.pdgcode==2112]*1e6, bins=h.edges)[0]
@@ -94,15 +94,15 @@ def test_histograms():
                        range=(-300,2300), bins=26)
     show(h)
     h = ihist2d(example_file, 'x/cm', 'y/cm', bins=10,
-                         pick=mcpl.ParticleFilter('pdgcode == gamma'))
+                         edit=mcpl.ParticleEdit('pdgcode == gamma'))
     show(h)
     assert np.isclose(h.contents.sum(), np.count_nonzero(b.pdgcode==22))
     #No selected particles, but a range (so an empty histogram), with splits:
     for split in ('pdgcode', 'x > 0cm'):
-        h = ihist(example_file, 'ekin/MeV', pick='x > 1km',
+        h = ihist(example_file, 'ekin/MeV', edit='x > 1km',
                            range=(0,10), bins=2, display_by=split)
         print(f'empty histogram with display_by={split!r}:', h.to_text())
-    for args, kwargs in ( (('ekin',),{}), (('ekin/MeV',),{'pick':'x > 1km'}),
+    for args, kwargs in ( (('ekin',),{}), (('ekin/MeV',),{'edit':'x > 1km'}),
                           (('x/cm',),{'logx':True,'range':(-1,1)}),
                           (('wavelength',),{}), (('x/cm',),{'display_by':'x'}),
                           #(the arguments bins and range):
@@ -144,8 +144,8 @@ def test_public_api():
           'as numpy:', np.allclose(h.contents, ref))
     for e in ( 'x;range=-0.1m:0.1m;bins=2', 'ekin;bins=2', 'ekin/keV;bins=2' ):
         print(f'edges of {e!r}:', mcpl.histogram(ex, e).edges.tolist())
-    h = mcpl.histogram(ex, 'ekin/MeV;bins=5;display_by=pdgcode', pick='x > 0cm')
-    print('contents of all curves, with a pick:', np.isclose(h.contents.sum(), w[b.x > 0].sum()))
+    h = mcpl.histogram(ex, 'ekin/MeV;bins=5;display_by=pdgcode', edit='x > 0cm')
+    print('contents of all curves, with an edit:', np.isclose(h.contents.sum(), w[b.x > 0].sum()))
     h2 = mcpl.histogram(ex, 'x/cm : y/cm;bins=3,2')
     print(type(h2).__name__, h2.expressions, h2.xedges.tolist(), h2.yedges.tolist(),
           h2.contents.shape, np.isclose(h2.contents.sum(), w.sum()))
@@ -157,11 +157,11 @@ def test_public_api():
     print(describe([ hist_figure(mcpl,p3) ]).splitlines()[1])
     print(describe([ hist_figure(mcpl,mcpl.histogram(ex, 'x : y : z')) ]).splitlines()[1])
     #(the particles chosen depend only on the particles, so those which remain
-    #after a stricter pick stay chosen):
+    #after a stricter condition stay chosen):
     full = mcpl.histogram(ex, 'x/cm : y/cm : z/cm;points=50')
-    sub = mcpl.histogram(ex, 'x/cm : y/cm : z/cm;points=50', pick='x > 0cm')
+    sub = mcpl.histogram(ex, 'x/cm : y/cm : z/cm;points=50', edit='x > 0cm')
     kept = { tuple(p) for p in full.points.tolist() if p[0] > 0 }
-    print(f'{len(kept)} of the points have x > 0, and all are chosen with the pick x > 0:',
+    print(f'{len(kept)} of the points have x > 0, and all are chosen with the edit x > 0:',
           kept <= { tuple(p) for p in sub.points.tolist() })
     for r in ( h, hd, h2, p3 ):
         print(type(r).__name__, [ a for a in dir(r) if not a.startswith('_') ],
@@ -233,7 +233,7 @@ def test_autobins():
           f' merged exactly: {np.allclose(v,vf.reshape(len(v),-1).sum(axis=1))},'
           f' same edges: {np.allclose(h.edges,hf.edges[::1080//len(v)])},'
           f' for display: {h._display_bins}')
-    h = ihist(example_file, 'x/cm', pick='pdgcode == 2212')
+    h = ihist(example_file, 'x/cm', edit='pdgcode == 2212')
     print(f'auto with few particles: {len(h.edges)-1} bins, sum {h.values().sum():g}')
     h = ihist(example_file, 'x/cm', _maxbins=83)
     print(f'auto with at most 83 bins: {len(h.edges)-1} bins, for display: {h._display_bins}')
@@ -265,8 +265,8 @@ def tool(*args):
 def test_cmdline():
     ex = str(example_file)
     tool('-w','ekin/MeV;logx=1;display_by=pdgcode',ex)
-    tool('-t=ekin/eV;lethargy=1;bins=5;print=1','-p','pdgcode == neutron',ex)
-    tool('--window','x/cm : y/cm;bins=4;print=1','-p','pdgcode == gamma',ex)
+    tool('-t=ekin/eV;lethargy=1;bins=5;print=1','-e','pdgcode == neutron',ex)
+    tool('--window','x/cm : y/cm;bins=4;print=1','-e','pdgcode == gamma',ex)
     tool('--terminal=x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print=1',ex)
     tool('-w','x/cm : y/cm;bins=2;xrange=-10:10;print=1',ex)
     tool('-w','x/cm : y/cm;bins=3,2;print=1',ex)
@@ -274,16 +274,16 @@ def test_cmdline():
     tool('-w','time/ms;logx=1;logy=1;unweighted=1',ex)
     tool('-t','ekin/MeV : time/ms;logx=1;logy=auto',ex)
     tool('-w','ekin/MeV;display_by=pdgcode;range=0:10;bins=2;print=1',
-         '-p','x > 1km',ex)
-    #-l, -s, and -E (the particles are picked before they are edited):
+         '-e','x > 1km',ex)
+    #-l, -s, and -e (where conditions after changes see the changed values):
     tool('-w','z/cm;bins=2;range=0:100;print=1','-s1000',ex)
     #(numbers like 1e3 for -l and -s):
     tool('-w','z/cm;bins=2;range=0:100;print=1','-s1e3','-l2.5e1',ex)
-    tool('-w','z/cm;bins=2;range=0:100;print=1','-l3','-E','z += 50cm',ex)
-    tool('-w','z/cm;bins=2;range=0:100;print=1','--pick=z < 25cm',
-         '--edit=z += 50cm',ex)
+    tool('-w','z/cm;bins=2;range=0:100;print=1','-l3','-e','z += 50cm',ex)
+    tool('-w','z/cm;bins=2;range=0:100;print=1','--edit=z < 25cm; z += 50cm',ex)
+    tool('-w','z/cm;bins=2;range=0:100;print=1','--edit=z += 50cm; z < 75cm',ex)
     #(abbreviated long options):
-    tool('--win=ekin/MeV;print=1;bins=2','--pi','pdgcode==22',ex)
+    tool('--win=ekin/MeV;print=1;bins=2','--ed','pdgcode==22',ex)
     for bad in ( ['-w','ekin',ex], ['-w','ekin/MeV;bins=0',ex],
                  ['-w','ekin/MeV;range=1',ex], ['-w','ekin/MeV;range=2:1',ex],
                  ['-w','ekin/MeV;range=1:2,3:4',ex], ['-w','ekin/MeV;xrange=1:2',ex],
@@ -293,7 +293,7 @@ def test_cmdline():
                  ['-w','x/cm;logy=yes',ex], ['-w','x/cm;logx=2',ex], ['-w','x/cm;logy=auto',ex],
                  ['-w','x/cm;logx=1;logx=1',ex], ['-w','x/cm;foo',ex],
                  ['--logx',ex], ['--bins','10',ex],
-                 ['-o','a.pdf',ex], ['-w','x/cm','-e',ex,'out.mcpl'],
+                 ['-o','a.pdf',ex], ['-w','x/cm','-x',ex,'out.mcpl'],
                  ['-w','x/cm'], ['-w','x/cm;print=1','-o','a.png',ex],
                  #(logx=auto: logarithmic for positive values over more than
                  #two decades, else linear):
@@ -306,8 +306,8 @@ def test_cmdline_more():
     #Statistics, saving a file with the test backend (which describes the
     #figures), and argument errors (also of the forms of -w and -t):
     ex = str(example_file)
-    tool('-S','-o','stats.txt','-p','pdgcode == gamma',ex)
-    tool('-S','-s1000','-E','x = 1cm',ex)
+    tool('-S','-o','stats.txt','-e','pdgcode == gamma',ex)
+    tool('-S','-s1000','-e','x = 1cm',ex)
     tool('-t','x/cm;bins=3','-o','hist.txt',ex)
     #(the errors as without the test backend):
     with _forced_backend(None):
@@ -316,7 +316,7 @@ def test_cmdline_more():
                      ['-s1e-3',ex], ['-l2\u00b2',ex], ['-l99999999999999999999',ex],
                      #(a directory, as file):
                      ['..'], ['-S','..'], ['-t','x/cm','..'],
-                     ['-p','x > 0','-p','x < 1cm',ex], ['--pdf',ex], ['--gui',ex],
+                     ['-e','x > 0','-e','x < 1cm',ex], ['--pdf',ex], ['--gui',ex],
                      ['--select','x > 0',ex], ['-S','-t','x',ex],
                      ['-S','-w','x/cm',ex], [ex,ex,ex],
                      ['-w','x/cm;bins=2;print','-w','pdgcode;bar=2;print',ex],
@@ -327,12 +327,12 @@ def test_cmdline_more():
                      ['-w','x/cm : y/cm;display_by=pdgcode',ex],
                      ['-w','x/cm','-o','hist',ex], ['-w','x/cm','-o','hist.jpg',ex],
                      ['-w','x/cm','-o','hist.png','-d',ex],
-                     ['-p','x = 1cm; x > 0',ex], ['-p','x > "1"',ex], ['-E','z = 1cm, x = 0',ex] ):
+                     ['-e','x > "1"',ex], ['-e','z = 1cm, x = 0',ex], ['-E','x > 0',ex] ):
             tool(*bad)
 
 def test_help_topics():
     #Only the start of each topic (the rest are tables of all names):
-    for args in ( ['-p','help'], ['--edit=help'], ['--hist-help'] ):
+    for args in ( ['-e','help'], ['--edit=help'], ['--hist-help'] ):
         out = io.StringIO()
         rc = 0
         with contextlib.redirect_stdout(out):
@@ -359,7 +359,7 @@ def test_units():
                         ( 'wavelength, log axis 1e-3 to 100Aa', ((1,0,0,0),1e-11,1e-6,True,True) ),
                         ( 'wavelength, up to 1mm', ((1,0,0,0),0,0.1,False,True) ), ( 'no units', (None,0,1) ) ):
         print(f'unit of {what}: {_plot_unit(*args)}')
-    for e, kw in ( ( 'x', {} ), ( 'ekin;logx=auto', {} ), ( 'wavelength', { 'pick' : 'pdgcode == neutron' } ),
+    for e, kw in ( ( 'x', {} ), ( 'ekin;logx=auto', {} ), ( 'wavelength', { 'edit' : 'pdgcode == neutron' } ),
                    ( 'x;range=-10cm:10cm;bins=2', {} ), ( 'x;range=0:1m;bins=2', {} ), ( 'x/cm;bins=2', {} ),
                    ( 'hypot(x,y)', {} ) ):
         h = ihist(ex,e,**kw)
@@ -378,7 +378,7 @@ def test_bars_groups_domains():
     #defined for some particles (wavelengths):
     for e, kw in ( ( 'pdgcode;bar=auto', {} ), ( 'pdgcode;bar=3', {} ),
                    ( 'mod(abs(pdgcode),7);bar=auto;unweighted=1', {} ), ( 'pdgcode', { 'bar' : 2 } ),
-                   ( 'pdgcode;bar=auto', { 'pick' : 'pdgcode != neutron' } ),
+                   ( 'pdgcode;bar=auto', { 'edit' : 'pdgcode != neutron' } ),
                    ( 'round(x/10cm);bar=4;logy=1', {} ), ( 'mod(floor(ekin/MeV),3);bar=auto;logy=0', {} ) ):
         h = ihist(ex,e,**kw)
         print(f'histogram({e!r},{kw}):')
@@ -386,8 +386,8 @@ def test_bars_groups_domains():
         show(h)
     h = ihist(ex,'ekin/MeV',display_by='mod(fileidx,10)',bins=3)
     print('split in at most 8 curves:', list(h.contents), h.colors)
-    for e, kw in ( ( 'wavelength;bins=3', {} ), ( 'wavelength;bins=3', { 'pick' : 'pdgcode == neutron' } ),
-                   ( 'wavelength;display_by=pdgcode;bins=3', {} ), ( 'round(1000*wavelength/Aa);bar=auto', { 'pick' : 'ekin > 1GeV' } ) ):
+    for e, kw in ( ( 'wavelength;bins=3', {} ), ( 'wavelength;bins=3', { 'edit' : 'pdgcode == neutron' } ),
+                   ( 'wavelength;display_by=pdgcode;bins=3', {} ), ( 'round(1000*wavelength/Aa);bar=auto', { 'edit' : 'ekin > 1GeV' } ) ):
         h = ihist(ex,e,**kw)
         print(f'histogram({e!r},{kw}): label {h.label!r}, contents {[ float(np.sum(c)) for c in h.contents.values() ]}')
     h = ihist2d(ex,'wavelength','x',bins=2)
@@ -436,7 +436,7 @@ def test_3d():
           h.nparticles)
     same = ihist(ex,'x : y : z;points=100;display_by=single')
     print('same sample:', np.array_equal(h.groups[None],same.groups[None]))
-    h = ihist(ex,'ux : uy : uz;display_by=mod(fileidx,10)',pick='ekin > 1keV')
+    h = ihist(ex,'ux : uy : uz;display_by=mod(fileidx,10)',edit='ekin > 1keV')
     print('split:', { k : len(v) for k, v in h.groups.items() }, h.colors)
     print(describe([ hist_figure(mcpl,h) ]))
     print(h.to_text().splitlines()[:4])
@@ -471,27 +471,29 @@ def test_equal():
         except mcpl.MCPLError as e:
             print(f'{bad!r}: {e}')
 
-def test_only():
-    #The option only uses only the particles of a condition (on top of the
-    #pick), the same as picking them, in all kinds of histograms:
+def test_display_edit():
+    #The option display_edit edits the particles of a plot (after the edit of
+    #the file), the same as editing them, in all kinds of histograms:
     import numpy as np
     ex = str(example_file)
     def contents( h ):
         c = h.contents
         return ( np.concatenate([ np.ravel(v) for v in c.values() ])
                  if isinstance(c,collections.abc.Mapping) else np.ravel(c) )
-    for text, cond, pick in ( ( 'ekin/MeV;bins=20', 'ekin < 1MeV', None ),
+    for text, cond, edit in ( ( 'ekin/MeV;bins=20', 'ekin < 1MeV', None ),
                               ( 'x/cm : y/cm;bins=8', 'pdgcode == neutron', None ),
                               ( 'pdgcode;bar', 'ekin > 1MeV', None ),
                               ( 'ekin/MeV;bins=20;display_by=pdgcode', 'ekin < 1MeV', 'x > 0' ),
-                              ( 'x : y : z;points=50', 'ekin < 1MeV', None ) ):
-        h = ihist(ex,f'{text};display_only={cond}',pick = pick)
-        both = cond if pick is None else f'({pick}) and ({cond})'
-        ref = ihist(ex,text,pick = both)
+                              ( 'x : y : z;points=50', 'ekin < 1MeV', None ),
+                              ( 'x/cm;bins=10', 'rotate_z(90deg); x > 0cm', 'ekin < 1MeV' ) ):
+        h = ihist(ex,f'{text};display_edit={cond}',edit = edit)
+        both = cond if edit is None else f'{edit}; {cond}'
+        ref = ihist(ex,text,edit = both)
         same = ( h.nparticles == ref.nparticles if hasattr(h,'nparticles')
                  else np.array_equal(contents(h),contents(ref)) )
-        print(f'{text};display_only={cond} (pick {pick}): as picking them: {same} | title {h.title!r}')
-    for bad in ( 'x;display_only', 'x;display_only=r = x', 'x;display_only=foo > 1', 'x;display_only=1cm' ):
+        print(f'{text};display_edit={cond} (edit {edit}): as editing them: {same} | title {h.title!r}')
+    for bad in ( 'x;display_edit', 'x;display_edit=r = x', 'x;display_edit=foo > 1',
+                 'x;display_edit=1cm', 'x;display_edit=x > 0cm;logy' ):
         try:
             ihist(ex,bad)
         except mcpl.MCPLError as e:
@@ -499,7 +501,7 @@ def test_only():
 
 #(the plots are described by the test backend):
 with _forced_backend('test'):
-    test_only()
+    test_display_edit()
     test_logz()
     test_equal()
     test_3d()

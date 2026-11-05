@@ -1,0 +1,95 @@
+Values:
+  'ekin/MeV': ok
+  'hypot(x,y)/cm': ok
+  'abs(pos)/m': ok
+  'pi*2': ok
+  'neutron': ok
+  'userdata.temp/K': ok
+  'userdata.d.at(2)': ok
+  'through_sphere((0,0,1m),5cm)': ok
+  'mod(fileidx,10)': ok
+  'foo': Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  'r + 1': Unknown name "r" in expression "r + 1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  'userdata': Fields of the userdata are written as userdata.NAME, in expression "userdata"
+  'sqrt': Unknown name "sqrt" in expression "sqrt" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  'neutron + sqrt': Unknown name "sqrt" in expression "neutron + sqrt" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  'foo(x)': Unsupported function call in expression "foo(x)" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_sphere)
+  'rotate_x(90deg)': Unsupported function call in expression "rotate_x(90deg)" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_sphere)
+  'swap(x,y)': Unsupported function call in expression "swap(x,y)" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_sphere)
+  'sqrt(foo(bar))': Unsupported function call in expression "sqrt(foo(bar))" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_sphere)
+  '(a + b) * c': Unknown name "c" in expression "(a + b) * c" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  'f(1) + g': Unsupported function call in expression "f(1) + g" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_sphere)
+Conditions (PDG codes and pdgcode are not conditions):
+  'pdgcode == neutron': ok
+  'neutron': neutron is a PDG code (2112), not a condition (e.g. pdgcode == neutron), in expression "neutron"
+  'pdgcode': pdgcode is not a condition (e.g. pdgcode == neutron), in expression "pdgcode"
+  'abs(pdgcode)': pdgcode is not a condition (e.g. pdgcode == neutron), in expression "abs(pdgcode)"
+  'not antineutron': antineutron is a PDG code (-2112), not a condition (e.g. pdgcode == antineutron), in expression "not antineutron"
+  'neutron or gamma': neutron is a PDG code (2112), not a condition (e.g. pdgcode == neutron), in expression "neutron or gamma"
+  'x > 0cm and pdgcode': pdgcode is not a condition (e.g. pdgcode == neutron), in expression "x > 0cm and pdgcode"
+  'userflags & 0x10': ok
+  'not userflags': ok
+  'abs(neutron) + 1': ok
+  'r = hypot(x,y); r > 2cm': ok
+  'r = 1; q = 2; r > 0': Variable "q" is assigned but never used in "r = 1; q = 2; r > 0" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol)
+  's = 1; s > 0': Can not assign to "s" in "s = 1; s > 0" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol, and other lowercase names which are not names of fields, units, constants, or functions can be used for variables)
+  'r = 1; r *= 2; x > 0': ok
+  'r += 1; r > 0': Variable "r" used before it is assigned in "r += 1; r > 0"
+  'x = 1cm; x > 0': ok
+  'swap(x,y); x > 0': ok
+  'rotate_z(90deg); x > 0': ok
+  'x > 1; y > 2': ok
+  'R = 1; R > 0': Can not assign to "R" in "R = 1; R > 0" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol, and other lowercase names which are not names of fields, units, constants, or functions can be used for variables)
+  'cm = 1; cm > 0': Can not assign to "cm" in "cm = 1; cm > 0" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol, and other lowercase names which are not names of fields, units, constants, or functions can be used for variables)
+  'pi = 3; pi > 0': Can not assign to "pi" in "pi = 3; pi > 0" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol, and other lowercase names which are not names of fields, units, constants, or functions can be used for variables)
+  'neutron = 1; neutron > 0': Can not assign to "neutron" in "neutron = 1; neutron > 0" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol, and other lowercase names which are not names of fields, units, constants, or functions can be used for variables)
+  'sqrt = 1; sqrt > 0': Can not assign to "sqrt" in "sqrt = 1; sqrt > 0" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol, and other lowercase names which are not names of fields, units, constants, or functions can be used for variables)
+  'swap = 1; swap > 0': Can not assign to "swap" in "swap = 1; swap > 0" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol, and other lowercase names which are not names of fields, units, constants, or functions can be used for variables)
+  'fileidx = 1; x > 0': fileidx (the position of the particles in the file) can not be changed, in "fileidx = 1; x > 0"
+  'r = foo; r > 0': Unknown name "foo" in expression "r = foo; r > 0" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  'r = 1; foo > r': Unknown name "foo" in expression "r = 1; foo > r" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  'inactive = 1; inactive > 0': Can not assign to "inactive" in "inactive = 1; inactive > 0" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol, and other lowercase names which are not names of fields, units, constants, or functions can be used for variables)
+  'x > 0; inactive(foo > 1)': ok
+Edits:
+  'x = 1cm': ok
+  'x += 1cm; weight *= 0.5': ok
+  'pos += (0,0,1m)': ok
+  'tmp = x; x = y; y = tmp': ok
+  'tmp = x': Variable "tmp" is assigned but never used in "tmp = x" (fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol)
+  'n *= 2': Variable "n" used before it is assigned in "n *= 2"
+  'x > 0': ok
+  'sqrt(x)': ok
+  'fileidx = 1': fileidx (the position of the particles in the file) can not be changed, in "fileidx = 1"
+  'x = foo': Unknown name "foo" in expression "x = foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  'x = sqrt': Unknown name "sqrt" in expression "x = sqrt" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  'swap(x,y)': ok
+  'tmp = x; swap(tmp,y)': ok
+  'swap(x)': swap(..) takes two fields (or variables) as arguments, as in swap(x,y), in "swap(x)"
+  'swap(x,1)': swap(..) takes two fields (or variables) as arguments, as in swap(x,y), in "swap(x,1)"
+  'swap(x,y+1)': swap(..) takes two fields (or variables) as arguments, as in swap(x,y), in "swap(x,y+1)"
+  'swap(fileidx,x)': fileidx (the position of the particles in the file) can not be changed, in "swap(fileidx,x)"
+  'swap(userdata.t,x)': Fields of the userdata (userdata.t) can not be changed, in "swap(userdata.t,x)"
+  'swap(wavelength,x)': swap(..) can not be used with wavelength (which is computed from ekin; set it with "wavelength = ..." instead), in "swap(wavelength,x)"
+  'swap(neutron,x)': Can not swap "neutron" in "swap(neutron,x)" (it is not a field or variable)
+  'swap(foo,x)': Can not swap "foo" in "swap(foo,x)" (it is not a field or variable)
+  'rotate_x(90deg)': ok
+  'rotate_x(90)': The angle of rotate_x(..) must have a unit, as in 90deg or 90rad (not 90), in "rotate_x(90)"
+  'rotate_x(-90)': The angle of rotate_x(..) must have a unit, as in -90deg or -90rad (not -90), in "rotate_x(-90)"
+  'rotate_x(1.5)': The angle of rotate_x(..) must have a unit, as in 1.5deg or 1.5rad (not 1.5), in "rotate_x(1.5)"
+  'rotate_x(0x10)': The angle of rotate_x(..) must have a unit, as in 0x10 deg or 0x10 rad (not 0x10), in "rotate_x(0x10)"
+  'rotate_x(0)': ok
+  'rotate_x(a)': Unknown name "a" in expression "rotate_x(a)" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  'rotate_x(90deg,1)': rotate_x(..) takes one argument (an angle) in "rotate_x(90deg,1)"
+  'rotate_around((0,0,1),30deg)': ok
+  'rotate_around((0,0,1),30)': The angle of rotate_around(..) must have a unit, as in 30deg or 30rad (not 30), in "rotate_around((0,0,1),30)"
+  'rotate_around((0,0,1))': rotate_around(..) takes 2 arguments (an axis and an angle, as in rotate_around((0,0,1),90deg)) in "rotate_around((0,0,1))"
+  'rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))': ok
+  'rotate_frame((0,0,1))': rotate_frame(..) takes 4 arguments (the vectors v, vout, u and uout, as in rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))) in "rotate_frame((0,0,1))"
+  'a = 1; rotate_x(a*deg)': ok
+  'rotate_x(foo)': Unknown name "foo" in expression "rotate_x(foo)" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+Trees built by hand:
+  Value(expr=Name(id='x')): ok
+  Value(expr=Name(id='foo')): Unknown name "foo" in expression "TEXT" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  Value(expr=Call(name='cos', args=(Name(id='ux'),))): ok
+  Edit(statements=(Call(name='swap', args=(Name(id='x'), Name(id='y'))),)): ok
+  Edit(statements=(Name(id='x'),)): ok

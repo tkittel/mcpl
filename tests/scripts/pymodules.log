@@ -3,25 +3,29 @@ Modules of the mcpl package and their imports from the package (in parentheses: 
   __main__             <- _cli
   _ascii               <- _reader, (_common)
   _blocks              <- _common, _numpy, (_physics)
-  _cli                 <- _common, _messages, _reader, (_ascii), (_clistats), (_examples), (_expressions), (_exprhelp), (_extract), (_fileops), (_histfill), (_histstring), (_particles)
+  _cli                 <- _common, _messages, _reader, (_ascii), (_clistats), (_examples), (_expressions), (_exprhelp), (_extract), (_fileops), (_histfill), (_histstring)
   _clistats            <- _common, _reader, (_histfigures), (_histfill), (_histstring), (_plotregistry), (_stats)
   _common              <- -
   _examples            <- _common, _messages, _numpy, (_writer)
-  _exprcore            <- _common, _exprsyntax, _exprunits, _numpy, _particles, _physics, (_userdata)
-  _expressions         <- _common, _exprcore, _exprrotation, _exprsyntax, _exprunits, _numpy, _particles, _physics
+  _expr_ast            <- -
+  _expr_ast2str        <- _expr_ast
+  _expr_astcheck       <- _common, _expr_ast, _expr_ast2str, _expr_vocab, _exprunits, _particles
+  _expr_eval           <- _common, _expr_ast, _expr_ast2str, _expr_vocab, _exprrotation, _exprunits, _numpy, _particles, _physics, (_userdata)
+  _expr_str2ast        <- _common, _expr_ast, _exprunits, _particles
+  _expr_vocab          <- _expr_ast, _exprunits, _particles, _physics
+  _expressions         <- _blocks, _common, _expr_ast, _expr_ast2str, _expr_astcheck, _expr_eval, _expr_str2ast, _expr_vocab, _exprunits, _numpy
   _exprhelp            <- _particles, (_helptext)
-  _exprplot            <- _common, _exprcore, _expressions, _exprunits, _numpy
+  _exprplot            <- _common, _expr_eval, _expr_vocab, _expressions, _exprunits, _numpy
   _exprrotation        <- _numpy
-  _exprsyntax          <- _common
   _exprunits           <- -
   _extract             <- _messages, _reader, _writer, (_common)
   _figures             <- -
   _fileops             <- _common, _messages, _reader, _statsum, _writer
   _helptext            <- -
   _histfigures         <- _figures, _histfill, _histstring, _numpy
-  _histfill            <- _common, _exprcore, _expressions, _exprplot, _exprunits, _histstring, _numpy, _particles, _reader
+  _histfill            <- _common, _expr_eval, _expressions, _exprplot, _exprunits, _histstring, _numpy, _particles, _reader
   _histogram           <- _common, _histfill, _numpy, (_histfigures), (_histstring), (_plotting)
-  _histstring          <- _common, _exprcore, _exprplot, _exprunits, _numpy, (_expressions), (_particles)
+  _histstring          <- _common, _expr_eval, _expr_vocab, _exprplot, _exprunits, _numpy, (_expr_str2ast), (_expressions)
   _logo                <- -
   _messages            <- -
   _numpy               <- -
@@ -48,12 +52,12 @@ numpy is imported by: _numpy
 matplotlib is imported by: _plotbackend_mpl
 scipp is imported by: _scipp
 matplotlib, scipp are only imported inside functions
-mcpl.__all__ has 33 names, provided by:
+mcpl.__all__ has 32 names, provided by:
   _ascii               : convert2ascii
   _blocks              : MCPLParticle, MCPLParticleBlock
   _cli                 : app_mcpltool, app_pymcpltool
   _common              : MCPLError
-  _expressions         : ParticleEdit, ParticleFilter, ParticleValue
+  _expressions         : ParticleEdit, ParticleValue
   _fileops             : can_merge, create_outfile_mpi, forcemerge_files, merge_files, merge_inplace, merge_outfiles_mpi, name_helper, repair
   _histogram           : Hist1D, Hist2D, HistDiscrete, PointSet3D, histogram
   _messages            : use_logging

@@ -32,28 +32,25 @@ from ._physics import _pdg_database
 from ._reader import MCPLFile
 
 
-class _PickedFile:
-    """Read-only view of the particles in an MCPLFile picked by an
-    expression (or ParticleFilter), for collect_stats. Also used for files
-    opened with pick or edit (in which case pick can be None)."""
-    def __init__(self,mcplfile,pick):
+class _EditedFile:
+    """Read-only view of the particles of an MCPLFile after its own edit and
+    the edit given (an edit expression, a ParticleEdit, or None), for
+    collect_stats"""
+    def __init__(self,mcplfile,edit):
         self._f = mcplfile
-        self._flt = None
-        if pick is not None:
-            from ._expressions import _as_filter
-            self._flt = _as_filter(pick)
-        sels = [ e.expression for e in (getattr(mcplfile,'pick',None),self._flt)
-                 if e is not None ]
-        self.pick = ' and '.join( f'({e})' if len(sels) > 1 else e for e in sels )
-        if getattr(mcplfile,'edit',None) is not None:
-            self.edit = mcplfile.edit.expression
+        self._edt = None
+        if edit is not None:
+            from ._expressions import _as_edit
+            self._edt = _as_edit(edit)
+        self.edit = ';'.join( e.expression for e in ( mcplfile.edit, self._edt )
+                              if e is not None )
         self.nparticles = sum( len(b) for b in self.particle_blocks )
     def __getattr__(self,name):
         return getattr(self._f,name)
     @property
     def particle_blocks(self):
         for b in self._f.particle_blocks:
-            yield b[self._flt(b)] if self._flt is not None else b
+            yield self._edt(b) if self._edt is not None else b
 
 
 def _unique_count(a,weights=None):
@@ -128,23 +125,21 @@ class _StatCollector:
 _possible_std_stats = ['ekin','x','y','z','ux','uy','uz','time','weight','polx','poly','polz']
 _possible_freq_stats = ['pdgcode','userflags']
 
-def collect_stats(mcplfile,stats='all',bin_data=True,pick=None):
+def collect_stats(mcplfile,stats='all',bin_data=True,edit=None):
     """Efficiently collect statistics from an entire file. Returns dictionary
-    with stat names as key and the collected statistics as values. If pick
-    is given (an expression or a ParticleFilter), only the picked particles
-    are included."""
-    if not isinstance(mcplfile,(MCPLFile,_PickedFile)):
+    with stat names as key and the collected statistics as values. If edit
+    is given (an edit expression or a ParticleEdit), the statistics are
+    those of the particles it keeps, with its changes."""
+    if not isinstance(mcplfile,(MCPLFile,_EditedFile)):
         #(a file name: the file is closed when done):
         with MCPLFile(mcplfile) as f:
-            return collect_stats(f,stats,bin_data,pick)
-    if pick is not None or ( isinstance(mcplfile,MCPLFile) and (
-            mcplfile.pick is not None or mcplfile.edit is not None ) ):
-        mcplfile = _PickedFile(mcplfile,pick)
+            return collect_stats(f,stats,bin_data,edit)
+    if isinstance(mcplfile,MCPLFile) and ( edit is not None or mcplfile.edit is not None ):
+        mcplfile = _EditedFile(mcplfile,edit)
     if mcplfile.nparticles==0:
-        #(picked with the argument pick, or when the file was opened):
-        _warning("Can not calculate stats on an empty file"
-                 if not getattr(mcplfile,'pick',None) else
-                 "Can not calculate stats when no particles are picked")
+        _warning("Can not calculate stats when no particles are kept"
+                 if getattr(mcplfile,'edit',None) else
+                 "Can not calculate stats on an empty file")
         return {}
     acc = _StatsAccumulator(mcplfile,stats,bin_data)
     if acc.needs_pass1:
@@ -216,7 +211,7 @@ class _StatsAccumulator:
 
     def add1(self,pb):
         if not len(pb):
-            return#(no particles picked in this block)
+            return#(no particles kept in this block)
         vals_weight=pb.weight
         for s,sc in self.collected_stats.items():
             if s=='weight':
@@ -251,7 +246,7 @@ class _StatsAccumulator:
 
     def add2(self,pb):
         if not len(pb):
-            return#(no particles picked in this block)
+            return#(no particles kept in this block)
         freq_stats, freq_uc = self._freq, self._freq_uc
         ranges, nbins, hists, outside = self._ranges, self._nbins, self._hists, self._outside
         vals_weight = pb.weight
@@ -336,11 +331,8 @@ class _StatsAccumulator:
         results = { 'file':{'type':'fileinfo','integral':weight_sum,'nparticles':self._n,
                             'stat_sum':dict(mcplfile.stat_sum),
                             'filename':os.path.basename(os.fsdecode(mcplfile._filename))} }
-        if isinstance(mcplfile,_PickedFile):
-            if mcplfile.pick:
-                results['file']['pick'] = mcplfile.pick
-            if getattr(mcplfile,'edit',None):
-                results['file']['edit'] = mcplfile.edit
+        if isinstance(mcplfile,_EditedFile) and mcplfile.edit:
+            results['file']['edit'] = mcplfile.edit
         for s,uc in freq_uc.items():
             results[s] = { 'unique_values': uc[0], 'unique_values_counts' : uc[1], 'weighted' : True, 'type':'freq' }
 
@@ -378,8 +370,6 @@ def dump_stats(stats):
     if not isinstance(stats,dict):
         stats = collect_stats(stats,bin_data=False)
     print('------------------------------------------------------------------------------')
-    if 'pick' in stats['file']:
-        print(f"pick         : {stats['file']['pick']}")
     if 'edit' in stats['file']:
         print(f"edit         : {stats['file']['edit']}")
     print(f"nparticles   : {stats['file']['nparticles']}")

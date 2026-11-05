@@ -58,7 +58,7 @@ mcpltool --forcemerge out.mcpl: exit code 1
 mcpltool --extract a1.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
    file out.mcpl: md5 a30df74e6146d6c2562192cd08e91fdf
-mcpltool -e a1.mcpl out.mcpl.gz: exit code 0
+mcpltool -x a1.mcpl out.mcpl.gz: exit code 0
    | MCPL: Compressing file out.mcpl
    | MCPL: Compressed file into out.mcpl.gz
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl.gz
@@ -77,19 +77,19 @@ mcpltool --extract -l3 -s4 a3.mcpl.gz out.mcpl: exit code 0
 mcpltool --extract -l100 -s0 a1.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
    file out.mcpl: md5 0b950a1d28a8ab8016c59bae3b6537ed
-mcpltool --extract -p pdgcode == 22 a1.mcpl out.mcpl: exit code 0
+mcpltool --extract -e pdgcode == 22 a1.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 182304f1bd2122e081db063e23bf67e9
-mcpltool -e -p pdgcode == -11 b_dp.mcpl out.mcpl: exit code 0
+   file out.mcpl: md5 ebcffe1d777b195c4b160841dc86a453
+mcpltool -x -e pdgcode == -11 b_dp.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 0 / 12 particles from b_dp.mcpl into out.mcpl
-   file out.mcpl: md5 96e2ecad40c10c8562675405b60e1829
-mcpltool -e -p pdgcode == 11 -l10 -s3 a1.mcpl out.mcpl: exit code 0
+   file out.mcpl: md5 9067338992dc43ebd9964d4a2470f439
+mcpltool -x -e pdgcode == 11 -l10 -s3 a1.mcpl out.mcpl: exit code 0
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 3 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 fead3d1f205834035c479e0cff476517
-mcpltool --extract -p pdgcode == 2112 c_nostat.mcpl out.mcpl: exit code 0
+   file out.mcpl: md5 13ef8eb393169625ab21f90ff7003724
+mcpltool --extract -e pdgcode == 2112 c_nostat.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 3 / 9 particles from c_nostat.mcpl into out.mcpl
-   file out.mcpl: md5 7a5fda1424457c49190e588c2e95ebbe
+   file out.mcpl: md5 b5edd7448c7a0368b2beb2b05ac1bec3
 mcpltool --extract -s5 c_nostat.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 4 / 9 particles from c_nostat.mcpl into out.mcpl
    file out.mcpl: md5 b6b1953247e891d4c5eed886fc1de52a
@@ -116,31 +116,31 @@ mcpltool --extract a1.mcpl x.mcpl y.mcpl: exit code 1
    | ERROR: Too many arguments.
    | 
    | Run with -h or --help for usage information
-mcpltool --extract --no-comment -p pdgcode == 22 -l5 a1.mcpl out.mcpl: exit code 0
+mcpltool --extract --no-comment -e pdgcode == 22 -l5 a1.mcpl out.mcpl: exit code 0
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 2 / 30 particles from a1.mcpl into out.mcpl
    file out.mcpl: md5 d555ef4fcb424a10df21147296627a98
-mcpltool --extract -p pdgcode == 11 -l3 -s4 a1.mcpl out.mcpl: exit code 0
+mcpltool --extract -e pdgcode == 11 -l3 -s4 a1.mcpl out.mcpl: exit code 0
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 1 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 fe0d1b6c369474c670c7aa42d4747d81
+   file out.mcpl: md5 4847c0f8b8b05246324fc3336052526a
 mcpltool --no-comment a1.mcpl: exit code 1
-   | ERROR: --no-comment can only be used with -e.
+   | ERROR: --no-comment can only be used with -x.
    | 
    | Run with -h or --help for usage information
-mcpltool --extract -p pdgcode == gamma a1.mcpl out.mcpl: exit code 0
+mcpltool --extract -e pdgcode == gamma a1.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 5e60df9321660cb23300569ef5e93b8e
-mcpltool --extract -p pdgcode == photon -l10 a1.mcpl out.mcpl: exit code 0
+   file out.mcpl: md5 f65ff0761dd58ea2578d2734523fa38e
+mcpltool --extract -e pdgcode == photon -l10 a1.mcpl out.mcpl: exit code 0
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 3 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 76235c54f0c516a51f445d79e655f81a
-mcpltool --extract -p pdgcode == antielectron b_dp.mcpl out.mcpl: exit code 0
+   file out.mcpl: md5 4c29a8cd97a1463eddd911ed39de2f3c
+mcpltool --extract -e pdgcode == antielectron b_dp.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 0 / 12 particles from b_dp.mcpl into out.mcpl
-   file out.mcpl: md5 24b9b617422cb4b9f07f866abaa7c387
-mcpltool --extract -p pdgcode == neutron c_nostat.mcpl out.mcpl: exit code 0
+   file out.mcpl: md5 10e0025d8ba2e6428ee6292002f8c0d1
+mcpltool --extract -e pdgcode == neutron c_nostat.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 3 / 9 particles from c_nostat.mcpl into out.mcpl
-   file out.mcpl: md5 d5dd46058a1fdfbf28aac41047928bff
+   file out.mcpl: md5 bb6fa4306c94c9b944d408072f96d110
 mcpltool --inplace a1.mcpl a2.mcpl: exit code 1
    | ERROR: --inplace can only be used with -m.
    | 
@@ -154,7 +154,7 @@ mcpltool --merge --forcemerge out.mcpl a1.mcpl a2.mcpl: exit code 1
    | 
    | Run with -h or --help for usage information
 mcpltool --merge --extract a1.mcpl out.mcpl: exit code 1
-   | ERROR: -e and -m can not be used together.
+   | ERROR: -x and -m can not be used together.
    | 
    | Run with -h or --help for usage information
 mcpltool -j --extract a1.mcpl out.mcpl: exit code 1
@@ -298,7 +298,7 @@ mcpltool nosuchfile.mcpl: exit code 1
    | MCPL ERROR: Unable to open file!
 mcpltool ..: exit code 1
    | MCPL ERROR: Is a directory and not a file!
-mcpltool -e .. out.mcpl: exit code 1
+mcpltool -x .. out.mcpl: exit code 1
    | MCPL ERROR: Is a directory and not a file!
 mcpltool -l3 ..: exit code 1
    | MCPL ERROR: Is a directory and not a file!
@@ -363,9 +363,9 @@ mcpltool -s10 -l5 nan.mcpl: exit code 0
    |     Storage            : 36 bytes/particle
    | 
    | index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight
+   | MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 12). They can not be added to other MCPL files.
    |    10          22       0.011          15         -20           1        -0.8           0         0.6         0.1           6
    |    11          11       0.012        16.5         -22         1.1         0.6           0         0.8        0.11         6.5
-   | MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 12). They can not be added to other MCPL files.
    |    12        2112       0.013         nan         -24         1.2        -0.8           0         0.6        0.12           7
    |    13          22       0.014        19.5         -26         1.3         0.6           0         0.8        0.13         7.5
    |    14          11       0.015          21         -28         1.4        -0.8           0         0.6        0.14           8
@@ -396,6 +396,7 @@ mcpltool -s13 nan.mcpl: exit code 0
    |     Storage            : 36 bytes/particle
    | 
    | index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight
+   | MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 12). They can not be added to other MCPL files.
    |    13          22       0.014        19.5         -26         1.3         0.6           0         0.8        0.13         7.5
    |    14          11       0.015          21         -28         1.4        -0.8           0         0.6        0.14           8
    |    15        2112       0.016        22.5         -30         1.5         0.6           0         0.8        0.15         8.5
@@ -473,11 +474,11 @@ mcpltool --extract -l12 nan.mcpl out.mcpl: exit code 0
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 12 / 30 particles from nan.mcpl into out.mcpl
    file out.mcpl: md5 13324e7af40121c4368888326f045b8a
-mcpltool --extract -p pdgcode == 22 nan.mcpl out.mcpl: exit code 0
+mcpltool --extract -e pdgcode == 22 nan.mcpl out.mcpl: exit code 0
    | MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 12). They can not be added to other MCPL files.
    | MCPL: Successfully extracted 10 / 30 particles from nan.mcpl into out.mcpl
-   file out.mcpl: md5 182304f1bd2122e081db063e23bf67e9
-mcpltool --extract -p pdgcode == 2112 inf.mcpl out.mcpl: exit code 1
+   file out.mcpl: md5 ebcffe1d777b195c4b160841dc86a453
+mcpltool --extract -e pdgcode == 2112 inf.mcpl out.mcpl: exit code 1
    | MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 3). They can not be added to other MCPL files.
    | MCPL ERROR: add_particles asked to transfer particle with NaN or infinite kinetic energy
 mcpltool --merge out.mcpl a1.mcpl nan.mcpl inf.mcpl: exit code 0
@@ -559,13 +560,13 @@ mcpltool --merge --inplace --allow-overwrite a1.mcpl a2.mcpl: exit code 1
    | ERROR: --allow-overwrite can only be used with --merge, --forcemerge, --extract, --text, or -o.
    | 
    | Run with -h or --help for usage information
-mcpltool --extract a1.mcpl out.mcpl --pick pdgcode == neutron: MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract a1.mcpl out.mcpl --edit=pdgcode == neutron: MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
-mcpltool --extract a1.mcpl out.mcpl --pick ekin > 5keV and ekin <= 20keV and x <= 2cm + abs(y): MCPL: Successfully extracted 15 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract a1.mcpl out.mcpl --edit=ekin > 5keV and ekin <= 20keV and x <= 2cm + abs(y): MCPL: Successfully extracted 15 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
-mcpltool --extract a1.mcpl out.mcpl --pick not (pdgcode == gamma) or uz > 0.7: MCPL: Successfully extracted 25 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract a1.mcpl out.mcpl --edit=not (pdgcode == gamma) or uz > 0.7: MCPL: Successfully extracted 25 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
-mcpltool --extract a1.mcpl out.mcpl --pick (userflags & 1) == 1 and z < 1.5mm: MCPL: Successfully extracted 0 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract a1.mcpl out.mcpl --edit=(userflags & 1) == 1 and z < 1.5mm: MCPL: Successfully extracted 0 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
 mcpltool --extract a1.mcpl out.mcpl --edit=x = -y; y = x; z += 1cm: MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
@@ -574,114 +575,113 @@ mcpltool --extract a1.mcpl out.mcpl --edit=tmp = x; x = y; y = tmp; swap(ux,uy);
 mcpltool --extract a1.mcpl out.mcpl --edit=weight *= 0.5; time = time + 1us: MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when editing particle weights (use --keep-statsum to keep them)
 MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
-mcpltool --extract a1.mcpl out.mcpl --pick pdgcode == 2112 --edit=wavelength = 1.8Aa: MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract a1.mcpl out.mcpl --edit=pdgcode == 2112; wavelength = 1.8Aa: MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
-mcpltool --extract a1.mcpl out.mcpl --pick pdgcode == gamma --edit=wavelength = wavelength*2: MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract a1.mcpl out.mcpl --edit=pdgcode == gamma; wavelength = wavelength*2: MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
-mcpltool --extract a1.mcpl out.mcpl --pick pdgcode != 11 --edit=ux = -ux; uz = -uz; pdgcode = 2112: MCPL: Successfully extracted 20 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract a1.mcpl out.mcpl --edit=pdgcode != 11; ux = -ux; uz = -uz; pdgcode = 2112: MCPL: Successfully extracted 20 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
-mcpltool --extract a1.mcpl out.mcpl --pick x > 10m: MCPL: Successfully extracted 0 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract a1.mcpl out.mcpl --edit=rotate_y(90deg); x > 0cm; weight *= 2: MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when editing particle weights (use --keep-statsum to keep them)
+MCPL: Successfully extracted 29 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
-Results of selection and edit as expected: True
-mcpltool --extract a1.mcpl out.mcpl --pick ekin=1MeV: exit code 1
-   | ERROR: Syntax error in expression "ekin=1MeV", after "ekin": unexpected "=" (use == for comparisons)
+mcpltool --extract a1.mcpl out.mcpl --edit=x > 10m: MCPL: Successfully extracted 0 / 30 particles from a1.mcpl into out.mcpl
+   same as with the Python API: True
+Results of the edit as expected: True
+mcpltool --extract a1.mcpl out.mcpl --edit ekin: exit code 1
+   | ERROR: "ekin" is neither a condition (e.g. a comparison) nor a change of the particles (e.g. x = 2*y), in "ekin"
    | 
-   | Run with "-p help" for how to pick particles with expressions
-mcpltool --extract a1.mcpl out.mcpl --pick foo>1: exit code 1
+   | Run with "-e help" for how to write edit expressions
+mcpltool --extract a1.mcpl out.mcpl --edit foo>1: exit code 1
    | ERROR: Unknown name "foo" in expression "foo>1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    | 
-   | Run with "-p help" for how to pick particles with expressions
-mcpltool --extract a1.mcpl out.mcpl --pick x>1: exit code 1
+   | Run with "-e help" for how to write edit expressions
+mcpltool --extract a1.mcpl out.mcpl --edit x>1: exit code 1
    | ERROR: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x>1"
    | 
-   | Run with "-p help" for how to pick particles with expressions
-mcpltool --extract a1.mcpl out.mcpl --edit x==1cm: exit code 1
-   | ERROR: Expected assignments like "x = 2*y" (or swap(..) or rotations like rotate_z(..)) in "x==1cm"
-   | 
-   | Run with "-E help" for how to edit particles with expressions
+   | Run with "-e help" for how to write edit expressions
 mcpltool --extract a1.mcpl out.mcpl --edit x=2*ux: exit code 1
    | ERROR: Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x=2*ux"
    | 
-   | Run with "-E help" for how to edit particles with expressions
-mcpltool --extract a1.mcpl out.mcpl --pick: exit code 1
-   | ERROR: Missing argument for --pick
+   | Run with "-e help" for how to write edit expressions
+mcpltool --extract a1.mcpl out.mcpl --edit: exit code 1
+   | ERROR: Missing argument for --edit
    | 
    | Run with -h or --help for usage information
-mcpltool --extract a1.mcpl out.mcpl --pick x>1cm --pick y>1cm: exit code 1
-   | ERROR: -p specified more than once
+mcpltool --extract a1.mcpl out.mcpl --edit x>1cm --edit y>1cm: exit code 1
+   | ERROR: -e specified more than once
    | 
    | Run with -h or --help for usage information
 mcpltool --extract a1.mcpl out.mcpl --edit wavelength=1.8Aa: exit code 1
    | MCPL ERROR: wavelength can only be assigned to neutrons (pdgcode 2112) and gammas (pdgcode 22) in expression "wavelength=1.8Aa"
-mcpltool --pick x>1cm -j a1.mcpl: exit code 1
-   | ERROR: Do not specify -p or -E with --justhead
+mcpltool --edit x>1cm -j a1.mcpl: exit code 1
+   | ERROR: Do not specify -e with --justhead
    | 
    | Run with -h or --help for usage information
-mcpltool --pick x>1cm -ba a1.mcpl: exit code 1
+mcpltool --edit x>1cm -ba a1.mcpl: exit code 1
    | ERROR: Do not specify other dump options with -b.
    | 
    | Run with -h or --help for usage information
-mcpltool --pick x>1meV a1.mcpl: exit code 1
+mcpltool --edit x>1meV a1.mcpl: exit code 1
    | ERROR: Incompatible units in comparison: length and energy in expression "x>1meV"
    | 
-   | Run with "-p help" for how to pick particles with expressions
-mcpltool --stats --pick x>1km a1.mcpl: exit code 1
-   | ERROR: Can not calculate statistics when no particles are picked
+   | Run with "-e help" for how to write edit expressions
+mcpltool --stats --edit x>1km a1.mcpl: exit code 1
+   | ERROR: Can not calculate statistics when no particles are kept
    | 
    | Run with -h or --help for usage information
 mcpltool --stats -pantimuon a1.mcpl: exit code 1
-   | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == antimuon"
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
    | 
-   | Run with "-p help" for how to pick particles with expressions
+   | Run with -h or --help for usage information
 mcpltool -pfoo a1.mcpl: exit code 1
-   | ERROR: Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
    | 
-   | Run with "-p help" for how to pick particles with expressions
+   | Run with -h or --help for usage information
 mcpltool -pgamma -j a1.mcpl: exit code 1
-   | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == gamma"
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
    | 
-   | Run with "-p help" for how to pick particles with expressions
-mcpltool --repair --pick x>1cm a1.mcpl: exit code 1
-   | ERROR: -p can only be used when showing particles, or with -S, -w, -t, or -e.
+   | Run with -h or --help for usage information
+mcpltool --repair --edit x>1cm a1.mcpl: exit code 1
+   | ERROR: -e can only be used when showing particles, or with -S, -w, -t, or -x.
    | 
    | Run with -h or --help for usage information
 mcpltool --repair -pgamma a1.mcpl: exit code 1
-   | ERROR: -p can only be used when showing particles, or with -S, -w, -t, or -e.
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
    | 
    | Run with -h or --help for usage information
 mcpltool -p22 --merge out.mcpl a1.mcpl a2.mcpl: exit code 1
-   | ERROR: -p can only be used when showing particles, or with -S, -w, -t, or -e.
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == 22")
    | 
    | Run with -h or --help for usage information
 mcpltool --extract -p0 a1.mcpl out.mcpl: exit code 1
-   | ERROR: -p takes an expression (PICK): to pick particles of a type, use -p "pdgcode == 0"
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == 0")
    | 
-   | Run with "-p help" for how to pick particles with expressions
+   | Run with -h or --help for usage information
 mcpltool --extract -pabc a1.mcpl out.mcpl: exit code 1
-   | ERROR: Unknown name "abc" in expression "abc" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
    | 
-   | Run with "-p help" for how to pick particles with expressions
+   | Run with -h or --help for usage information
 mcpltool --extract -pNeutron a1.mcpl out.mcpl: exit code 1
-   | ERROR: Unknown name "Neutron" in expression "Neutron" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
    | 
-   | Run with "-p help" for how to pick particles with expressions
+   | Run with -h or --help for usage information
 mcpltool --extract -pfoo a1.mcpl out.mcpl: exit code 1
-   | ERROR: Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+   | ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
    | 
-   | Run with "-p help" for how to pick particles with expressions
+   | Run with -h or --help for usage information
 mcpltool --keep-statsum a1.mcpl: exit code 1
-   | ERROR: --keep-statsum can only be used with -e.
+   | ERROR: --keep-statsum can only be used with -x.
    | 
    | Run with -h or --help for usage information
 mcpltool --stats --keep-statsum a1.mcpl: exit code 1
-   | ERROR: --keep-statsum can only be used with -e.
+   | ERROR: --keep-statsum can only be used with -x.
    | 
    | Run with -h or --help for usage information
-mcpltool --extract --pick pdgcode == neutron: stat:sum:nsim = 1000.0
+mcpltool --extract --edit pdgcode == neutron: stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
 mcpltool --extract --edit z += 1cm; rotate_z(10deg): stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract -p pdgcode == gamma --edit wavelength = 1Aa: stat:sum:nsim = 1000.0
+mcpltool --extract --edit pdgcode == gamma; wavelength = 1Aa: stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
 mcpltool --extract --edit weight *= 2: stat:sum:nsim = None
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when editing particle weights (use --keep-statsum to keep them)
@@ -691,7 +691,7 @@ mcpltool --extract --edit tmp = weight; weight = 2*tmp: stat:sum:nsim = None
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
 mcpltool --extract --edit weight *= 2 --keep-statsum: stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract --pick x > 0 --edit weight = 1 --keep-statsum: stat:sum:nsim = 1000.0
+mcpltool --extract --edit x > 0; weight = 1 --keep-statsum: stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 29 / 30 particles from a1.mcpl into out.mcpl
 mcpltool --extract -l5 --edit weight *= 2 --keep-statsum: stat:sum:nsim = None
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
@@ -699,11 +699,14 @@ mcpltool --extract -l5 --edit weight *= 2 --keep-statsum: stat:sum:nsim = None
 mcpltool --extract -l5: stat:sum:nsim = None
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 5 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract -s1 --pick x > 0: stat:sum:nsim = None
+mcpltool --extract -s1 --edit x > 0: stat:sum:nsim = None
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 29 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract --pick mod(fileidx,2) == 0: stat:sum:nsim = None
+mcpltool --extract --edit mod(fileidx,2) == 0: stat:sum:nsim = None
    | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
    | MCPL: Successfully extracted 15 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract -E x = 1cm*fileidx: stat:sum:nsim = 1000.0
+mcpltool --extract --edit n = fileidx; n > 5: stat:sum:nsim = None
+   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+   | MCPL: Successfully extracted 24 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract -e x = 1cm*fileidx: stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl

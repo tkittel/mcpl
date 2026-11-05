@@ -222,7 +222,7 @@ def _draw_panel( fig, ax, panel, several = False ):
                     transform=ax.transAxes)
     import warnings
     with warnings.catch_warnings():
-        #(plots without positive values, e.g. when no particles are picked,
+        #(plots without positive values, e.g. when no particles are kept,
         #are just empty, which matplotlib warns about):
         warnings.filterwarnings('ignore',message='Data has no positive values')
         #(only with positive values, which matplotlib can not draw without,

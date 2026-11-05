@@ -19,7 +19,7 @@
 ##                                                                            ##
 ################################################################################
 
-"""Extracting particles into a new file, as with mcpltool -e, and the output
+"""Extracting particles into a new file, as with mcpltool -x, and the output
 file names of mcpltool."""
 
 __all__ = []
@@ -35,27 +35,25 @@ def _shell_arg( expression ):
     #characters which are special inside double quotes are not allowed)
     return f'"{expression}"'
 
-def _range_options( skip, limit, pick, edit ):
-    """The options -l, -s, -p, and -E of mcpltool for the range of particles
-    and the pick and edit (expressions as texts, or None)"""
+def _range_options( skip, limit, edit ):
+    """The options -l, -s, and -e of mcpltool for the range of particles and
+    the edit (an expression as a text, or None)"""
     opts = ( [ f'-l{limit}' ] if limit else [] ) + ( [ f'-s{skip}' ] if skip else [] )
-    for opt, e in ( ('-p',pick), ('-E',edit) ):
-        if e is not None:
-            opts += [ opt, _shell_arg(e) ]
+    if edit is not None:
+        opts += [ '-e', _shell_arg(edit) ]
     return opts
 
-def _statsum_marking( f, skip, limit, pick, edit, keepstatsum = False ):
+def _statsum_marking( f, skip, limit, edit, keepstatsum = False ):
     """Why the stat:sum entries of the file f are marked as not available (-1)
-    in a file with its particles in a range (skip and limit), picked and edited
-    (a ParticleFilter and a ParticleEdit, or None): 'positions' when picking
-    particles based on their positions in the file, 'weights' when editing
-    their weights (unless keepstatsum), or None (see the guidelines for
-    stat:sum entries)"""
+    in a file with its particles in a range (skip and limit), edited (with a
+    ParticleEdit, or None): 'positions' when keeping particles based on their
+    positions in the file, 'weights' when editing their weights (unless
+    keepstatsum), or None (see the guidelines for stat:sum entries)"""
     if not any( v is not None for v in f.stat_sum.values() ):
         return None
     n = f.nparticles
     if n > 0 and ( ( skip or 0 ) > 0 or 0 < ( limit or 0 ) < n
-                   or ( pick is not None and pick._uses_fileidx ) ):
+                   or ( edit is not None and edit._uses_fileidx ) ):
         return 'positions'
     if not keepstatsum and edit is not None and 'weight' in edit.modified_fields:
         return 'weights'
@@ -87,7 +85,7 @@ def _mcpltool_close(outfile):
         return outfile.filename
     return outfile.filename + '.gz'
 
-def _mcpltool_extract(filelist, limit, skip, pick, edit, preventcomment,
+def _mcpltool_extract(filelist, limit, skip, edit, preventcomment,
                       keepstatsum, dry_run, bad, allow_overwrite = False):
     if len(filelist) > 2:
         bad("Too many arguments.")
@@ -112,12 +110,11 @@ def _mcpltool_extract(filelist, limit, skip, pick, edit, preventcomment,
                 #Describe which particles were extracted (but nothing specific
                 #to the input file, to keep files extracted in the same way
                 #mergeable):
-                opts = _range_options(skip,limit,*( None if e is None else e.expression
-                                                    for e in ( pick, edit ) ))
+                opts = _range_options(skip,limit,None if edit is None else edit.expression)
                 fo.hdr_add_comment('mcpltool: extracted particles'
                                    + ( ' with ' + ' '.join(opts)
                                        if opts else '' ))
-            marking = _statsum_marking(fi,skip,limit,pick,edit,keepstatsum)
+            marking = _statsum_marking(fi,skip,limit,edit,keepstatsum)
             if marking == 'positions':
                 _warning("Marking stat:sum entries in output file as "
                          "not available (-1) when filtering based on particle "
@@ -130,12 +127,7 @@ def _mcpltool_extract(filelist, limit, skip, pick, edit, preventcomment,
                 fo.hdr_scale_stat_sums(-1.0)
             for b in _blocks_in_range(fi.particle_blocks,*_particle_range(n_in,skip,limit or None)):
                 fi._warn_if_nonfinite(b)
-                if pick is not None:
-                    b = b[pick(b)]
-                if edit is not None:
-                    fo.add_particles(b,**edit(b))
-                else:
-                    fo.add_particles(b)
+                fo.add_particles(b if edit is None else edit(b))
             n_added = fo.nparticles
             outname = _mcpltool_close(fo)
         except BaseException:

@@ -254,7 +254,7 @@ class MCPLParticleBlock:
     @property
     def fileidx(self):
         """Array with the positions in the file of the particles in the block
-        (counting from 0), also for blocks with picked particles."""
+        (counting from 0), also for blocks of edited particles."""
         if self._indices is not None:
             return self._indices
         return np.arange(self._offset,self._offset+len(self._data),dtype=np.int64)
@@ -506,17 +506,22 @@ for _f in _block_fields:
 del _f
 
 def _concat_blocks(blocks):
-    """Merge blocks (without edits) of particles from the same file"""
+    """Merge blocks of particles from the same file (with the same changed
+    fields, if edited)"""
     if len(blocks) == 1:
         return blocks[0]
     res = MCPLParticleBlock(*blocks[0]._ctor_args)
     res._set_data(np.concatenate([ b._data for b in blocks ]),9223372036854775807)
     res._indices = np.concatenate([ b.fileidx for b in blocks ])
+    edits = getattr(blocks[0],'_edits',None)
+    if edits:
+        res = _EditedParticleBlock(res,{ k : np.concatenate([ b._edits[k] for b in blocks ])
+                                         for k in edits })
     return res
 
 class _UserdataView:
-    """A block of particles with other userdata (e.g. for picks and edits of
-    particles added to MCPLOutFile with new userdata)."""
+    """A block of particles with other userdata (e.g. for edits of particles
+    added to MCPLOutFile with new userdata)."""
     def __init__(self, block, userdata, udlayout):
         self._block = block
         self.userdata = userdata

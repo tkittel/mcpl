@@ -30,7 +30,7 @@ arrays: [1.808914e+00 4.959368e+05          nan]
 relative difference to non-relativistic result at 2.5e-08MeV: -6.65e-12
 first particle: pdgcode=22 ekin=1.26347 wavelength=0.00981299
 wavelengths of the 965 neutrons and gammas in the block: 3.85659e-06Aa - 0.0496982Aa
-wavelength of block with other particles: MCPLError: The wavelength is only defined for neutrons (pdgcode 2112) and gammas (pdgcode 22), not for particles with pdgcode 211, so pick neutrons or gammas first (e.g. with block[block.pdgcode == 2112])
-wavelength of particle which is not a neutron or gamma: MCPLError: The wavelength is only defined for neutrons (pdgcode 2112) and gammas (pdgcode 22), not for particles with pdgcode 211, so pick neutrons or gammas first (e.g. with block[block.pdgcode == 2112])
+wavelength of block with other particles: MCPLError: The wavelength is only defined for neutrons (pdgcode 2112) and gammas (pdgcode 22), not for particles with pdgcode 211, so select neutrons or gammas first (e.g. with block[block.pdgcode == 2112])
+wavelength of particle which is not a neutron or gamma: MCPLError: The wavelength is only defined for neutrons (pdgcode 2112) and gammas (pdgcode 22), not for particles with pdgcode 211, so select neutrons or gammas first (e.g. with block[block.pdgcode == 2112])
 wavelength of neutrons with zero ekin: MCPLError: The wavelength of particles with zero kinetic energy is infinite
 wavelength of the other neutron: 0.286014Aa

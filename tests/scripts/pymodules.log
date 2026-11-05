@@ -9,6 +9,8 @@ Modules of the mcpl package and their imports from the package (in parentheses: 
   _examples            <- _common, _messages, _numpy, (_writer)
   _expr_ast            <- -
   _expr_ast2astnorm    <- _expr_ast, _exprunits, _particles
+  _expr_ast2c          <- _common, _expr_ast, _expr_ast2str, _expr_vocab, _exprunits, _particles, (_expr_eval), (_expressions), (_userdata), (constants)
+  _expr_ast2cpp        <- _expr_ast2c, (_expressions), (_userdata)
   _expr_ast2str        <- _expr_ast
   _expr_astcheck       <- _common, _expr_ast, _expr_ast2str, _expr_vocab, _exprunits, _particles
   _expr_eval           <- _common, _expr_ast, _expr_vocab, _exprrotation, _exprunits, _numpy, _particles, _physics, (_userdata)

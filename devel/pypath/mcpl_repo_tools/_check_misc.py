@@ -27,6 +27,9 @@ ignore_list = set()
 
 ignore_list_nonascii = {
     'devel/misc/test_encodings.x',
+    #The logo of the website, copied unchanged from
+    #https://github.com/mctools/mcpl-logo (its title has an em dash):
+    'doc/source/_static/mcpl-logo-dark.svg',
 }
 
 def get_frel(f):
@@ -52,6 +55,7 @@ def main():
     max_size_overrides = {
         'mcpl_core/src/mcpl.c' : 270,
         'mcpl_core/include/mcplcpp.h' : 80,
+        'doc/source/_extra/mcpl.pdf' : 1600,
         'tests/scripts/pystat.log' : 500,
     }
     for f in all_files_iter():

@@ -1,0 +1,175 @@
+/* Box with the latest news on the front page: */
+.mcplnews {
+  border-left: 4px solid #2980b9;
+  background: #f3f6f6;
+  padding: 0.6em 1em 0.1em 1em;
+  margin-bottom: 1.5em;
+}
+.mcplnews p.mcplnews-title {
+  font-weight: bold;
+  margin-bottom: 0.4em;
+}
+.mcplnews ul li {
+  margin-bottom: 0.3em;
+}
+
+/* Label for freely available publications (the :openaccess: role): */
+.openaccess {
+  display: inline-block;
+  font-size: 75%;
+  font-weight: bold;
+  color: #1a7f37;
+  border: 1px solid #1a7f37;
+  border-radius: 3px;
+  padding: 0 0.4em;
+  margin-left: 0.3em;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Logos in the acknowledgements, all at the same small height on one line: */
+.mcpllogos img {
+  height: 40px;
+  width: auto;
+  margin-right: 1.5em;
+  vertical-align: middle;
+}
+
+/* The logo at the top of the sidebar, on the background of the sidebar: */
+.wy-side-nav-search {
+  background-color: #343131;
+  /* Always visible at the top of the sidebar (also when the theme scrolls
+     the menu to the current page, which then stays below the logo): */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.wy-side-scroll {
+  scroll-padding-top: var(--mcpl-sidebar-top, 10rem);
+}
+.wy-side-nav-search > a img.logo, .wy-side-nav-search .wy-dropdown > a img.logo {
+  max-width: 85%;
+  padding: 0.3em 0 0.6em 0;
+}
+
+/* Table cells wrap their text (the theme keeps the contents of each cell on one
+   line, so tables with longer descriptions need horizontal scrolling): */
+.wy-table-responsive table td, .wy-table-responsive table th {
+  white-space: normal;
+}
+
+/* Entries on the API reference pages (see apitoggle.js): collapsed entries,
+   and entries with a single sentence as description, are shown compactly on
+   one line (signature and description): */
+.rst-content dl.mcpl-entry {
+  margin-bottom: 0.25em !important;
+}
+.rst-content dl.mcpl-entry > dt {
+  margin: 0.1em 0 !important;
+}
+.rst-content dl.mcpl-collapsed,
+.rst-content dl.mcpl-oneline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+dl.mcpl-collapsible > dt {
+  cursor: pointer;
+}
+dl.mcpl-entry > dt::before {
+  content: "";
+  display: inline-block;
+  width: 1.1em;
+}
+dl.mcpl-collapsible > dt::before {
+  content: "\25BE";/* (down-pointing triangle) */
+  color: #2980b9;
+}
+dl.mcpl-collapsed > dt::before {
+  content: "\25B8";/* (right-pointing triangle) */
+}
+dl.mcpl-collapsed > dd,
+dl.mcpl-oneline > dd {
+  display: none;
+}
+dl.mcpl-entry > .mcpl-summary {
+  display: none;
+}
+dl.mcpl-collapsed > .mcpl-summary,
+dl.mcpl-oneline > .mcpl-summary {
+  display: block;
+  flex: 1 1 12em;
+  margin-left: 0.8em;
+  color: #555;
+  font-size: 92%;
+}
+.mcpl-togglebar {
+  margin: -0.5em 0 1em 0;
+}
+.mcpl-togglebar button {
+  font-size: 80%;
+  margin-right: 0.5em;
+  padding: 0.15em 0.7em;
+  border: 1px solid #c9c9c9;
+  border-radius: 3px;
+  background: #f3f6f6;
+  cursor: pointer;
+}
+
+/* Cards for the subtopics on the "Using MCPL" page (the whole card is a link
+   to the subtopic, through the link in its title): */
+.mcplcards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14em, 1fr));
+  gap: 1em;
+  margin: 1.5em 0 2em 0;
+}
+.mcplcard {
+  position: relative;
+  padding: 1em 1.1em 0.6em 1.1em;
+  border-radius: 8px;
+  border: 1px solid #dfe3e8;
+  border-top: 4px solid #4a9fe8;
+  background: #fafbfc;
+  box-shadow: 0 1px 3px rgba(46,62,80,0.12);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.mcplcard:nth-child(3n+2) { border-top-color: #f0a32a; }
+.mcplcard:nth-child(3n+3) { border-top-color: #ef7f3a; }
+.mcplcard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(46,62,80,0.22);
+}
+.mcplcard p {
+  margin-bottom: 0.4em;
+  font-size: 92%;
+  color: #4a5562;
+}
+.mcplcard p a {
+  font-size: 112%;
+  font-weight: bold;
+  color: #2e3e50;
+}
+.mcplcard p a::after {
+  /* (makes the whole card clickable) */
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.mcplcard-badge p {
+  display: inline-block;
+  min-width: 2.4em;
+  padding: 0.25em 0.5em;
+  border-radius: 1.2em;
+  background: #2e3e50;
+  color: #ffffff;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: bold;
+  font-size: 85%;
+  text-align: center;
+}
+/* (space between the compact entries and what follows them) */
+.rst-content dl.mcpl-entry + section,
+.rst-content dl.mcpl-entry + p {
+  margin-top: 1.2em;
+}

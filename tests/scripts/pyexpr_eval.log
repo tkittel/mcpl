@@ -17,7 +17,7 @@ Values:
   '4cm^2': 4.0 dim (2, 0, 0, 0) type float64
   'cm^-1': 1.0 dim (-1, 0, 0, 0) type float64
   '0.5m': 50.0 dim (1, 0, 0, 0) type float64
-  '1e308km': MCPLError: Multiplication gives NaN or infinite values in expression "1e308km"
+  '1e308km': MCPLError: A constant has NaN or infinite values in expression "1e308km"
   'MeV': 1.0 dim (0, 1, 0, 0) type float64
   'x': [1.0, -2.0, 0.5] dim (1, 0, 0, 0) type float64
   'pdgcode': [2112, 22, 11] dim None type int32

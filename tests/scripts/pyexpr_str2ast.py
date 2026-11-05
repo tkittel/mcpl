@@ -139,8 +139,9 @@ def test_valid():
             'dot(dir,(0,0,1))', 'f(g(a))' ),
         'Userdata fields' : ( 'userdata.temp', 'userdata.d.at(1)', 'userdata.temp > 300K',
                               '-userdata.n ^ 2' ),
-        'In and not in' : ( 'pdgcode in (neutron,gamma)', 'x not in (1,2)', 'a in (b)',
-                            'not a in (1,2)', 'a + 1 in (2,3) and b' ),
+        'In and not in (of integers and particles)' : (
+            'pdgcode in (neutron,gamma)', 'x not in (1,2)', 'a in (1)', 'not a in (1,2)',
+            'a + 1 in (2,3) and b', 'p in (-11, +0x1f, -0x10, positron, 0)' ),
         'Numbers (decimal and hexadecimal, as in C)' : (
             '0', '7', '0.5', '.5', '5.', '1e-3', '1E3', '1.e3', '0x10', '0X1F', '0x0', '0.0',
             '007.5', '1eV' ),
@@ -166,7 +167,8 @@ def test_valid():
 def test_errors():
     print('Errors:')
     for text in ( '', ' ', 'x +', '(x', 'x)', '((x)', 'x y', '1 2', 'x = 1',
-                  'a in (1) < 2', 'a < b in (1)', 'a in 1', 'a in ()', '(1,2,3,4)', '()',
+                  'a in (1) < 2', 'a < b in (1)', 'a in 1', 'a in ()', 'a in (b)', 'a in (1cm)',
+                  'a in (1.5)', 'a in (-neutron)', 'a in (1,)', 'a in (--1)', 'a in ((1))', '(1,2,3,4)', '()',
                   'pos.w', 'pos.at(x)', 'pos.at(-1)', 'pos.at(1.5)', 'pos.', 'userdata.',
                   'userdata.d.x', 'userdata.d.at()', '090', '007', '00', '1_000', '1_0.5',
                   '0x_10', '0o17', '0b101', '0x', '0xg', '1.2.3', '1e', '1e+', 'x && y', 'x || y',
@@ -205,7 +207,8 @@ def random_tree( rnd, depth ):
     if kind == 5:
         return f'f({sub()},{sub()})'
     if kind == 6:
-        return f'{sub()} {rnd.choice(("in","not in"))} ({sub()},{sub()})'
+        values = ','.join( rnd.choice(( '1', '-2', '0x1f', 'neutron', '+3' )) for _ in range(rnd.randrange(1,4)) )
+        return f'{sub()} {rnd.choice(("in","not in"))} ({values})'
     if kind == 7:
         return f'({sub()}){rnd.choice(("cm","MeV","m^-1"))}'
     return f'({sub()},{sub()}).{rnd.choice(("x","y","at(0)"))}'

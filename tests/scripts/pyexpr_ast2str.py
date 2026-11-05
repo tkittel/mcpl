@@ -120,6 +120,8 @@ def test_operators():
             ( In(Name('pdgcode'),False,( Particle('neutron'), Particle('gamma') )),
               'pdgcode in (neutron,gamma)' ),
             ( In(Binary('+',a,one),True,( two, )), 'a+1 not in (2)' ),
+            ( In(a,False,( Int(-11), Int(-16,hex = True), Int(0), Particle('positron') )),
+              'a in (-11,-0x10,0,positron)' ),
             ( Unary('not',In(a,False,( one, two ))), 'not a in (1,2)' ),
             ( Logical('and',( In(a,False,( one, )), b )), 'a in (1) and b' ),
             ( Compare(In(a,False,( one, )),( '==', ),( b, )), '(a in (1))==b' ) ):

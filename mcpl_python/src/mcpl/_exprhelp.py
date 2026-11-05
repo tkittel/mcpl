@@ -393,8 +393,8 @@ variables (other lowercase names, which can be used in later statements), and
 the statements listed below.
 
 The operators are: + - * / // (and ^ for powers), == != < <= > >=, in and
-not in (one of the values in parentheses), and, or, not (and & | for
-bits). Values with units must be written with units
+not in (one of the integers or particle names in parentheses), and, or, not
+(and & | for bits). Values with units must be written with units
 (e.g. 25meV or 10cm), except for a plain 0 (e.g. x > 0), and the wavelength
 is only defined for neutrons and gammas, so keep only those first (e.g.
 "pdgcode == neutron; wavelength > 1.8Aa", or with and). Integers (pdgcode,

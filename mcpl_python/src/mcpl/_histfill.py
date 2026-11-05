@@ -422,22 +422,19 @@ def _nice_nbins( maxbins ):
                         best = (ndiv,n)
     return best[1] if best else maxbins
 
-def _auto_nbins( neff, nbins, ndim = 1 ):
+def _auto_nbins( nentries, nbins, ndim = 1 ):
     """Number of bins (per axis) for showing a histogram made with nbins bins
-    of data with an effective number of entries neff: neff^(1/(ndim+1)), which
-    is the square-root rule for ndim=1, and for ndim=2 gives bins with as many
-    entries on average as there are bins per axis (as for the square-root
-    rule), clamped to [10,400], and then the closest divisor of nbins (in log
-    distance, so the bins can be merged exactly)."""
-    target = max( 1.0, neff ) ** ( 1.0 / ( ndim + 1 ) )
+    of nentries particles (with non-zero weights, as the bins show where the
+    particles are, also when a few of them have most of the weight):
+    nentries^(1/(ndim+1)), which is the square-root rule for ndim=1, and for
+    ndim=2 gives bins with as many entries on average as there are bins per
+    axis (as for the square-root rule), clamped to [10,400], and then the
+    closest divisor of nbins (in log distance, so the bins can be merged
+    exactly)."""
+    target = max( 1.0, nentries ) ** ( 1.0 / ( ndim + 1 ) )
     target = max( 10, min( 400, round(target) ) )
     divs = [ d for d in _range(1,nbins+1) if nbins % d == 0 ]
     return min( divs, key = lambda d : abs(math.log(d/target)) )
-
-def _neff( sumw, sumw2 ):
-    """Effective number of entries (sum of weights squared over sum of squared
-    weights, which is the number of entries for unit weights)"""
-    return sumw * sumw / sumw2 if sumw2 > 0.0 else 0.0
 
 _range = range#(the name range is shadowed by arguments below)
 
@@ -636,6 +633,7 @@ class _Hist1DFiller(_Filler):
         self._nbins = _nice_nbins(self._maxbins or 1200) if self._auto else int(self._bins)
         self._edges = _make_edges(self._range,self._nbins,self._logx)
         self._acc = {}#(file label,display_by key) -> [contents,sumw2,underflow,overflow]
+        self._nentries = 0#(in the range, with non-zero weights, see _auto_nbins)
 
     def _add( self, flabel, b ):
         edges, dby = self._edges, self._dby
@@ -650,6 +648,7 @@ class _Hist1DFiller(_Filler):
         inside = ( v >= edges[0] ) & ( v <= edges[-1] )
         flat = kidx[inside] * n + _bin_index(v[inside],edges,self._logx)
         wi = w[inside]
+        self._nentries += int(np.count_nonzero(wi))
         sums = np.bincount(flat,weights=wi,minlength=nk*n).reshape(nk,n)
         sums2 = np.bincount(flat,weights=wi*wi,minlength=nk*n).reshape(nk,n)
         under, over = ( np.bincount(kidx[m],weights=w[m],minlength=nk)
@@ -664,12 +663,10 @@ class _Hist1DFiller(_Filler):
     def result( self ):
         edges, nbins, dby = self._edges, self._nbins, self._dby
         acc = { k : list(a) for k, a in self._acc.items() }
-        #With automatic binning, merge the bins according to the effective number
-        #of entries:
+        #With automatic binning, merge the bins according to the number of
+        #entries:
         if self._auto:
-            sumw = sum( a[0].sum() for a in acc.values() )
-            sumw2 = sum( a[1].sum() for a in acc.values() )
-            k = nbins // _auto_nbins(_neff(sumw,sumw2),nbins)
+            k = nbins // _auto_nbins(self._nentries,nbins)
             if k > 1:
                 edges = edges[::k]
                 for a in acc.values():
@@ -805,7 +802,7 @@ class _Hist2DFiller(_Filler):
         self._xe, self._ye = ( _make_edges(r,n,lg) for r, n, lg in
                                zip(self._ranges,(bx,by),self._log) )
         self._contents = np.zeros((bx,by))
-        self._sumw, self._sumw2 = 0.0, 0.0
+        self._nentries = 0#(see _auto_nbins)
 
     def _add( self, flabel, b ):
         xe, ye = self._xe, self._ye
@@ -817,14 +814,13 @@ class _Hist2DFiller(_Filler):
         wi = w[inside]
         self._contents += np.bincount(flat,weights=wi,
                                       minlength=self._bx*self._by).reshape(self._bx,self._by)
-        self._sumw += float(wi.sum())
-        self._sumw2 += float((wi*wi).sum())
+        self._nentries += int(np.count_nonzero(wi))
 
     def result( self ):
         xe, ye, contents, bx, by = self._xe, self._ye, self._contents, self._bx, self._by
         if self._auto:
-            neff = _neff(self._sumw,self._sumw2)
-            kx, ky = bx // _auto_nbins(neff,bx,2), by // _auto_nbins(neff,by,2)
+            n = self._nentries
+            kx, ky = bx // _auto_nbins(n,bx,2), by // _auto_nbins(n,by,2)
             if kx > 1 or ky > 1:
                 xe, ye = xe[::kx], ye[::ky]
                 contents = contents.reshape(bx//kx,kx,by//ky,ky).sum(axis=(1,3))

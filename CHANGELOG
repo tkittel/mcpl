@@ -25,11 +25,11 @@ v2.2.9  (work in progress)
         ParticleEdit and the edit argument in Python, -e in mcpltool, and as
         generated C or C++ programs (mcpltool -x --code).
       * Histograms of expressions: mcpl.histogram(FILE,HIST) in Python and
-        mcpltool -w HIST (or -t HIST), shown with matplotlib, as text in the
-        terminal (in colour), or saved as .pdf, .png, .svg, or .txt, also 2D
-        histograms, bar charts, and 3D plots of points.
+        mcpltool -H HIST, shown with matplotlib, as text in the terminal (in
+        colour), or saved as .pdf, .png, .svg, or .txt, also 2D histograms,
+        bar charts, and 3D plots of points.
       * mcpltool is now the command-line tool of the mcpl-python package (the
-        compiled one is removed), with all the old commands and -e, -w, -t,
+        compiled one is removed), with all the old commands and -e, -H,
         --create-examples, --dry-run, and --allow-overwrite.
       * MCPLFile.to_scipp and scipp_blocks give the particles as scipp
         DataArrays (needs the "scipp" extra).
@@ -73,10 +73,11 @@ v2.2.9  (work in progress)
     Changes to the command line:
 
       * mcpltool: -x extracts (was -e), -e EDIT edits (-p and -E are replaced
-        by it; the old forms give errors saying what to use), -w HIST and -t
-        HIST show histograms, and there are --code=c|cpp, --keep-statsum,
-        --no-comment, --dry-run, --allow-overwrite, --create-examples, and
-        --color. --pdf and --gui are removed.
+        by it; the old forms give errors saying what to use), -H HIST for
+        histograms, --code=c|cpp, --keep-statsum, --no-comment, --dry-run,
+        --allow-overwrite, --create-examples, and --color. --pdf and --gui are
+        removed. Errors go to standard error, in the usual form of
+        command-line tools.
       * The comment of extracted files describes the extraction (so files
         extracted in the same way can be merged).
       * ssw2mcpl and phits2mcpl: the -n option is no longer needed (and gives

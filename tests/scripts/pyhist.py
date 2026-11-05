@@ -199,14 +199,14 @@ def test_public_api():
         print(f'plot to an existing file: {e}')
 
 def test_autobins():
-    #Without bins, the number of bins follows from the effective number of
-    #entries (square root, clamped to [10,400]), after histogramming with many
-    #bins which are then merged exactly:
+    #Without bins, the number of bins follows from the number of entries
+    #(square root, clamped to [10,400]), after histogramming with many bins
+    #which are then merged exactly:
     from mcpldev._histfill import _auto_nbins, _nice_nbins
     print('nice numbers of bins:',[ (m,_nice_nbins(m)) for m in (1200,400,239,83,37,15,8) ])
-    for neff in (1, 100, 1000, 1e4, 1e5, 1e6):
-        print(f'neff={neff:g}: bins of 1080 -> {_auto_nbins(neff,1080)},'
-              f' of 216 -> {_auto_nbins(neff,216)}, 2D of 216 -> {_auto_nbins(neff,216,2)}')
+    for n in (1, 100, 1000, 1e4, 1e5, 1e6):
+        print(f'n={n:g}: bins of 1080 -> {_auto_nbins(n,1080)},'
+              f' of 216 -> {_auto_nbins(n,216)}, 2D of 216 -> {_auto_nbins(n,216,2)}')
     #Sanity of the choices for all plot widths and a range of statistics: the
     #bins merge exactly, few columns are unused, and the number of bins is
     #close to the target unless the plot is too narrow for it:
@@ -214,9 +214,9 @@ def test_autobins():
     stats, nbad = [], 0
     for ncols in [None] + list(range(29,240)):
         nb = _nice_nbins(1200 if ncols is None else ncols)
-        for neff in (1,3,10,30,100,300,1e3,3e3,1e4,3e4,1e5,1e6,1e8):
-            n = _auto_nbins(neff,nb)
-            target = max(10,min(400,round(math.sqrt(neff))))
+        for nentries in (1,3,10,30,100,300,1e3,3e3,1e4,3e4,1e5,1e6,1e8):
+            n = _auto_nbins(nentries,nb)
+            target = max(10,min(400,round(math.sqrt(nentries))))
             unused = 0.0 if ncols is None else ( ncols - nb ) / ncols
             capped = ( n == nb )#(every column used, narrow plot)
             ratio = n / target
@@ -224,7 +224,7 @@ def test_autobins():
                    and ( capped or 0.6 <= ratio <= 1.5 ) )
             nbad += ( not ok )
             stats.append((ratio,unused,capped))
-    print(f'{len(stats)} (ncols,neff) cases, {nbad} bad, ratio to target'
+    print(f'{len(stats)} (ncols,nentries) cases, {nbad} bad, ratio to target'
           f' {min(r for r,_,c in stats if not c):.2f}..{max(r for r,_,c in stats if not c):.2f}'
           f' when not capped, {sum(c for _,_,c in stats)} capped by narrow plots,'
           f' at most {100*max(u for _,u,_ in stats):.0f}% unused columns')
@@ -247,18 +247,31 @@ def test_autobins():
           f' sum {h.contents.sum():g}, for display: {h._display_bins}')
     h = ihist2d(example_file, 'x/cm', 'y/cm', bins=(8,4))
     print(f'2D with bins=(8,4): {h.contents.shape} bins, for display: {h._display_bins}')
+    #(the same number of bins when a few particles have most of the weight, as
+    #the bins show where the particles are; particles with weight 0 do not
+    #count):
+    rng = np.random.default_rng(1)
+    nb = 100000
+    x, y = rng.normal(0,1,nb), rng.normal(0,1,nb)
+    for name, w in ( ( 'equal weights', np.ones(nb) ),
+                     ( 'weights spread over 8 decades', 10**rng.uniform(-4,4,nb) ),
+                     ( 'half of the weights 0', np.where(np.arange(nb)%2,1.0,0.0) ) ):
+        with mcpl.MCPLOutFile('weighted.mcpl', allow_overwrite = True) as o:
+            o.add_particles( pdgcode = 2112, ekin = 1.0, x = x, y = y, uz = 1.0, weight = w )
+        h1, h2 = ihist('weighted.mcpl', 'x/cm'), ihist2d('weighted.mcpl', 'x/cm', 'y/cm')
+        print(f'auto with {name}: {len(h1.edges)-1} bins, 2D {h2.contents.shape} bins')
 
 def tool(*args):
     out = io.StringIO()
     rc = 0
-    with contextlib.redirect_stdout(out):
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(out):
         try:
             mcpl.app_mcpltool(['mcpltool',*args])
         except SystemExit as e:
             rc = e.code
         except mcpl.MCPLError as e:
             #(as the mcpltool command):
-            print(f'MCPL ERROR: {e!s}')
+            print(f'mcpltool: {e!s}')
             rc = 1
     print(f'mcpltool {" ".join(args)}: exit code {rc}')
     for line in out.getvalue().splitlines():
@@ -266,42 +279,42 @@ def tool(*args):
 
 def test_cmdline():
     ex = str(example_file)
-    tool('-w','ekin/MeV;logx=1;display_by=pdgcode',ex)
-    tool('-t=ekin/eV;lethargy=1;bins=5;print=1','-e','pdgcode == neutron',ex)
-    tool('--window','x/cm : y/cm;bins=4;print=1','-e','pdgcode == gamma',ex)
-    tool('--terminal=x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print=1',ex)
-    tool('-w','x/cm : y/cm;bins=2;xrange=-10:10;print=1',ex)
-    tool('-w','x/cm : y/cm;bins=3,2;print=1',ex)
-    tool('-w','x/cm;range=-10:10;bins=4',ex,str(ref1))
-    tool('-w','time/ms;logx=1;logy=1;unweighted=1',ex)
-    tool('-t','ekin/MeV : time/ms;logx=1;logy=auto',ex)
-    tool('-w','ekin/MeV;display_by=pdgcode;range=0:10;bins=2;print=1',
+    tool('-H','ekin/MeV;logx=1;display_by=pdgcode',ex)
+    tool('-t','-H','ekin/eV;lethargy=1;bins=5;print=1','-e','pdgcode == neutron',ex)
+    tool('--window','--hist','x/cm : y/cm;bins=4;print=1','-e','pdgcode == gamma',ex)
+    tool('--terminal','--hist=x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print=1',ex)
+    tool('-H','x/cm : y/cm;bins=2;xrange=-10:10;print=1',ex)
+    tool('-H','x/cm : y/cm;bins=3,2;print=1',ex)
+    tool('-H','x/cm;range=-10:10;bins=4',ex,str(ref1))
+    tool('-H','time/ms;logx=1;logy=1;unweighted=1',ex)
+    tool('-t','-H','ekin/MeV : time/ms;logx=1;logy=auto',ex)
+    tool('-H','ekin/MeV;display_by=pdgcode;range=0:10;bins=2;print=1',
          '-e','x > 1km',ex)
     #-l, -s, and -e (where conditions after changes see the changed values):
-    tool('-w','z/cm;bins=2;range=0:100;print=1','-s1000',ex)
+    tool('-H','z/cm;bins=2;range=0:100;print=1','-s1000',ex)
     #(numbers like 1e3 for -l and -s):
-    tool('-w','z/cm;bins=2;range=0:100;print=1','-s1e3','-l2.5e1',ex)
-    tool('-w','z/cm;bins=2;range=0:100;print=1','-l3','-e','z += 50cm',ex)
-    tool('-w','z/cm;bins=2;range=0:100;print=1','--edit=z < 25cm; z += 50cm',ex)
-    tool('-w','z/cm;bins=2;range=0:100;print=1','--edit=z += 50cm; z < 75cm',ex)
+    tool('-H','z/cm;bins=2;range=0:100;print=1','-s1e3','-l2.5e1',ex)
+    tool('-H','z/cm;bins=2;range=0:100;print=1','-l3','-e','z += 50cm',ex)
+    tool('-H','z/cm;bins=2;range=0:100;print=1','--edit=z < 25cm; z += 50cm',ex)
+    tool('-H','z/cm;bins=2;range=0:100;print=1','--edit=z += 50cm; z < 75cm',ex)
     #(abbreviated long options):
-    tool('--win=ekin/MeV;print=1;bins=2','--ed','pdgcode==22',ex)
-    for bad in ( ['-w','ekin',ex], ['-w','ekin/MeV;bins=0',ex],
-                 ['-w','ekin/MeV;range=1',ex], ['-w','ekin/MeV;range=2:1',ex],
-                 ['-w','ekin/MeV;range=1:2,3:4',ex], ['-w','ekin/MeV;xrange=1:2',ex],
-                 ['-w','x/cm : y/cm;range=1:2',ex],
-                 ['-w','x/cm : y/cm;logx=1;equal',ex], ['-w','x/cm : y/cm : z/cm',ex], ['-w','x : y : z : x',ex], ['-w','x : y : z;bins=5',ex],
-                 ['-w','x/cm;bins',ex], ['-w','x/cm;logx',ex], ['-w','x/cm;logx=true',ex],
-                 ['-w','x/cm;logy=yes',ex], ['-w','x/cm;logx=2',ex], ['-w','x/cm;logy=auto',ex],
-                 ['-w','x/cm;logx=1;logx=1',ex], ['-w','x/cm;foo',ex],
+    tool('--hist=ekin/MeV;print=1;bins=2','--ed','pdgcode==22',ex)
+    for bad in ( ['-H','ekin',ex], ['-H','ekin/MeV;bins=0',ex],
+                 ['-H','ekin/MeV;range=1',ex], ['-H','ekin/MeV;range=2:1',ex],
+                 ['-H','ekin/MeV;range=1:2,3:4',ex], ['-H','ekin/MeV;xrange=1:2',ex],
+                 ['-H','x/cm : y/cm;range=1:2',ex],
+                 ['-H','x/cm : y/cm;logx=1;equal',ex], ['-H','x/cm : y/cm : z/cm',ex], ['-H','x : y : z : x',ex], ['-H','x : y : z;bins=5',ex],
+                 ['-H','x/cm;bins',ex], ['-H','x/cm;logx',ex], ['-H','x/cm;logx=true',ex],
+                 ['-H','x/cm;logy=yes',ex], ['-H','x/cm;logx=2',ex], ['-H','x/cm;logy=auto',ex],
+                 ['-H','x/cm;logx=1;logx=1',ex], ['-H','x/cm;foo',ex],
                  ['--logx',ex], ['--bins','10',ex],
-                 ['-o','a.pdf',ex], ['-w','x/cm','-x',ex,'out.mcpl'],
-                 ['-w','x/cm'], ['-w','x/cm;print=1','-o','a.png',ex],
+                 ['-o','a.pdf',ex], ['-H','x/cm','-x',ex,'out.mcpl'],
+                 ['-H','x/cm'], ['-H','x/cm;print=1','-o','a.png',ex],
                  #(logx=auto: logarithmic for positive values over more than
                  #two decades, else linear):
-                 ['-w','ekin/MeV;logx=auto;bins=3;print=1',ex], ['-w','x/cm;logx=auto;bins=3;print=1',ex],
-                 ['-w','ekin/MeV;logx=auto;range=1:10;bins=3;print=1',ex],
-                 ['-w','x/cm','-o','a.txt',ex], ['-t','x/cm','-o','a.png',ex] ):
+                 ['-H','ekin/MeV;logx=auto;bins=3;print=1',ex], ['-H','x/cm;logx=auto;bins=3;print=1',ex],
+                 ['-H','ekin/MeV;logx=auto;range=1:10;bins=3;print=1',ex],
+                 ['-H','x/cm','-o','a.txt',ex], ['-t','-H','x/cm','-o','a.png',ex] ):
         tool(*bad)
 
 def test_cmdline_more():
@@ -310,25 +323,25 @@ def test_cmdline_more():
     ex = str(example_file)
     tool('-S','-o','stats.txt','-e','pdgcode == gamma',ex)
     tool('-S','-s1000','-e','x = 1cm',ex)
-    tool('-t','x/cm;bins=3','-o','hist.txt',ex)
+    tool('-t','-H','x/cm;bins=3','-o','hist.txt',ex)
     #(the errors as without the test backend):
     with _forced_backend(None):
         for bad in ( ['-p','neutron',ex], ['-p2112',ex], ['-p',' gamma ',ex],
                      ['-p'], ['-lX',ex], ['-l',ex], ['-l1,000',ex], ['-l1.5',ex],
                      ['-s1e-3',ex], ['-l2\u00b2',ex], ['-l99999999999999999999',ex],
                      #(a directory, as file):
-                     ['..'], ['-S','..'], ['-t','x/cm','..'],
+                     ['..'], ['-S','..'], ['-t','-H','x/cm','..'],
                      ['-e','x > 0','-e','x < 1cm',ex], ['--pdf',ex], ['--gui',ex],
-                     ['--select','x > 0',ex], ['-S','-t','x',ex],
-                     ['-S','-w','x/cm',ex], [ex,ex,ex],
-                     ['-w','x/cm;bins=2;print','-w','pdgcode;bar=2;print',ex],
+                     ['--select','x > 0',ex], ['-S','-t','-H','x',ex],
+                     ['-S','-H','x/cm',ex], [ex,ex,ex],
+                     ['-H','x/cm;bins=2;print','-H','pdgcode;bar=2;print',ex],
                      ['--text',ex], ['--text',ex,'hist.txt'],
-                     ['-t',ex], ['-w',ex], ['-t',ex,ex], ['-w',ex,'x/cm'], ['-wx/cm',ex],
+                     ['-t',ex], ['-w',ex,'-o','x.pdf'], ['-t',ex,ex], ['-w',ex,'x/cm'], ['-wx/cm',ex],
                      ['-H','x/cm',ex], ['-B','test',ex], ['--te','x',ex],
-                     ['-j','-w','x/cm',ex], ['--no-comment','-S',ex],
-                     ['-w','x/cm : y/cm;display_by=pdgcode',ex],
-                     ['-w','x/cm','-o','hist',ex], ['-w','x/cm','-o','hist.jpg',ex],
-                     ['-w','x/cm','-o','hist.png','-d',ex],
+                     ['-j','-H','x/cm',ex], ['--no-comment','-S',ex],
+                     ['-H','x/cm : y/cm;display_by=pdgcode',ex],
+                     ['-H','x/cm','-o','hist',ex], ['-H','x/cm','-o','hist.jpg',ex],
+                     ['-H','x/cm','-o','hist.png','-d',ex],
                      ['-e','x > "1"',ex], ['-e','z = 1cm, x = 0',ex], ['-E','x > 0',ex] ):
             tool(*bad)
 

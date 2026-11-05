@@ -6,8 +6,8 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   python -m mcpl [options] FILE                  Show the header and first particles
   python -m mcpl -S [options] FILE               Summary of the particles
-  python -m mcpl -w HIST [options] FILE [...]    Histogram in a window
-  python -m mcpl -t HIST [options] FILE [...]    Histogram in the terminal
+  python -m mcpl -H HIST [options] FILE [...]    Histogram in a window
+  python -m mcpl -t -H HIST [options] FILE [...] Histogram in the terminal
   python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
   python -m mcpl -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   python -m mcpl -r FILE                         Repair a file not properly closed
@@ -16,12 +16,12 @@ Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
   -e EDIT        Pick and change particles, e.g.
                  -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
-  -o FILE        Save the histogram in FILE (.png, .pdf, or .svg with -w, .txt
-                 with -t).
+  -o FILE        Save the histogram in FILE (.png, .pdf, or .svg, or .txt with
+                 -t).
   -d             Dry run: do everything except writing files.
 
 Examples:
-  python -m mcpl -w "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
+  python -m mcpl -H "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
   python -m mcpl -x -e "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   python -m mcpl -S file.mcpl.gz
 
@@ -38,8 +38,8 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   python -m mcpl [options] FILE                  Show the header and first particles
   python -m mcpl -S [options] FILE               Summary of the particles
-  python -m mcpl -w HIST [options] FILE [...]    Histogram in a window
-  python -m mcpl -t HIST [options] FILE [...]    Histogram in the terminal
+  python -m mcpl -H HIST [options] FILE [...]    Histogram in a window
+  python -m mcpl -t -H HIST [options] FILE [...] Histogram in the terminal
   python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
   python -m mcpl -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   python -m mcpl -r FILE                         Repair a file not properly closed
@@ -48,12 +48,12 @@ Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
   -e EDIT        Pick and change particles, e.g.
                  -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
-  -o FILE        Save the histogram in FILE (.png, .pdf, or .svg with -w, .txt
-                 with -t).
+  -o FILE        Save the histogram in FILE (.png, .pdf, or .svg, or .txt with
+                 -t).
   -d             Dry run: do everything except writing files.
 
 Examples:
-  python -m mcpl -w "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
+  python -m mcpl -H "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
   python -m mcpl -x -e "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   python -m mcpl -S file.mcpl.gz
 
@@ -65,9 +65,8 @@ More help:
 ----------------------------------------------
 Running mcpltool --h
 ----------------------------------------------
-ERROR: Ambiguous option --h (could be --help, --hist-help)
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: ambiguous option: --h could match --help, --hist-help, --hist
 
 ===> Command failed!
 ----------------------------------------------
@@ -172,57 +171,50 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool rf16cp.mcpl --n
 ----------------------------------------------
-ERROR: Ambiguous option --n (could be --no-comment, --nohead)
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: ambiguous option: --n could match --nohead, --no-comment
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool rf16cp.mcpl --n -m --inplace
 ----------------------------------------------
-ERROR: Ambiguous option --n (could be --no-comment, --nohead)
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: ambiguous option: --n could match --nohead, --no-comment
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool rf16cp.mcpl --ju -l2
 ----------------------------------------------
-ERROR: Do not specify -l or -s with --justhead
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: do not specify -l or -s with -j
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool rf16cp.mcpl --ju -s1
 ----------------------------------------------
-ERROR: Do not specify -l or -s with --justhead
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: do not specify -l or -s with -j
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool rf16cp.mcpl -l2 -r
 ----------------------------------------------
-ERROR: -l can only be used when showing particles, or with -S, -w, -t, or -x.
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: -l can only be used when showing particles, or with -S, -w, -t, or -x
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool rf16cp.mcpl --v --h
 ----------------------------------------------
-ERROR: Ambiguous option --h (could be --help, --hist-help)
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: ambiguous option: --h could match --help, --hist-help, --hist
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool rf16cp.mcpl --v --m --inplace
 ----------------------------------------------
-ERROR: -m and -v can not be used together.
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: -m and -v can not be used together
 
 ===> Command failed!
 ----------------------------------------------
@@ -328,7 +320,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool rf16cp.mcpl --mer --inpl rf16cp.mcpl
 ----------------------------------------------
-MCPL ERROR: Merging file with itself
+python -m mcpl: Merging file with itself
 
 ===> Command failed!
 ----------------------------------------------
@@ -371,7 +363,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool rf16cp.mcpl --m --inplac rf16cp.mcpl
 ----------------------------------------------
-MCPL ERROR: Merging file with itself
+python -m mcpl: Merging file with itself
 
 ===> Command failed!
 ----------------------------------------------
@@ -414,25 +406,25 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool rf16cp.mcpl --merge --inplace rf16cp.mcpl
 ----------------------------------------------
-MCPL ERROR: Merging file with itself
+python -m mcpl: Merging file with itself
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -m dupmerge.mcpl rf16cp.mcpl ./rf16cp.mcpl ../tmprundir/rf16cp.mcpl rf16cp_sl.mcpl rf16cp_hl.mcpl rf16_sl.mcpl rf16_sl.mcpl
 ----------------------------------------------
-MCPL ERROR: Merging file with itself
+python -m mcpl: Merging file with itself
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -m --inplace dupmerge.mcpl ./dupmerge.mcpl
 ----------------------------------------------
-MCPL ERROR: Unable to open file!
+python -m mcpl: dupmerge.mcpl: no such file
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -m --inplace dupmerge.mcpl dupmerge.mcpl
 ----------------------------------------------
-MCPL ERROR: Unable to open file!
+python -m mcpl: dupmerge.mcpl: no such file
 
 ===> Command failed!
 ----------------------------------------------
@@ -597,13 +589,13 @@ Running mcpltool -m --inplace rf5cp.mcpl '<TESTDATADIR>/ref/reffile_5.mcpl.gz'
 ----------------------------------------------
 Running mcpltool -m --inpla rf5cp.mcpl.gz '<TESTDATADIR>/ref/reffile_5.mcpl'
 ----------------------------------------------
-MCPL ERROR: direct modification of gzipped files is not supported.
+python -m mcpl: direct modification of gzipped files is not supported.
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -m --inplac rf5cp.mcpl.gz '<TESTDATADIR>/ref/reffile_5.mcpl.gz'
 ----------------------------------------------
-MCPL ERROR: direct modification of gzipped files is not supported.
+python -m mcpl: direct modification of gzipped files is not supported.
 
 ===> Command failed!
 ----------------------------------------------
@@ -687,7 +679,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool --r rfcrash.mcpl
 ----------------------------------------------
-MCPL ERROR: File does not appear to be broken.
+python -m mcpl: File does not appear to be broken.
 
 ===> Command failed!
 ----------------------------------------------
@@ -729,7 +721,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool -r rfcrash.mcpl.gz
 ----------------------------------------------
-MCPL ERROR: Input file is indeed broken, but must be gunzipped before it can be repaired.
+python -m mcpl: Input file is indeed broken, but must be gunzipped before it can be repaired.
 
 ===> Command failed!
 ----------------------------------------------
@@ -771,7 +763,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool -r rf16cp.mcpl
 ----------------------------------------------
-MCPL ERROR: File does not appear to be broken.
+python -m mcpl: File does not appear to be broken.
 
 ===> Command failed!
 ----------------------------------------------
@@ -805,7 +797,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool -r rfempty.mcpl
 ----------------------------------------------
-MCPL ERROR: File does not appear to be broken.
+python -m mcpl: File does not appear to be broken.
 
 ===> Command failed!
 ----------------------------------------------
@@ -867,7 +859,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool -r rfempty.mcpl.gz
 ----------------------------------------------
-MCPL ERROR: File does not appear to be broken.
+python -m mcpl: File does not appear to be broken.
 
 ===> Command failed!
 ----------------------------------------------
@@ -961,7 +953,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool -r rfcrash_0p4.mcpl
 ----------------------------------------------
-MCPL ERROR: File does not appear to be broken.
+python -m mcpl: File does not appear to be broken.
 
 ===> Command failed!
 ----------------------------------------------
@@ -1043,7 +1035,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool -r rfcrash_8p7.mcpl
 ----------------------------------------------
-MCPL ERROR: File does not appear to be broken.
+python -m mcpl: File does not appear to be broken.
 
 ===> Command failed!
 ----------------------------------------------
@@ -1307,7 +1299,7 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool -r rftrunc.mcpl.gz
 ----------------------------------------------
-MCPL ERROR: File must be gunzipped before it can be checked and possibly repaired.
+python -m mcpl: File must be gunzipped before it can be checked and possibly repaired.
 
 ===> Command failed!
 ----------------------------------------------
@@ -1353,19 +1345,19 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool fake.mcpl
 ----------------------------------------------
-MCPL ERROR: File is not an MCPL file!
+python -m mcpl: File is not an MCPL file!
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool fake.mcpl.gz
 ----------------------------------------------
-MCPL ERROR: Error while reading first bytes of file!
+python -m mcpl: Error while reading first bytes of file!
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool fake2.mcpl.gz
 ----------------------------------------------
-MCPL ERROR: File is not an MCPL file!
+python -m mcpl: File is not an MCPL file!
 
 ===> Command failed!
 ----------------------------------------------
@@ -1376,9 +1368,7 @@ MCPL: Successfully extracted 195 / 195 particles from miscphys.mcpl.gz into extr
 ----------------------------------------------
 Running mcpltool -x miscphys.mcpl.gz extracted_0
 ----------------------------------------------
-ERROR: The output file "extracted_0.mcpl" already exists.
-
-Run with -h or --help for usage information
+python -m mcpl: The output file "extracted_0.mcpl" already exists
 
 ===> Command failed!
 ----------------------------------------------
@@ -1424,48 +1414,45 @@ MCPL: Successfully extracted 0 / 195 particles from miscphysnogz.mcpl into badpd
 ----------------------------------------------
 Running mcpltool -x -e 'pdgcode == 99999999999999999999' miscphysnogz.mcpl badpdg.mcpl
 ----------------------------------------------
-ERROR: The integer 99999999999999999999 is too large (integers must fit in 64 bits) in expression "pdgcode == 99999999999999999999"
-
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: The integer 99999999999999999999 is too large (integers must fit in 64 bits) in expression "pdgcode == 99999999999999999999"
 Run with "-e help" for how to write edit expressions
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool rf16cp.mcpl -l99999999999999999999
 ----------------------------------------------
-ERROR: Bad option: expected number
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: argument -l/--limit: expected a non-negative whole number, not '99999999999999999999'
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -x -e 'pdgcode == 022' --no-comment miscphys.mcpl.gz extracted_6.mcpl.gz
 ----------------------------------------------
-ERROR: Invalid number 022 (integers can not start with 0) in expression "pdgcode == 022"
-
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: Invalid number 022 (integers can not start with 0) in expression "pdgcode == 022"
 Run with "-e help" for how to write edit expressions
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -x miscphys.mcpl.gz dirout.mcpl.gz
 ----------------------------------------------
-ERROR: The output file "dirout.mcpl.gz" already exists.
-
-Run with -h or --help for usage information
+python -m mcpl: The output file "dirout.mcpl.gz" already exists
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -x -e 'pdgcode == abc' miscphysnogz.mcpl badpdg.mcpl
 ----------------------------------------------
-ERROR: Unknown name "abc" in expression "pdgcode == abc" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: Unknown name "abc" in expression "pdgcode == abc" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 Run with "-e help" for how to write edit expressions
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -x -e 'pdgcode == Neutron' miscphysnogz.mcpl badpdg.mcpl
 ----------------------------------------------
-ERROR: Unknown name "Neutron" in expression "pdgcode == Neutron" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: Unknown name "Neutron" in expression "pdgcode == Neutron" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 Run with "-e help" for how to write edit expressions
 
 ===> Command failed!
@@ -1491,33 +1478,29 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool -e miscphysnogz.mcpl old.mcpl
 ----------------------------------------------
-ERROR: -e takes an edit expression (to extract particles, use -x)
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: -e takes an edit expression (to extract particles, use -x)
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -e -p2112 miscphysnogz.mcpl old.mcpl
 ----------------------------------------------
-ERROR: Unknown name "p2112" in expression "-p2112" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-
-Run with "-e help" for how to write edit expressions
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: -e takes an edit expression (to extract particles, use -x)
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -x -p2112 miscphysnogz.mcpl old.mcpl
 ----------------------------------------------
-ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == 2112")
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: -p is not an option (use -e, e.g. -e "pdgcode == 2112")
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -x -p 'pdgcode == 22' miscphysnogz.mcpl old.mcpl
 ----------------------------------------------
-ERROR: -p is replaced by -e (edit expressions, e.g. -e "pdgcode == neutron")
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: -p is not an option (use -e, e.g. -e "pdgcode == neutron")
 
 ===> Command failed!
 ----------------------------------------------
@@ -1813,17 +1796,13 @@ Running mcpltool --merge merged_1to5_new_filec.mcpl extracted_1_new.mcpl extract
 ----------------------------------------------
 Running mcpltool --merge merged_1to5_new_filec.mcpl.gz extracted_1_new.mcpl extracted_2_new.mcpl extracted_3.mcpl extracted_4_new.mcpl extracted_5.mcpl
 ----------------------------------------------
-ERROR: The output file "merged_1to5_new_filec.mcpl.gz" can not be written, since "merged_1to5_new_filec.mcpl" (which it is compressed from) already exists.
-
-Run with -h or --help for usage information
+python -m mcpl: The output file "merged_1to5_new_filec.mcpl.gz" can not be written, since "merged_1to5_new_filec.mcpl" (which it is compressed from) already exists
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool --merge merged_1to5_new_filec.gz extracted_1_new.mcpl extracted_2_new.mcpl extracted_3.mcpl extracted_4_new.mcpl extracted_5.mcpl
 ----------------------------------------------
-ERROR: Output file names ending with .gz must end with .mcpl.gz (not "merged_1to5_new_filec.gz").
-
-Run with -h or --help for usage information
+python -m mcpl: Output file names ending with .gz must end with .mcpl.gz (not "merged_1to5_new_filec.gz")
 
 ===> Command failed!
 ----------------------------------------------
@@ -1842,37 +1821,33 @@ Running mcpltool --merge --inplace extracted_1_new.mcpl extracted_2_new.mcpl ext
 ----------------------------------------------
 Running mcpltool --merge extracted_1.mcpl extracted_2.mcpl
 ----------------------------------------------
-ERROR: The output file "extracted_1.mcpl" already exists.
-
-Run with -h or --help for usage information
+python -m mcpl: The output file "extracted_1.mcpl" already exists
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool --merge --inplace extracted_1.mcpl
 ----------------------------------------------
-ERROR: Too few arguments for --merge.
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: too few arguments for -m
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool --merge newfile.mcpl
 ----------------------------------------------
-ERROR: Too few arguments for --merge.
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: too few arguments for -m
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool --merge --inplace rf16cp_fmt2.mcpl '<TESTDATADIR>/ref/reffile_16.mcpl'
 ----------------------------------------------
-MCPL ERROR: Attempting to merge incompatible files (can not mix MCPL format versions when merging inplace)
+python -m mcpl: Attempting to merge incompatible files (can not mix MCPL format versions when merging inplace)
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool --merge --inplace '<TESTDATADIR>/ref/reffile_16.mcpl' rf16cp_fmt2.mcpl
 ----------------------------------------------
-MCPL ERROR: Attempting to merge incompatible files (can not mix MCPL format versions when merging inplace)
+python -m mcpl: Attempting to merge incompatible files (can not mix MCPL format versions when merging inplace)
 
 ===> Command failed!
 ----------------------------------------------
@@ -2061,9 +2036,8 @@ Opened MCPL file extracted_comment_4.mcpl:
 ----------------------------------------------
 Running mcpltool --no-comment miscphysnogz.mcpl
 ----------------------------------------------
-ERROR: --no-comment can only be used with -x.
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: --no-comment can only be used with -x
 
 ===> Command failed!
 ----------------------------------------------
@@ -2084,17 +2058,13 @@ MCPL: Successfully extracted 15 / 195 particles from miscphys.mcpl.gz into extra
 ----------------------------------------------
 Running mcpltool --merge merged_comment_1.mcpl extracted_comment_1.mcpl extracted_comment_5.mcpl
 ----------------------------------------------
-ERROR: Requested files are incompatible for merge as they have different header info (comment 1 differs).
-
-Run with -h or --help for usage information
+python -m mcpl: Requested files are incompatible for merge as they have different header info (comment 1 differs)
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool --merge merged_comment_2.mcpl extracted_comment_7.mcpl extracted_comment_6.mcpl
 ----------------------------------------------
-ERROR: Requested files are incompatible for merge as they have different header info (comment 1 differs).
-
-Run with -h or --help for usage information
+python -m mcpl: Requested files are incompatible for merge as they have different header info (comment 1 differs)
 
 ===> Command failed!
 ----------------------------------------------
@@ -2293,25 +2263,22 @@ int main( int argc, char ** argv )
 ----------------------------------------------
 Running mcpltool -x --code=c -e 'userdata.temp > 300K' miscphys.mcpl.gz
 ----------------------------------------------
-ERROR: No userdata field "temp" (the particles have no userdata)
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: No userdata field "temp" (the particles have no userdata)
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -x --code=py miscphys.mcpl.gz
 ----------------------------------------------
-ERROR: --code must be c or cpp.
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: --code must be c or cpp
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool --code=c miscphys.mcpl.gz
 ----------------------------------------------
-ERROR: --code can only be used with -x.
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: --code can only be used with -x
 
 ===> Command failed!
 ----------------------------------------------
@@ -2379,17 +2346,15 @@ int main( int argc, char ** argv )
 ----------------------------------------------
 Running mcpltool -x --code=c -d miscphys.mcpl.gz
 ----------------------------------------------
-ERROR: --code can not be used with -d (it writes no files).
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: --code can not be used with -d (it writes no files)
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool -x --code=cpp miscphys.mcpl.gz out.mcpl
 ----------------------------------------------
-ERROR: Must specify one input file (and no output file) with --code.
-
-Run with -h or --help for usage information
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: must specify one input file (and no output file) with --code
 
 ===> Command failed!
 ----------------------------------------------
@@ -2825,61 +2790,61 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
 ----------------------------------------------
 Running mcpltool '<TESTDATADIR>/ref/reffile_bad1.mcpl'
 ----------------------------------------------
-MCPL ERROR: File is not an MCPL file!
+python -m mcpl: File is not an MCPL file!
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool '<TESTDATADIR>/ref/reffile_bad2.mcpl'
 ----------------------------------------------
-MCPL ERROR: File is in an unsupported MCPL version!
+python -m mcpl: File is in an unsupported MCPL version!
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool '<TESTDATADIR>/ref/reffile_bad3.mcpl'
 ----------------------------------------------
-MCPL ERROR: File is in an unsupported MCPL version!
+python -m mcpl: File is in an unsupported MCPL version!
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool '<TESTDATADIR>/ref/reffile_bad4.mcpl'
 ----------------------------------------------
-MCPL ERROR: Unexpected value in endianness field!
+python -m mcpl: Unexpected value in endianness field!
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool '<TESTDATADIR>/ref/reffile_bad1.mcpl.gz'
 ----------------------------------------------
-MCPL ERROR: File is not an MCPL file!
+python -m mcpl: File is not an MCPL file!
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool '<TESTDATADIR>/ref/reffile_bad2.mcpl.gz'
 ----------------------------------------------
-MCPL ERROR: File is in an unsupported MCPL version!
+python -m mcpl: File is in an unsupported MCPL version!
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool '<TESTDATADIR>/ref/reffile_bad3.mcpl.gz'
 ----------------------------------------------
-MCPL ERROR: File is in an unsupported MCPL version!
+python -m mcpl: File is in an unsupported MCPL version!
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool '<TESTDATADIR>/ref/reffile_bad4.mcpl.gz'
 ----------------------------------------------
-MCPL ERROR: Unexpected value in endianness field!
+python -m mcpl: Unexpected value in endianness field!
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool bla.txt
 ----------------------------------------------
-MCPL ERROR: Unable to open file!
+python -m mcpl: bla.txt: no such file
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool bla.txt
 ----------------------------------------------
-MCPL ERROR: File is not an MCPL file!
+python -m mcpl: File is not an MCPL file!
 
 ===> Command failed!
 ----------------------------------------------
@@ -2909,13 +2874,13 @@ Opened MCPL file reffile_truncated.mcpl.gz:
     Storage            : 32 bytes/particle
 
 index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]
-MCPL ERROR: Errors encountered while attempting to read particle data.
+python -m mcpl: Errors encountered while attempting to read particle data.
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool '<TESTDATADIR>/ref/reffile_truncated.mcpl'
 ----------------------------------------------
-MCPL ERROR: Input file is truncated (it has fewer particles than given in its header)
+python -m mcpl: Input file is truncated (it has fewer particles than given in its header)
 
 ===> Command failed!
 ----------------------------------------------

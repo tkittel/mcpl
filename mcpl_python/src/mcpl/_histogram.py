@@ -169,7 +169,12 @@ def histogram( file, expression ):
        h.plot()
        print( h.edges, h.contents )
 
-    The expression is a histogram string, as for mcpltool -w (see mcpltool
+    or for neutrons only:
+
+       with mcpl.MCPLFile( "myfile.mcpl", edit = "pdgcode == neutron" ) as f:
+           h = mcpl.histogram( f, "ekin/eV;logx;lethargy" )
+
+    The expression is a histogram string, as for mcpltool -H (see mcpltool
     --hist-help), with one expression for a Hist1D (or a HistDiscrete
     with the option bar), two for a Hist2D (as in "x/cm : y/cm"), or
     three for a PointSet3D (as in "x/cm : y/cm : z/cm"). The values are in

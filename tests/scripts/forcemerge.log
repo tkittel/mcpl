@@ -851,7 +851,7 @@ dump with checksum 49f7c96afee66c20ab586229801b9804
 
 RUNNING: mcpltool --forcemerge tmp.mcpl <TESTDATADIR>/ref/reffile_14.mcpl <TESTDATADIR>/ref/reffile_14.mcpl
 Expect failure: yes
-MCPL ERROR: Merging file with itself
+python -m mcpl: Merging file with itself
 
 Ended in failure: yes
 MCPL WARNING: Input file appears to not have been closed properly. Recovered 4 particles.
@@ -1363,7 +1363,7 @@ dump with checksum ef1e2acf2d856569dfc3fa01cdeb6b37
 
 RUNNING: mcpltool --forcemerge tmp.mcpl <TESTDATADIR>/ref/miscphys.mcpl.gz <TESTDATADIR>/ref/miscphys.mcpl.gz
 Expect failure: yes
-MCPL ERROR: Merging file with itself
+python -m mcpl: Merging file with itself
 
 Ended in failure: yes
 
@@ -1373,7 +1373,7 @@ Ended in failure: yes
 
 RUNNING: mcpltool --forcemerge tmp.mcpl <TESTDATADIR>/ref/gammas_uw.mcpl.gz <TESTDATADIR>/ref/gammas_uw.mcpl.gz
 Expect failure: yes
-MCPL ERROR: Merging file with itself
+python -m mcpl: Merging file with itself
 
 Ended in failure: yes
 
@@ -1383,6 +1383,6 @@ Ended in failure: yes
 
 RUNNING: mcpltool --forcemerge tmp.mcpl <TESTDATADIR>/ref/reffile_3.mcpl <TESTDATADIR>/ref/reffile_3.mcpl --keepuserflags
 Expect failure: yes
-MCPL ERROR: Merging file with itself
+python -m mcpl: Merging file with itself
 
 Ended in failure: yes

@@ -7,47 +7,40 @@ ERROR: if you are using the pip package manager, you should be able to install i
 ERROR: the command "pip install numpy".
 
 Caught expected error: fake error
-ERROR: No input file specified
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
-ERROR: No input file specified
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: no input file specified
+===> mcpltool ended with exit code 2
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: no input file specified
+===> mcpltool ended with exit code 2
 Opened MCPL file reffile_12.mcpl:
 index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight       pol-x       pol-y       pol-z
     0        2112       1.234           0           0           0           0           1           0           0           1          -0           0           0
     1        2112           0           0           0        0.01        0.01           0    -0.99995           0           1       -0.01           0           0
     2        2112       1.234           0           0        0.02        0.02           0      0.9998           0           1       -0.02           0           0
 ===> mcpltool ended with exit code 0
-ERROR: Do not supply both --justhead and --nohead.
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
-ERROR: Do not specify -l or -s with --justhead
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
-ERROR: -l specified more than once
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
-ERROR: Do not specify -l or -s with --justhead
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
-ERROR: -s specified more than once
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: do not specify both -j and -n
+===> mcpltool ended with exit code 2
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: do not specify -l or -s with -j
+===> mcpltool ended with exit code 2
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: -l specified more than once
+===> mcpltool ended with exit code 2
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: do not specify -l or -s with -j
+===> mcpltool ended with exit code 2
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: -s specified more than once
+===> mcpltool ended with exit code 2
 Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 
 Usage:
   mcpltool [options] FILE                  Show the header and first particles
   mcpltool -S [options] FILE               Summary of the particles
-  mcpltool -w HIST [options] FILE [...]    Histogram in a window
-  mcpltool -t HIST [options] FILE [...]    Histogram in the terminal
+  mcpltool -H HIST [options] FILE [...]    Histogram in a window
+  mcpltool -t -H HIST [options] FILE [...] Histogram in the terminal
   mcpltool -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
   mcpltool -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   mcpltool -r FILE                         Repair a file not properly closed
@@ -56,12 +49,12 @@ Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
   -e EDIT        Pick and change particles, e.g.
                  -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
-  -o FILE        Save the histogram in FILE (.png, .pdf, or .svg with -w, .txt
-                 with -t).
+  -o FILE        Save the histogram in FILE (.png, .pdf, or .svg, or .txt with
+                 -t).
   -d             Dry run: do everything except writing files.
 
 Examples:
-  mcpltool -w "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
+  mcpltool -H "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
   mcpltool -x -e "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   mcpltool -S file.mcpl.gz
 
@@ -72,21 +65,19 @@ More help:
 ===> mcpltool ended with exit code 0
 MCPL version 99.99.99
 ===> mcpltool ended with exit code 0
-ERROR: Unrecognised option : -y
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
-ERROR: Unrecognised arguments for --version.
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: unrecognized arguments: -y
+===> mcpltool ended with exit code 2
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: unrecognized arguments: ref/reffile_12.mcpl
+===> mcpltool ended with exit code 2
 Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 
 Usage:
   mcpltool [options] FILE                  Show the header and first particles
   mcpltool -S [options] FILE               Summary of the particles
-  mcpltool -w HIST [options] FILE [...]    Histogram in a window
-  mcpltool -t HIST [options] FILE [...]    Histogram in the terminal
+  mcpltool -H HIST [options] FILE [...]    Histogram in a window
+  mcpltool -t -H HIST [options] FILE [...] Histogram in the terminal
   mcpltool -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
   mcpltool -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   mcpltool -r FILE                         Repair a file not properly closed
@@ -95,12 +86,12 @@ Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
   -e EDIT        Pick and change particles, e.g.
                  -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
-  -o FILE        Save the histogram in FILE (.png, .pdf, or .svg with -w, .txt
-                 with -t).
+  -o FILE        Save the histogram in FILE (.png, .pdf, or .svg, or .txt with
+                 -t).
   -d             Dry run: do everything except writing files.
 
 Examples:
-  mcpltool -w "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
+  mcpltool -H "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
   mcpltool -x -e "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   mcpltool -S file.mcpl.gz
 
@@ -109,34 +100,27 @@ More help:
   -e help                  How to write EDIT.
   --hist-help              How to write HIST.
 ===> mcpltool ended with exit code 0
-ERROR: Too many arguments.
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
-ERROR: -j can only be used when showing particles.
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
-ERROR: Do not specify other dump options with -b.
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
-ERROR: Missing argument for -b
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
-ERROR: -b specified more than once
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
-ERROR: Unrecognised option : --lala
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
-ERROR: No input file specified
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: too many arguments
+===> mcpltool ended with exit code 2
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: -j can only be used when showing particles
+===> mcpltool ended with exit code 2
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: -b can not be combined with -j, -n, -l, -s, or -e
+===> mcpltool ended with exit code 2
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: argument -b: expected one argument
+===> mcpltool ended with exit code 2
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: -b specified more than once
+===> mcpltool ended with exit code 2
+usage: mcpltool [options] FILE ...  (see mcpltool -h)
+mcpltool: error: unrecognized arguments: --lala
+===> mcpltool ended with exit code 2
+usage: c.py [options] FILE ...  (see c.py -h)
+c.py: error: no input file specified
+===> mcpltool ended with exit code 2
 Opened MCPL file reffile_12.mcpl:
 
   Basic info
@@ -382,10 +366,7 @@ Second line.
 Rødgrød med
 fløde.
 ===> mcpltool ended with exit code 0
-0x410x00x50xa0xd0x420x6c0x610x7f0x3d0x3d0x3d0x3e0x200x6d0x630x700x6c0x740x6f0x6f0x6c0x200x650x6e0x640x650x640x200x770x690x740x680x200x650x780x690x740x200x630x6f0x640x650x200x300xaERROR: Can not calculate statistics for an empty file
-
-Run with -h or --help for usage information
-===> mcpltool ended with exit code 1
+0x410x00x50xa0xd0x420x6c0x610x7f0x3d0x3d0x3d0x3e0x200x6d0x630x700x6c0x740x6f0x6f0x6c0x200x650x6e0x640x650x640x200x770x690x740x680x200x650x780x690x740x200x630x6f0x640x650x200x300xa===> mcpltool ended with MCPLError exception: can not calculate statistics for an empty file
 ------------------------------------------------------------------------------
 nparticles   : 15
 sum(weights) : 15

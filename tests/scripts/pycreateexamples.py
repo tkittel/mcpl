@@ -26,7 +26,9 @@
 # expected header contents. Existing files are never overwritten, a dry run
 # writes nothing, and invalid arguments give errors.
 
+import contextlib
 import pathlib
+import sys
 
 import mcpldev as mcpl
 from mcpldev._numpy import np
@@ -35,9 +37,13 @@ from mcpldev._numpy import np
 def run(*args):
     print(f'--> mcpltool {" ".join(args)}',flush=True)
     try:
-        mcpl.app_mcpltool(['mcpltool',*args])
+        with contextlib.redirect_stderr(sys.stdout):
+            mcpl.app_mcpltool(['mcpltool',*args])
     except SystemExit as e:
         print(f'    exit code {e.code}',flush=True)
+    except mcpl.MCPLError as e:
+        #(as the mcpltool command):
+        print(f'    mcpltool: {e!s}\n    exit code 1',flush=True)
 
 def files():
     return sorted( f.name for f in pathlib.Path('.').iterdir()

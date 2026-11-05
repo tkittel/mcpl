@@ -91,11 +91,13 @@ def test_tool_backends():
         sys.stdout.flush()
         #(with UTF-8 output, also on Windows, so the plots in the terminal are
         #drawn with the unicode backend):
-        rv = subprocess.run([sys.executable, '-m', 'mcpldev', args[0], h,
+        #(with the errors, from standard error, in the output):
+        rv = subprocess.run([sys.executable, '-m', 'mcpldev', args[0], '-H', h,
                              *args[1:], str(example_file)],
-                            capture_output=True, encoding='utf-8', check=False,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            encoding='utf-8', check=False,
                             env=dict(os.environ, PYTHONIOENCODING='utf-8', **env))
-        print(f'==> mcpltool {args[0]} {h} {" ".join(args[1:])}'
+        print(f'==> mcpltool {args[0]} -H {h} {" ".join(args[1:])}'
               f'{" with "+str(env) if env else ""}: exit code {rv.returncode}')
         for line in rv.stdout.splitlines()[:4]:
             print(f'   | {line}')

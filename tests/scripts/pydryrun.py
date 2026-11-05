@@ -70,11 +70,12 @@ def dir_mtimes(d):
     return { f.name : f.stat().st_mtime_ns for f in sorted(pathlib.Path(d).iterdir()) }
 
 def run(args, cwd):
-    #(with a fixed version in the printouts, so the log does not change with it):
+    #(with the errors, from standard error, in the output, and with a fixed
+    #version in the printouts, so the log does not change with it):
     r = subprocess.run([sys.executable, '-m', 'mcpldev', *args], cwd=cwd,
-                       capture_output=True, check=False,
+                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False,
                        env = { **os.environ, 'PYMCPLTOOL_FAKE_PYVERSION' : '1' })
-    return r.returncode, r.stdout.decode().replace('\r\n','\n'), r.stderr.decode()
+    return r.returncode, r.stdout.decode().replace('\r\n','\n'), ''
 
 def fresh(d):
     if pathlib.Path(d).exists():
@@ -161,14 +162,14 @@ def test_tool():
         ok &= compare(*args)
     #Commands which do not write files ignore --dry-run:
     for args in ( ['a1.mcpl'], ['-j','a1.mcpl'], ['-n','-l3','-s2','a1.mcpl'],
-                  ['--stats','a1.mcpl'], ['--window','ekin/MeV;print=1;display_by=single','a1.mcpl'],
+                  ['--stats','a1.mcpl'], ['--hist','ekin/MeV;print=1;display_by=single','a1.mcpl'],
                   ['--version'], ['--bkey1','a1.mcpl'] ):
         ok &= compare(*args, writes = False)
     #The short form, and misuse:
     for args in ( ['-d','--extract','-l2','a1.mcpl','out.mcpl'],
                   ['-jd','a1.mcpl'],
                   ['-d','--stats','-o','s.pdf','a1.mcpl'],
-                  ['--dry-run','--terminal','ekin/MeV','--output','h.txt','a1.mcpl'] ):
+                  ['--dry-run','--terminal','--hist','ekin/MeV','--output','h.txt','a1.mcpl'] ):
         fresh('dry')
         rc, out, err = run(args, 'dry')
         print(f'mcpltool {" ".join(args)}: exit code {rc}')

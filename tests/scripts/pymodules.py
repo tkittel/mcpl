@@ -65,7 +65,7 @@ dependencies = {
     '_exprplot'         : ( '_common', '_expr_eval', '_expr_vocab', '_expressions', '_exprunits', '_numpy' ),
     '_exprrotation'     : ( '_numpy', ),
     '_exprunits'        : (  ),
-    '_extract'          : ( '_common', '_messages', '_reader', '_writer' ),
+    '_extract'          : ( '_common', '_expr_ast2c', '_expr_ast2cpp', '_messages', '_reader', '_writer' ),
     '_figures'          : (  ),
     '_fileops'          : ( '_common', '_messages', '_reader', '_statsum', '_writer' ),
     '_helptext'         : (  ),

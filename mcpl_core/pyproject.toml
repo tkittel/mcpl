@@ -24,14 +24,13 @@ name = "mcpl-core"
 version = "2.2.9"
 requires-python = ">=3.9"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 authors = [
   { name="MCPL developers (Thomas Kittelmann, et. al.)" },
 ]
 description = "Utilities and API for accessing MCPL (.mcpl) files"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Apache Software License",
 ]
 
 [project.urls]

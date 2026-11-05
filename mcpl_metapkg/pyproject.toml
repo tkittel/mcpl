@@ -20,7 +20,7 @@
 ################################################################################
 
 [build-system]
-requires = ["setuptools>=75.3.2"]
+requires = ["setuptools>=77.0.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -29,14 +29,13 @@ version = "2.2.9"
 dependencies = [ 'mcpl-core==2.2.9', 'mcpl-python==2.2.9' ]
 requires-python = ">=3.9"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 authors = [
   { name="MCPL developers (Thomas Kittelmann, et. al.)" },
 ]
 description = "Utilities and API for accessing MCPL (.mcpl) files"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Apache Software License",
 ]
 
 [project.optional-dependencies]

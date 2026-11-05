@@ -127,6 +127,9 @@ jobs:
             python3.12 -mpip install --user -v ./src/mcpl_core
             python3.12 -mpip show mcpl-core
             python3.12 -mpip check
+            #(without build isolation, so with the setuptools which its
+            #pyproject.toml requires, newer than that of the FreeBSD packages):
+            python3.12 -mpip install --user "setuptools>=77.0.1"
             python3.12 -mpip install --user --no-build-isolation ./src/mcpl_metapkg
             python3.12 -mpip show mcpl
             python3.12 -mpip check

@@ -96,6 +96,9 @@ v2.2.9  (work in progress)
         which choose a range of the particles in the file. All arguments of
         MCPLFile after the file name must now be given by name (e.g.
         blocklength=1000).
+      * New option mcpltool -e --code=c (or cpp), which prints a C (or C++)
+        program doing what -e does with the other options, for files like the
+        given one.
       * New option mcpltool --create-examples[=N], which creates three example
         files with N particles each (default 1000000) in the current
         directory: neutrons leaving a moderator surface, mixed particles

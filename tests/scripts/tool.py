@@ -284,6 +284,19 @@ def main():
     cmd('-e','-p','pdgcode == neutron and ekin > 5keV',fmisc,'extracted_comment_10.mcpl')
     cmd('--merge','merged_comment_4.mcpl','extracted_comment_9.mcpl','extracted_comment_10.mcpl')
     cmd('-j','merged_comment_4.mcpl')
+    #the code doing the same as -e (for files like the input file):
+    cmd('-e','--code=c','-p','pdgcode == neutron and ekin > 5keV',fmisc)
+    cmd('-e','--code=cpp','-E','x += 1cm; weight *= 2',fmisc)
+    fud = copy(test_data_dir.joinpath('reffmt4','reffile_ud_scalars.mcpl'),'.')
+    cmd('-e','--code=c','-p','userdata.temp > 300K','-E','ekin = userdata.e',fud)
+    cmd('-e','--code=c','-p','userdata.temp > 300K',fmisc,fail=True)
+    cmd('-e','--code=py',fmisc,fail=True)
+    cmd('--code=c',fmisc,fail=True)
+    #(the code does what -e does with the range and comment options):
+    cmd('-e','--code=c','-s2','-l5','--no-comment',fmisc)
+    cmd('-e','--code=cpp','-p','z > 0','--keep-statsum',fmisc)
+    cmd('-e','--code=c','-d',fmisc,fail=True)
+    cmd('-e','--code=cpp',fmisc,'out.mcpl',fail=True)
 
     cmd('-m','extracted_recombined','extracted_none.mcpl','extracted_all.mcpl')
     cmd('-m','--inplace','extracted_none.mcpl','extracted_all.mcpl')

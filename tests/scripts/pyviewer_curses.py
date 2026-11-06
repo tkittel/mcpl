@@ -85,16 +85,25 @@ def read( seconds ):
                 return
             output.append(data)
 
-def wait_ended( seconds = 60 ):
+def wait_ended( seconds = 60, terminal_open = True ):
     """Wait until the viewer ended, or else show the end of what was written
-    to its terminal (to find out why, on systems where it does not end)"""
+    to its terminal (to find out why, on systems where it does not end).
+    What it writes is read meanwhile, as it can else not end when the buffer
+    of its terminal is full (which is small on FreeBSD)."""
+    end = time.monotonic() + seconds
+    while p.poll() is None and time.monotonic() < end:
+        if terminal_open:
+            read(0.2)
+        else:
+            time.sleep(0.2)
     try:
-        p.wait(timeout = seconds)
+        p.wait(timeout = 0.1)
     except subprocess.TimeoutExpired:
         #(with the stacks of its threads, shown by the fault handler):
         import signal
         os.kill(p.pid,signal.SIGABRT)
-        read(3)
+        if terminal_open:
+            read(3)
         sys.stderr.write(f'DIAGNOSTICS the viewer did not end, its terminal shows:\n{text()[-6000:]}\n')
         raise
 
@@ -143,7 +152,7 @@ try:
     output.clear()
     wait_for('example.mcpl')
     os.close(master)
-    wait_ended()
+    wait_ended(terminal_open = False)
     print('the viewer ends when its terminal is closed')
 finally:
     p.kill()

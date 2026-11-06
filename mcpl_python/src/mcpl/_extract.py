@@ -36,15 +36,20 @@ def _shell_arg( expression ):
     #characters which are special inside double quotes are not allowed)
     return f'"{expression}"'
 
-def _option_arg( text ):
-    """The text of -p or -E as a command-line argument, with its first
-    expression (before the first ";") in parentheses if it starts with "-",
-    which would else be taken as an option (the statements before an
-    expression, which can not be put in parentheses, are assignments, which
-    do not start with "-")"""
+def _option_arg( text, hist = False ):
+    """The text of -p, -E, or -H (hist) as a command-line argument, with its
+    first expression (before the first ";", or for a histogram also before
+    the first ":") in parentheses if it starts with "-", which would else be
+    taken as an option (the statements before an expression, which can not be
+    put in parentheses, are assignments, which do not start with "-")"""
     if text.startswith('-'):
         first, sep, rest = text.partition(';')
-        text = f'({first.strip()})' + sep + rest
+        if hist:
+            first, colon, others = first.partition(':')
+            rest = ( f' : {others.strip()}' if colon else '' ) + sep + rest
+        else:
+            rest = sep + rest
+        text = f'({first.strip()})' + rest
     return _shell_arg(text)
 
 def _shell_path( filename ):

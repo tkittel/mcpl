@@ -30,6 +30,7 @@
 import copy
 import pathlib
 import runpy
+import shlex
 import shutil
 import subprocess
 import sys
@@ -599,6 +600,23 @@ def test_tool():
                         stderr=subprocess.STDOUT,encoding='utf-8',check=False,env=env)
     print(f'mcpltool -t {{}} with two files: {rv.stdout.splitlines()[-1]}')
 
+def test_negative_commands():
+    #(picks and histograms starting with "-" are in parentheses in commands,
+    #as they would else be taken as options, and the commands work):
+    print('Commands with picks and histograms starting with "-":')
+    v = Viewer(ex,pick='-pdgcode < 0')
+    for code in ( v.code(['-x/cm;bins=4','-x/cm : y/cm;bins=2,3']),
+                  v.code(filename = 'negative.mcpl') ):
+        for command in code['command'].splitlines():
+            args = shlex.split(command)[1:]
+            if '-H' in args:
+                args += [ '-t', '-o', 'negative.txt' ]
+            rv = subprocess.run([sys.executable,'-m','mcpldev',*args],capture_output=True,
+                                encoding='utf-8',check=False)
+            print(f'  {command}: exit code {rv.returncode}')
+            for f in ( 'negative.txt', 'negative.mcpl' ):
+                pathlib.Path(f).unlink(missing_ok = True)
+
 def test_code():
     print('The command and code of plots, and of writing files:')
     def show( code, kinds = ( 'command', 'python' ) ):
@@ -825,6 +843,7 @@ test_numbers()
 test_cache()
 test_figures()
 test_code()
+test_negative_commands()
 test_c_translation()
 test_plot_changes()
 test_range_and_userdata()

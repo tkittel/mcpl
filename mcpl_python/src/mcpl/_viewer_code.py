@@ -30,10 +30,6 @@ __all__ = []
 kinds = ( ( 'command', 'Command line' ), ( 'python', 'Python' ), ( 'cpp', 'C++' ),
           ( 'c', 'C' ) )
 
-def _shell( text ):
-    from ._extract import _shell_arg
-    return _shell_arg(text)
-
 def _options( job ):
     """The options of mcpltool for the range, pick, and edit of the job"""
     from ._extract import _range_options
@@ -66,7 +62,8 @@ def _command( job, prog ):
     fn, opts = _shell_path(job.filename), _options(job)
     if job.plots is not None:
         #(a command for each plot, as mcpltool shows one histogram):
-        return '\n'.join( ' '.join( [ prog, '-H', _shell(p) ] + opts + [ fn ] )
+        from ._extract import _option_arg
+        return '\n'.join( ' '.join( [ prog, '-H', _option_arg(p,hist = True) ] + opts + [ fn ] )
                           for p in job.plots )
     out = _shell_path(job.out)
     return ' '.join( [ prog, '-e' ] + opts + [ fn, out ] )

@@ -194,6 +194,9 @@ def arrow_image( widget ):
     h = max( 9, round( 0.8 * font.metrics('ascent') ) ) | 1
     w = round( 1.2 * h )
     color = ttk.Style(widget).lookup('TButton','foreground') or 'black'
+    #(as #rrggbb, as images do not take the names of system colours, like
+    #SystemWindowText on Windows):
+    color = '#' + ''.join( f'{c // 256:02x}' for c in widget.winfo_rgb(color) )
     img = tk.PhotoImage(width=w,height=h)
     mid, head, shaft = h // 2, ( h + 1 ) // 2, max( 2, h // 4 )
     for x in range(w):

@@ -19,8 +19,8 @@
 ##                                                                            ##
 ################################################################################
 
-"""Extracting particles into a new file, as with mcpltool -x, and the output
-file names of mcpltool."""
+"""Extracting particles into a new file, as with mcpltool -x (also used by the
+viewer), and the output file names of mcpltool."""
 
 __all__ = []
 
@@ -35,15 +35,26 @@ def _shell_arg( expression ):
     #characters which are special inside double quotes are not allowed)
     return f'"{expression}"'
 
-def _option_arg( text ):
-    """The text of -e as a command-line argument, with its first statement
-    (before the first ";") in parentheses if it starts with "-", which would
+def _option_arg( text, hist = False ):
+    """The text of -e or -H (hist) as a command-line argument, with its first
+    statement or expression (before the first ";", or for a histogram also
+    before the first ":") in parentheses if it starts with "-", which would
     otherwise be taken as an option (statements starting with "-" are filter
     conditions, which can be put in parentheses)"""
     if text.startswith('-'):
         first, sep, rest = text.partition(';')
-        text = f'({first.strip()})' + sep + rest
+        if hist:
+            first, colon, others = first.partition(':')
+            rest = ( f' : {others.strip()}' if colon else '' ) + sep + rest
+        else:
+            rest = sep + rest
+        text = f'({first.strip()})' + rest
     return _shell_arg(text)
+
+def _shell_path( filename ):
+    """The filename as a command-line argument (in double quotes if it has
+    spaces)"""
+    return _shell_arg(filename) if ' ' in filename else filename
 
 def _range_options( skip, limit, edit ):
     """The options -l, -s, and -e of mcpltool for the range of particles and

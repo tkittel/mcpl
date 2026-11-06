@@ -36,6 +36,7 @@ _sections = [
     ( 'File operations', ('_fileops','_ascii') ),
     ( 'Expressions', ('_expressions',) ),
     ( 'Statistics and histograms', ('_stats','_histogram') ),
+    ( 'The viewer', ('_viewer',) ),
     ( 'Other', ('_common','_messages','_statsum','_cli') ),
 ]
 

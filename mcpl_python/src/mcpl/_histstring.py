@@ -228,6 +228,12 @@ def _display_by( o ):
         return value
     return 'pdgcode' if len(o['exprs']) != 2 and o['bar'] is False else None
 
+def _display_by_choice( o ):
+    """What display_by of a histogram with the options o (see _parse_hist)
+    chooses instead of the default: the expression, 'single' (for one curve
+    where the default has several), or None for the default"""
+    by, default = _display_by(o), _display_by(dict(o,display_by = None))
+    return None if by == default else by or 'single'
 
 def _check_display_edit( value, text = None ):
     """Check the edit expression of the option display_edit"""
@@ -316,7 +322,6 @@ def _check_range( rng, vals, name ):
     raise MCPLError(f'The {name} of "{vals.expression_original}" ({_dimstr(vals.dim)}) has'
                     f' other units ({_dimstr(rng.dim)})')
 
-
 def _hist_parts( text ):
     """The expressions of a histogram string, and its options as a list of
     (name, value text), as written (value None for an option without a
@@ -336,7 +341,30 @@ def _hist_exprs( text ):
     """The expressions of a histogram string (one, two, or three, as written)"""
     return [ e.strip() for e in _hist_parts(text)[0].split(':') ]
 
+def _hist_join( exprs, opts ):
+    """The histogram string of the expressions (the first part, as in
+    "x : y") and options (as from _hist_parts)"""
+    return ';'.join( [ exprs ] + [ n if v is None else f'{n}={v}' for n, v in opts ] )
 
+def _hist_set_option( text, name, value ):
+    """The histogram string with the option set to the value (a text, True
+    for the option without a value, or None to remove it), in its place if
+    it was given, else at the end (before display_edit), with the rest as
+    written"""
+    exprs, opts = _hist_parts(text)
+    new = None if value is None else ( name, None if value is True else value )
+    out, done = [], False
+    for n, v in opts:
+        if n == name:
+            if new is not None and not done:
+                out.append(new)
+            done = True
+        else:
+            out.append( ( n, v ) )
+    if not done and new is not None:
+        last = len(out) - ( bool(out) and out[-1][0] == 'display_edit' )
+        out.insert(last,new)
+    return _hist_join(exprs,out)
 
 def _hist_with_args( expression, given ):
     """The options (as from _parse_hist) of a histogram of the expression,

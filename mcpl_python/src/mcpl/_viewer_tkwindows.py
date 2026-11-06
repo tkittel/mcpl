@@ -37,6 +37,9 @@ def _closed_by_escape( window, focus = None ):
     keys work at once (also on macOS)"""
     window.bind('<Escape>',lambda _e : window.destroy())
     window.after_idle(( focus or window ).focus_force)
+    #(and again when it is shown, which can be later with some window
+    #managers and versions of Tk):
+    window.bind('<Map>',lambda e : ( focus or window ).focus_force() if e.widget is window else None,'+')
 
 class HelpWindow:
     """A window with the help (see help_topics), formatted from its blocks

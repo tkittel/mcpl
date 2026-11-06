@@ -769,16 +769,19 @@ mcpltool --hist-help: exit code 0, 80 lines, starting with:
    | or two separated by ":" for a 2D histogram (or three for a 3D plot of
    | particles chosen at random, in windows), followed by options separated by ";".
 nice numbers of bins: [(1200, 1080), (400, 360), (239, 216), (83, 72), (37, 36), (15, 15), (8, 8)]
-neff=1: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
-neff=100: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
-neff=1000: bins of 1080 -> 30, of 216 -> 36, 2D of 216 -> 9
-neff=10000: bins of 1080 -> 108, of 216 -> 108, 2D of 216 -> 24
-neff=100000: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 54
-neff=1e+06: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 108
-2756 (ncols,neff) cases, 0 bad, ratio to target 0.72..1.25 when not capped, 1035 capped by narrow plots, at most 15% unused columns
+n=1: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
+n=100: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
+n=1000: bins of 1080 -> 30, of 216 -> 36, 2D of 216 -> 9
+n=10000: bins of 1080 -> 108, of 216 -> 108, 2D of 216 -> 24
+n=100000: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 54
+n=1e+06: bins of 1080 -> 360, of 216 -> 216, 2D of 216 -> 108
+2756 (ncols,nentries) cases, 0 bad, ratio to target 0.72..1.25 when not capped, 1035 capped by narrow plots, at most 15% unused columns
 auto: 30 bins, sum 1006 (1080 bins: 1006), merged exactly: True, same edges: True, for display: 1080
 auto with few particles: 10 bins, sum 10
 auto with at most 83 bins: 36 bins, for display: 72
 auto 2D: (10, 10) bins, sum 1006, for display: (360, 360)
 auto 2D with at most (69,15) bins: (10, 15) bins, sum 1006, for display: (60, 15)
 2D with bins=(8,4): (8, 4) bins, for display: None
+auto with equal weights: 360 bins, 2D (45, 45) bins
+auto with weights spread over 8 decades: 360 bins, 2D (45, 45) bins
+auto with half of the weights 0: 216 bins, 2D (36, 36) bins

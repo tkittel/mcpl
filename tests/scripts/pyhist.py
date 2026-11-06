@@ -197,14 +197,14 @@ def test_public_api():
         print(f'plot to an existing file: {e}')
 
 def test_autobins():
-    #Without bins, the number of bins follows from the effective number of
-    #entries (square root, clamped to [10,400]), after histogramming with many
-    #bins which are then merged exactly:
+    #Without bins, the number of bins follows from the number of entries
+    #(square root, clamped to [10,400]), after histogramming with many bins
+    #which are then merged exactly:
     from mcpldev._histfill import _auto_nbins, _nice_nbins
     print('nice numbers of bins:',[ (m,_nice_nbins(m)) for m in (1200,400,239,83,37,15,8) ])
-    for neff in (1, 100, 1000, 1e4, 1e5, 1e6):
-        print(f'neff={neff:g}: bins of 1080 -> {_auto_nbins(neff,1080)},'
-              f' of 216 -> {_auto_nbins(neff,216)}, 2D of 216 -> {_auto_nbins(neff,216,2)}')
+    for n in (1, 100, 1000, 1e4, 1e5, 1e6):
+        print(f'n={n:g}: bins of 1080 -> {_auto_nbins(n,1080)},'
+              f' of 216 -> {_auto_nbins(n,216)}, 2D of 216 -> {_auto_nbins(n,216,2)}')
     #Sanity of the choices for all plot widths and a range of statistics: the
     #bins merge exactly, few columns are unused, and the number of bins is
     #close to the target unless the plot is too narrow for it:
@@ -212,9 +212,9 @@ def test_autobins():
     stats, nbad = [], 0
     for ncols in [None] + list(range(29,240)):
         nb = _nice_nbins(1200 if ncols is None else ncols)
-        for neff in (1,3,10,30,100,300,1e3,3e3,1e4,3e4,1e5,1e6,1e8):
-            n = _auto_nbins(neff,nb)
-            target = max(10,min(400,round(math.sqrt(neff))))
+        for nentries in (1,3,10,30,100,300,1e3,3e3,1e4,3e4,1e5,1e6,1e8):
+            n = _auto_nbins(nentries,nb)
+            target = max(10,min(400,round(math.sqrt(nentries))))
             unused = 0.0 if ncols is None else ( ncols - nb ) / ncols
             capped = ( n == nb )#(every column used, narrow plot)
             ratio = n / target
@@ -222,7 +222,7 @@ def test_autobins():
                    and ( capped or 0.6 <= ratio <= 1.5 ) )
             nbad += ( not ok )
             stats.append((ratio,unused,capped))
-    print(f'{len(stats)} (ncols,neff) cases, {nbad} bad, ratio to target'
+    print(f'{len(stats)} (ncols,nentries) cases, {nbad} bad, ratio to target'
           f' {min(r for r,_,c in stats if not c):.2f}..{max(r for r,_,c in stats if not c):.2f}'
           f' when not capped, {sum(c for _,_,c in stats)} capped by narrow plots,'
           f' at most {100*max(u for _,u,_ in stats):.0f}% unused columns')
@@ -245,6 +245,19 @@ def test_autobins():
           f' sum {h.contents.sum():g}, for display: {h._display_bins}')
     h = ihist2d(example_file, 'x/cm', 'y/cm', bins=(8,4))
     print(f'2D with bins=(8,4): {h.contents.shape} bins, for display: {h._display_bins}')
+    #(the same number of bins when a few particles have most of the weight, as
+    #the bins show where the particles are; particles with weight 0 do not
+    #count):
+    rng = np.random.default_rng(1)
+    nb = 100000
+    x, y = rng.normal(0,1,nb), rng.normal(0,1,nb)
+    for name, w in ( ( 'equal weights', np.ones(nb) ),
+                     ( 'weights spread over 8 decades', 10**rng.uniform(-4,4,nb) ),
+                     ( 'half of the weights 0', np.where(np.arange(nb)%2,1.0,0.0) ) ):
+        with mcpl.MCPLOutFile('weighted.mcpl', allow_overwrite = True) as o:
+            o.add_particles( pdgcode = 2112, ekin = 1.0, x = x, y = y, uz = 1.0, weight = w )
+        h1, h2 = ihist('weighted.mcpl', 'x/cm'), ihist2d('weighted.mcpl', 'x/cm', 'y/cm')
+        print(f'auto with {name}: {len(h1.edges)-1} bins, 2D {h2.contents.shape} bins')
 
 def tool(*args):
     out = io.StringIO()

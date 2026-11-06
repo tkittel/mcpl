@@ -114,8 +114,8 @@ left edges of "X axis:", the first setting, and "Expression:" (from the header):
 skip and limit in one group: True | room between skip and limit: 8 | limit as far right as the buttons below: True | right of the pick fields: True
 mark of skip: '✗' | inside the field at its right end: True
 mark of limit: '✗' | inside the field at its right end: True
-high window: the cards fit: True, scrollbar shown: False
-low window: the cards fit: False, scrollbar shown: True
+high window: scrollbar shown exactly when the cards do not fit: True
+low window: scrollbar shown exactly when the cards do not fit: True | the cards fit: False
 buttons of the examples: [('Close', -1), ('More details', 0)]
 focus in the window of the examples: True
 after the key m: examples closed: True | help shown: ['MCPL viewer: Picks']

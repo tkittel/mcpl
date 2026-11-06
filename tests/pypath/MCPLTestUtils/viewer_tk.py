@@ -523,6 +523,8 @@ print('code window: tabs', [ tabs.tab(t,'text') for t in tabs.tabs() ],
       '| command:', next( c.get('1.0','end').strip() for c in descendants(codewin)
                           if c.winfo_class() == 'Text' ))
 codewin.destroy()
+#(the focus goes back to the main window when it is closed):
+pump(0.5)
 
 #Each secondary window gets the keyboard focus when it is shown, and Esc (in
 #the widget with the focus) closes it:
@@ -538,8 +540,13 @@ for name, opener in openers.items():
     pump(0.3)
     window = next( w for w in root.winfo_children()
                    if w not in before and isinstance(w,tkinter.Toplevel) )
-    focus = root.focus_get()
-    has_focus = focus is not None and focus.winfo_toplevel() is window
+    #(which can take a moment, with some window managers):
+    for _ in range(30):
+        focus = root.focus_get()
+        has_focus = focus is not None and focus.winfo_toplevel() is window
+        if has_focus:
+            break
+        pump(0.1)
     ( focus or window ).event_generate('<Escape>')
     pump()
     print(f'{name} window: keyboard focus in it: {has_focus} | closed by Esc:',
@@ -664,14 +671,18 @@ for field in ( 'skip', 'limit' ):
           and right(entry) - right(mark) < 10)
     tv.show_check(field,None)
 
-#The scrollbar of the cards is only shown when they do not fit:
+#The scrollbar of the cards is only shown when they do not fit (as in the low
+#window):
 for name, geometry in ( ( 'high', '1400x2000' ), ( 'low', '1400x500' ) ):
     root.minsize(1,1)
     root.geometry(geometry)
     pump()
     c = tv._cards.canvas
     fits = float(c.cget('scrollregion').split()[3]) <= c.winfo_height()
-    print(f'{name} window: the cards fit: {fits}, scrollbar shown: {bool(tv._cards.bar.winfo_ismapped())}')
+    #(whether they fit in the high window depends on the size of the screen):
+    print(f'{name} window: scrollbar shown exactly when the cards do not fit:',
+          bool(tv._cards.bar.winfo_ismapped()) == ( not fits ),
+          *( [ '| the cards fit:', fits ] if name == 'low' else [] ))
 root.geometry('1400x900')
 root.minsize(*minsize)
 pump()

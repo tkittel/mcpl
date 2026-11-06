@@ -594,7 +594,7 @@ mcpltool -pgamma -j a1.mcpl: exit code 2
    | python -m mcpl: error: -p is not an option (use -e, e.g. -e "pdgcode == neutron")
 mcpltool --repair --edit x>1cm a1.mcpl: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-   | python -m mcpl: error: -e can only be used when showing particles, or with -S, -H, -t, or -x
+   | python -m mcpl: error: -e can only be used when showing particles, or with -S, -w, -t, or -x
 mcpltool --repair -pgamma a1.mcpl: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
    | python -m mcpl: error: -p is not an option (use -e, e.g. -e "pdgcode == neutron")

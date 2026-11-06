@@ -6,6 +6,8 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   python -m mcpl [options] FILE                  Show the header and particles
   python -m mcpl -S [options] FILE               Summary of the particles
+  python -m mcpl -w [options] FILE               View the particles in a window
+  python -m mcpl -t [options] FILE               View the particles in the terminal
   python -m mcpl -H HIST [options] FILE [...]    Histogram in a window
   python -m mcpl -t -H HIST [options] FILE [...] Histogram in the terminal
   python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles
@@ -21,6 +23,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
+  python -m mcpl -w file.mcpl.gz
   python -m mcpl -H "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
   python -m mcpl -x -e "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   python -m mcpl -S file.mcpl.gz
@@ -38,6 +41,8 @@ Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 Usage:
   python -m mcpl [options] FILE                  Show the header and particles
   python -m mcpl -S [options] FILE               Summary of the particles
+  python -m mcpl -w [options] FILE               View the particles in a window
+  python -m mcpl -t [options] FILE               View the particles in the terminal
   python -m mcpl -H HIST [options] FILE [...]    Histogram in a window
   python -m mcpl -t -H HIST [options] FILE [...] Histogram in the terminal
   python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles
@@ -53,6 +58,7 @@ Common options:
   -d             Dry run: do everything except writing files.
 
 Examples:
+  python -m mcpl -w file.mcpl.gz
   python -m mcpl -H "ekin/MeV;logx;display_edit=pdgcode==neutron" file.mcpl.gz
   python -m mcpl -x -e "pdgcode == neutron" file.mcpl.gz neutrons.mcpl.gz
   python -m mcpl -S file.mcpl.gz
@@ -200,7 +206,7 @@ python -m mcpl: error: do not specify -l or -s with -j
 Running mcpltool rf16cp.mcpl -l2 -r
 ----------------------------------------------
 usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-python -m mcpl: error: -l can only be used when showing particles, or with -S, -H, -t, or -x
+python -m mcpl: error: -l can only be used when showing particles, or with -S, -w, -t, or -x
 
 ===> Command failed!
 ----------------------------------------------

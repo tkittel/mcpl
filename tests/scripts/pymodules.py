@@ -46,7 +46,7 @@ from MCPLTestUtils.pymoddeps import package_imports
 dependencies = {
     '_ascii'            : ( '_common', '_reader' ),
     '_blocks'           : ( '_common', '_numpy', '_physics' ),
-    '_cli'              : ( '_ascii', '_clistats', '_common', '_examples', '_expressions', '_exprhelp', '_extract', '_fileops', '_histfill', '_histstring', '_messages', '_reader', '_writer' ),
+    '_cli'              : ( '_ascii', '_clistats', '_common', '_examples', '_expressions', '_exprhelp', '_extract', '_fileops', '_histfill', '_histstring', '_messages', '_reader', '_viewer', '_viewer_ui', '_writer' ),
     '_clistats'         : ( '_common', '_histfigures', '_histfill', '_plotregistry', '_reader', '_stats' ),
     '_common'           : (  ),
     'constants'         : (  ),
@@ -97,9 +97,30 @@ dependencies = {
     '_termcolor'        : ( '_common', ),
     '_userdata'         : ( '_common', '_numpy' ),
     '_writer'           : ( '_blocks', '_common', '_expressions', '_messages', '_numpy', '_reader', '_records', '_statsum', '_userdata' ),
-    '__init__'          : ( '_ascii', '_blocks', '_cli', '_common', '_expressions', '_fileops', '_histogram', '_messages', '_reader', '_stats', '_statsum', '_writer', 'constants' ),
+    '__init__'          : ( '_ascii', '_blocks', '_cli', '_common', '_expressions', '_fileops', '_histogram', '_messages', '_reader', '_stats', '_statsum', '_viewer', '_writer', 'constants' ),
     '__main__'          : ( '_cli', ),
     'mcpl'              : ( '_ascii', '_blocks', '_cli', '_common', '_reader', '_stats', '_statsum' ),
+    '_stdviews'         : (  ),
+    '_viewer'           : ( '_common', '_expr_ast', '_expr_str2ast', '_expressions', '_exprhelp', '_histstring', '_plotregistry', '_reader', '_stdviews', '_userdata', '_viewer_curses', '_viewer_groups', '_viewer_output', '_viewer_overviews', '_viewer_reading', '_viewer_tk', '_viewer_ui' ),
+    '_viewer_code'      : ( '_expressions', '_extract' ),
+    '_viewer_groups'    : ( '_expressions', '_histstring', '_particles', '_stdviews', '_viewer_overviews' ),
+    '_viewer_output'    : ( '_common', '_expr_str2ast', '_extract', '_messages', '_reader', '_stdviews', '_viewer_code', '_viewer_groups', '_viewer_ui', '_writer' ),
+    '_viewer_overviews' : ( '_figures', '_histstring', '_numpy' ),
+    '_viewer_reading'   : ( '_common', '_expr_vocab', '_figures', '_histfigures', '_histfill', '_histstring', '_numpy', '_reader', '_viewer_overviews', '_viewer_threads', '_viewer_ui' ),
+    '_viewer_threads'   : (  ),
+    '_viewer_ui'        : ( '_common', '_helptext', '_particles', '_stdviews' ),
+    '_viewer_curses'    : ( '_common', '_plotbackend_text', '_plotregistry', '_termcolor', '_viewer_tk', '_viewer_ui' ),
+    '_thumbnails'       : ( '_figures', '_numpy', '_viewer_overviews' ),
+    '_viewer_figure'    : ( '_plotbackend_mpl', '_viewer_overviews' ),
+    '_viewer_widgets'   : ( '_common', '_exprhelp', '_histstring', '_particles', '_stdviews', '_thumbnails', '_viewer_figure', '_viewer_ui' ),
+    '_viewer_align'     : ( '_common', '_exprrotation', '_exprunits', '_numpy', '_viewer_output' ),
+    '_viewer_compose'   : ( '_common', '_expr_ast', '_expr_eval', '_expr_str2ast', '_expr_vocab', '_expressions', '_exprunits', '_particles', '_stdviews', '_viewer_align', '_viewer_ui' ),
+    '_viewer_tk'        : ( '_common', '_logo', '_messages', '_viewer_figure', '_viewer_tkbase', '_viewer_tkcards', '_viewer_tkcompose', '_viewer_tkcontrols', '_viewer_tkwindows', '_viewer_ui', '_viewer_widgets' ),
+    '_viewer_tkbase'    : ( '_viewer_ui', ),
+    '_viewer_tkcards'   : ( '_viewer_tkbase', '_viewer_ui' ),
+    '_viewer_tkcontrols': ( '_viewer_tkbase', '_viewer_ui' ),
+    '_viewer_tkcompose' : ( '_viewer_align', '_viewer_compose', '_viewer_threads', '_viewer_tkbase', '_viewer_tkwindows', '_viewer_ui' ),
+    '_viewer_tkwindows' : ( '_exprhelp', '_viewer_code', '_viewer_output', '_viewer_threads', '_viewer_tkbase', '_viewer_ui' ),
 }
 
 entry_points = ( '__init__', '__main__', 'mcpl' )
@@ -108,8 +129,10 @@ public_submodules = ['constants']
 
 allowed_external_imports = {
     'numpy' : ['_numpy'],
-    'matplotlib' : ['_plotbackend_mpl'],
+    'matplotlib' : ['_plotbackend_mpl', '_thumbnails', '_viewer_figure', '_viewer_tk'],
+    'tkinter' : ['_viewer_tk', '_viewer_tkbase'],
     'scipp' : ['_scipp'],
+    'curses' : ['_viewer_curses'],
 }
 
 def find_cycle( graph ):
@@ -135,7 +158,7 @@ def find_cycle( graph ):
 
 #External modules which are slow to import, and which must therefore only be
 #imported inside functions (i.e. on demand, when plots are made):
-on_demand_external_imports = ['matplotlib', 'scipp']
+on_demand_external_imports = ['matplotlib', 'scipp', 'curses']
 
 def import_time_externals( path ):
     """External top level modules imported when the file is imported (i.e.

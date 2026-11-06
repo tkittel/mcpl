@@ -4,3 +4,4 @@ numpy>=1.22
 ruff>=0.8.1
 scipp>=26.9; python_version >= "3.12" and platform_system != "FreeBSD"
 tomli>=2.0.0; python_version < "3.11"
+windows-curses>=2.3; platform_system == "Windows"

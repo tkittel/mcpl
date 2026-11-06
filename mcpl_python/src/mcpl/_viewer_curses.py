@@ -66,6 +66,17 @@ def _ansi_segments( text ):
         res.append( ( text[pos:], fg, bg ) )
     return res
 
+def _hung_up():
+    """Whether the terminal of the input was closed (as poll tells, where it
+    is available, but not on Windows)"""
+    import select
+    import sys
+    if not hasattr(select,'poll'):
+        return False
+    p = select.poll()
+    p.register(sys.stdin.fileno(),select.POLLIN)
+    return any( ev & ( select.POLLHUP | select.POLLERR | select.POLLNVAL ) for _, ev in p.poll(0) )
+
 class _CursesScreen:
     """The terminal, with curses"""
     def __init__( self, stdscr, use_colors = True ):
@@ -144,11 +155,12 @@ class _CursesScreen:
         try:
             k = self._w.get_wch()
         except c.error:
-            #(after the timeout, or at once when the terminal can no longer be
-            #read, e.g. when it was closed, where the viewer ends instead of
-            #trying again and again):
+            #(after the timeout, or when the terminal can no longer be read,
+            #e.g. when it was closed, where the viewer ends instead of trying
+            #again and again: known from poll where it is available, or else
+            #from failing at once again and again):
             self._failed = self._failed + 1 if time.monotonic() - t0 < 0.01 else 0
-            if self._failed > 100:
+            if self._failed > 100 or _hung_up():
                 raise MCPLError('The viewer ended, since its terminal can no longer be read')
             return None
         self._failed = 0

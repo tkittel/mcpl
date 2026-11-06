@@ -1,0 +1,565 @@
+==> start, and the end of the reading
+   field skip: ''
+   field limit: ''
+   field groups: 'spectra,fields,correlations'
+   field edit: ''
+   field plot: ''
+   views: 8 cards, selected: 'Spectra' (badges ['5 plots']), shown: overview:spectra
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 1,006 particles, Σw = 1,006
+   shown plot field: (None, ('', '', ''))
+   settings: None
+   bins used: None
+   plot: 6 axes
+==> typing in the edit field: invalid, then valid with a hint
+   check of edit: False
+   line (error): Unknown name "neu" in expression "pdgcode == neu" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+   check of edit: True
+   line (dim): hint: neutron  PDG code 2112
+==> applying an invalid edit, then a valid one
+   line (error): Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x = 2"
+   check of edit: None
+   field edit: 'pdgcode == neutron'
+   line (normal): 
+   views: 8 cards, selected: 'Spectra' (badges ['5 plots']), shown: overview:spectra
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: (None, ('', '', ''))
+   settings: None
+   bins used: None
+   plot: 6 axes
+==> Esc in the edit field restores its text
+   check of edit: False
+   line (error): Syntax error in expression "x +=", at the end: a value is missing
+   check of edit: None
+   line (normal): 
+   field edit: 'pdgcode == neutron'
+==> earlier texts of the edit field (Up and Down)
+   up: 'pdgcode == neutron' | down: ''
+==> Tab completion
+   check of edit: False
+   line (error): Unknown name "e" in expression "ekin < 1MeV and e" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+   ('ekin < 1MeV and e', 17, [('ekin', 'kinetic energy (an energy)'), ('electron', 'PDG code 11'), ('eV', 'energy unit, 1e-6 MeV'), ('exp(', 'exponential (a without unit)')])
+   (not mentioned after it was used)
+   check of edit: True
+   line (dim): Statements are separated by ";"   Enter: apply   Up/Down: earlier texts   Esc: cancel
+==> the groups of plots are chosen in a field
+   check of groups: True
+   line (dim): hint: beamz  Z beam profile
+   check of groups: None
+   field groups: 'beamz'
+   line (normal): 
+   views: 8 cards, selected: 'Z beam profile' (badges ['7 plots']), shown: overview:beamz
+   inactive cards: ['Spectra: click to activate', 'Fields: click to activate', 'Geometry: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate', 'Correlations: click to activate']
+   thumbnails: 1
+   removable cards: ['Z beam profile']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: (None, ('', '', ''))
+   settings: None
+   bins used: None
+   plot: 12 axes
+   check of groups: None
+   field groups: 'spectra,fields,correlations'
+   line (normal): 
+   views: 8 cards, selected: 'Spectra' (badges ['5 plots']), shown: overview:spectra
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: (None, ('', '', ''))
+   settings: None
+   bins used: None
+   plot: 6 axes
+==> adding a plot (the field is emptied, and the plot shown)
+   check of plot: None
+   field plot: ''
+   line (normal): 
+   views: 9 cards, selected: 'Custom' (badges ['1 plot']), shown: custom:hypot(x,y)/cm;logy
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('hypot(x,y)/cm;logy', ('hypot(x,y)/cm', '', ''))
+   settings: ('1d', {'logx': 'linear', 'logy': 'log', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_edit': 'all'})
+   bins used: 27
+   plot: 1 axes
+==> changing the shown plot, and removing it (empty text)
+   check of shown_plot: True
+   line (dim): Enter: remove this plot   Esc: cancel
+   check of shown_plot: None
+   line (normal): 
+   views: 9 cards, selected: 'Custom' (badges ['1 plot']), shown: custom:hypot(x,y)/mm;logy
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('hypot(x,y)/mm;logy', ('hypot(x,y)/mm', '', ''))
+   settings: ('1d', {'logx': 'linear', 'logy': 'log', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_edit': 'all'})
+   bins used: 27
+   plot: 1 axes
+   check of shown_plot: None
+   line (normal): 
+   views: 8 cards, selected: 'Correlations' (badges ['28 plots']), shown: plot:time;logx=auto;display_by=single
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('time;logx=auto;display_by=single', ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'display_by': 'single', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_edit': 'all'})
+   bins used: 27
+   plot: 1 axes
+==> keys outside the fields
+  key Down:
+   views: 8 cards, selected: 'Correlations' (badges ['28 plots']), shown: plot:time;logx=auto;display_by=single
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('time;logx=auto;display_by=single', ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'display_by': 'single', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_edit': 'all'})
+   bins used: 27
+   plot: 1 axes
+  key MoveDown:
+   views: 8 cards, selected: 'Correlations' (badges ['28 plots']), shown: plot:time;logx=auto;display_by=single
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('time;logx=auto;display_by=single', ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'display_by': 'single', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_edit': 'all'})
+   bins used: 27
+   plot: 1 axes
+  key Up:
+   views: 8 cards, selected: 'Correlations' (badges ['28 plots']), shown: plot:ekin : time;logx=auto;logy=auto
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('ekin : time;logx=auto;logy=auto', ('ekin', 'time', ''))
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'display_edit': 'all'})
+   bins used: 10,10
+   plot: 2 axes
+  key E:
+   focus: edit
+   views: 8 cards, selected: 'Correlations' (badges ['28 plots']), shown: plot:ekin : time;logx=auto;logy=auto
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('ekin : time;logx=auto;logy=auto', ('ekin', 'time', ''))
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'display_edit': 'all'})
+   bins used: 10,10
+   plot: 2 axes
+  key Enter:
+   focus: shown_plot
+   views: 8 cards, selected: 'Correlations' (badges ['28 plots']), shown: plot:ekin : time;logx=auto;logy=auto
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('ekin : time;logx=auto;logy=auto', ('ekin', 'time', ''))
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'display_edit': 'all'})
+   bins used: 10,10
+   plot: 2 axes
+  key w:
+   asked for a file to write, suggested: example_selected.mcpl
+   views: 8 cards, selected: 'Correlations' (badges ['28 plots']), shown: plot:ekin : time;logx=auto;logy=auto
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('ekin : time;logx=auto;logy=auto', ('ekin', 'time', ''))
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'display_edit': 'all'})
+   bins used: 10,10
+   plot: 2 axes
+  key v:
+   asked for a file to state, suggested: example_viewer.json
+   views: 8 cards, selected: 'Correlations' (badges ['28 plots']), shown: plot:ekin : time;logx=auto;logy=auto
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('ekin : time;logx=auto;logy=auto', ('ekin', 'time', ''))
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'display_edit': 'all'})
+   bins used: 10,10
+   plot: 2 axes
+  key ?:
+   help shown: 51 lines
+   views: 8 cards, selected: 'Correlations' (badges ['28 plots']), shown: plot:ekin : time;logx=auto;logy=auto
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('ekin : time;logx=auto;logy=auto', ('ekin', 'time', ''))
+   settings: ('2d', {'logz': 'log', 'equal': 'auto', 'unweighted': 'weights', 'bins': '', 'xrange': '', 'yrange': '', 'display_edit': 'all'})
+   bins used: 10,10
+   plot: 2 axes
+==> the file names (the suggested one is written, and the same again only if the user agrees, unless the file dialog asked)
+   line (normal): MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl
+   asked: Overwrite example_selected.mcpl? no
+   asked: Overwrite example_selected.mcpl? yes
+   line (normal): MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl
+   line (normal): MCPL: Successfully extracted 726 / 1006 particles from example.mcpl into example_selected.mcpl
+   asked: Overwrite example_selected.mcpl? no
+   written: ['example_selected.mcpl']
+==> a click on a plot of the overview shows it on its own, with b back to the overview
+   views: 8 cards, selected: 'Spectra' (badges ['5 plots']), shown: overview:spectra
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: (None, ('', '', ''))
+   settings: None
+   bins used: None
+   plot: 6 axes
+   views: 8 cards, selected: 'Spectra' (badges ['5 plots']), shown: plot:wavelength;logx
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 3
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('wavelength;logx', ('wavelength', '', ''))
+   settings: ('1d', {'logx': 'log', 'logy': 'linear', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_edit': 'all'})
+   bins used: 27
+   plot: 1 axes
+   can go back: True | title: ('Plot', 'Wavelength')
+   after b: overview:spectra False | title: ('Overview', 'Spectra')
+==> Up and Down: the groups, or the plots of the overview of the shown plot
+   Down: overview:fields
+   Up twice: overview:spectra
+   Down: plot:ekin;lethargy;logy
+   Down: plot:wavelength;logx
+   Up: plot:ekin;lethargy;logy
+   b: overview:spectra
+==> the menus of the plots of overviews (right click), and moving custom plots
+   line (normal): 
+   line (normal): 
+   menu of the plot: ['Copy and edit', 'Move earlier', 'Move later', 'Remove plot']
+   still shown: overview:custom
+   moved earlier: ['uz;bins=10', 'hypot(x,y)/cm']
+   again (already first): ['uz;bins=10', 'hypot(x,y)/cm']
+   moved later: ['hypot(x,y)/cm', 'uz;bins=10']
+   menu of the plot: ['Copy and edit']
+   menu of the plot: ['Copy and edit']
+   still shown: overview:fields
+   views: 9 cards, selected: 'Fields' (badges ['13 plots']), shown: plot:x
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('x', ('x', '', ''))
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_edit': 'all'})
+   bins used: 27
+   plot: 1 axes
+   state: {'groups': ['spectra', 'fields', 'correlations'], 'custom': ['hypot(x,y)/cm', 'uz;bins=10'], 'view': 'x'}
+==> copy and edit: a change of the copied plot adds the changed plot
+   line (dim): Copy: a change of the axes, settings, or plot expression adds the changed plot to the custom plots
+   title: ('Copy of plot', 'Position x')
+   line (normal): 
+   copy added: custom:x;bins=17 ['hypot(x,y)/cm', 'uz;bins=10', 'x;bins=17'] | title: ('Plot', 'Position x')
+   line (normal): 
+   then changed: custom:x;bins=18 ['hypot(x,y)/cm', 'uz;bins=10', 'x;bins=18']
+   line (dim): Copy: a change of the axes, settings, or plot expression adds the changed plot to the custom plots
+   line (normal): 
+   copy of a custom plot: custom:y;bins=18 ['hypot(x,y)/cm', 'uz;bins=10', 'x;bins=18', 'y;bins=18']
+   line (normal): Removed the plot "Position x"
+   line (normal): Removed the plot "Position y"
+   removed again: ['hypot(x,y)/cm', 'uz;bins=10']
+==> the settings of the shown plot
+  logy set to 'linear':
+   line (normal): 
+  display_by set to 'particle type':
+   line (normal): 
+  bins set to '40':
+   line (normal): 
+  range set to '0:90':
+   line (normal): 
+  display_by set to 'single':
+   line (normal): 
+  logx set to 'nonsense':
+   line (error): Histogram option "logx" must be 1, 0, or auto (not "nonsense"), in "uz;bins=40;range=0:90;display_by=single;logx=nonsense"
+   views: 9 cards, selected: 'Custom' (badges ['2 plots']), shown: custom:uz;bins=40;range=0:90;display_by=single
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('uz;bins=40;range=0:90;display_by=single', ('uz', '', ''))
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'display_by': 'single', 'unweighted': 'weights', 'bins': '40', 'range': '0:90', 'display_edit': 'all'})
+   bins used: 40
+   plot: 1 axes
+==> the colour bar of 2D histograms has a menu of the colour scales
+   menu of a 1D plot: []
+   menu: [('Logarithmic colour scale', True, 'log'), ('Linear colour scale', False, 'linear')]
+   line (normal): 
+   linear: custom:x:y;logx=auto;logy=auto;logz=0 [('Logarithmic colour scale', False, 'log'), ('Linear colour scale', True, 'linear')]
+   line (normal): 
+   log again: custom:x:y;logx=auto;logy=auto
+==> the cache: green when the plots use all particles, else red, with a menu of limits
+   button: ('cache: 44 kB (100%)', 'all')
+   menu: ('Max 5 MB: all 1,006 particles', 5000000.0, False, True)
+   menu: ('Max 20 MB: all 1,006 particles', 20000000.0, False, True)
+   menu: ('Max 100 MB: all 1,006 particles', 100000000.0, True, True)
+   menu: ('Max 500 MB: all 1,006 particles', 500000000.0, False, True)
+   menu: ('Max 2 GB: all 1,006 particles', 2000000000.0, False, True)
+   menu: ('Max 5 GB: all 1,006 particles', 5000000000.0, False, True)
+   menu: ('Max 10 GB: all 1,006 particles', 10000000000.0, False, True)
+   menu: ('No memory cache (refreshing plots from file on each change)', None, False, True)
+   line (normal): The plots use the first 300 of the 1,006 particles (those in the cache), but new files get all
+   button: ('cache: 13 kB (29%)', 'cut')
+   counts: ≈915/1,006 particles (91.0%), Σw ≈ 915 (91.0%) | write button count: 915
+   line (normal): The plots use all 1,006 particles
+   button: ('no cache', 'all')
+   line (normal): The plots use all 1,006 particles
+   button with 1006 of 1006 particles, filling: True: ('cache: 44 kB (100%)', 'filling')
+   button with 1005 of 1006 particles, filling: False: ('cache: 44 kB (99%)', 'cut')
+   button with 503 of 1006 particles, filling: False: ('cache: 44 kB (50%)', 'cut')
+   button with 5 of 1006 particles, filling: False: ('cache: 44 kB (<1%)', 'cut')
+==> the title of the shown view in the header
+   overview: ('Overview', 'Spectra')
+   plot: ('Plot', 'Position x')
+   focus: x_axis
+   line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
+   new plot: ('New plot', '')
+==> plot strings of quantities and expressions
+   'Energy' against '' with (): 'ekin;logx=auto', settings 1d
+   'Energy' against '' with (('logx', 'linear'), ('logy', 'log')): 'ekin;logy', settings 1d
+   'Position x' against 'Direction x' with (('bins', '30'),): 'x : ux;bins=30', settings 2d
+   'Particle type' against '' with (('bar', '5'),): 'pdgcode;bar=5', settings bar
+   'hypot(x,y)/cm' against '' with (): 'hypot(x,y)/cm', settings 1d
+   line (normal): 
+   added: True
+   3D: x : y : z
+   views: 9 cards, selected: 'Custom' (badges ['4 plots']), shown: custom:time;logx=auto
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('time;logx=auto', ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_edit': 'all'})
+   bins used: 27
+   plot: 1 axes
+   line (normal): 
+   added again: True
+   views: 9 cards, selected: 'Custom' (badges ['4 plots']), shown: custom:time;logx=auto
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('time;logx=auto', ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_edit': 'all'})
+   bins used: 27
+   plot: 1 axes
+==> changing the axes of the shown plot (keeping the options which can be kept)
+   line (normal): 
+  'wavelength', '', '': True custom:wavelength;logx=auto ('wavelength', '', '')
+   line (normal): 
+  'Energy', '', '': True custom:ekin;logx=auto ('ekin', '', '')
+   line (error): Each axis has one expression: use the fields of the Y and Z axes for 2D histograms and 3D plots (or "Advanced" for the plot expression)
+  'ekin : time', '', '': False custom:ekin;logx=auto ('ekin', '', '')
+   line (error): Choose or type what to plot on the X axis
+  '', 'time : ekin', '': False custom:ekin;logx=auto ('ekin', '', '')
+   line (normal): 
+  'x', 'y', '': True custom:x:y;logx=auto ('x', 'y', '')
+   line (normal): 
+  'x', 'y', 'z': True custom:x:y:z ('x', 'y', 'z')
+   line (error): Choose the Y axis too for a 3D plot (or empty the Z axis)
+  'x', '', 'z': False custom:x:y:z ('x', 'y', 'z')
+   line (normal): 
+  'x', '', '': True custom:x ('x', '', '')
+   line (error): Choose or type what to plot on the X axis
+  '', '', '': False custom:x ('x', '', '')
+   line (error): Unknown name "nonsense" in expression "nonsense" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+  'nonsense', '', '': False custom:x ('x', '', '')
+   check of axes: False
+   line (error): Each axis has one expression: use the fields of the Y and Z axes for 2D histograms and 3D plots (or "Advanced" for the plot expression)
+   check of axes: False
+   line (error): Choose the Y axis too for a 3D plot (or empty the Z axis)
+   views: 9 cards, selected: 'Custom' (badges ['4 plots']), shown: custom:x
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('x', ('x', '', ''))
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_edit': 'all'})
+   bins used: 27
+   plot: 1 axes
+==> a new plot: shown as a card until its axes are chosen, or given up
+   focus: x_axis
+   line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
+   views: 9 cards, selected: 'Custom' (badges ['4 plots']), shown: info:new
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('', ('', '', ''))
+   settings: None
+   bins used: None
+   plot: 0 axes
+   check of axes: None
+   line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots), and press Enter
+   line (normal): 
+   added: True
+   views: 9 cards, selected: 'Custom' (badges ['4 plots']), shown: custom:hypot(x,y)/cm
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('hypot(x,y)/cm', ('hypot(x,y)/cm', '', ''))
+   settings: ('1d', {'logx': 'linear', 'logy': 'linear', 'display_by': 'particle type', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_edit': 'all'})
+   bins used: 27
+   plot: 1 axes
+   focus: x_axis
+   line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
+   given up when another view is shown: plot:ekin;logx=auto;logy 9
+   focus: x_axis
+   line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
+   given up when removed: plot:ekin;logx=auto;logy 9
+   focus: x_axis
+   line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
+   line (normal): 
+   check of shown_plot: None
+   added with a plot expression: True custom:uz;bins=20
+==> the command of the shown plot, and of the plots of the overview
+   mcpltool -H "uz;bins=20" -e "pdgcode==neutron" example.mcpl
+   mcpltool -H "ekin;logx=auto;logy" -e "pdgcode==neutron" example.mcpl
+    mcpltool -H "ekin;lethargy;logy" -e "pdgcode==neutron" example.mcpl
+    mcpltool -H "wavelength;logx" -e "pdgcode==neutron" example.mcpl
+    mcpltool -H "time;logx=auto;logy" -e "pdgcode==neutron" example.mcpl
+    mcpltool -H "pdgcode;bar;logy=auto" -e "pdgcode==neutron" example.mcpl
+==> writing needs an edit or a range of particles
+   check of edit: None
+   field edit: ''
+   line (normal): 
+   views: 9 cards, selected: 'Spectra' (badges ['5 plots']), shown: overview:spectra
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 1,006 particles, Σw = 1,006
+   shown plot field: (None, ('', '', ''))
+   settings: None
+   bins used: None
+   plot: 6 axes
+   changes particles: False
+   line (error): Edit or choose a range of particles first, to write them to a new file
+==> another file, with the same plots and edit
+   check of edit: None
+   field edit: 'pdgcode == neutron'
+   line (normal): 
+   views: 9 cards, selected: 'Spectra' (badges ['5 plots']), shown: overview:spectra
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: example.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: (None, ('', '', ''))
+   settings: None
+   bins used: None
+   plot: 6 axes
+   field skip: ''
+   field limit: ''
+   field groups: 'spectra,fields,correlations'
+   field edit: 'pdgcode == neutron'
+   field plot: ''
+   line (normal): 
+   opened: True
+   views: 9 cards, selected: 'Spectra' (badges ['5 plots']), shown: overview:spectra
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: other.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: (None, ('', '', ''))
+   settings: None
+   bins used: None
+   plot: 6 axes
+   file: example.mcpl | the viewer: other.mcpl pdgcode == neutron
+   line (error): Not opened: Unable to open file!
+   a file which does not exist: False other.mcpl
+==> removing plots, with Delete (only custom ones)
+   line (error): The plots of the standard groups are not removed (the groups are shown or hidden as a whole, see the groups of plots)
+   line (normal): Removed the plot "hypot(x,y)/cm"
+   views: 9 cards, selected: 'Correlations' (badges ['28 plots']), shown: plot:time;logx=auto;display_by=single
+   inactive cards: ['Geometry: click to activate', 'Z beam profile: click to activate', 'X beam profile: click to activate', 'Y beam profile: click to activate', '3D: click to activate']
+   thumbnails: 4
+   removable cards: ['Spectra', 'Fields', 'Correlations']
+   status: other.mcpl: 726/1,006 particles (72.2%), Σw = 726 (72.2%)
+   shown plot field: ('time;logx=auto;display_by=single', ('time', '', ''))
+   settings: ('1d', {'logx': 'auto', 'logy': 'linear', 'display_by': 'single', 'unweighted': 'weights', 'bins': '', 'range': '', 'display_edit': 'all'})
+   bins used: 27
+   plot: 1 axes
+==> the groups: an overview of each, which hides it with Delete, and shown again
+   [('overview:spectra', 'Spectra', 5, '2x3'), ('overview:fields', 'Fields', 13, '3x5'), ('overview:correlations', 'Correlations', 28, '7x7'), ('overview:custom', 'Custom', 4, '2x3')]
+   inactive groups: [('info:group:geometry', 'Geometry', 'click to activate'), ('info:group:beamz', 'Z beam profile', 'click to activate'), ('info:group:beamx', 'X beam profile', 'click to activate'), ('info:group:beamy', 'Y beam profile', 'click to activate'), ('info:group:3d', '3D', 'click to activate')]
+   code of the shown overview: 49 plots
+   line (normal): Deactivated: the group Correlations
+   after Delete: ['spectra', 'fields'] overview:spectra | state: {'custom': ['uz;bins=40;range=0:90;display_by=single', 'x:y;logx=auto;logy=auto', 'x', 'uz;bins=20']}
+   line (normal): Activated: the group Correlations
+   shown again: ['spectra', 'fields', 'correlations'] overview:correlations
+   line (normal): Activated: the group 3D
+   3D shown: ['spectra', 'fields', '3d', 'correlations'] overview:3d ['3D']
+   menu of an inactive card: ['Activate']
+   line (normal): Activated: the group X beam profile
+   after Activate: True | shown unchanged: True
+   menu of an active card: ['Deactivate this group']
+   line (normal): Deactivated: the group X beam profile
+   after it: False
+   line (normal): Activated: the group Z beam profile
+   beamz activated by its card: ['spectra', 'fields', 'beamz', '3d', 'correlations'] overview:beamz ['Geometry', 'X beam profile', 'Y beam profile']
+   order of the groups: ['Spectra', 'Fields', 'Geometry', 'Z beam profile', 'X beam profile', 'Y beam profile', '3D', 'Correlations', 'Custom']
+   line (error): The custom plots are removed one by one
+   the custom group is not hidden: overview:custom
+   cells of the custom overview: ['custom:uz;bins=20', 'info:new'] ['StepHist', 'NewPlot']
+   focus: x_axis
+   line (dim): Choose or type what to plot on the X axis (and on the Y and Z axes for 2D histograms and 3D plots)
+   after clicking it: info:new
+   menu of the plot: ['Copy and edit']
+   right click in an overview: shown: overview:spectra
+   shown: plot:ekin;logx=auto;logy
+   right click on a plot shown on its own: shown: overview:spectra
+==> the settings of overviews: the particle type, and the variables of correlation plots
+   check of edit: None
+   field edit: ''
+   line (normal): 
+   of the overview: [('particle_type', 'Display only', ['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)'], 'all'), ('display_by', 'Display by', ['particle type', 'single'], 'particle type')]
+   of the correlations: [('particle_type', 'Display only', ['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)'], 'neutron (72%)'), ('variables', 'Variables', ['x', 'y', 'z: all 20 cm', 'ux', 'uy', 'uz', 'ekin', 'time', 'weight: all 1'], ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time']), ('most', None, ['Most correlated'], 'Most correlated')]
+   variables: ['x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin'] 7x7 ['x;logx=auto;display_by=single;display_edit=pdgcode == neutron', 'x : y;logx=auto;logy=auto;display_edit=pdgcode == neutron'] ['plot', 'r']
+   line (error): The correlation plot needs at least two variables
+   title: Correlations (only: pdgcode == gamma)
+   cells: ['StepHist', 'Correlation', 'Hist2D', 'StepHist'] ['+0.20']
+   state: {'correlations': {'variables': ['uz', 'ekin'], 'particle_type': 22}}
+   restored: [('particle_type', 22, [None]), ('variables', ['uz', 'ekin'], ['x', 'y', 'z', 'ux', 'uy', 'uz', 'ekin', 'time', 'weight'])]
+   back to the default variables: True ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time']
+   line (normal): Variables: x, y, uy, time
+   most correlated: ['x', 'y', 'uy', 'time'] | button: All variables
+   line (normal): Variables: x, y, ux, uy, uz, ekin, time
+   all again: ['x', 'y', 'ux', 'uy', 'uz', 'ekin', 'time'] | button: Most correlated
+   Particles of a plot of the overview: (['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)'], 'gamma (24%)')
+   line (normal): 
+   after choosing all: custom:wavelength;logx
+   fields with single curves: ['all', 'single'] ['ekin;logx=auto;logy;display_by=single', 'x;display_by=single'] userflags;bar;logy=auto
+   and by particle type again: ['ekin;logx=auto;logy', 'x']
+   coefficients of 22 : {'x:y': 1.0, 'x:ekin': 1.0, 'x:z': None, 'y:ekin': 1.0, 'y:z': None, 'ekin:z': None}
+   coefficients of 2112 : {'x:y': 1.0, 'x:ekin': 1.0, 'x:z': None, 'y:ekin': 1.0, 'y:z': None, 'ekin:z': None}
+   coefficients of None : {'x:y': 0.9929, 'x:ekin': 1.0, 'x:z': None, 'y:ekin': 0.9929, 'y:z': None, 'ekin:z': None}
+==> the most correlated variables of a single particle (none varies)
+   field skip: ''
+   field limit: '1'
+   field groups: 'correlations'
+   field edit: ''
+   field plot: ''
+   line (error): Fewer than two of the variables have more than one value
+==> a plot of several groups: its card, and b and Down, follow the overview it was chosen in
+   plot:time;logx=auto;logy from overview:fields: card overview:fields, Down: plot:weight;logx=auto;logy;unweighted, b: overview:fields
+   plot:time;logx=auto;logy from overview:spectra: card overview:spectra, Down: plot:pdgcode;bar;logy=auto, b: overview:spectra
+==> expressions written in the settings of plots
+   choices of display_edit: ['all', 'neutron (72%)', 'gamma (24%)', 'electron (1%)', 'proton (<1%)', 'positron (<1%)', 'pi+ (<1%)', 'pi- (<1%)', 'nu_mu (<1%)']
+   line (dim): Type an edit of the particles shown, e.g. ekin > 1MeV, and press Enter
+   line (error): Syntax error in expression "ekin > 1Me", after "ekin > 1": an operator is missing
+   line (error): Syntax error in expression "ekin >> 1", after "ekin >": a value is expected, not ">"
+   line (dim): hint: MeV  energy unit
+   completed: ekin > 1MeV
+==> the buttons of the actions, and quit
+   help shown: 51 lines
+   window closed
+closed: True

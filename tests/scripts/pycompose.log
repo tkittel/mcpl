@@ -1,0 +1,125 @@
+new line: Expression ''
+keep only: ''
+   row type 'Particle type': pdg='' of 8
+   row quantity 'Quantity': quantity='' of 14, op='<' of 6, value=''
+   row near 'Near a point': text='within', radius='', runit='cm' of 7, text='of', point=''
+   row sphere 'Sphere': text='flying through it, at', centre='', text='with radius', sradius='', sunit='cm' of 7
+   row box 'Box': text='flying through it, at', bcentre='', text='with half dimensions', half=''
+particle types: ['neutron (72%)', 'gamma (24%)', 'electron (1%)']
+   pdg = 'gamma (24%)': 'pdgcode == gamma' | units None
+   option = 'quantity': '' | units None
+   quantity = 'Wavelength:  wavelength': '' | units ['Aa', 'nm', 'um', 'mm', 'cm', 'm', 'km']
+   op = '>=': '' | units ['Aa', 'nm', 'um', 'mm', 'cm', 'm', 'km']
+   value = '1.8': 'wavelength >= 1.8Aa' | units ['Aa', 'nm', 'um', 'mm', 'cm', 'm', 'km']
+   quantity = 'Time:  time': 'time >= 1.8ms' | units ['ms', 'ns', 'us', 's']
+   quantity = 'angle(dir,(0,0,1))/deg': 'angle(dir,(0,0,1))/deg >= 1.8' | units None
+   option = 'near': '' | units None
+   radius = '5': '' | units None
+   runit = 'mm': '' | units None
+   point = '(0,0,1m)': 'abs(pos - (0,0,1m)) < 5mm' | units None
+   option = 'sphere': '' | units None
+   bcentre = '(0,0,1m)': '' | units None
+   half = '(5cm,5cm,1mm)': 'through_box((0,0,1m),(5cm,5cm,1mm))' | units None
+Change: ''
+   row - '': field='' of 18, op='+=' of 5, value=''
+   field = 'Wavelength:  wavelength': ''
+   op = '=': ''
+   value = '1.8': 'wavelength = 1.8Aa'
+   op = '*=': 'wavelength *= 1.8'
+   value = '2': 'wavelength *= 2'
+   field = 'Direction:  dir': ''
+   op = '=': ''
+   value = '(0,0,1)': 'dir = (0,0,1)'
+Rotate: ''
+   row xyz 'Around x, y, or z': axis='z axis' of 3, text='by', angle='', aunit='deg' of 2
+   row around 'Around an axis': vector='', text='by', angle2='', aunit2='deg' of 2
+   row frame 'From a frame': text='turning the direction', v='', text='into', vout=''
+   row - '': text='and the direction', u='', text='into', uout=''
+   axis = 'y axis': ''
+   angle = '30': 'rotate_y(30deg)'
+   aunit = 'rad': 'rotate_y(30rad)'
+   option = 'around': ''
+   vector = '(1,1,0)': ''
+   angle2 = '45': 'rotate_around((1,1,0),45deg)'
+   option = 'frame': ''
+   v = '(0,0,1)': ''
+   vout = '(1,0,0)': ''
+   u = '(0,1,0)': ''
+   uout = '(0,1,0)': 'rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))'
+Define variable: ''
+   row - '': name='', text='=', value='' of 14
+   name = 'd': ''
+   value = 'pos - (0,0,1m)': 'd = pos - (0,0,1m)'
+typed: Expression | rows: [] | completions: ('ekin', 4) ('pdgcode == neutron', 18) | hint: ekin  kinetic energy (an energy)
+completions of 'sph': ['through_sphere('] | Tab: ('through_sphere(', 15)
+completions of 'around': ['rotate_around('] | Tab: ('rotate_around(', 14)
+completions of 'rot': ['rotate_x(', 'rotate_y(', 'rotate_z(', 'rotate_around(', 'rotate_frame('] | Tab: ('rotate_', 7)
+all lines:
+   [x] Filter condition 'through_box((0,0,1m),(5cm,5cm,1mm))' | error: '' | left: None
+   [x] Change     'dir = (0,0,1)' | error: '' | left: None
+   [x] Rotate     'rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))' | error: '' | left: None
+   [x] Define variable 'd = pos - (0,0,1m)' | error: '' | left: None
+   [x] Expression 'ek' | error: 'Unknown name "ek" in expression "d = pos - (0,0,1m); ek" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)' | left: None
+   pending: True | expression: 'through_box((0,0,1m),(5cm,5cm,1mm)); dir = (0,0,1); rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0)); d = pos - (0,0,1m); ek'
+from the viewer:
+   [x] Expression 'pdgcode == neutron' | error: '' | left: 726
+   [ ] Expression 'z += 1m' | error: '' | left: None
+   [x] Expression 'd = pos - (0,0,1m)' | error: '' | left: 726
+   [x] Expression 'abs(d) < 120cm' | error: '' | left: 726
+   [x] Expression 'ekin < 1MeV' | error: '' | left: 466
+   pending: False | expression: 'pdgcode == neutron; d = pos - (0,0,1m); abs(d) < 120cm; ekin < 1MeV'
+with an error:
+   [x] Expression 'pdgcode == neutron' | error: '' | left: None
+   [ ] Expression 'z += 1m' | error: '' | left: None
+   [x] Expression 'd = pos - (0,0,1m)' | error: '' | left: None
+   [x] Expression 'abs(d) < 1' | error: 'Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "d = pos - (0,0,1m); abs(d) < 1"' | left: None
+   [x] Expression 'ekin < 1MeV' | error: '' | left: None
+   pending: True | expression: 'pdgcode == neutron; d = pos - (0,0,1m); abs(d) < 1; ekin < 1MeV'
+variable switched off:
+   [x] Expression 'pdgcode == neutron' | error: '' | left: None
+   [ ] Expression 'z += 1m' | error: '' | left: None
+   [ ] Expression 'd = pos - (0,0,1m)' | error: '' | left: None
+   [x] Expression 'abs(d) < 1m' | error: 'Unknown name "d" in expression "abs(d) < 1m" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)' | left: None
+   [x] Expression 'ekin < 1MeV' | error: '' | left: None
+   pending: True | expression: 'pdgcode == neutron; abs(d) < 1m; ekin < 1MeV'
+moved, deleted, and added:
+   [x] Expression 'pdgcode == neutron' | error: '' | left: None
+   [x] Expression 'd = pos - (0,0,1m)' | error: '' | left: None
+   [x] Expression 'ekin < 1MeV' | error: '' | left: None
+   [x] Expression 'abs(d) < 1m' | error: '' | left: None
+   [x] Expression '' | error: None | left: None
+   pending: True | expression: 'pdgcode == neutron; d = pos - (0,0,1m); ekin < 1MeV; abs(d) < 1m'
+applied: True | field: 'pdgcode == neutron; d = pos - (0,0,1m); ekin < 1MeV; abs(d) < 1m'
+after applying:
+   [x] Expression 'pdgcode == neutron' | error: '' | left: 726
+   [x] Expression 'd = pos - (0,0,1m)' | error: '' | left: 726
+   [x] Expression 'ekin < 1MeV' | error: '' | left: 466
+   [x] Expression 'abs(d) < 1m' | error: '' | left: 462
+   pending: False | expression: 'pdgcode == neutron; d = pos - (0,0,1m); ekin < 1MeV; abs(d) < 1m'
+applied with an error: False | field: 'pdgcode == neutron; d = pos - (0,0,1m); ekin < 1MeV; abs(d) < 1m'
+applied: True | lines: 4
+sync while changed here: False 4
+sync: True ['pdgcode == gamma', 'ekin < 1MeV']
+own apply: True [[('pdgcode == gamma', False), ('ekin < 1MeV', True)]]
+align line before the means are known: ''
+   row - '': means='Reading the particles ...'
+   row - '': turn=True, target='(0,0,1)' of 6, text='keeping the axis', keep='none' of 7, text='around', pivot='mean position' of 2
+   row - '': move=False, point='(0,0,0)' of 1, text='changing', cx=True, cy=True, cz=True
+   row - '': result=''
+reading with: (0, None, 'pdgcode == neutron') | again: True
+read again after: None
+statements: pos -= (-0.170795cm,3.42261cm,20cm);rotate_frame((0.0264863,-0.00263912,0.999646),(0,0,1),(-0.99472,0.0991146,0.0266175),(-0.995073,0.0991497,0));pos += (-0.170795cm,3.42261cm,20cm)
+   means: The weighted means of the 726 particles before this line: position (-0.170795, 3.42261, 20) cm, direction (0.0264863, -0.00263912, 0.999646), spread 47.9 deg
+   result: After it: position (-0.170795, 3.42261, 20) cm, direction (0, 0, 1)
+   move = True: 'pos -= (-0.170795cm,3.42261cm,20cm);rotate_frame((0.0264863,-0.00263912,0.999646),(0,0,1),(-0.99472,0.0991146,0.0266175),(-0.995073,0.0991497,0))' | After it: position (0, 0, 0) cm, direction (0, 0, 1)
+   cz = False: 'pos -= (-0.170795cm,3.42261cm,20cm);rotate_frame((0.0264863,-0.00263912,0.999646),(0,0,1),(-0.99472,0.0991146,0.0266175),(-0.995073,0.0991497,0));pos += (0,0,20cm)' | After it: position (0, 0, 20) cm, direction (0, 0, 1)
+   keep = '(0,1,0)': 'pos -= (-0.170795cm,3.42261cm,20cm);rotate_frame((0.0264863,-0.00263912,0.999646),(0,0,1),(6.99007e-05,0.999997,0.00263819),(0,1,0));pos += (0,0,20cm)' | After it: position (0, 0, 20) cm, direction (0, 0, 1)
+   turn = False: 'pos += (0.170795cm,-3.42261cm,0)' | After it: position (0, 0, 20) cm, direction (0.0264863, -0.00263912, 0.999646)
+   point = '(1,2)': '' | The point must be three lengths, as in (0,0,1m) (or numbers in cm, as in (0,0,100)), not "(1,2)"
+applied: True
+with the align line:
+   [x] Expression 'pdgcode == neutron' | error: '' | left: 726
+   [x] Align      'pos += (0.170795cm,-3.42261cm,0)' | error: '' | left: 726
+   pending: False | expression: 'pdgcode == neutron; pos += (0.17079522495270905cm,-3.4226082388963293cm,0)'
+read again with: ekin > 0; wavelength > 1Aa
+error: The wavelength is only defined for neutrons and gammas, so keep only those before using it, e.g. "pdgcode == neutron; wavelength > 1.8Aa" (in expression "ekin > 0; wavelength > 1Aa") | text: ''

@@ -28,8 +28,12 @@ v2.2.9  (work in progress)
         mcpltool -H HIST, shown with matplotlib, as text in the terminal (in
         colour), or saved as .pdf, .png, .svg, or .txt, also 2D histograms,
         bar charts, and 3D plots of points.
+      * New viewer: mcpltool -w FILE (in a window) or -t FILE (in the
+        terminal), or mcpl.view(FILE), with overviews and plots of the
+        particles, editing (with the Composer, which builds edits from
+        menus), and writing the edited particles to a file.
       * mcpltool is now the command-line tool of the mcpl-python package (the
-        compiled one is removed), with all the old commands and -e, -H,
+        compiled one is removed), with all the old commands and -e, -H, -w,
         --create-examples, --dry-run, and --allow-overwrite.
       * MCPLFile.to_scipp and scipp_blocks give the particles as scipp
         DataArrays (needs the "scipp" extra).
@@ -50,28 +54,28 @@ v2.2.9  (work in progress)
     Changes to the Python API:
 
       * New: MCPLOutFile, the file operations above, ParticleEdit,
-        ParticleValue, histogram, to_scipp, mcpl.constants, a wavelength
-        attribute of particles and blocks, use_logging() to send messages to
-        the logging module, and indexing of blocks with masks, indices, or
-        slices.
+        ParticleValue, histogram, view, to_scipp, mcpl.constants, a
+        wavelength attribute of particles and blocks, use_logging() to send
+        messages to the logging module, and indexing of blocks with masks,
+        indices, or slices.
       * MCPLFile takes skip, limit, and edit; its arguments after the file
         name must be given by name.
       * x, y, z, and time are always double precision.
-      * plot_stats is removed (use mcpl.histogram), pymcpltool and
-        app_pymcpltool are renamed to mcpltool and app_mcpltool (the old names
-        warn), names from the mcpl.mcpl module are deprecated, and file_index
-        of particles is renamed to fileidx.
-      * Python 3.8 is no longer supported. New extras: "plot" (matplotlib) and
-        "scipp".
+      * plot_stats is removed (use mcpl.histogram or mcpl.view), pymcpltool
+        and app_pymcpltool are renamed to mcpltool and app_mcpltool (the old
+        names warn), names from the mcpl.mcpl module are deprecated, and
+        file_index of particles is renamed to fileidx.
+      * Python 3.8 is no longer supported. New extras: "plot" (matplotlib),
+        "curses" (the terminal viewer), and "scipp".
 
     Changes to the command line:
 
-      * mcpltool: -x extracts (was -e), -e EDIT edits (-p and -E are replaced
-        by it; the old forms give errors saying what to use), -H HIST for
-        histograms, --code=c|cpp, --keep-statsum, --no-comment, --dry-run,
-        --allow-overwrite, --create-examples, and --color. --pdf and --gui are
-        removed. Errors go to standard error, in the usual form of
-        command-line tools.
+      * mcpltool: -x extracts (was -e), -e EDIT edits (-p and -E are
+        replaced by it; the old forms give errors saying what to use), -H
+        HIST for histograms, -w and -t for the viewer, --code=c|cpp,
+        --keep-statsum, --no-comment, --dry-run, --allow-overwrite,
+        --create-examples, and --color. --pdf and --gui are removed. Errors
+        go to standard error, in the usual form of command-line tools.
       * The comment of extracted files describes the extraction (so files
         extracted in the same way can be merged).
       * ssw2mcpl and phits2mcpl: the -n option is no longer needed (and gives

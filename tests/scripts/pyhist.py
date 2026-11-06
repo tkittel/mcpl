@@ -335,7 +335,7 @@ def test_cmdline_more():
                      ['-H','x/cm;bins=2;print','-H','pdgcode;bar=2;print',ex],
                      ['--text',ex], ['--text',ex,'hist.txt'],
                      ['-t',ex], ['-w',ex,'-o','x.pdf'], ['-t',ex,ex], ['-w',ex,'x/cm'], ['-wx/cm',ex],
-                     ['-H','x/cm',ex], ['-B','test',ex], ['--te','x',ex],
+                     ['-H','x/cm',ex,'s.json'], ['-t','{}','s.json',ex], ['-B','test',ex], ['--te','x',ex],
                      ['-j','-H','x/cm',ex], ['--no-comment','-S',ex],
                      ['-H','x/cm : y/cm;display_by=pdgcode',ex],
                      ['-H','x/cm','-o','hist',ex], ['-H','x/cm','-o','hist.jpg',ex],

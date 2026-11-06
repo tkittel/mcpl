@@ -211,6 +211,12 @@ def _display_by( o ):
         return value
     return 'pdgcode' if len(o['exprs']) != 2 and o['bar'] is False else None
 
+def _display_by_choice( o ):
+    """What display_by of a histogram with the options o (see _parse_hist)
+    chooses instead of the default: the expression, 'single' (for one curve
+    where the default has several), or None for the default"""
+    by, default = _display_by(o), _display_by(dict(o,display_by = None))
+    return None if by == default else by or 'single'
 
 def _check_display_edit( value, text = None ):
     """Check the edit expression of the option display_edit"""
@@ -304,6 +310,39 @@ def _check_range( rng, vals, name ):
     raise MCPLError(f'The {name} of "{vals.expression_original}" ({_dimstr(vals.dim)}) has'
                     f' other units ({_dimstr(rng.dim)})')
 
+def _hist_key( text ):
+    """Normalised form of a histogram string, for comparing them (the same
+    for all strings giving the same histogram, e.g. with other whitespace or
+    order of the options)"""
+    from ._expressions import _expr_canonical
+    o = _parse_hist(text)
+    parts = [ ':'.join( _expr_canonical(e) for e in o['exprs'] ) ]
+    #(display_by as it is used: only if it is not the default, as single if
+    #that is not):
+    resolved = { 'display_by' : _display_by_choice(o) }
+    for name in _hist_options:
+        v = resolved.get(name,o[name])
+        if name == 'logz':
+            #(on by default, so only logz=0 makes another histogram):
+            if v is False:
+                parts.append('logz=0')
+            continue
+        if v is None or v is False:
+            continue
+        if v is True:
+            parts.append(name)#(the implied value, see _hist_implied)
+        elif v == 'auto':
+            parts.append(f'{name}=auto')
+        elif name == 'display_by':
+            parts.append(f'{name}={v if v == "single" else _expr_canonical(v)}')
+        elif name == 'display_edit':
+            parts.append(f'{name}={_expr_canonical(v,edit = True)}')
+        elif isinstance(v,_Range):
+            #(the values, in the units of MCPL):
+            parts.append(f'{name}={v.lo!r}:{v.hi!r}')
+        else:
+            parts.append(f'{name}={v!r}')
+    return ';'.join(parts)
 
 def _hist_parts( text ):
     """The expressions of a histogram string, and its options as a list of
@@ -324,7 +363,30 @@ def _hist_exprs( text ):
     """The expressions of a histogram string (one, two, or three, as written)"""
     return [ e.strip() for e in _hist_parts(text)[0].split(':') ]
 
+def _hist_join( exprs, opts ):
+    """The histogram string of the expressions (the first part, as in
+    "x : y") and options (as from _hist_parts)"""
+    return ';'.join( [ exprs ] + [ n if v is None else f'{n}={v}' for n, v in opts ] )
 
+def _hist_set_option( text, name, value ):
+    """The histogram string with the option set to the value (a text, True
+    for the option without a value, or None to remove it), in its place if
+    it was given, else at the end (before display_edit), with the rest as
+    written"""
+    exprs, opts = _hist_parts(text)
+    new = None if value is None else ( name, None if value is True else value )
+    out, done = [], False
+    for n, v in opts:
+        if n == name:
+            if new is not None and not done:
+                out.append(new)
+            done = True
+        else:
+            out.append( ( n, v ) )
+    if not done and new is not None:
+        last = len(out) - ( bool(out) and out[-1][0] == 'display_edit' )
+        out.insert(last,new)
+    return _hist_join(exprs,out)
 
 def _hist_with_args( expression, given ):
     """The options (as from _parse_hist) of a histogram of the expression,

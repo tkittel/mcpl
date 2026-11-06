@@ -7,14 +7,21 @@
 # and can be updated with "mcpldevtool depdb --mode fixreqfiles".
 #
 # Dependencies which can not be installed everywhere have the fields
-# min_python (Python version needed by the package) and unavailable_on (list of
+# min_python (Python version needed by the package), unavailable_on (list of
 # systems, as in platform.system() and CMAKE_SYSTEM_NAME, where the package
-# can not be installed). They become environment markers in requirement
+# can not be installed) and only_on (list of the only systems where it is
+# needed, like Windows for windows-curses). They become environment markers in requirement
 # specifications, and tests needing such dependencies are not added at all
 # where they can not be installed (while missing dependencies are otherwise an
 # error with MCTOOLS_REQUIRE_ALL_TEST_DEPS=ON). The freebsd_pkgname field gives
 # the name of the FreeBSD package, with "{py}" for the Python flavour (like
 # py312), for the FreeBSD CI.
+#
+# Dependencies without pip packages (like parts of Python which not all
+# installations have) have pypi_pkgname: null, and are left out of the
+# pyproject.toml and requirements files. The field check_code gives Python
+# code which the tests run to see if a dependency works (instead of importing
+# it), for dependencies which can be imported without working.
 
 #Added to all the conda environment files, for building from source (pip at
 #least 26.2.2, which no longer trusts the root certificate "emSign ECC Root CA
@@ -37,10 +44,16 @@ packages:
     deps:
       BASE:
         - numpy
+      #(the viewer in a window needs tkinter):
       plot:
         - matplotlib
+        - tkinter
+      #(curses is in the standard library, except on Windows):
+      curses:
+        - windows-curses
       all:
         - ADD plot
+        - ADD curses
       #(not in "all", since scipp needs a more recent Python and numpy):
       scipp:
         - scipp
@@ -60,6 +73,8 @@ packages:
       #(extras of mcpl-python are forwarded):
       plot:
         - mcpl-python[plot]
+      curses:
+        - mcpl-python[curses]
       all:
         - mcpl-python[all]
       scipp:
@@ -85,6 +100,21 @@ dependencies:
   numpy:
     min_version: "1.22"
     freebsd_pkgname: "{py}-numpy"
+  windows-curses:
+    min_version: "2.3"
+    import_check: curses
+    only_on: [ Windows ]
+    #(not on conda-forge):
+    conda_pkgname: null
+  tkinter:
+    #(part of Python, but not of all installations, so there is no pip
+    #package; the tests check that Tk can open windows, so test jobs need a
+    #display, like Xvfb on Linux and FreeBSD; no semicolons, as they separate
+    #CMake list entries):
+    pypi_pkgname: null
+    conda_pkgname: tk
+    check_code: "__import__('tkinter').Tk().destroy()"
+    freebsd_pkgname: "{py}-tkinter"
   scipp:
     min_version: "26.9"
     min_python: "3.12"

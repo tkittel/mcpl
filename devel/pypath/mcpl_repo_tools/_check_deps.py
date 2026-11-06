@@ -35,7 +35,7 @@ def check_deps_in_toml_files(db):
                 res.append( e )#(version fixed by the BASE dependencies)
             elif e in db['packages']:
                 res.append( f'{e}=={version}' )
-            else:
+            elif db['dependencies'][e]['py_spec']:#(not for those without pip packages)
                 res.append( db['dependencies'][e]['py_spec'] )
         return res
     for pkgname, info in sorted(db['packages'].items()):

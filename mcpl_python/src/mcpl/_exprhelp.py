@@ -467,6 +467,25 @@ def _help_text( topic ):
     from ._helptext import plain_text
     return plain_text(_help_blocks(topic))
 
+def _call_hint( before ):
+    """The signature and short description of the function whose arguments
+    end the text (before the cursor), as "f(a,b)  description", or None"""
+    import re
+    depth = 0
+    for i in range(len(before) - 1,-1,-1):
+        if before[i] == ')':
+            depth += 1
+        elif before[i] == '(':
+            if depth:
+                depth -= 1
+                continue
+            m = re.search(r'[A-Za-z_][A-Za-z0-9_]*$',before[:i])
+            if m is None:#(parentheses, not a call)
+                return None
+            return next( ( f'{n}  {short}' for _, n, short, _ in _hints
+                           if n.startswith(m.group(0) + '(') ), None )
+    return None
+
 def _short_hint( name ):
     """Short description of a name (for completion), or None"""
     for _, n, short, _ in _hints:

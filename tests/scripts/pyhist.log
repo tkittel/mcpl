@@ -283,7 +283,7 @@ histogram2d {'bins': [3]}: no error
 histogram2d {'xrange': (1, 0)}: The xrange must be given as xrange=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in xrange=0cm:10cm)
 histogram2d {'yrange': 'a'}: The yrange must be given as yrange=LOW:HIGH with LOW < HIGH (with units if the expression has units, as in yrange=0cm:10cm)
 bins as a numpy integer, and range as a list: 4 [-1.0, 1.0]
-plot_stats: plot_stats is no longer available: use mcpl.histogram(FILE,EXPR).plot() for plots of the particles
+plot_stats: plot_stats is no longer available: use mcpl.view(FILE) for an interactive overview of a file, or mcpl.histogram(FILE,EXPR).plot() for single plots
 Hist1D 'x/cm' [-10.0, -5.0, 0.0, 5.0, 10.0] [94.0, 252.0, 294.0, 90.0] as numpy: True
 edges of 'x;range=-0.1m:0.1m;bins=2': [-10.0, 0.0, 10.0]
 edges of 'ekin;bins=2': [0.0, 5000.0, 10000.0]
@@ -707,21 +707,25 @@ mcpltool --text example.mcpl hist.txt: exit code 1
    | mcpltool: The output file "hist.txt" already exists
 mcpltool -t example.mcpl: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
-   | mcpltool: error: -t is used with -H HIST (see --hist-help)
+   | mcpltool: error: The viewer in the terminal needs a terminal (its input and output can not be redirected)
 mcpltool -w example.mcpl -o x.pdf: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
    | mcpltool: error: -o can only be used with a histogram (-H HIST)
 mcpltool -t example.mcpl example.mcpl: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
-   | mcpltool: error: -t is used with -H HIST (see --hist-help)
+   | mcpltool: error: the viewer shows one file (-t without -H can only be used with one file)
 mcpltool -w example.mcpl x/cm: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
-   | mcpltool: error: -w is used with -H HIST (see --hist-help)
+   | mcpltool: error: the viewer shows one file (-w without -H can only be used with one file)
 mcpltool -wx/cm example.mcpl: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
    | mcpltool: error: unrecognized arguments: -/cm
-mcpltool -H x/cm example.mcpl: exit code 1
-   | mcpltool: Plots can not be shown in a window here (is there no display?). Use -t to show the histogram in the terminal.
+mcpltool -H x/cm example.mcpl s.json: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: a viewer state (.json or {...}) can only be given with -w or -t, and not with -H
+mcpltool -t {} s.json example.mcpl: exit code 2
+   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
+   | mcpltool: error: only one viewer state can be given
 mcpltool -B test example.mcpl: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
    | mcpltool: error: unrecognized arguments: -B

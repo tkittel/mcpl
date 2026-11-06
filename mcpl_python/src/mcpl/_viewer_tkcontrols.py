@@ -28,8 +28,6 @@ from . import _viewer_ui as ui
 from ._viewer_tkbase import Flow, GreyText, bind_enter, focus_of, tk_modules
 from ._viewer_ui import part_colors
 
-#(the labels at the start of the rows of the parts, in a column):
-row_label = { 'width' : 9, 'anchor' : 'e' }
 
 def make_part( parent, name, title, what, border ):
     """A part of the window (with the colours of part_colors[name]), with a

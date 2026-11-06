@@ -52,7 +52,6 @@ from ._viewer_tkcontrols import (
     OverviewControls,
     make_part,
     part_title,
-    row_label,
     tint,
 )
 from ._viewer_tkwindows import (
@@ -286,10 +285,10 @@ class TkViewer(WindowFrontend):
             col = 0
             for field in row:
                 _, label, _key, kpos, empty = info[field]
-                first = field == row[0]
                 in_box = field in ( 'skip', 'limit' )
-                lab = ttk.Label(box if in_box else grid,text=label + ':',underline=kpos,
-                                **( row_label if first else {} ))
+                #(pick and edit at the left, with no more room than their
+                #labels, which goes to their fields):
+                lab = ttk.Label(box if in_box else grid,text=label + ':',underline=kpos)
                 wide = field in ui.example_topics
                 w = ttk.Entry(box if in_box else grid,width=20 if wide else 10)
                 if in_box:
@@ -303,7 +302,7 @@ class TkViewer(WindowFrontend):
                     mark.place(in_=w,relx=1.0,x=-4,rely=0.5,anchor='e')
                 else:
                     mark = ttk.Label(grid,width=2)
-                    lab.grid(row=r,column=col,sticky='e',padx=(0,4),pady=1)
+                    lab.grid(row=r,column=col,sticky='w',padx=(0,4),pady=1)
                     w.grid(row=r,column=col+1,sticky='ew')
                     col += 2
                     #(the Apply button and the examples right after the field,

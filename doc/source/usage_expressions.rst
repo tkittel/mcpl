@@ -272,7 +272,7 @@ the particles):
 
 On the command line, ``-p`` can be used when showing particles, when
 extracting particles into a new file (``-e``), with ``-S``, and with the
-viewer and histograms (``-w`` and ``-t``).
+viewer (``-w`` and ``-t``), and with histograms (``-H``).
 Here the gammas above 1 MeV are shown (``-n`` leaves out the header):
 
 .. literalinclude:: ../build/autogen/cmdline_pick_show.txt
@@ -496,9 +496,9 @@ And the options of ``mcpltool`` for histograms are:
 +--------------------------------------+--------------------------------------+
 | ``-o FILE``                          | Save the plot in a file instead, in  |
 |                                      | the format given by the extension:   |
-|                                      | ``.png``, ``.pdf``, or ``.svg`` with |
-|                                      | ``-w``, and ``.txt`` (the plot drawn |
-|                                      | as text) with ``-t``.                |
+|                                      | ``.png``, ``.pdf``, or ``.svg``, or  |
+|                                      | ``.txt`` (the plot drawn as text)    |
+|                                      | with ``-t``.                         |
 +--------------------------------------+--------------------------------------+
 | ``--color=WHEN``                     | Colours of the plot in the terminal  |
 |                                      | (with ``-t``): ``auto``, ``always``, |
@@ -653,7 +653,7 @@ for all ways of writing it which are recognised as the same (both
 given.
 
 Histograms are made with ``mcpl.histogram``, from the same histogram strings
-as ``mcpltool -w``. The results can be read (but not changed), and plotted:
+as ``mcpltool -H``. The results can be read (but not changed), and plotted:
 
 .. code:: python
 

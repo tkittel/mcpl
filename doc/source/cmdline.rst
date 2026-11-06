@@ -10,7 +10,7 @@ The ``mcpltool`` command
 The ``mcpltool`` command inspects and modifies MCPL files. Its built-in
 documentation is repeated here: all options (``mcpltool --full-help``), and how
 to write the expressions of the ``-p`` and ``-E`` options and of the
-histograms of ``-w`` and ``-t`` (``mcpltool -p help``, ``-E help``, and
+histograms of ``-H`` (``mcpltool -p help``, ``-E help``, and
 ``--hist-help``). The most common options are also summarised by ``mcpltool
 -h``.
 
@@ -35,8 +35,8 @@ Statements for ``-E``
 
 .. _cmdline-hist-expressions:
 
-Histograms for ``-w`` and ``-t``
---------------------------------
+Histograms for ``-H``
+---------------------
 
 .. literalinclude:: ../build/autogen/mcpltool_help_hist.txt
    :language: none

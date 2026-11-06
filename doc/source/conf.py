@@ -401,7 +401,7 @@ _viewer_outputs()
 def _expression_examples():
     from mcpl._exprhelp import examples
     titles = { 'pick' : 'Picks (``-p``)', 'edit' : 'Edits (``-E``)',
-               'hist' : 'Plots (``-w`` and ``-t``)' }
+               'hist' : 'Histograms (``-H``)' }
     parts = []
     for topic, title in titles.items():
         parts += [ title, '~' * len(title), '' ]

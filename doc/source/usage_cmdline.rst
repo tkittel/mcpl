@@ -281,7 +281,8 @@ pick; new files always get all particles). The numbers of picked particles are
 then estimated for all particles (marked with |approx|). Its menu says how many
 particles each amount of memory gives, or turns the cache off. In both
 viewers, the plots can be changed (Enter),
-reordered (Shift+Up or Shift+Down), and removed, further ones added (``a``),
+reordered (in the terminal with Shift+Up or Shift+Down, in the window with
+their menus), and removed, further ones added (``a``),
 and the particles of all plots can be
 changed in their fields: Skip and Limit (like ``-s`` and ``-l``), Pick and Edit
 (like ``-p`` and ``-E``). The plots are updated while the file is read. With
@@ -292,7 +293,7 @@ With ``v``, the state of the viewer (the fields, the groups shown, and the
 plots) is saved in a file, which ``mcpltool -w FILE.json FILE`` (or with ``-t``)
 opens again. When the viewer is closed, the command opening it again in the
 same state is printed (with its state as text, as in
-``-w "{'groups':['spectra','beamz']}"``). The groups are also chosen with
+``mcpltool -w "{'groups':['spectra','beamz']}" FILE``). The groups are also chosen with
 ``c`` in the viewer.
 
 The viewer in the terminal (``-t``) uses the ``curses`` module of Python, which

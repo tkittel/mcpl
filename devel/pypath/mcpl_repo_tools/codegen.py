@@ -106,6 +106,15 @@ _cases = [
     ( 'udarrays', 'userdata.flag > 0', None, 3, 5 ),
 ]
 
+def _option_arg( text ):
+    """The pick or edit as the argument of -p or -E, with its first expression
+    in parentheses if it starts with "-", which would else be taken as an
+    option (as in the commands which mcpltool generates)"""
+    if not text.startswith('-'):
+        return text
+    first, sep, rest = text.partition(';')
+    return f'({first})' + sep + rest
+
 def _write_universal( fn ):
     """A file with the neutrons of miscphys, with universal pdgcode and weight"""
     sys.path.insert(0,str(pyroot/'src'))
@@ -238,8 +247,8 @@ def run( nprocs, nrandom = 200 ):
         d = cwd / 'out' / name
         d.mkdir(parents = True)
         args = [ sys.executable, '-m', 'mcpl', '--extract' ]
-        args += [ '-p', pick ] if pick else []
-        args += [ '-E', edit ] if edit else []
+        args += [ '-p', _option_arg(pick) ] if pick else []
+        args += [ '-E', _option_arg(edit) ] if edit else []
         args += [ f'-s{skip}' ] if skip else []
         args += [ f'-l{limit}' ] if limit else []
         rp = subprocess.run(args + [ str(_files[fkey]), str(d/'py.mcpl') ],env = env,

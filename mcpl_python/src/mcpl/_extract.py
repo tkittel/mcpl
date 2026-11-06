@@ -36,6 +36,17 @@ def _shell_arg( expression ):
     #characters which are special inside double quotes are not allowed)
     return f'"{expression}"'
 
+def _option_arg( text ):
+    """The text of -p or -E as a command-line argument, with its first
+    expression (before the first ";") in parentheses if it starts with "-",
+    which would else be taken as an option (the statements before an
+    expression, which can not be put in parentheses, are assignments, which
+    do not start with "-")"""
+    if text.startswith('-'):
+        first, sep, rest = text.partition(';')
+        text = f'({first.strip()})' + sep + rest
+    return _shell_arg(text)
+
 def _shell_path( filename ):
     """The filename as a command-line argument (in double quotes if it has
     spaces)"""
@@ -47,7 +58,7 @@ def _range_options( skip, limit, pick, edit ):
     opts = ( [ f'-l{limit}' ] if limit else [] ) + ( [ f'-s{skip}' ] if skip else [] )
     for opt, e in ( ('-p',pick), ('-E',edit) ):
         if e is not None:
-            opts += [ opt, _shell_arg(e) ]
+            opts += [ opt, _option_arg(e) ]
     return opts
 
 def _statsum_marking( f, skip, limit, pick, edit, keepstatsum = False ):

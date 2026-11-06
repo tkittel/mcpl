@@ -57,7 +57,9 @@ def start( *args ):
     master, slave = os.openpty()
     fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',40,120,0,0))
     #(with output in UTF-8, so the viewer draws with Unicode characters):
-    env = dict(os.environ,TERM='xterm-256color',PYTHONIOENCODING='utf-8')
+    #(and the fault handler, which shows the stacks of all threads when the
+    #viewer gets SIGABRT, see wait_ended):
+    env = dict(os.environ,TERM='xterm-256color',PYTHONIOENCODING='utf-8',PYTHONFAULTHANDLER='1')
     p = subprocess.Popen([ sys.executable, '-m', 'mcpldev', '-t', 'example.mcpl', *args ],
                          stdin=slave,stdout=slave,stderr=slave,env=env,start_new_session=True)
     os.close(slave)
@@ -82,6 +84,19 @@ def read( seconds ):
             if not data:
                 return
             output.append(data)
+
+def wait_ended( seconds = 60 ):
+    """Wait until the viewer ended, or else show the end of what was written
+    to its terminal (to find out why, on systems where it does not end)"""
+    try:
+        p.wait(timeout = seconds)
+    except subprocess.TimeoutExpired:
+        #(with the stacks of its threads, shown by the fault handler):
+        import signal
+        os.kill(p.pid,signal.SIGABRT)
+        read(3)
+        sys.stderr.write(f'DIAGNOSTICS the viewer did not end, its terminal shows:\n{text()[-6000:]}\n')
+        raise
 
 def wait_for( what, seconds = 60 ):
     end = time.monotonic() + seconds
@@ -128,7 +143,7 @@ try:
     output.clear()
     wait_for('example.mcpl')
     os.close(master)
-    p.wait(timeout = 60)
+    wait_ended()
     print('the viewer ends when its terminal is closed')
 finally:
     p.kill()
@@ -147,7 +162,7 @@ try:
     os.write(master,b'y')
     wait_for('Successfully extracted')
     os.write(master,b'q')
-    p.wait(timeout = 60)
+    wait_ended()
     print('the viewer asks before overwriting a file, and overwrites it after y:',
           pathlib.Path('example_selected.mcpl').stat().st_size > 0)
 finally:

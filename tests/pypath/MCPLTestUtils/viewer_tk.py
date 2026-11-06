@@ -526,6 +526,18 @@ codewin.destroy()
 #(the focus goes back to the main window when it is closed):
 pump(0.5)
 
+#(the changes of the focus, and who moves it to the plot, shown below if a
+#window does not get the focus, to find out why):
+focus_log = []
+root.bind_all('<FocusIn>',lambda e : focus_log.append(f'{time.monotonic():.2f} FocusIn {e.widget}'),'+')
+_canvas_focus_set = tv.canvas.get_tk_widget().focus_set
+def _logged_focus_set():
+    import traceback
+    focus_log.append(f'{time.monotonic():.2f} canvas.focus_set from\n'
+                     + ''.join(traceback.format_stack(limit = 6)[:-1]))
+    _canvas_focus_set()
+tv.canvas.get_tk_widget().focus_set = _logged_focus_set
+
 #Each secondary window gets the keyboard focus when it is shown, and Esc (in
 #the widget with the focus) closes it:
 openers = { 'help' : lambda : tv.show_text('Data caching',viewer_ui.cache_blocks),
@@ -541,12 +553,28 @@ for name, opener in openers.items():
     window = next( w for w in root.winfo_children()
                    if w not in before and isinstance(w,tkinter.Toplevel) )
     #(which can take a moment, with some window managers):
+    focus_log.append(f'{time.monotonic():.2f} opened the {name} window {window}')
     for _ in range(30):
         focus = root.focus_get()
         has_focus = focus is not None and focus.winfo_toplevel() is window
         if has_focus:
             break
         pump(0.1)
+    if not has_focus:
+        #(what the window and the focus are, to find out why, on systems
+        #where this fails):
+        sys.stderr.write(f'DIAGNOSTICS {name} window: focus in {focus!r}'
+                         f' (toplevel {focus.winfo_toplevel()!r})' if focus is not None else
+                         f'DIAGNOSTICS {name} window: no focus in this application')
+        sys.stderr.write(f' | window {window!r}: mapped {window.winfo_ismapped()}, viewable'
+                         f' {window.winfo_viewable()}, state {window.state()}, geometry'
+                         f' {window.winfo_geometry()}, screen {window.winfo_screenwidth()}x'
+                         f'{window.winfo_screenheight()}, Tk {tkinter.TkVersion}'
+                         f' | focus of Tk: {root.tk.call("focus")!r}\n')
+        window.focus_force()
+        pump(0.5)
+        sys.stderr.write(f'DIAGNOSTICS after focus_force: {root.focus_get()!r}\n')
+        sys.stderr.write('DIAGNOSTICS focus log:\n' + '\n'.join(focus_log) + '\n')
     ( focus or window ).event_generate('<Escape>')
     pump()
     print(f'{name} window: keyboard focus in it: {has_focus} | closed by Esc:',

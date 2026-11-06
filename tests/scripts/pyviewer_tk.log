@@ -112,6 +112,7 @@ small window: squeezed: [] | layouts fit the width: True | write buttons at the 
 large window: squeezed: [] | layouts fit the width: True | write buttons at the right: True
 left edges of "X axis:", the first setting, and "Expression:" (from the header): 0 0 0
 skip and limit in one group: True | room between skip and limit: 8 | limit as far right as the buttons below: True | right of the pick fields: True
+align button in the header: True | ends with the ? buttons: True
 mark of skip: '✗' | inside the field at its right end: True
 mark of limit: '✗' | inside the field at its right end: True
 high window: scrollbar shown exactly when the cards do not fit: True

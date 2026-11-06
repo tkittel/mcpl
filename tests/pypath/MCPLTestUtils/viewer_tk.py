@@ -688,6 +688,14 @@ print('skip and limit in one group:', skip_entry.master is tv._entries['limit'].
       '| limit as far right as the buttons below:',
       right(tv._entries['limit']) == right(box) == right(tv._write.master),
       '| right of the pick fields:', box.winfo_rootx() > right(tv._entries['pick']))
+#(the button of the align helper is in the header of the part, ending with
+#the "?" buttons of pick and edit):
+align = next( w for w in descendants(tv._counts.master)
+              if w.winfo_class() == 'TButton' and str(w.cget('text')) == 'Align...' )
+qbutton = next( w for w in tv._entries['pick'].master.winfo_children()
+                if w.winfo_class() == 'TButton' and str(w.cget('text')) == '?' )
+print('align button in the header:', align.winfo_ismapped() and align.master is tv._counts.master,
+      '| ends with the ? buttons:', right(align) == right(qbutton))
 #(the marks of the checks of skip and limit are inside their fields, at the
 #right end):
 for field in ( 'skip', 'limit' ):

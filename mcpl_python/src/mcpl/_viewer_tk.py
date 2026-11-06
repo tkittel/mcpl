@@ -309,15 +309,8 @@ class TkViewer(WindowFrontend):
                     #(the Apply button and the examples right after the field,
                     #then the mark of its check):
                     self._apply_button(grid,field).grid(row=r,column=col,padx=(2,0))
-                    #(for the edit with the button of the align helper):
-                    examples = ttk.Frame(grid)
+                    examples = self._examples_button(grid,field)
                     examples.grid(row=r,column=col+1,padx=(2,0),sticky='w')
-                    self._examples_button(examples,field).pack(side='left')
-                    if field == 'edit':
-                        b = ttk.Button(examples,text='Align...',takefocus=0,style='Small.TButton',
-                                       command=lambda : AlignWindow(self))
-                        b.pack(side='left',padx=(2,0))
-                        self._tooltip(b,'align')
                     mark.grid(row=r,column=col+2)
                     col += 3
                 self._placeholders[w] = empty
@@ -326,6 +319,19 @@ class TkViewer(WindowFrontend):
                 self._hover(lab,field)
                 self._hover(w,field)
         box.grid(row=0,column=col,sticky='e',padx=(12,0))
+        #(the button of the align helper in the header, ending with the "?"
+        #buttons, so it takes no room from the fields of pick and edit; with
+        #the header as high as it):
+        align = ttk.Button(head,text='Align...',takefocus=0,style='Head.TButton',
+                           command=lambda : AlignWindow(self))
+        self._tooltip(align,'align')
+        ttk.Frame(head,width=0,height=align.winfo_reqheight(),
+                  style=str(head.cget('style'))).pack(side='left')
+        def place_align( _event = None ):
+            x = examples.winfo_rootx() + examples.winfo_width() - head.winfo_rootx()
+            align.place(in_=head,x=x,rely=0.5,anchor='e')
+        for w in ( examples, head ):
+            w.bind('<Configure>',place_align,'+')
         #(the button writing the picked and edited particles, which opens a
         #window with the name of the file and the code, below skip and limit,
         #and the button showing only the code):

@@ -245,7 +245,12 @@ def _parser():
 
     class Parser(argparse.ArgumentParser):
         def error( self, message ):
-            _bad(message)
+            #(as by newer Pythons also with older ones, which report a flag
+            #followed by more characters, like -vy, as "argument -v/--version:
+            #ignored explicit argument 'y'"):
+            import re
+            m = re.fullmatch(r"argument \S+: ignored explicit argument '(.*)'",message)
+            _bad(f'unrecognized arguments: -{m.group(1)}' if m else message)
 
     class Once(argparse.Action):
         """Options which can only be given once"""

@@ -47,7 +47,8 @@ def show( texts, kind ):
 def test_values():
     print('Values:')
     show(( 'ekin/MeV', 'hypot(x,y)/cm', 'abs(pos)/m', 'pi*2', 'neutron', 'userdata.temp/K',
-           'userdata.d.at(2)', 'through_sphere((0,0,1m),5cm)', 'mod(fileidx,10)',
+           'userdata.d.at(2)', 'through_sphere((0,0,1m),5cm)', 'through_box((0,0,1m),(5cm,5cm,1mm))',
+           'mod(fileidx,10)',
            'foo', 'r + 1', 'userdata', 'sqrt', 'neutron + sqrt', 'foo(x)', 'rotate_x(90deg)',
            'swap(x,y)', 'sqrt(foo(bar))', '(a + b) * c', 'f(1) + g', '1e400', 'x < 1e400cm', '-1e999' ),'value')
 

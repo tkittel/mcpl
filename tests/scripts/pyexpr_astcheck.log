@@ -7,18 +7,19 @@ Values:
   'userdata.temp/K': ok
   'userdata.d.at(2)': ok
   'through_sphere((0,0,1m),5cm)': ok
+  'through_box((0,0,1m),(5cm,5cm,1mm))': ok
   'mod(fileidx,10)': ok
   'foo': Unknown name "foo" in expression "foo" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
   'r + 1': Unknown name "r" in expression "r + 1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
   'userdata': Fields of the userdata are written as userdata.NAME, in expression "userdata"
   'sqrt': Unknown name "sqrt" in expression "sqrt" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
   'neutron + sqrt': Unknown name "sqrt" in expression "neutron + sqrt" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-  'foo(x)': Unsupported function call in expression "foo(x)" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_sphere)
-  'rotate_x(90deg)': Unsupported function call in expression "rotate_x(90deg)" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_sphere)
-  'swap(x,y)': Unsupported function call in expression "swap(x,y)" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_sphere)
-  'sqrt(foo(bar))': Unsupported function call in expression "sqrt(foo(bar))" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_sphere)
+  'foo(x)': Unsupported function call in expression "foo(x)" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_box, through_sphere)
+  'rotate_x(90deg)': Unsupported function call in expression "rotate_x(90deg)" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_box, through_sphere)
+  'swap(x,y)': Unsupported function call in expression "swap(x,y)" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_box, through_sphere)
+  'sqrt(foo(bar))': Unsupported function call in expression "sqrt(foo(bar))" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_box, through_sphere)
   '(a + b) * c': Unknown name "c" in expression "(a + b) * c" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-  'f(1) + g': Unsupported function call in expression "f(1) + g" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_sphere)
+  'f(1) + g': Unsupported function call in expression "f(1) + g" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_box, through_sphere)
   '1e400': A constant has NaN or infinite values in expression "1e400"
   'x < 1e400cm': A constant has NaN or infinite values in expression "x < 1e400cm"
   '-1e999': A constant has NaN or infinite values in expression "-1e999"

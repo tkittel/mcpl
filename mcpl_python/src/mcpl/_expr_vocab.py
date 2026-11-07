@@ -61,7 +61,7 @@ _functions_samedim = ( 'abs', 'min', 'max', 'hypot', 'clamp' )
 #Functions of vectors (abs also gives the lengths of vectors):
 _functions_vector = ( 'dot', 'cross', 'angle' )
 #(functions using the position and direction of the particles):
-_functions_flight = { 'through_sphere' : ( 'pos', 'dir' ) }
+_functions_flight = { 'through_sphere' : ( 'pos', 'dir' ), 'through_box' : ( 'pos', 'dir' ) }
 _expr_functions = frozenset(( 'sqrt', 'atan2', 'mod', *_functions_vector, *_functions_flight,
                               *_functions_nodim, *_functions_toint, *_functions_samedim ))
 #Functions used as statements in edits:

@@ -242,7 +242,10 @@ class ParticleEdit:
     them, which is precise also for small angles), through_sphere(center,
     radius) for whether the line of flight of the particles (through their
     positions along their directions, both forwards and backwards) passes
-    through a sphere, as in "through_sphere((0,0,1m),5cm)", the constant
+    through a sphere, as in "through_sphere((0,0,1m),5cm)", and
+    through_box(center,half) for whether it passes through a box with its
+    sides along the axes (half the sizes along x, y, and z), as in
+    "through_box((0,0,1m),(5cm,5cm,1mm))", the constant
     pi, and the names neutron, antineutron, proton, antiproton, electron,
     positron (or antielectron), muon, antimuon, and gamma (or photon), which
     can be used for pdgcode values. The wavelength is only defined for

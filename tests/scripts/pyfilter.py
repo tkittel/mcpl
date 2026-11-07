@@ -173,6 +173,7 @@ def test_expressions():
                 'x != x and 1/(x/cm - x/cm) > 1', '~x > 0cm', '~uz > 0',
                 'through_sphere((0,0,1),1cm)', 'through_sphere((0,0,1m))', 'through_sphere((0,0,1m),-1cm)',
                 'through_sphere((0,0,1m),1)', 'through_sphere(1m,1cm)',
+                'through_box((0,0,1m),(1cm,1cm,-1cm))', 'through_box((0,0,1m),1cm)', 'through_box((0,0,1m),(1,1,1))',
                 'x > 0cm if ux > 0 else x < 0cm'):
         try:
             keeps(bad,b)
@@ -368,6 +369,21 @@ def test_whitespace():
         except mcpl.MCPLError as e:
             print(f'ParticleEdit({bad!r}): {e}')
 
+def through_box_ref( pos, d, c = (1,-2,30), h = (4,3,2) ):
+    """Whether the lines of flight pass through the box (as a reference for
+    through_box, in cm)"""
+    lo, hi = np.full(len(pos),-np.inf), np.full(len(pos),np.inf)
+    ok = np.ones(len(pos),dtype=bool)
+    for i in range(3):
+        r, u = c[i] - pos[:,i], d[:,i]
+        par = u == 0
+        with np.errstate(divide='ignore',invalid='ignore'):
+            t1, t2 = (r - h[i])/u, (r + h[i])/u
+        lo = np.where(par,lo,np.maximum(lo,np.minimum(t1,t2)))
+        hi = np.where(par,hi,np.minimum(hi,np.maximum(t1,t2)))
+        ok &= ~par | ( np.abs(r) <= h[i] )
+    return ok & ( lo <= hi )
+
 def test_vectors():
     #Vectors: pos, dir and pol, (a,b,c), their values (x is pos.x and
     #pos.at(0)), arithmetic, abs, v^2, dot, cross, and angle:
@@ -409,7 +425,10 @@ def test_vectors():
                        ('angle(dir,(0,0,1)) < 30deg', np.degrees(np.arccos(np.clip(b.uz,-1,1))) < 30),
                        #(the line of flight, forwards and backwards, through a sphere):
                        ('through_sphere((1cm,-2cm,30cm),4cm)',
-                        np.linalg.norm(np.cross(np.array([1,-2,30])-pos,d),axis=1) <= 4) ):
+                        np.linalg.norm(np.cross(np.array([1,-2,30])-pos,d),axis=1) <= 4),
+                       #(and through a box, whose planes along x, y, and z the line crosses
+                       #at overlapping distances; along a plane it must be between them):
+                       ('through_box((1cm,-2cm,30cm),(4cm,3cm,2cm))', through_box_ref(pos,d)) ):
         assert np.array_equal(keeps(cond,b),ref), cond
         print(f'condition {cond!r} as with numpy ({np.count_nonzero(ref)} of {len(ref)})')
     for edit, ref in ( ('pos += (0,0,1m)', {'x': b.x, 'y': b.y, 'z': b.z+100}),

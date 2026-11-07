@@ -756,11 +756,11 @@ mcpltool -e z = 1cm, x = 0 example.mcpl: exit code 2
 mcpltool -E x > 0 example.mcpl: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
    | mcpltool: error: unrecognized arguments: -E
-mcpltool -e help: exit code 0, 258 lines, starting with:
+mcpltool -e help: exit code 0, 266 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    | 
    | Filter conditions:
-mcpltool --edit=help: exit code 0, 258 lines, starting with:
+mcpltool --edit=help: exit code 0, 266 lines, starting with:
    | EDIT: statements separated by ";", executed in order, for example:
    | 
    | Filter conditions:

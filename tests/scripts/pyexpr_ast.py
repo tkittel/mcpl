@@ -73,7 +73,8 @@ def test_walk():
 
 def test_vocab():
     for text, kind in ( ( 'ekin/MeV', 'value' ), ( 'abs(pos)/cm', 'value' ),
-                        ( 'through_sphere((0,0,1m),5cm)', 'edit' ), ( 'mod(fileidx,2) == 0', 'edit' ),
+                        ( 'through_sphere((0,0,1m),5cm)', 'edit' ),
+                        ( 'through_box((0,0,1m),(5cm,5cm,1mm))', 'edit' ), ( 'mod(fileidx,2) == 0', 'edit' ),
                         ( 'wavelength/Aa', 'value' ), ( 'r = hypot(x,y); r > 2cm', 'edit' ),
                         ( 'x = 1cm', 'edit' ), ( 'x += 1cm; weight *= ux', 'edit' ),
                         ( 'swap(time,ekin)', 'edit' ), ( 'dir = (0,0,1)', 'edit' ), ( 'pi + 1', 'value' ) ):

@@ -94,8 +94,8 @@ def points_note( h ):
     n = sum( len(p) for p in h.groups.values() )
     if n >= h.nparticles:
         return f'all {h.nparticles:,} particles'
-    how = 'with their weights' if h.weighted else 'all equally likely'
-    return f'{n:,} of {h.nparticles:,} particles, chosen at random {how}'
+    how = 'according to weights' if h.weighted else 'all equally likely'
+    return f'{n:,} of {h.nparticles:,} particles, randomly sampled {how}'
 
 def _xlabel( histograms ):
     """The label of the x axis of a plot of the (1D) histograms: their

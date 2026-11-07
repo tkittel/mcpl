@@ -290,7 +290,7 @@ _hints = (
       'count particles instead of summing their weights' ),
     ( 'histoptions', 'points=N|auto',
       'points of 3D plots',
-      'the number of points of a 3D plot: at most N particles, chosen at random with their weights (auto: 5000)' ),
+      'the number of points of a 3D plot: at most N particles, randomly sampled according to weights (auto: 5000)' ),
     ( 'histoptions', 'print=1|0',
       'print contents instead of plotting',
       'print the contents of the histogram instead of plotting it' ),)
@@ -372,7 +372,7 @@ examples = {
             ( 'x : y;display_edit=rotate_z(45deg)',
               'The positions in the x-y plane, rotated by 45 degrees around z (for this plot only).' ),
             ( 'x : y : z',
-              'The positions in 3D, as points for particles chosen at random with their weights, by particle type (in windows).' ) ) ),
+              'The positions in 3D, as points for particles randomly sampled according to weights, by particle type (in windows).' ) ) ),
         ( 'Bar charts', None, (
             ( 'pdgcode;bar', 'A bar chart of the particle types.' ),
             ( 'userdata.nscat;bar;unweighted', 'The numbers of particles for each value of nscat.' ) ) ),
@@ -404,7 +404,7 @@ floating point numbers (e.g. 1/2 is 0.5), and // divides non-negative
 integers (e.g. 7//2 is 3).''' ),
     'hist' : ( '''HIST: what to plot, an expression of the particles (written as for -e),
 or two separated by ":" for a 2D histogram (or three for a 3D plot of
-particles chosen at random, in windows), followed by options separated by ";".
+randomly sampled particles, in windows), followed by options separated by ";".
 For example:''',
                '''The histogram is shown in a window with -H HIST, or in the terminal with -t
 -H HIST, or saved in a file (with -o FILE).''' ),

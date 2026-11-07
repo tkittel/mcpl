@@ -85,7 +85,7 @@ def _hist_defaults( exprs ):
 
 def _parse_hist( text ):
     """Parse a histogram string: an expression (or two separated by ":" for 2D
-    histograms, or three for 3D plots of particles chosen at random), followed
+    histograms, or three for 3D plots of randomly sampled particles), followed
     by options NAME=VALUE separated by ";", like
     "ekin/MeV;logx;bins=50" or "x/cm : y/cm;xrange=-10:10". Returns a
     dict with the expressions (a list of one, two, or three), and the options (with

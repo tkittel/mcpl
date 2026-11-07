@@ -292,7 +292,7 @@ contents of all curves, with an edit: True | title: 'edit: x>0m'
 Hist2D ('x/cm', 'y/cm') [-65.0, -20.0, 25.0, 70.0] [-65.0, -2.5, 60.0] (3, 2) True
 HistDiscrete 'pdgcode' [2112, 22, 11, 2212, -11, 211, -211, 14] [726.0, 239.0, 15.0, 10.0, 8.0, 5.0, 2.0, 1.0]
 PointSet3D ('x/cm', 'y/cm', 'z/cm') (10, 3) 1006
-  Panel '10 of 1,006 particles, chosen at random with their weights' xlabel='x/cm' ylabel='y/cm' 
+  Panel '10 of 1,006 particles, randomly sampled according to weights' xlabel='x/cm' ylabel='y/cm' 
   Panel 'all 1,006 particles' xlabel='x [cm]' ylabel='y [cm]' 
 31 of the points have x > 0, and all are chosen with the edit x > 0: True
 Hist1D ['contents', 'edges', 'expression', 'plot'] isinstance: True
@@ -767,7 +767,7 @@ mcpltool --edit=help: exit code 0, 258 lines, starting with:
 mcpltool --hist-help: exit code 0, 83 lines, starting with:
    | HIST: what to plot, an expression of the particles (written as for -e),
    | or two separated by ":" for a 2D histogram (or three for a 3D plot of
-   | particles chosen at random, in windows), followed by options separated by ";".
+   | randomly sampled particles, not with -t), followed by options separated by
 nice numbers of bins: [(1200, 1080), (400, 360), (239, 216), (83, 72), (37, 36), (15, 15), (8, 8)]
 n=1: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9
 n=100: bins of 1080 -> 10, of 216 -> 9, 2D of 216 -> 9

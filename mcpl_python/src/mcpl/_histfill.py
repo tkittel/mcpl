@@ -266,8 +266,8 @@ class _Hist2DData(_HistData):
         return '\n'.join(lines)
 
 class _PointSet3DData(_HistData):
-    """The values of three expressions for particles chosen at random (the
-    result of _PointSet3DFiller: as many as points, chosen with their weights,
+    """The values of three expressions for randomly sampled particles (the
+    result of _PointSet3DFiller: as many as points, sampled according to weights,
     unless unweighted, so they are distributed as the particles), in
     groups (label -> array of shape (n,3), with the label None for one group,
     see display_by). For expressions with units, the values are in the units
@@ -854,8 +854,8 @@ def _index_random( fileidx ):
     return ( ( x >> np.uint64(11) ).astype(np.float64) + 0.5 ) / 9007199254740992.0
 
 class _PointSet3DFiller(_Filler):
-    """The filler of 3D plots (see _PointSet3DData): particles chosen at random
-    with their weights (the method of Efraimidis and Spirakis: those with the
+    """The filler of 3D plots (see _PointSet3DData): particles randomly sampled
+    according to weights (the method of Efraimidis and Spirakis: those with the
     largest u^(1/w), with u from the positions of the particles in the file, see
     _index_random), which needs no ranges"""
     def __init__( self, expressions, points = None, unweighted = False,

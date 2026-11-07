@@ -132,8 +132,8 @@ class HistDiscrete(_Result):
         return _readonly([ self._d._value_sums[k] for k in self._sorted() ])
 
 class PointSet3D(_Result):
-    """Values of three expressions for particles chosen at random with their
-    weights, the result of histogram() for a histogram string with three
+    """Values of three expressions for particles randomly sampled according
+    to weights, the result of histogram() for a histogram string with three
     expressions, e.g. "x/cm : y/cm : z/cm". At most as many particles as the
     option points gives (5000 unless given) are chosen, in proportion to their
     weights (or all equally likely, with the option unweighted): the particles

@@ -729,6 +729,7 @@ Helpers for edit 'userdata.n // 2 == 1 and -userdata.n < 0 and abs(userdata.i) >
 Helpers for edit 'sqrt(ekin/MeV) > 1 and x/y > 0 and (ux)^2 > 0 and round(x/cm) > 0': check_finite, toint
 Helpers for edit 'pdgcode == neutron and wavelength > 1Aa and angle(dir,(0,0,1)) < 1deg': wavelength, angle, check_finite
 Helpers for edit 'through_sphere((0,0,1m),5cm); wavelength = 1.8Aa; userflags = 7': radius, ekin_of_wavelength
+Helpers for edit 'through_box((0,0,1m),(5cm,5cm,1mm))': through_box
 Helpers for edit 'rotate_around((1,1,0),30deg); rotate_frame(dir,(0,0,1),pos,(1,0,0))': unit_vector, exact_matrix, exact_cos_sin, rotate_around, frame, cross_norm, rotate_frame
 Helpers for edit 'userdata.temp > 300K': none
 Errors:

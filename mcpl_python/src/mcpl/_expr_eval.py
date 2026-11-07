@@ -619,6 +619,8 @@ class _ExprEvaluator:
     def call( self, fname, args ):
         if fname == 'through_sphere':
             return self.through_sphere(args)
+        if fname == 'through_box':
+            return self.through_box(args)
         if fname in _functions_vector or ( fname == 'abs' and len(args) == 1
                                            and isinstance(args[0],_V) ):
             with np.errstate(divide='ignore',invalid='ignore'):
@@ -758,6 +760,38 @@ class _ExprEvaluator:
         to_center = _V( self.binop('-',c,p) for c, p in zip(center.c,self.name('pos').c) )
         d = self.vcall('cross',[to_center,self.name('dir')])
         return _Q(np.less_equal(self.vcall('dot',[d,d]).v,np.square(self.as_float(radius).v)))
+    def through_box( self, args ):
+        """Whether the line of flight of the particles (through their
+        positions, along their directions, in both directions) passes through
+        the box with the center and half dimensions (along x, y, and z)"""
+        what = ( 'through_box(center,half) takes the center and the half dimensions of the'
+                 ' box (half its sizes along x, y, and z), both 3D vectors, as in'
+                 ' through_box((0,0,1m),(5cm,5cm,1mm))' )
+        if ( len(args) != 2 or not all( isinstance(a,_V) and len(a.c) == 3 for a in args ) ):
+            self.error(what)
+        center, half = args
+        x = self.name('x')
+        for q in ( *center.c, *half.c ):
+            self.same(q,x,'the center and half dimensions of through_box(center,half), which'
+                      ' must be lengths')
+        h = [ np.asarray(self.as_float(q).v) for q in half.c ]
+        if any( np.any(self.masked( v < 0 )) for v in h ):
+            self.error('The half dimensions of through_box(center,half) can not be negative')
+        #(the line passes through the box if the parts of it between the two
+        #planes of the box along x, y, and z overlap; a line parallel to such
+        #planes must be between them):
+        lo, hi, between = -np.inf, np.inf, True
+        with np.errstate(divide='ignore',invalid='ignore'):
+            for c, p, u, hv in zip(center.c,self.name('pos').c,self.name('dir').c,h):
+                r = np.asarray(self.as_float(self.binop('-',c,p)).v)
+                u = np.asarray(self.as_float(u).v)
+                parallel = u == 0
+                safe = np.where(parallel,1.0,u)
+                t1, t2 = ( r - hv ) / safe, ( r + hv ) / safe
+                lo = np.maximum(lo,np.where(parallel,-np.inf,np.minimum(t1,t2)))
+                hi = np.minimum(hi,np.where(parallel,np.inf,np.maximum(t1,t2)))
+                between = between & ( ~parallel | ( np.abs(r) <= hv ) )
+        return _Q(between & np.less_equal(lo,hi))
     def int_call( self, fname, args, what ):
         """mod, abs, round, floor, ceil, min, max, and clamp of integers"""
         if fname == 'mod':

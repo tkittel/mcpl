@@ -73,7 +73,8 @@ def test_values():
                   'abs(-x)', 'abs(pdgcode)', 'round(x/cm)', 'floor(-2.5)', 'max(x,y)', 'min(1,2,3)',
                   'clamp(x,0,1cm)', 'hypot(x,y)', 'atan2(y,x)', 'cos(90deg)', 'exp(1)', 'abs(pos)',
                   'dot(pos,dir)', 'cross(pos,dir)', 'angle(dir,(0,0,1))', 'pos + (1cm,0,0)', 'pos*2',
-                  'pos/2', 'pos^2', 'through_sphere((0,0,2cm),1.5cm)', 'x > 0', 'x > 0 and y >= 0',
+                  'pos/2', 'pos^2', 'through_sphere((0,0,2cm),1.5cm)',
+                  'through_box((0,0,2cm),(1cm,1cm,0.5cm))', 'through_box((1cm,0,0),(0,0,0))', 'x > 0', 'x > 0 and y >= 0',
                   'not x > 0', 'x < y < z', 'pdgcode in (neutron,gamma)', 'pdgcode not in (11)',
                   'x == 0', '-(x > 0)' ):
         print(f'  {text!r}: {value(text)}')
@@ -85,6 +86,7 @@ def test_errors():
                   'userflags & -1', 'x & 1', '-userflags', 'userflags + 1', 'pdgcode * 1000000000',
                   'x / 0', 'log(0)', 'pos + 1', 'pos * pos', 'cross((1,0),(0,1))', 'dot(pos,x)',
                   'abs(pos) + pos', 'pos > 0', 'x.x', 'pos.at(3)', 'through_sphere((0,0,1),1)',
+                  'through_box((0,0,1),(1,1,1))', 'through_box((0,0,1cm),1cm)', 'through_box((0,0,0),(1cm,-1cm,1cm))',
                   'round(1e30)', 'exp(1,2)', 'hypot(x)', 'clamp(x,1)', 'atan2(x)', 'min(x)',
                   'wavelength', 'pdgcode == gamma and wavelength > 0', 'not pos', '(x,ekin)' ):
         print(f'  {text!r}: {value(text)}')

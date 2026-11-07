@@ -383,6 +383,8 @@ class _Translator:
             return self.finite(f'angle( {", ".join(comps)} )'), 'f64'
         if fname == 'through_sphere':
             return self.through_sphere(*args)
+        if fname == 'through_box':
+            return self.through_box(*args)
         ints = all( a[1] != 'f64' for a in args )
         if fname == 'mod':
             if not ints:
@@ -437,6 +439,15 @@ class _Translator:
         r = self.as_float(radius)
         self.radius_code()
         return f'( {self.dot(cr,cr)[0]} <= radius( {r[0]} ) * radius( {r[0]} ) )', 'i32'
+
+    def through_box( self, center, half ):
+        """Whether the line of flight passes through the box (see
+        _ExprEvaluator.through_box)"""
+        pos, d = self.name('pos'), self.name('dir')
+        to_center = [ self.as_float(self.binary('-',c,p))[0] for c, p in zip(center,pos) ]
+        args = [ *to_center, *( self.as_float(c)[0] for c in d ),
+                 *( self.as_float(h)[0] for h in half ) ]
+        return f'{self.box_code()}( {", ".join(args)} )', 'i32'
 
     #Helper functions (stopping the program with an error, see fail):
 
@@ -507,6 +518,32 @@ class _Translator:
     def radius_code( self ):
         return self.function('radius','double {name}( double r )',
                              self.fail('r < 0.0','Negative radius') + '  return r;\n')
+
+    def box_code( self ):
+        """The function of through_box, of the vector r from the position to the
+        center, the direction d, and the half dimensions h: whether the parts of
+        the line between the two planes of the box along x, y, and z overlap"""
+        fabs = self.fct('fabs','r[i]')
+        return self.function('through_box','int {name}( double rx, double ry, double rz,\n'
+                             '                        double dx, double dy, double dz,\n'
+                             '                        double hx, double hy, double hz )',
+                             self.fail('hx < 0.0 || hy < 0.0 || hz < 0.0','Negative half dimension')
+                             + '  double r[3] = { rx, ry, rz }, d[3] = { dx, dy, dz }, h[3] = { hx, hy, hz };\n'
+                             '  double lo = 0.0, hi = 0.0;\n'
+                             '  int any = 0;\n'
+                             '  for ( int i = 0; i < 3; ++i ) {\n'
+                             '    if ( d[i] == 0.0 ) {\n'
+                             f'      if ( {fabs} > h[i] )\n'
+                             '        return 0;\n'
+                             '      continue;\n'
+                             '    }\n'
+                             '    double t1 = ( r[i] - h[i] ) / d[i], t2 = ( r[i] + h[i] ) / d[i];\n'
+                             '    if ( t1 > t2 ) { double t = t1; t1 = t2; t2 = t; }\n'
+                             '    if ( !any || t1 > lo ) lo = t1;\n'
+                             '    if ( !any || t2 < hi ) hi = t2;\n'
+                             '    any = 1;\n'
+                             '  }\n'
+                             '  return !any || lo <= hi;\n')
 
     def angle_code( self ):
         sq = lambda e : self.fct('sqrt',e)

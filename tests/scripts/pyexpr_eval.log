@@ -66,6 +66,8 @@ Values:
   'pos/2': vector [[0.5, -1.0, 0.25], [0.0, 1.5, -0.5], [1.0, 1.0, 1.0]] dim (1, 0, 0, 0)
   'pos^2': [5.0, 17.0, 5.25] dim (2, 0, 0, 0) type float64
   'through_sphere((0,0,2cm),1.5cm)': [True, False, True] dim None type bool
+  'through_box((0,0,2cm),(1cm,1cm,0.5cm))': [True, False, True] dim None type bool
+  'through_box((1cm,0,0),(0,0,0))': [True, False, False] dim None type bool
   'x > 0': [True, False, True] dim None type bool
   'x > 0 and y >= 0': [True, False, False] dim None type bool
   'not x > 0': [False, True, False] dim None type bool
@@ -104,6 +106,9 @@ Errors when evaluating:
   'x.x': MCPLError: Only vectors have values like .x or .at(INDEX) in expression "x.x"
   'pos.at(3)': MCPLError: The index 3 is too large for a 3D vector of lengths (the values are counted from 0) in expression "pos.at(3)"
   'through_sphere((0,0,1),1)': MCPLError: Incompatible units in the center and radius of through_sphere(center,radius), which must be lengths: value without units and length (add units, e.g. 2cm) in expression "through_sphere((0,0,1),1)"
+  'through_box((0,0,1),(1,1,1))': MCPLError: Incompatible units in the center and half dimensions of through_box(center,half), which must be lengths: value without units and length (add units, e.g. 2cm) in expression "through_box((0,0,1),(1,1,1))"
+  'through_box((0,0,1cm),1cm)': MCPLError: through_box(center,half) takes the center and the half dimensions of the box (half its sizes along x, y, and z), both 3D vectors, as in through_box((0,0,1m),(5cm,5cm,1mm)) in expression "through_box((0,0,1cm),1cm)"
+  'through_box((0,0,0),(1cm,-1cm,1cm))': MCPLError: The half dimensions of through_box(center,half) can not be negative in expression "through_box((0,0,0),(1cm,-1cm,1cm))"
   'round(1e30)': MCPLError: round(..) of values too large for integers in expression "round(1e30)"
   'exp(1,2)': MCPLError: exp(..) takes one argument in expression "exp(1,2)"
   'hypot(x)': MCPLError: hypot(..) takes two or more arguments in expression "hypot(x)"

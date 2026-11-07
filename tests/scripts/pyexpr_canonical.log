@@ -20,6 +20,7 @@ Examples of the help:
   'angle(dir,(0,0,1)) < 1deg' -> 'angle(dir,(0,0,1))<1deg'
   'd = pos - (0,0,1m); abs(d) < 10cm' -> 'd=pos-(0,0,1m);abs(d)<10cm'
   'through_sphere((0,0,1m),5cm)' -> 'through_sphere((0,0,1m),5cm)'
+  'through_box((0,0,1m),(5cm,5cm,1mm))' -> 'through_box((0,0,1m),(5cm,5cm,1mm))'
   'pos += 50cm*dir' -> 'pos+=50cm*dir'
   'dir = (0,0,1)' -> 'dir=(0,0,1)'
   '(userflags & 0xff) == 7' -> 'userflags&0xff==7'

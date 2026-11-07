@@ -66,6 +66,7 @@ def test_helpers():
             ( 'sqrt(ekin/MeV) > 1 and x/y > 0 and (ux)^2 > 0 and round(x/cm) > 0', None ),
             ( 'pdgcode == neutron and wavelength > 1Aa and angle(dir,(0,0,1)) < 1deg', None ),
             ( 'through_sphere((0,0,1m),5cm); wavelength = 1.8Aa; userflags = 7', None ),
+            ( 'through_box((0,0,1m),(5cm,5cm,1mm))', None ),
             ( 'rotate_around((1,1,0),30deg); rotate_frame(dir,(0,0,1),pos,(1,0,0))', None ),
             ( 'userdata.temp > 300K', 'temp:float32:K' ) ):
         code = _expr_ast2c(edit,layout)

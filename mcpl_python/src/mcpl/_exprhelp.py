@@ -93,6 +93,9 @@ _hints = (
     ( 'vectors', 'through_sphere(c,r)',
       'line of flight through a sphere',
       'whether the line through the position along the direction (forwards and backwards) passes through the sphere with the center c (a 3D vector) and the radius r (e.g. through_sphere((0,0,1m),5cm) for the particles which would pass within 5 cm of the point (0,0,1m))' ),
+    ( 'vectors', 'through_box(c,h)',
+      'line of flight through a box',
+      'whether the line through the position along the direction (forwards and backwards) passes through the box with the center c and the half dimensions h (half its sizes along x, y, and z, both 3D vectors; e.g. through_box((0,0,1m),(5cm,5cm,1mm)) for a box 10 cm wide and high, and 2 mm deep, around the point (0,0,1m))' ),
     ( 'fields', 'fileidx',
       'position in the file (an integer)',
       'position of the particle in the file, counting from 0 (an integer, which can not be changed: e.g. mod(fileidx,10) == 0 for every tenth particle)' ),
@@ -344,6 +347,8 @@ examples = {
               'Within 10 cm of the point (0,0,1m), with the vector from it named d.' ),
             ( 'through_sphere((0,0,1m),5cm)',
               'Lines of flight passing within 5 cm of the point (0,0,1m), forwards or backwards.' ),
+            ( 'through_box((0,0,1m),(5cm,5cm,1mm))',
+              'Lines of flight passing through a box at (0,0,1m), 10 cm wide and high and 2 mm deep.' ),
             ( 'pos += 50cm*dir', 'Move the particles 50 cm along their directions.' ),
             ( 'dir = (0,0,1)', 'Make all particles move along z.' ) ) ),
         ( 'Bits, positions in the file and userdata', None, (

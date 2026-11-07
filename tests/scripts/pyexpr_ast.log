@@ -14,6 +14,7 @@ Names in 'tmp = x; swap(y,tmp); rotate_z(90deg)': ['rotate_z', 'swap', 'tmp', 'x
 Fields used by 'ekin/MeV': ['ekin']
 Fields used by 'abs(pos)/cm': ['x', 'y', 'z']
 Fields used by 'through_sphere((0,0,1m),5cm)': ['ux', 'uy', 'uz', 'x', 'y', 'z']
+Fields used by 'through_box((0,0,1m),(5cm,5cm,1mm))': ['ux', 'uy', 'uz', 'x', 'y', 'z']
 Fields used by 'mod(fileidx,2) == 0': ['fileidx']
 Fields used by 'wavelength/Aa': ['wavelength']
 Fields used by 'r = hypot(x,y); r > 2cm': ['x', 'y']

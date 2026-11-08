@@ -1,548 +1,125 @@
 v2.2.9  (work in progress)
-      * The name of an output file decides whether it is compressed, in C,
-        C++, Python, and all command-line tools: files with names ending with
-        .mcpl.gz are gzipped when closed, and files with names ending with
-        .mcpl are not. Other names still get .mcpl appended, and other names
-        ending with .gz are refused. This also holds for the final file of the
-        MPI helpers (which was always gzipped). ssw2mcpl and phits2mcpl write
-        uncompressed files unless the name ends with .mcpl.gz (their -n
-        option is no longer needed, and gives an error).
-      * Existing files are never overwritten by output files (also when
-        compressing them), unless this is explicitly allowed: with
-        mcpl_create_outfile_allow_overwrite (and _mpi_allow_overwrite), the
-        allow_overwrite argument of mcpl_merge_files_es and
-        mcpl_forcemerge_files_es, AllowOverwrite::Yes in C++,
-        allow_overwrite=True in Python, or the new option --allow-overwrite
-        of mcpltool and the converters. Before,
-        mcpl_create_outfile, mcpl_gzip_file, and the converters overwrote
-        existing files. Output files which are (or are written via) one of
-        the input files are always refused.
+
+    Main new features:
+
+      * Userdata: particles can carry custom per-particle data, described by
+        a layout stored in the header (e.g. "temp:float32:K,tags:uint8[3]",
+        with optional units). Files with userdata are written in the new
+        MCPL format version 4; all other files are still written in version
+        3, so older releases can read them. See
+        examples/example_userdatamcpl.c and examples/pyexample_userdatamcpl.
+      * The Python API can write MCPL files (MCPLOutFile), with the same
+        capabilities as the C API and identical files, also with userdata.
+        It also gets the file operations of the C API (merge_files,
+        forcemerge_files, merge_inplace, can_merge, repair, gzip_file,
+        name_helper, and the MPI helpers). See examples/pyexample_writemcpl.
+      * New header-only C++ interface, mcplcpp.h (C++17), with errors as
+        exceptions, range-based loops over particles, and typed userdata
+        fields. See examples/example_cppmcpl.cc.
+      * Expressions pick and change particles: picks like "pdgcode == neutron
+        and ekin < 1MeV", and edits like "rotate_z(90deg); z += 1cm". Values
+        with units must be given with units, and errors say where the problem
+        is. Expressions have vectors, rotations, through_sphere, userdata
+        fields, and C-like integers. Available as ParticleFilter,
+        ParticleEdit, and the pick and edit arguments in Python, and -p and -E
+        in mcpltool.
+      * Histograms of expressions: mcpl.histogram(FILE,HIST) in Python and
+        mcpltool -w HIST (or -t HIST), shown with matplotlib, as text in the
+        terminal (in colour), or saved as .pdf, .png, .svg, or .txt, also 2D
+        histograms, bar charts, and 3D plots of points.
+      * mcpltool is now the command-line tool of the mcpl-python package (the
+        compiled one is removed), with all the old commands and -p, -E, -w,
+        -t, --create-examples, --dry-run, and --allow-overwrite.
+      * MCPLFile.to_scipp and scipp_blocks give the particles as scipp
+        DataArrays (needs the "scipp" extra).
+
+    Changes to the C API:
+
+      * Error-state (_es) variants of all functions which can raise errors,
+        which report errors to the caller instead of the error handler, and
+        mcpl_check_error, mcpl_dump_file_es, mcpl_close_outfile_unfinished_es,
+        mcpl_outfile_userdata_layout, and mcpl_set_print_handler_ctx.
+      * New functions for userdata (mcpl_enable_userdata,
+        mcpl_add_particle_with_userdata, mcpl_read_with_userdata, and
+        helpers to encode and decode fields). MCPL_FORMATVERSION is now 4.
+      * New mcpl_create_outfile_allow_overwrite (and _mpi_ variant); see the
+        behaviour changes below.
+      * The function mcpl_tool is removed (with the compiled mcpltool).
+
+    Changes to the Python API:
+
+      * New: MCPLOutFile, the file operations above, ParticleFilter,
+        ParticleEdit, ParticleValue, histogram, to_scipp, mcpl.constants, a
+        wavelength attribute of particles and blocks, use_logging() to send
+        messages to the logging module, and indexing of blocks with masks,
+        indices, or slices.
+      * MCPLFile takes skip, limit, pick, and edit; its arguments after the
+        file name must be given by name.
+      * x, y, z, and time are always double precision.
+      * Headers can be edited when copying files: after
+        transfer_metadata(..., editable=True), the settings copied can be
+        changed (e.g. enable_doubleprec(False) for single precision), and
+        hdr_add_data replaces blobs. hdr_set_comments, hdr_remove_data, and
+        hdr_remove_stat_sum change the comments, blobs, and stat:sum entries.
+      * plot_stats is removed (use mcpl.histogram), pymcpltool and
+        app_pymcpltool are renamed to mcpltool and app_mcpltool (the old names
+        warn), names from the mcpl.mcpl module are deprecated, and file_index
+        of particles is renamed to fileidx.
+      * Python 3.8 is no longer supported. New extras: "plot" (matplotlib),
+        "scipp", and "all" (all except "scipp").
+
+    Changes to the command line:
+
+      * mcpltool: -p PICK picks particles (it took a particle type), -E EDIT
+        edits them, -w HIST and -t HIST show histograms, and there are
+        --keep-statsum, --no-comment, --dry-run, --allow-overwrite,
+        --create-examples, and --color. --pdf and --gui are removed.
+      * The comment of extracted files describes the extraction (so files
+        extracted in the same way can be merged).
+      * ssw2mcpl and phits2mcpl: the -n option is no longer needed (and gives
+        an error), see the behaviour changes below.
+
+    Behaviour changes:
+
+      * The name of an output file decides whether it is compressed, in all
+        APIs and tools: names ending with .mcpl.gz are gzipped, names ending
+        with .mcpl are not, and other names ending with .gz are refused.
+      * Existing files are no longer overwritten by output files, unless
+        explicitly allowed (allow_overwrite, AllowOverwrite::Yes, or
+        --allow-overwrite).
+      * Files are compressed with gzip level 1 (faster, slightly larger).
       * Output files have -1 (not available) as stat:sum values until they
         are closed, in C and Python, so unfinished files (e.g. after a crash)
         never have values.
-      * Python: headers can be edited when copying files. After
-        transfer_metadata(..., editable=True), and before the first particle,
-        the settings copied can be changed (e.g. enable_doubleprec(False) for
-        single precision, or enable_universal_weight(None)), and hdr_add_data
-        can replace blobs. The new methods hdr_set_comments, hdr_remove_data,
-        and hdr_remove_stat_sum change the comments, blobs, and stat:sum
-        entries.
-      * Python fixes: MCPLFile closes the file of gzipped files, dump_file
-        closes the file it opened, a plain 0 in hypot, min, max, and clamp has
-        the units of the other values, histogram() checks its bins and range,
-        text plots have no round-off values in log scales, and matplotlib
-        needs a display to show plots also outside Linux. Statistics with
-        picks no longer fail for blocks without picked particles, swap(..)
-        refuses wavelength, and values of display_by are only labelled as
-        conditions if all are 0 or 1.
-      * Python: read() and read_block() of MCPLFile can be mixed, each
-        continuing after the particles returned by the other (read() after
-        reading blocks gave particles again, and read_block() after read()
-        skipped the rest of the block). After read(), read_block() returns
-        the rest of the block of that particle.
-      * Files with the same blob key more than once (which MCPL software
-        never wrote) can no longer be opened, in C and Python, as the format
-        requires.
-      * Files are compressed with gzip level 1 (instead of 6 in C and 9 in
-        Python), which for MCPL files is several times faster and makes files
-        only slightly larger. Files compressed at any level can be read.
-      * Expressions can use the fields of the userdata, as userdata.NAME (and
-        userdata.NAME.at(INDEX) for arrays), with the units of their layout
-        (and the new unit K), e.g. -p "userdata.temp > 300K". Integers work
-        essentially as in C, but with errors for overflow and for unsigned
-        integers combined with negative values. The operator / always divides
-        as floating point numbers (1/2 is 0.5), and // divides non-negative
-        integers (7//2 is 3). The operator ~ is no longer supported, and & and
-        | only work on integers.
-      * Some more names are reserved for userdata fields (e.g. class, from,
-        if and pass).
-      * mcpl_closeandgzip_outfile no longer compresses output files left
-        unfinished by earlier errors (so they can still be repaired), and
-        returns 0 for them.
-      * mcpltool --extract keeps the uncompressed output (with a warning) if
-        compressing it fails, as --merge does, and output names of existing
-        directories are refused.
-      * mcpl_name_helper no longer crashes for names ending with a directory
-        separator (with mode "b", like mcpl.name_helper in Python, which gave
-        another result).
-      * mcpl_transfer_last_read_particle gives an error unless a particle
-        was just read from the source file (it transferred the previous
-        particle again after the end of the file, a rewind, or a dump).
-      * Uncompressed files whose size does not agree with the number of
-        particles in their header (e.g. truncated files) can no longer be
-        opened (in C and Python), as the format requires. Files with 0
-        particles (not closed properly) are still recovered when opened, and
-        truncated files can be repaired with mcpltool --repair.
-      * The file position (current_pos) of gzipped files read with
-        mcpl_generic_fread was wrong after reading more than 32 kB at once,
-        which could give wrong output from mcpl2ssw with gzipped reference
-        files.
-      * stat:sum values, and numbers in dumps (and in the messages of
-        refused merges), are always written and read with "." as the decimal
-        point, also in applications using a locale with another one.
-      * Plots in the terminal are shown in colour: curves with the colours of
-        matplotlib (several curves drawn as lines of braille dots with Unicode
-        characters), and 2D maps with the viridis colour map (with Unicode
-        characters, drawn with half blocks, so with twice as many rows).
-        Colours are used when the output is a terminal, unless the NO_COLOR
-        environment variable is set, and always if FORCE_COLOR is set. The new
-        mcpltool option --color=auto|always|never overrides this. Files are
-        always written without colours.
-      * Long options of mcpltool can be abbreviated, as long as they are unique
-        (e.g. --ext for --extract).
-      * New usage information for mcpltool: -h shows a single page with the
-        common options, --full-help shows all options, and -p help, -E help
-        and --hist-help describe how to write the expressions, with all particle
-        fields, units, functions, and histogram options.
-      * Expressions (with -p, -E, -w, and -t, and in the Python API) use the
-        logical operators and, or, and not (&&, || and ! give an error saying
-        what to write instead), and mod(a,b) for remainders of integers. The
-        position of the particles in the file can be used as fileidx (e.g.
-        mcpltool -e -p "mod(fileidx,10) == 0" FILE OUT.mcpl.gz extracts every
-        tenth particle, marking stat:sum entries as not available). They
-        can only contain printable ASCII characters, and not the characters
-        " ' { } [ ] # $ ` and backslash.
-      * MCPLFile has the new options skip and limit (like mcpltool -s and -l),
-        which choose a range of the particles in the file. All arguments of
-        MCPLFile after the file name must now be given by name (e.g.
-        blocklength=1000).
-      * New option mcpltool --create-examples[=N], which creates three example
-        files with N particles each (default 1000000) in the current
-        directory: neutrons leaving a moderator surface, mixed particles
-        around a target, and a polarised neutron beam with userdata. The
-        particles are generated from simple distributions, for trying out
-        mcpltool and the mcpl Python package with large files.
-      * The numbers of mcpltool -l, -s, and --create-examples=N can also be
-        written like 1e8 (whole numbers only).
-      * Opening a directory as an MCPL file gives the error "Is a directory
-        and not a file!" (in C, C++, Python, and all tools).
-      * The minimum CMake version is now 3.21 (and on Windows 3.27, which was
-        already needed there, now with a clear error message).
-      * mcpltool is now the command-line tool from the mcpl-python package
-        (previously pymcpltool, which still works, but warns that it has
-        been renamed). The compiled mcpltool from the mcpl-core package is
-        removed, as is the C function mcpl_tool. In Python, app_mcpltool is
-        the new name of app_pymcpltool (which also still works, but warns).
-        The usage information shown with "python -m mcpl" shows "python -m
-        mcpl" as the name of the command.
-      * The MCPL_BINDIR, MCPL_LIBDIR, MCPL_INCDIR, MCPL_LIBNAME, and
-        MCPL_CMD_MCPLCONFIG variables provided by find_package(MCPL) in CMake
-        had wrong (or empty) values. The MCPL_CMD_MCPLTOOL variable is
-        removed.
-      * mcpltool no longer leaves output files behind when --merge,
-        --forcemerge, or --extract fail.
-      * ssw2mcpl and mcpl2ssw read and write the numbers of histories (np1),
-        particles (nrss) and histories with particles (niss) in the headers
-        of MCNP5 and MCNP6 SSW files as the 64 bit integers they are (issue
-        #207). Previously only the lower 32 bits were used for MCNP6 files,
-        which for files with more than 2147483647 histories gave a wrong
-        number of histories and could make the header parsing fail (the
-        actual cause of the "unexpected record" in issue #45), and MCNP5 files
-        with more than 2147483647 histories were rejected (discussion #118).
-        Files with fewer histories were always handled correctly.
-      * mcpl2ssw now sets niss in the header of the new SSW file to the number
-        of histories with particles (which is the number of particles, since
-        each particle is given its own history), instead of copying it from
-        the reference SSW file (issue #207).
-      * mcpl2ssw no longer counts particles which it skips (because their
-        PDG codes have no MCNP equivalent) in the history numbers of the
-        particles, which could then exceed the number of histories (np1) in
-        the header of the new SSW file.
-      * The documentation states that blobs are stored byte for byte, so the
-        byte order of binary numbers in them is chosen by the application.
-      * The C and Python readers refuse files whose particle size in the header
-        does not match the fields of the particles (it was only checked for
-        files with userdata, and a size of 0 could lead to a division by
-        zero), and files with a universal weight which is not positive and
-        finite (as required when writing; the C reader could otherwise read
-        beyond the particle data, when the universal weight was 0).
-      * Blob keys must be unique, non-empty, ASCII, with no non-printable
-        characters, whitespace, backslash, or quotation marks.
-        This is required for files in MCPL format version 4 (which are
-        refused otherwise), and the C, C++, and Python APIs refuse other keys
-        when they are added to new files. Keys copied from the headers of
-        files in older format versions (e.g. when merging files) are still
-        accepted, unless the new file has userdata (and is thus in format
-        version 4).
-      * The flags in the header (userflags, polarisation, single precision
-        and universal weight) must have exactly the values of the format (0
-        or 1, and in version 4 the userflags field can also have 0x2), and
-        files with other values are refused by the C and Python readers, as
-        are files with null characters in strings (now also refused by the
-        Python reader and writer).
-      * Fields of userdata layouts can have units, as in "temp:float32:K" or
-        "q:float64:cm^-1.MeV": cm, MeV, ms, K, and deg, in this order, each at
-        most once, separated by dots, with powers like cm^2 or MeV^-1. Other
-        units make the layout invalid. mcpl-python gives the units to scipp
-        (MCPLFile.to_scipp), and C++ fields get them with
-        add_userdata_field<float>("temp","K").
-      * Userdata fields can not be named like the fields of particles (x,
-        ekin, userflags, ...), or position, direction, polarisation, or
-        wavelength.
-      * Userdata is optional in MCPL format version 4, signalled by 0x2 in the
-        userflags field of the header (which also holds 0x1 if userflags are
-        enabled). Only with userdata does the header contain the userdata
-        layout. Files in version 4 without userdata are thus identical to
-        files in version 3 except for the version number, so any such file
-        can be turned into the other by changing the version number (for
-        version 3 files without NaN or infinite values). MCPL itself still
-        writes files without userdata in version 3.
-      * mcpl-python: blocks without particles now always behave like other
-        blocks, with all fields being arrays of length 0. Previously, selecting
-        or slicing a block which was already empty (e.g. block[mask][:] with
-        an empty selection) gave a block whose fields could not be accessed.
-      * mcpl-python: new methods MCPLFile.to_scipp and MCPLFile.scipp_blocks
-        (one DataArray per block), giving the particles as a scipp DataArray
-        with the weights as data (with variances) and the particle fields as
-        coordinates with units (x, y, z [cm], ekin [MeV], time [ms], ...),
-        plus polarisation, userflags, and userdata fields where present.
-        Positions, directions, and polarisations can also be given as
-        3-vectors, and extra coordinates can be calculated with expressions
-        (with units following from the expressions). For files, skip, limit
-        and pick parameters choose the particles, and by default at most
-        100 million particles are converted (with a warning when particles
-        are left out). This needs scipp 26.9 or later, which can be installed
-        with the new "scipp" extra (pip install "mcpl-python[scipp]"), which
-        is not part of the "all" extra since scipp needs Python 3.12 or later.
-      * All Python dependencies of the MCPL packages, and of the development
-        and testing of MCPL, are now defined in devel/dependency_database.yml
-        (as in NCrystal). The developer tool checks that the pyproject.toml
-        files agree with it, and generates the requirements and conda
-        environment files in devel/reqs/ ("mcpldevtool depdb --mode
-        fixreqfiles"). Dependencies which can not be installed everywhere
-        have conditions there (needed Python version, and systems where they
-        are not available), which become environment markers in the
-        requirements, and tests needing them are not added at all where they
-        can not be installed. The CI with the minimum versions of the
-        dependencies and the FreeBSD CI take their packages from it too. The
-        mcpl package has a new "devel" extra with the development
-        dependencies.
-      * The C++ interface (mcplcpp.h) is documented with Doxygen comments,
-        from which the developer tool command "mcpldevtool cppapi" generates
-        the reference documentation (as Markdown, for the website).
-      * New header-only C++ interface, mcplcpp.h (requires C++17 or later),
-        built on the _es functions of the C API (issue #61). Errors are
-        thrown as std::runtime_error (with messages starting with
-        "MCPL::IOError: " or "MCPL::Error: ") and std::bad_alloc. Files are read with mcpl::MCPLFile (with range-based
-        for loops over the particles, which are lightweight mcpl::Particle
-        views) and written with mcpl::MCPLOutFile (which leaves files
-        unfinished unless they are explicitly closed). Userdata fields are
-        accessed through typed field objects (e.g.
-        userdata_field<float,3>("dir")), and output files can get their
-        userdata layout one field at a time. All other functions of the C API
-        have counterparts, including the operations on files, and
-        set_print_handler accepts any std::function. An example is in
-        examples/example_cppmcpl.cc.
-      * New C function mcpl_dump_file_es, which dumps the header and particles
-        of a file which is already open (like mcpl_dump), with the output
-        passed to a function given by the caller (or the print handler).
-      * New C function mcpl_check_error, which passes an error in an error
-        state to the error handler (like the functions without _es would).
-        This allows code relying on the error handler to use the functions
-        which are only available with _es.
-      * New C function mcpl_close_outfile_unfinished_es, which closes an
-        output file without finishing it (as needed when abandoning files,
-        e.g. after exceptions in C++), and mcpl_outfile_userdata_layout, which
-        gives the userdata layout of an output file.
-      * Error-state (_es) variants of the C functions for operations on
-        files: mcpl_merge_files_es, mcpl_can_merge_es, mcpl_merge_inplace_es,
-        mcpl_forcemerge_files_es, mcpl_repair_es, and mcpl_gzip_file_es.
-        Errors found before any output is written leave all files unchanged.
-        Errors while merging leave the output file (for mcpl_merge_inplace_es
-        the first file) unfinished, so it can be recovered with mcpl_repair.
-        Errors while compressing remove the partially written .gz file and
-        keep the original file. With these, all C functions which can raise
-        errors have _es variants.
-      * mcpl_gzip_file (and mcpl_gzip_file_es) remove the partially written
-        .gz file after errors, instead of leaving it behind.
-      * mcpl_merge_inplace now checks for errors when flushing and closing
-        the updated file.
-      * Error-state (_es) variants of the C functions for writing files:
-        mcpl_create_outfile_es, mcpl_hdr_set_srcname_es,
-        mcpl_hdr_add_comment_es, mcpl_hdr_add_data_es, the mcpl_enable_*_es
-        functions, mcpl_hdr_add_stat_sum_es, mcpl_hdr_scale_stat_sums_es,
-        mcpl_get_empty_particle_es, mcpl_add_particle_es,
-        mcpl_add_particle_with_userdata_es, mcpl_close_outfile_es,
-        mcpl_closeandgzip_outfile_es, mcpl_transfer_metadata_es and
-        mcpl_transfer_last_read_particle_es. Invalid arguments leave files
-        unchanged, while errors when writing data leave output files
-        unusable: they can then only be closed, which leaves the file
-        unfinished (so it can often be recovered with mcpl_repair).
-      * Write errors which are only detected when buffered data is actually
-        written (e.g. with full disks) are now reported when writing the
-        header and when closing files, instead of silently producing broken
-        files. When closing, all data is written before the number of
-        particles is updated in the header, so files with such errors look
-        unfinished and can be recovered.
-      * Headers are limited to 1.9 GB and 1000000 comments and blobs
-        (together), when writing and reading files, in C and Python (as the
-        MCPL format allows).
-      * Error messages of mcpl_transfer_last_read_particle about universal
-        pdgcodes and weights no longer end with a newline.
-      * New variants of the C functions for reading files, which report
-        errors to the caller instead of ending the program: mcpl_open_file_es,
-        mcpl_read_es, mcpl_read_with_userdata_es, mcpl_skipforward_es,
-        mcpl_rewind_es, mcpl_seek_es, mcpl_hdr_comment_es,
-        mcpl_hdr_stat_sum_es, mcpl_userdata_layout_size_es and
-        mcpl_userdata_offset_es. They take a pointer to an mcpl_errstate_t,
-        whose code is set by each call (0, or MCPL_ERROR_RUNTIME,
-        MCPL_ERROR_IO or MCPL_ERROR_MEMORY in case of errors, along with a
-        message). After an error while reading particles, files can only be
-        closed. The functions
-        without _es are unchanged (errors still go to the error handler).
-      * New function mcpl_set_print_handler_ctx, like mcpl_set_print_handler
-        but with a context pointer passed to the handler.
-      * mcpl_close_file does nothing when called with a file object which
-        failed to open (internal NULL), and the reading functions give an
-        error for such objects instead of an assertion failure.
-      * Opening corrupted files with invalid numbers of comments or blobs, or
-        invalid lengths of strings or blobs, in their headers no longer
-        allocates memory according to these numbers (which could exhaust the
-        memory), but only as the data is actually read (with the buffers
-        growing geometrically, to keep this fast). Too large headers, and too
-        many comments and blobs, are refused before reading them (e.g. for
-        small gzipped files with huge headers).
-      * New pymcpltool option --dry-run (-d), which does everything except
-        writing files: the same checks, warnings, errors, and messages as the
-        real run (with "Would ..." instead of "Successfully ..."), followed
-        by a note that nothing was written. It applies to --merge,
-        --forcemerge, --extract, --repair, and --text, and is ignored with
-        commands which do not write files (so it can always be added to be
-        sure that nothing is written). The Python API gets a corresponding
-        dry_run argument for merge_files, forcemerge_files, merge_inplace and
-        repair.
-      * Errors about files which can not be merged now say why, i.e. the first
-        difference found in the headers (e.g. "FP precision: single vs
-        double", "universal pdgcode: 2112 vs none", "comment 1 differs"), in
-        mcpl_merge_files, mcpl_merge_inplace, mcpltool, and the Python API.
-      * Forced merges (mcpl_forcemerge_files, mcpltool --forcemerge, and the
-        Python API) now report the settings which change relative to the
-        input files (e.g. "Files have different FP precision (single and
-        double), using double") and the data which is discarded (userflags
-        unless kept, comments, and blobs).
-      * Optional dependencies (extras) for the plotting backends of the Python
-        API: pip install "mcpl[plot]" (or "mcpl-python[plot]") also installs
-        matplotlib (>=3.6), as does "[all]".
-      * The minimum versions of the Python dependencies (numpy 1.22, and the
-        matplotlib 3.6 of the extras) are now tested in CI.
-      * The fields x, y, z, and time of particles and blocks of particles read
-        with the Python API are now always double precision numbers (like in
-        the C API), also for files which store numbers in single precision
-        (before, they were single precision numpy values for such files).
-      * Expressions have vectors (pos, dir, pol, and (a,b,c)) with the
-        functions dot, cross, and angle (precise also for small angles, e.g.
-        "angle(dir,(0,0,1)) < 1deg"), round, through_sphere(center,radius),
-        in and not in, and variables before the condition of picks. Edits
-        have rotate_around and rotate_frame. Errors say where in the
-        expression the problem is. Numbers are decimal or hexadecimal (like
-        0x1f), as in C.
-      * Plots can be drawn as text, with Unicode characters (or else ASCII):
-        in the terminal (with mcpltool -t HIST), or in .txt files. This needs
-        no extra Python packages, so plots can always be made. Histograms with
-        more bins than the columns (or cells) of such plots are shown with the
-        average of the bin values over each column, and histograms from
-        mcpltool -t without bins=N are made at the resolution of the plot,
-        with a whole number of columns per bin.
-      * Histogram strings (of mcpltool -w/-t and mcpl.histogram) with three
-        expressions, like "x : y : z", give 3D plots of particles chosen at
-        random with their weights (in windows).
-      * Unless the number of bins is given, mcpl.histogram and mcpltool -w/-t
-        now choose it from the effective number of entries N: sqrt(N) bins
-        (the cube root per axis for 2D histograms), between 10 and 400, rather
-        than always 100.
-      * Particles can now carry custom per-particle data ("userdata"): a fixed
-        number of bytes per particle, described by a layout string stored in
-        the file header (like "temp:float32,origin:int32,tags:uint8[3]", or
-        "data:uint8[27]" for plain bytes). New C functions mcpl_enable_userdata,
-        mcpl_add_particle_with_userdata, mcpl_read_with_userdata,
-        mcpl_last_read_userdata, mcpl_hdr_userdata_layout and
-        mcpl_hdr_userdata_size, as well as helper functions for encoding and
-        decoding the fields (mcpl_userdata_offset, mcpl_userdata_get_float32,
-        mcpl_userdata_set_float32, etc.). The mcpl_particle_t struct and all
-        existing functions are unchanged. Files with userdata are written in
-        the new MCPL format version 4, while all other files are still written
-        in format version 3 (so they can still be read by older MCPL
-        releases). MCPL_FORMATVERSION is now 4, the latest supported format
-        version. In files with userdata, particles must be added with
-        mcpl_add_particle_with_userdata (with NULL for userdata with all bytes
-        zero), and mcpl_add_particle is an error, as is transferring particles
-        without userdata into such files. Files can only be merged if their
-        userdata layouts are identical, while forced merges discard the
-        userdata (with a warning) unless all files have the same layout.
-      * The Python API can read files with userdata: MCPLFile.userdata_layout
-        and userdata_size, and block.userdata (and particle.userdata), which
-        is a numpy structured array with the fields of the layout (e.g.
-        block.userdata['temp']). The userdata is a view of the data read from
-        the file, so it costs nothing until used. Userdata is kept when
-        transferring particles to files with the same layout (e.g. after
-        transfer_metadata), and when merging, extracting, or force-merging
-        files with the Python API or pymcpltool, which give the same results
-        as the C API and mcpltool.
-      * The Python API can also write files with userdata: enable it with
-        MCPLOutFile(..., userdata_layout = "temp:float32,tags:uint8[3]") or
-        enable_userdata(layout), and give the userdata of the particles with
-        the userdata argument of add_particles and add_particle, as a dict of
-        field values (e.g. userdata = { 'temp' : temps, 'tags' : tags }) or a
-        numpy structured array (like block.userdata). The userdata argument is
-        required in files with userdata (except when transferring particles
-        from files with the same layout), missing fields get zeros (so
-        userdata = {} gives all bytes zero), and integer fields must be given
-        integers within the range of their type. The files are identical to
-        those written with the C API.
-      * New examples of writing and reading userdata: examples/
-        example_userdatamcpl.c (C) and examples/pyexample_userdatamcpl
-        (Python).
-      * Clearer error messages for invalid values of stat:sum entries (which
-        must be non-negative or -1, and may only be padded with spaces).
-      * Plots of histograms in the Python API are shown in a window with
-        matplotlib (giving an error when they can not be shown), or saved in
-        the format given by the file extension (.pdf, .png, .svg or .txt).
-      * NaN and infinite values are no longer allowed in the particle data of
-        MCPL files. Adding particles with such values (to fields which are
-        stored) now gives an error, in the C API (mcpl_add_particle and
-        mcpl_transfer_last_read_particle, and thus also mcpltool) and in the
-        Python API, as do values too large to be stored in single precision.
-        Existing files with such values can still be read, with a warning (once
-        per file). In the Python API, the wavelength attribute of particles and
-        blocks now gives an error for particles which are not neutrons or
-        gammas (instead of NaN) or have zero kinetic energy, and expressions
-        give an error if they produce NaN or infinite values.
-      * The mcpl Python package is now split into several internal modules.
-        Its public API is unchanged, and available after "import mcpl" as
-        before. The mcpl.mcpl module is kept for backwards compatibility, but
-        using names from it now gives a DeprecationWarning (e.g. use
-        mcpl.MCPLFile instead of mcpl.mcpl.MCPLFile). Running a copy of the
-        mcpl.py file on its own is no longer supported. Use the pymcpltool
-        command or "python -m mcpl" instead.
-      * Messages and warnings from the Python API (e.g. "MCPL WARNING: Input
-        file appears to not have been closed properly") are still printed by
-        default, but can now be sent to the logger "mcpl" of Python's logging
-        module instead, by calling mcpl.use_logging(). pymcpltool always prints
-        them.
-      * New pymcpltool option --traceback, which shows the Python traceback of
-        errors, for debugging.
-      * MCPLParticle and MCPLParticleBlock in the Python API get a wavelength
-        attribute, the (de Broglie) wavelength in Aa of neutrons and gammas
-        (NaN for other particles), calculated with relativistic kinematics for
-        neutrons. The new module mcpl.constants contains the physical
-        constants used (CODATA 2022).
-      * The Python API can now also write MCPL files, with the new MCPLOutFile
-        class (GitHub issues #54 and #70). Like the MCPLFile reader, it is
-        implemented in pure Python, using numpy to efficiently process blocks of
-        particles, and it has the same capabilities as the C API for writing
-        files. Header settings can be given as keyword arguments named like the
-        MCPLFile attributes, or with methods named like the functions of the C
-        API. The written files are identical to those written by the C library.
-        Particles read with MCPLFile can be added directly, and are then
-        transferred exactly. For neutrons and gammas, the wavelength can be
-        given instead of the kinetic energy. The new gzip_file function
-        compresses files like mcpl_gzip_file in the C API. See also the new
-        examples/pyexample_writemcpl.
-      * Particle blocks in the Python API can be indexed with a boolean mask,
-        indices or a slice, which gives a new block with those particles (e.g.
-        block[block.pdgcode == 2112]). Such blocks can be passed to
-        MCPLOutFile.add_particles like any other block, also together with new
-        values of some of the fields (e.g. weight = 2 * block.weight). The new
-        fileidx attribute of blocks gives the positions of their particles in
-        the file, and fileidx is also the new name of the file_index attribute
-        of particles (file_index still works, but is deprecated).
-      * The Python API also gets the other file-level functions of the C API:
-        merge_files, forcemerge_files, merge_inplace, can_merge, repair,
-        name_helper, create_outfile_mpi, and merge_outfiles_mpi. They give the
-        same results, printouts, and errors as the C functions.
-      * pymcpltool can now also do what mcpltool does: --merge (also with
-        --inplace), --forcemerge, --extract (with -l, -s, -p, and --no-comment),
-        and --repair, with the same results and printouts as mcpltool.
-      * When reading files in the old MCPL-2 format, directions are now unpacked
-        with fma() (in C, and with the same calculation in Python), so the
-        results are identical on all platforms. Previously they could differ in
-        the last bit, depending on whether the compiler used fused multiply-add
-        instructions.
-      * Particles can now be selected and edited with expressions in the Python
-        API, with the new ParticleFilter and ParticleEdit classes, e.g.
-        ParticleFilter("pdgcode == neutron and wavelength > 1.8Aa") or
-        ParticleEdit("rotate_z(90deg);z += 1cm"), which are applied to blocks
-        of particles. Values with units must always be given with units (like
-        25meV, 0.18nm, or 1us, but a plain 0 is fine), and expressions with
-        missing or inconsistent units are rejected. The wavelength can only be
-        used for neutrons and gammas, which must be picked first (as in
-        "pdgcode == neutron and wavelength > 1.8Aa"). Edits are executed in
-        order, and can use variables (e.g. "tmp = x;x = y;y = tmp"),
-        swap(a,b), and rotations. ParticleValue gives the values of an
-        expression. See also the new examples pyexample_filtermcpl and
-        pyexample_editmcpl.
-      * MCPLFile and MCPLOutFile accept pick and edit arguments (expressions
-        or ParticleFilter/ParticleEdit objects), which pick and edit the
-        particles read from (or written to) the files, e.g.
-        MCPLFile("in.mcpl",pick="pdgcode == neutron",edit="z += 1m"). Edited
-        particles are still transferred exactly by MCPLOutFile.add_particles,
-        except for the edited fields. dump_file, MCPLFile.dump_particles,
-        collect_stats, and histogram also accept a pick argument.
-      * mcpltool can now pick and edit particles with expressions, with the
-        new -p (--pick) and -E (--edit) options, e.g. mcpltool -e -p "pdgcode
-        == neutron" -E "wavelength = 1.8Aa" FILE OUT.mcpl.gz. They can be used
-        when showing particles, and with -S, -w, -t, and -e, as can -l and -s,
-        which choose the range of particles in the file before -p and -E are
-        applied. Like with -l and -s, stat:sum entries are marked as not
-        available (-1) when -E modifies weights, unless the new
-        --keep-statsum option is used. The header comments describe the
-        picks and edits, unless --no-comment is used. To pick particles of a
-        type, use e.g. -p "pdgcode == neutron".
-      * plot_stats is removed: it gives an error saying what to use instead
-        (mcpl.histogram), and mcpltool -S only prints the summary of the
-        particles. The --pdf and --gui options are removed.
-      * New mcpl.histogram(FILE,HIST,pick=PICK): histograms of values given by
-        expressions, with the histogram strings of mcpltool -w (e.g.
-        "ekin/eV;logx;lethargy"), as read-only Hist1D, Hist2D, HistDiscrete
-        (of whole numbers), or PointSet3D (of three expressions) objects, which
-        give their bin edges and contents (or points), and can be plotted with
-        plot().
-      * New mcpltool options -w HIST (--window) and -t HIST (--terminal) for a
-        histogram of expressions, shown in a window (matplotlib) or in the
-        terminal, or saved with -o FILE, with options NAME=VALUE separated by
-        ";" (see mcpltool --hist-help), e.g. mcpltool -w "ekin;logx" -p
-        "pdgcode == neutron" FILE, also for 2D histograms and bar charts.
-        mcpl.histogram also accepts these strings.
-      * mcpltool --extract no longer leaves a broken output file behind when
-        given an invalid -p argument.
-      * ssw2mcpl and phits2mcpl no longer leave an unfinished output file behind
-        when the files given with -c or -s are found to be invalid.
-      * ssw2mcpl and phits2mcpl no longer read past the end of the contents of
-        the files given with -c or -s when checking them.
-      * The ssw2mcpl, mcpl2ssw, phits2mcpl, and mcpl2phits commands from the
-        mcpl-extra Python package no longer fail when mcpl-config is not in the
-        PATH (e.g. when running them from a virtual environment which is not
-        activated). If the mcpl-core package does not provide the _mcpl_core
-        module (as on conda-forge), mcpl-config is still used.
-      * Avoid misaligned memory access (undefined behaviour) when reading SSW
-        and PHITS files in mcpl-extra.
-      * The comment added by mcpltool --extract to the header of the new file
-        now describes how particles were selected (e.g. 'mcpltool: extracted
-        particles with -l100 -p "pdgcode == 2112"'), instead of giving the
-        number of particles in the input file. Files extracted in the same way
-        from different files can thus be merged. The new --no-comment option
-        disables the comment.
-      * Fix mcpl_transfer_last_read_particle for transfers from files with
-        double precision to files with single precision, which wrote wrong
-        kinetic energies and directions. The transfers done by mcpltool were not
-        affected.
-      * pymcpltool --stats (and dump_stats in the Python API) now also shows
-        any stat:sum entries of the file (GitHub issue #94).
-      * mcpltool --extract now only gzips the output file if its name ends with
-        .mcpl.gz, like --merge does (GitHub issue #21). Previously it always
-        gzipped, and an output name ending with .mcpl.gz resulted in a file
-        named .mcpl.gz.mcpl.gz. Both now also refuse to overwrite an existing
-        file when the .mcpl extension is left out of the output name.
-      * Fix typo in error message of mcpl_hdr_add_stat_sum.
-      * mcpl_hdr_add_comment now refuses to add a stat:sum: comment with the
-        same key as an existing one, since such files can not be read.
-      * Drop support for Python 3.8.
-      * mcpltool --repair (and mcpl_repair) now also repairs files truncated
-        right after the header, and removes any partially written particle at
-        the end of the file.
-      * Opening a file which was not closed properly now also gives a warning
-        if it only contains part of the first particle.
-      * ...
+      * NaN and infinite values are no longer allowed in new files (existing
+        files can still be read, with a warning).
+      * Readers refuse files which break the format: wrong sizes, flags,
+        particle sizes, or universal weights, duplicate or invalid blob keys,
+        and too large headers. Blob keys of new files must be printable
+        ASCII without whitespace or quotes.
+      * Refused merges say why, and forced merges say what changes.
+
+    Build and packaging:
+
+      * The minimum CMake version is 3.21 (3.27 on Windows). Wrong values of
+        the MCPL_* variables of find_package(MCPL) are fixed, and
+        MCPL_CMD_MCPLTOOL is removed.
+      * The minimum versions of the Python dependencies (numpy 1.22,
+        matplotlib 3.6) are tested in CI.
+
+    Fixes:
+
+      * ssw2mcpl and mcpl2ssw handle more than 2147483647 histories in MCNP5
+        and MCNP6 files (issues #45, #118, and #207), and mcpl2ssw writes
+        correct niss and history numbers.
+      * mcpl_transfer_last_read_particle from double to single precision
+        files wrote wrong energies and directions.
+      * mcpl_merge_inplace (and merge_inplace in Python) adds the stat:sum
+        values of the second file also when it has no particles.
+      * Many smaller fixes of crashes, error handling, and edge cases in C,
+        Python, and the converters (e.g. write errors on full disks are now
+        reported, and mcpl_repair also repairs files truncated right after
+        the header).
 
 v2.2.8  2026-02-18
       * MCNP tools ssw2mcpl and mcpl2ssw no longer emits "Unusual MCNP flavour

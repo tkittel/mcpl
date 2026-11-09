@@ -19,7 +19,7 @@
 ##                                                                            ##
 ################################################################################
 
-"""The --stats, --window, and --terminal modes of mcpltool, separate from _cli
+"""The -S and -H modes of mcpltool, separate from _cli
 so that the other modes do not load the code for statistics, histograms, and
 plots."""
 
@@ -73,10 +73,8 @@ def mcpltool_hist(filelist,o,skip,limit,edit,outfn,terminal,color=None,
             res = bk.resolution() if o['bins'] is None else None
             if res is not None:
                 maxbins = tuple(res) if len(o['exprs']) == 2 else res[0]
-        try:
-            h = _fill(sources,o,_maxbins=maxbins,selection=selection)
-        except MCPLError as e:
-            bad(str(e),'--hist')
+        #(errors of the histogram string are found before, by _cli):
+        h = _fill(sources,o,_maxbins=maxbins)
         if o['print']:
             print(h.to_text())
             return

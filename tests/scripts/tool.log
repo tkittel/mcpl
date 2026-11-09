@@ -200,7 +200,7 @@ python -m mcpl: error: do not specify -l or -s with -j
 Running mcpltool rf16cp.mcpl -l2 -r
 ----------------------------------------------
 usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-python -m mcpl: error: -l can only be used when showing particles, or with -S, -w, -t, or -x
+python -m mcpl: error: -l can only be used when showing particles, or with -S, -H, -t, or -x
 
 ===> Command failed!
 ----------------------------------------------
@@ -1893,12 +1893,12 @@ index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux   
     9        2112       1.234           0           0        0.04        0.04           0      0.9992           0           1       -0.04           0           0 0xdeadbeef
 
 ----------------------------------------------
-Running mcpltool -x difficult_unitvector.mcpl extracted_all -l0 --preventcomment
+Running mcpltool -x difficult_unitvector.mcpl extracted_all -l0 --no-comment
 ----------------------------------------------
 MCPL: Successfully extracted 10 / 10 particles from difficult_unitvector.mcpl into extracted_all.mcpl
 
 ----------------------------------------------
-Running mcpltool -x difficult_unitvector.mcpl extracted_none -s999999999 --preventcomment
+Running mcpltool -x difficult_unitvector.mcpl extracted_none -s999999999 --no-comment
 ----------------------------------------------
 MCPL: Successfully extracted 0 / 10 particles from difficult_unitvector.mcpl into extracted_none.mcpl
 

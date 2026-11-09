@@ -69,18 +69,6 @@ def _statsum_marking( f, skip, limit, edit, keepstatsum = False ):
         return 'weights'
     return None
 
-def _tool_check_outfn( fn, inputs, allow_overwrite = False ):
-    """Error message unless the output file of --merge, --forcemerge or
-    --extract can be created, or None if it can. Checked
-    before creating the file, so the output of a failed command can be
-    removed."""
-    from ._writer import _check_merge_output
-    try:
-        _check_merge_output( fn, inputs, allow_overwrite )
-    except MCPLError as e:
-        return str(e)
-    return None
-
 def _mcpltool_close(outfile):
     """Close the output of --merge, --forcemerge, or --extract, returning its
     name. If compressing it (for names ending with .mcpl.gz) fails, the
@@ -105,7 +93,6 @@ def _mcpltool_code(filelist, lang, limit, skip, edit, preventcomment, keepstatsu
     """Print the program in the language (c or cpp) which does what mcpltool
     -x does with the options, for files like the given one (with its
     userdata layout and stat:sum entries), see _expr_ast2c"""
-    from ._common import MCPLError
     if len(filelist) != 1:
         bad("must specify one input file (and no output file) with --code")
     skip, limit = skip or 0, limit or 0
@@ -130,10 +117,9 @@ def _mcpltool_extract(filelist, limit, skip, edit, preventcomment,
         bad("too many arguments")
     if len(filelist) != 2:
         bad("must specify both input and output files with -x")
+    from ._writer import _check_merge_output
     outfn = filelist[1]
-    err = _tool_check_outfn( outfn, filelist[:1], allow_overwrite )
-    if err:
-        raise MCPLError(err)
+    _check_merge_output(outfn,filelist[:1],allow_overwrite)
     limit = limit or 0
     skip = skip or 0
     with MCPLFile(filelist[0],raw_strings=True) as fi:

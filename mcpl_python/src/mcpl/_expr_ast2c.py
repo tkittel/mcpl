@@ -75,6 +75,7 @@ from ._expr_vocab import (
     _modified_fields,
     _rotated_vectors,
     _rotation_planes,
+    _userdata_field,
     _value_type,
 )
 from ._exprunits import _quantity_value, _unit_size
@@ -377,23 +378,11 @@ class _Translator:
         return self.finite(self.field(n))
 
     def userdata_value( self, node ):
-        from ._expr_eval import _userdata_unit
-        from ._userdata import userdata_fields, userdata_units
-        fields = { f[0] : f for f in userdata_fields(self.layout) } if self.layout else {}
-        if node.field not in fields:
-            raise MCPLError(f'No userdata field "{node.field}"'
-                            + ( f' (in the layout "{self.layout}")' if self.layout
-                                else ' (the particles have no userdata)' ))
-        name, ftype, count = fields[node.field]
-        if ( node.index is None ) != ( count is None ):
-            raise MCPLError(f'The userdata field "{name}" has '
-                            + ( f'{count} values per particle (use userdata.{name}.at(i))' if count
-                                else f'one value per particle (use userdata.{name} without .at(i))' ))
-        if node.index is not None and node.index >= count:
-            raise MCPLError(f'The index {node.index} is too large for the userdata field "{name}"')
+        from ._userdata import userdata_units
+        name = node.field
+        ftype, count, factor, _ = _userdata_field(self.layout,name,node.index)
         self.userdata[name] = ( ftype, count )
         get = self.userdata_get(name,ftype,node.index)
-        factor = _userdata_unit(self.layout,name)[0]
         if factor != 1.0:
             #(the unit of the field, in the units of MCPL):
             unit = userdata_units(self.layout)[name]

@@ -2285,8 +2285,7 @@ int main( int argc, char ** argv )
 ----------------------------------------------
 Running mcpltool -x --code=c -e 'userdata.temp > 300K' miscphys.mcpl.gz
 ----------------------------------------------
-usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-python -m mcpl: error: No userdata field "temp" (the particles have no userdata)
+python -m mcpl: The particles have no userdata (for userdata.temp)
 
 ===> Command failed!
 ----------------------------------------------

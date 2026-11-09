@@ -1045,8 +1045,8 @@ int main( int argc, char ** argv )
 }
 Errors:
   'x > 1MeV' with layout None: Incompatible units in comparison: length and energy, in expression "x > 1MeV"
-  'userdata.temp > 300K' with layout None: No userdata field "temp" (the particles have no userdata)
-  'userdata.temp > 300K' with layout 'other:float32': No userdata field "temp" (in the layout "other:float32")
-  'userdata.d > 1' with layout 'd:int32[3]': The userdata field "d" has 3 values per particle (use userdata.d.at(i))
-  'userdata.d.at(3) > 1' with layout 'd:int32[3]': The index 3 is too large for the userdata field "d"
+  'userdata.temp > 300K' with layout None: The particles have no userdata (for userdata.temp)
+  'userdata.temp > 300K' with layout 'other:float32': No userdata field "temp" (the fields are: other)
+  'userdata.d > 1' with layout 'd:int32[3]': The userdata field "d" has 3 values per particle (use userdata.d.at(0) to userdata.d.at(2))
+  'userdata.d.at(3) > 1' with layout 'd:int32[3]': The index 3 is too large for the userdata field "d", which has 3 values per particle (from .at(0) to .at(2))
   'mod(userdata.f,2) == 0' with layout 'f:float32': mod(a,b) requires integers without units (like userflags or pdgcode)

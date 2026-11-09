@@ -28,8 +28,27 @@ __all__ = []
 import functools
 import math
 
-from ._expr_ast import Assign, Call, Float, Int, Name, _walk
-from ._exprunits import _dim_E, _dim_K, _dim_L, _dim_T
+from ._common import MCPLError
+from ._expr_ast import (
+    Assign,
+    Call,
+    Float,
+    Int,
+    Name,
+    Particle,
+    Unary,
+    _vector_parts,
+    _walk,
+)
+from ._exprunits import (
+    _base_dims,
+    _base_units_mcpl,
+    _dim_E,
+    _dim_L,
+    _dim_T,
+    _expr_units,
+    _unit_size,
+)
 from ._particles import _particle_names, _wavelength_pdgcodes
 from ._physics import _pdg_label, _pdg_name
 
@@ -116,6 +135,49 @@ def _int_constant_type( v ):
         if lo <= v < hi:
             return t
     return None
+
+def _userdata_unit( layout, field ):
+    """The size (in the units of expressions) and dimension of the unit of the
+    field of the userdata layout, as (1.0, None) for fields without a unit"""
+    from ._userdata import userdata_units
+    unit = userdata_units(layout).get(field)
+    factor, dim = 1.0, [ 0, 0, 0, 0 ]
+    for part in ( unit.split('.') if unit else () ):
+        name, _, power = part.partition('^')
+        d = _expr_units[name][1]
+        e = int(power) if power else 1
+        factor *= _unit_size(name,e)
+        if d is not None:
+            dim = [ a + b * e for a, b in zip(dim,d) ]
+    return factor, ( tuple(dim) if any(dim) else None )
+
+#(cached, as fields are looked up for each block of particles; errors are not
+#cached):
+@functools.lru_cache
+def _userdata_field( layout, field, index ):
+    """The type, the number of values (None for fields of one value), and the
+    size and dimension of the unit (see _userdata_unit) of the field of the
+    userdata layout (None for particles without userdata), used as
+    userdata.FIELD, or userdata.FIELD.at(index). Raises MCPLError if there
+    is no such field, or if the index does not fit it."""
+    from ._userdata import userdata_fields
+    if not layout:
+        name = f'userdata.{field}' + ( '' if index is None else f'.at({index})' )
+        raise MCPLError(f'The particles have no userdata (for {name})')
+    fields = { f[0] : f[1:] for f in userdata_fields(layout) }
+    if field not in fields:
+        raise MCPLError(f'No userdata field "{field}" (the fields are: {", ".join(fields)})')
+    ftype, n = fields[field]
+    if n is None and index is not None:
+        raise MCPLError(f'The userdata field "{field}" has one value per particle'
+                        f' (use userdata.{field} without .at({index}))')
+    if n is not None and index is None:
+        raise MCPLError(f'The userdata field "{field}" has {n} values per particle'
+                        f' (use userdata.{field}.at(0) to userdata.{field}.at({n-1}))')
+    if index is not None and index >= n:
+        raise MCPLError(f'The index {index} is too large for the userdata field "{field}",'
+                        f' which has {n} values per particle (from .at(0) to .at({n-1}))')
+    return ( ftype, n, *_userdata_unit(layout,field) )
 
 #Functions used as statements in edits:
 _edit_statements = ( 'swap', 'rotate_x', 'rotate_y', 'rotate_z', 'rotate_around',

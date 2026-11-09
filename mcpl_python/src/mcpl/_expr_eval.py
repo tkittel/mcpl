@@ -69,6 +69,7 @@ from ._expr_vocab import (
     _rotation_matrix_args,
     _rotation_matrix_usage,
     _rotation_planes,
+    _userdata_field,
 )
 from ._exprrotation import _exact_cos_sin, _rotation_matrix
 from ._exprunits import (
@@ -169,20 +170,6 @@ def _dimstr( d ):
             res.append( n if e == 1 else f'{n}^{e}' )
     return '*'.join(res)
 
-def _userdata_unit( layout, field ):
-    """The size (in the units of expressions) and dimension of the unit of the
-    field of the userdata layout, as (1.0, None) for fields without a unit"""
-    from ._userdata import userdata_units
-    unit = userdata_units(layout).get(field)
-    factor, dim = 1.0, [ 0, 0, 0, 0 ]
-    for part in ( unit.split('.') if unit else () ):
-        name, _, power = part.partition('^')
-        d = _expr_units[name][1]
-        e = int(power) if power else 1
-        factor *= _unit_size(name,e)
-        if d is not None:
-            dim = [ a + b * e for a, b in zip(dim,d) ]
-    return factor, ( tuple(dim) if any(dim) else None )
 
 def _unit_hint( d ):
     u = _expr_unit_hints.get(d)
@@ -272,26 +259,14 @@ class _ExprEvaluator:
             return _Q(np.zeros(0,dtype=np.int64),_dim_unknown)
         ud = getattr(self._block,'userdata',None)
         udinfo = getattr(self._block,'_udinfo',None)
-        name = f'userdata.{field}' + ( '' if index is None else f'.at({index})' )
-        if ud is None or udinfo is None:
-            self.error(f'The particles have no userdata (for {name})')
-        names = ud.dtype.names
-        if field not in names:
-            self.error(f'No userdata field "{field}" (the fields are: {", ".join(names)})')
+        try:
+            _, _, factor, dim = _userdata_field(None if ud is None or udinfo is None
+                                                else udinfo[0],field,index)
+        except MCPLError as e:
+            self.error(str(e))
         v = ud[field]
-        n = v.shape[1] if v.ndim > 1 else None
-        if n is None and index is not None:
-            self.error(f'The userdata field "{field}" has one value per particle'
-                       f' (use userdata.{field} without .at({index}))')
-        if n is not None and index is None:
-            self.error(f'The userdata field "{field}" has {n} values per particle'
-                       f' (use userdata.{field}.at(0) to userdata.{field}.at({n-1}))')
         if index is not None:
-            if index >= n:
-                self.error(f'The index {index} is too large for the userdata field "{field}",'
-                           f' which has {n} values per particle (from .at(0) to .at({n-1}))')
             v = v[:,index]
-        factor, dim = _userdata_unit(udinfo[0],field)
         if factor != 1.0:
             #(e.g. deg in radians, in float64 also for float32 fields):
             v = ( v.astype(np.float64) if v.dtype.kind == 'f' else v ) * factor

@@ -88,7 +88,8 @@ def _write( node ):
     if isinstance(node,(Int,Float)):
         return _number(node), _prec_atom
     if isinstance(node,Quantity):
-        #(with a space after hexadecimal numbers, which would include the unit):
+        #(with a space after hexadecimal numbers, which would otherwise take in
+        #the unit, as in 0x1f eV):
         space = ' ' if isinstance(node.number,Int) and node.number.hex else ''
         return _number(node.number) + space + _unit(node.unit,node.power), _prec_implied
     if isinstance(node,Unit):
@@ -149,8 +150,8 @@ def _exponent( node ):
 
 def _implied( node ):
     """Text of a multiplication by a unit written as an implied
-    multiplication (as in 2^(ekin/MeV)MeV), if it can be (after a closing
-    parenthesis), else None"""
+    multiplication (as in 2^(ekin/MeV)MeV), if it can be (after ")" or a
+    number), else None"""
     if not ( node.op == '*' and isinstance(node.right,Unit) ):
         return None
     if isinstance(node.left,(Int,Float)):

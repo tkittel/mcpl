@@ -55,9 +55,9 @@ edited blocks written like explicit field values: True
 MCPLOutFile with an edit gives the same: True True
 fields then the edit: 239 particles, weights {2.0}, pdgcodes {22}
 arrays: ekin=[1.5 2.5 3. ] weight=[2. 2. 2.] x=[2. 2. 2.] pdgcode=[2112 2112   22]
-MCPLOutFile({'edit': 'x > 2'}): Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x > 2"
-MCPLOutFile({'edit': 'x = 2'}): Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x = 2"
-MCPLOutFile({'edit': 'wavelength > 1Aa'}): The wavelength is only defined for neutrons and gammas, so keep only those before using it, e.g. "pdgcode == neutron; wavelength > 1.8Aa" (in expression "wavelength > 1Aa")
+MCPLOutFile({'edit': 'x > 2'}): Incompatible units in comparison: length and value without units (add units, e.g. 2cm), in expression "x > 2"
+MCPLOutFile({'edit': 'x = 2'}): Can not assign a value without units to x, which is a length (add units, e.g. 2cm), in expression "x = 2"
+MCPLOutFile({'edit': 'wavelength > 1Aa'}): The wavelength is only defined for neutrons and gammas, so keep only those first (e.g. "pdgcode == neutron; wavelength > 1.8Aa"), in expression "wavelength > 1Aa"
 MCPLOutFile with an edit using fileidx: 11 particles
 fileidx with arrays: fileidx can only be used for particles read from files
 MCPLFile with a bytes filename: ok

@@ -145,9 +145,9 @@ py/out.mcpl: format version 4, userdata layout "temp:float32,origin:int32,tags:u
   particle 3 x=1 ekin=0.5: temp=293.15 origin=0 tags=0,1,2 big=1e+300 id=18446744073709551615 s=-32768
   particle 4 x=2 ekin=1: temp=294.15 origin=-1000 tags=10,11,12 big=2e+300 id=18446744073709551614 s=-32767
 mcpltool --merge out.mcpl std.mcpl raw33.mcpl: exit code 1
-   | python -m mcpl: Requested files are incompatible for merge as they have different header info (userdata layout: "temp:float32,origin:int32,tags:uint8[3],big:float64,id:uint64,s:int16" vs "data:uint8[33]")
+   | python -m mcpl: The files can not be merged: userdata layout: "temp:float32,origin:int32,tags:uint8[3],big:float64,id:uint64,s:int16" vs "data:uint8[33]"
 mcpltool --merge out.mcpl std.mcpl none.mcpl: exit code 1
-   | python -m mcpl: Requested files are incompatible for merge as they have different header info (userdata layout: "temp:float32,origin:int32,tags:uint8[3],big:float64,id:uint64,s:int16" vs none)
+   | python -m mcpl: The files can not be merged: userdata layout: "temp:float32,origin:int32,tags:uint8[3],big:float64,id:uint64,s:int16" vs none
 mcpltool --merge --inplace std2.mcpl std.mcpl: exit code 0
 py/std2.mcpl: format version 4, userdata layout "temp:float32,origin:int32,tags:uint8[3],big:float64,id:uint64,s:int16", size 29, particle size 65
   particle 0 x=1 ekin=0.5: temp=293.15 origin=0 tags=0,1,2 big=1e+300 id=18446744073709551615 s=-32768
@@ -156,7 +156,7 @@ py/std2.mcpl: format version 4, userdata layout "temp:float32,origin:int32,tags:
   particle 3 x=2 ekin=1: temp=294.15 origin=-1000 tags=10,11,12 big=2e+300 id=18446744073709551614 s=-32767
   particle 4 x=3 ekin=1.5: temp=295.15 origin=-2000 tags=20,21,22 big=3e+300 id=18446744073709551613 s=-32766
 mcpltool --merge --inplace std2.mcpl raw33.mcpl: exit code 1
-   | python -m mcpl: Requested files are incompatible for merge as they have different header info (userdata layout: "temp:float32,origin:int32,tags:uint8[3],big:float64,id:uint64,s:int16" vs "data:uint8[33]")
+   | python -m mcpl: The files can not be merged: userdata layout: "temp:float32,origin:int32,tags:uint8[3],big:float64,id:uint64,s:int16" vs "data:uint8[33]"
 mcpltool --forcemerge out.mcpl std.mcpl stddp.mcpl: exit code 0
    | MCPL force-merge: Files have different FP precision (single and double), using double
    | MCPL force-merge: Files have different polarisation info (no and yes), enabling it
@@ -1419,16 +1419,16 @@ Userdata fields in expressions:
   userdata.big == 0xFFFFFFFFFFFFFFFF: [False, False, True]
   userdata.big & 1 == 1: [False, True, True]
   userdata.big > 0 and userdata.big - 1 >= 0x8000000000000004: [False, True, True]
-  userdata.temp > 295: MCPLError: Incompatible units in comparison: temperature and value without units (add units, e.g. 2K) in expression "userdata.temp > 295"
-  userdata.d > 1cm: MCPLError: The userdata field "d" has 3 values per particle (use userdata.d.at(0) to userdata.d.at(2)) in expression "userdata.d > 1cm"
-  userdata.d.at(3) > 0cm: MCPLError: The index 3 is too large for the userdata field "d", which has 3 values per particle (from .at(0) to .at(2)) in expression "userdata.d.at(3) > 0cm"
-  userdata.nope > 0: MCPLError: No userdata field "nope" (the fields are: temp, nscat, d, theta, big) in expression "userdata.nope > 0"
+  userdata.temp > 295: MCPLError: Incompatible units in comparison: temperature and value without units (add units, e.g. 2K), in expression "userdata.temp > 295"
+  userdata.d > 1cm: MCPLError: The userdata field "d" has 3 values per particle (use userdata.d.at(0) to userdata.d.at(2)), in expression "userdata.d > 1cm"
+  userdata.d.at(3) > 0cm: MCPLError: The index 3 is too large for the userdata field "d", which has 3 values per particle (from .at(0) to .at(2)), in expression "userdata.d.at(3) > 0cm"
+  userdata.nope > 0: MCPLError: No userdata field "nope" (the fields are: temp, nscat, d, theta, big), in expression "userdata.nope > 0"
   userdata > 0: MCPLError: Fields of the userdata are written as userdata.NAME, in expression "userdata > 0"
   userdata.d.x > 0: MCPLError: Syntax error in expression "userdata.d.x > 0", after "userdata.d.": values of arrays in the userdata are written as userdata.NAME.at(INDEX)
   userdata.d.at(x) > 0: MCPLError: Syntax error in expression "userdata.d.at(x) > 0", after "userdata.d.at(": the index of a value in an array must be a whole number (counting from 0)
-  userdata.big + 1 > 0: MCPLError: Addition of integers gives values outside the range of the result (unsigned 64-bit integers) in expression "userdata.big + 1 > 0"
-  userdata.big > -1: MCPLError: Unsigned integers (like userflags) can not be combined with negative values (in a comparison) in expression "userdata.big > -1"
-  userdata.big - 1 > 0: MCPLError: Subtraction of integers gives values outside the range of the result (unsigned 64-bit integers) in expression "userdata.big - 1 > 0"
+  userdata.big + 1 > 0: MCPLError: Addition of integers gives values outside the range of unsigned 64-bit integers, in expression "userdata.big + 1 > 0"
+  userdata.big > -1: MCPLError: Unsigned integers (like userflags) can not be combined with negative values (in a comparison), in expression "userdata.big > -1"
+  userdata.big - 1 > 0: MCPLError: Subtraction of integers gives values outside the range of unsigned 64-bit integers, in expression "userdata.big - 1 > 0"
   userdata.temp/K: [290.0, 300.0, 310.0]
   userdata.d.at(0)/mm: [10.0, 40.0, 70.0]
   userdata.nscat: [0, 1, 255]
@@ -1436,8 +1436,8 @@ Userdata fields in expressions:
   x = userdata.d.at(0): {'x': array([1., 4., 7.])}
   ekin = userdata.temp*1MeV/K: {'ekin': array([290., 300., 310.])}
   userdata.temp = 3K: MCPLError: Syntax error in expression "userdata.temp = 3K", at the start: fields of the userdata can not be changed
-  swap(userdata.temp,x): MCPLError: Fields of the userdata (userdata.temp) can not be changed, in "swap(userdata.temp,x)"
-  userdata.temp > 0K: MCPLError: The particles have no userdata (for userdata.temp) in expression "userdata.temp > 0K"
+  swap(userdata.temp,x): MCPLError: Fields of the userdata (userdata.temp) can not be changed, in expression "swap(userdata.temp,x)"
+  userdata.temp > 0K: MCPLError: The particles have no userdata (for userdata.temp), in expression "userdata.temp > 0K"
   kept from arrays added to MCPLOutFile: [300.0, 310.0]
   kept from a block added with other userdata: [300.0, 320.0]
   mcpltool -e userdata.temp > 295K -n udexpr.mcpl:
@@ -1464,9 +1464,9 @@ userdata.d/mm: [0.0, 100.0, 200.0, 300.0]
 userdata.q*cm: [0.0, 0.5, 1.0, 1.5]
 userdata.n: [0.0, 1.0, 2.0, 3.0]
 userdata.temp > 293K: [294.0, 296.0]
-userdata.temp + x: MCPLError: Incompatible units in arithmetic: temperature and length in expression "userdata.temp + x"
-userdata.temp > 293: MCPLError: Incompatible units in comparison: temperature and value without units (add units, e.g. 2K) in expression "userdata.temp > 293"
-userdata.q + userdata.d: MCPLError: Incompatible units in arithmetic: length^-1 and length in expression "userdata.q + userdata.d"
+userdata.temp + x: MCPLError: Incompatible units in arithmetic: temperature and length, in expression "userdata.temp + x"
+userdata.temp > 293: MCPLError: Incompatible units in comparison: temperature and value without units (add units, e.g. 2K), in expression "userdata.temp > 293"
+userdata.q + userdata.d: MCPLError: Incompatible units in arithmetic: length^-1 and length, in expression "userdata.q + userdata.d"
 userdata.temp: MCPLError: Expression "userdata.temp" has units (temperature), so divide it by a unit, e.g. userdata.temp/K
 plot userdata.temp: userdata.temp [K] | weights per bin
 plot userdata.d : userdata.temp: userdata.d [cm] | userdata.temp [K]

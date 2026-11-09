@@ -73,9 +73,9 @@ def _expr_astcheck( tree, text, unused_ok = False ):
         _check_statement(st,text,variables,used)
     unused = sorted(variables - used)
     if unused and not unused_ok:
-        raise MCPLError(f'Variable "{unused[0]}" is assigned but never used'
-                        f' in "{text}" (fields which can be assigned are: '
-                        + ', '.join(_assignable) + ')')
+        raise MCPLError(f'Variable "{unused[0]}" is assigned but never used, in expression'
+                        f' "{text}" (if it should be a field, the fields which can be'
+                        ' assigned are: ' + ', '.join(_assignable) + ')')
 
 def _as_float( v ):
     """The number as a floating point number (inf if it is too large)"""
@@ -93,14 +93,13 @@ def _check_names( node, text, variables = () ):
         if ( isinstance(n,Float) and not math.isfinite(n.value) ) or (
                 isinstance(n,Quantity) and not math.isfinite(_as_float(n.number.value)) ):
             #(like 1e400, or 1e400cm also when written with all its digits):
-            raise MCPLError(f'A constant has NaN or infinite values in expression "{text}"')
+            raise MCPLError(f'A number is too large, in expression "{text}"')
         if isinstance(n,Int) and id(n) not in numbers and _int_constant_type(n.value) is None:
             raise MCPLError(f'The integer {n.value} is too large (integers must fit in 64 bits),'
                             f' in expression "{text}"')
         if isinstance(n,Call) and n.name not in _expr_functions:
-            raise MCPLError(f'Unsupported function call in expression "{text}"'
-                            ' (available functions are: '
-                            + ', '.join(sorted(_expr_functions)) + ')')
+            raise MCPLError(f'Unknown function "{n.name}", in expression "{text}" (the'
+                            ' functions are: ' + ', '.join(sorted(_expr_functions)) + ')')
         if isinstance(n,Call):
             _check_args(n,text)
         if isinstance(n,Name) and not ( n.id in _expr_fields or n.id in _expr_vectors
@@ -108,7 +107,7 @@ def _check_names( node, text, variables = () ):
             if n.id == 'userdata':
                 raise MCPLError(f'Fields of the userdata are written as userdata.NAME,'
                                 f' in expression "{text}"')
-            raise MCPLError(f'Unknown name "{n.id}" in expression "{text}"'
+            raise MCPLError(f'Unknown name "{n.id}", in expression "{text}"'
                             ' (particle fields are: ' + ', '.join(_expr_fields) + ')')
 
 _numbers = { 1 : 'one', 2 : 'two', 3 : 'three' }
@@ -123,10 +122,8 @@ def _check_args( call, text ):
                     f' argument{"s" if n > 1 else ""}, in expression "{text}"')
 
 def _check_condition( node, text ):
-    """Raise MCPLError where a PDG code is used as a condition (or as a part
-    of one combined with and, or, and not), as
-    in "neutron" or "pdgcode and x > 0cm", which would be true for all
-    particles (other integers can be conditions, as in userflags & 0x10)"""
+    """Refuse PDG codes used as conditions (as in "neutron" or "pdgcode and x >
+    0cm"), which would be true for all particles"""
     if isinstance(node,Logical):
         for v in node.values:
             _check_condition(v,text)
@@ -157,7 +154,7 @@ def _check_statement( st, text, variables, used ):
     if name not in _assignable:
         _check_variable(name,text)
         if st.op is not None and name not in variables:
-            raise MCPLError(f'Variable "{name}" used before it is assigned in "{text}"')
+            raise MCPLError(f'Variable "{name}" used before it is assigned, in expression "{text}"')
     _check_names(st.value,text,variables)
     used.update( _names(st.value) & variables )
     if st.op is not None and name in variables:
@@ -169,15 +166,15 @@ def _check_variable( name, text ):
     """Check that a variable can have the name"""
     if name in _expr_fields:
         raise MCPLError(f'{name} (the position of the particles in the'
-                        f' file) can not be changed, in "{text}"')
+                        f' file) can not be changed, in expression "{text}"')
     if not ( name.isidentifier() and name == name.lower() ) or (
             name in _expr_constants or name in _particle_names or name in _expr_units
             or name in _expr_functions or name in _edit_statements
             or name in ( 'inactive', 'userdata', 'and', 'or', 'not', 'in' ) ):
-        raise MCPLError(f'Can not assign to "{name}" in "{text}" (fields which can'
-                        ' be assigned are: ' + ', '.join(_assignable) + ', and other'
-                        ' lowercase names which are not names of fields, units,'
-                        ' constants, or functions can be used for variables)')
+        raise MCPLError(f'Can not assign to "{name}", in expression "{text}" (variables'
+                        ' must be lowercase names which are not names of units, constants,'
+                        ' particles, or functions; the fields which can be assigned are: '
+                        + ', '.join(_assignable) + ')')
 
 def _check_call( call, text, variables, used ):
     """Check a statement calling swap(..) or a rotation"""
@@ -189,31 +186,29 @@ def _check_call( call, text, variables, used ):
                   else a.name if isinstance(a,Particle) else None for a in args ]
         if len(names) != 2 or None in names:
             raise MCPLError('swap(..) takes two fields (or variables)'
-                            f' as arguments, as in swap(x,y), in "{text}"')
+                            f' as arguments, as in swap(x,y), in expression "{text}"')
         for n in names:
             if n == 'fileidx':
                 raise MCPLError('fileidx (the position of the particles in'
-                                f' the file) can not be changed, in "{text}"')
+                                f' the file) can not be changed, in expression "{text}"')
             if n.startswith('userdata.'):
                 raise MCPLError(f'Fields of the userdata ({n}) can not be'
-                                f' changed, in "{text}"')
+                                f' changed, in expression "{text}"')
             if n == 'wavelength':
                 raise MCPLError('swap(..) can not be used with wavelength (which'
                                 ' is computed from ekin; set it with'
-                                f' "wavelength = ..." instead), in "{text}"')
+                                f' "wavelength = ..." instead), in expression "{text}"')
             if n not in _assignable and n not in variables:
-                raise MCPLError(f'Can not swap "{n}" in "{text}"'
+                raise MCPLError(f'Can not swap "{n}", in expression "{text}"'
                                 ' (it is not a field or variable)')
         used.update( n for n in names if n in variables )
         return
     nargs = _rotation_matrix_args.get(fname,1)
     _nargs_words = { 1 : 'one argument', 2 : 'two arguments', 4 : 'four arguments' }
     if len(args) != nargs:
-        what = { 'rotate_around' : 'an axis and an angle, as in rotate_around((0,0,1),90deg)',
-                 'rotate_frame' : 'the vectors v, vout, u and uout, as in'
-                 ' rotate_frame((0,0,1),(1,0,0),(0,1,0),(0,1,0))' }.get(fname,'an angle')
+        what = _rotation_matrix_usage.get(fname,'an angle')
         raise MCPLError(f'{fname}(..) takes {_nargs_words[nargs]}'
-                        f' ({what}) in "{text}"')
+                        f' ({what}), in expression "{text}"')
     if fname != 'rotate_frame':
         _check_angle(fname,args[-1],text)
     for a in args:
@@ -230,4 +225,4 @@ def _check_angle( fname, node, text ):
             q = Quantity(v,unit)
             return _expr_ast2str(Unary(node.op,q) if signed else q)
         raise MCPLError(f'The angle of {fname}(..) must have a unit, as in {with_unit("deg")}'
-                        f' or {with_unit("rad")} (not {_expr_ast2str(node)}), in "{text}"')
+                        f' or {with_unit("rad")} (not {_expr_ast2str(node)}), in expression "{text}"')

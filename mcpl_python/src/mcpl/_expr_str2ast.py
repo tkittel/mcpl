@@ -23,9 +23,9 @@
 (see _expr_ast). Interface: _expr_str2ast(text, kind) for values and edit
 expressions, _expr_statements(text) for the statements of an edit expression
 (also the inactive ones), and _expr_normalise(text) for the text with
-normalised whitespace. The
-parser only knows the syntax, and the names of units and particles: whether
-the names and functions exist, and the units fit, is checked later."""
+normalised whitespace. The parser only knows the syntax, and the names of
+units and particles: whether the names and functions exist, and the units
+fit, is checked later."""
 
 __all__ = []
 
@@ -161,14 +161,14 @@ def _check_ops( expr ):
     #NB: Do not add support for these: ! and % break command lines in some
     #shells (bash history expansion, Windows batch files).
     if '~' in expr:
-        raise MCPLError('The operator ~ is not supported in expressions (e.g.'
-                        ' "(userflags & 0x10) == 0" tests that a bit is not set),'
-                        f' in expression "{expr}"')
+        raise MCPLError('The operator ~ is not supported (to test that a bit is not set,'
+                        ' use e.g. "(userflags & 0x10) == 0"), in expression'
+                        f' "{expr}"')
     for op, alt, example in _unsupported_ops:
         found = ( re.search(r'!(?!=)',expr) if op == '!' else op in expr )
         if found:
-            raise MCPLError(f'Use "{alt}" instead of "{op}" in expressions (e.g.'
-                            f' "{example}"), in expression "{expr}"')
+            raise MCPLError(f'Use "{alt}" instead of "{op}" (e.g. "{example}"), in expression'
+                            f' "{expr}"')
 
 def _parse( expr, mode, context = None ):
     """Parse an expression (mode 'eval') or a statement (mode 'exec'). For a
@@ -219,15 +219,14 @@ _op_levels = [ tuple( s for s, p in _binary_ops.items() if p == prec )
                for prec in sorted(set(_binary_ops.values())) ]
 
 class _Parser:
-    """Parser of expressions and statements. The precedences are, from the
-    lowest: or, and, not, comparisons (which can be chained, as in
-    0 < x < 2cm, and "in" or "not in" a list of integers or particle names,
-    as in pdgcode in (neutron,gamma), which can not), |, &, + and -, *, / and //,
-    unary - and +, the multiplication by a unit directly after a number or a
-    closing parenthesis (as in 25meV or 2^(ekin/MeV)MeV), and ^ (or **, which
-    is right-associative, with unary - and + allowed in exponents). Units are
-    values (MeV is 1MeV), and a power directly after a unit applies to the
-    unit only (as in 4cm^2 or cm^(1/2)), and must be a constant."""
+    """Recursive-descent parser of expressions and statements. The
+    precedences are, from the lowest: or, and, not, comparisons (chained, as
+    in 0 < x < 2cm, except "in" and "not in"), |, &, + and -, * and / and //
+    (one level),
+    unary - and +, a unit directly after a number or ")" (as in 25meV or
+    2^(ekin/MeV)MeV), and ^ or ** (both right-associative). Units are values
+    (MeV is 1MeV), and a power directly after a unit applies to the unit only
+    (as in 4cm^2) and must be constant."""
     def __init__( self, expr ):
         self._expr = expr
         #(the tokens, as (kind, text), with their positions in the expression):
@@ -486,7 +485,7 @@ class _Parser:
             hint = ' (only decimal and hexadecimal numbers, like 0x1f, can be used)'
         else:
             hint = ''
-        raise MCPLError(f'Invalid number {s}{hint} in expression "{self._expr}"')
+        raise MCPLError(f'Invalid number {s}{hint}, in expression "{self._expr}"')
 
     #Units:
 
@@ -497,11 +496,15 @@ class _Parser:
             power = self._unit_power()
         return Unit(name,power)
 
+    #(the message for powers of units which are not whole or half numbers):
+    _unit_powers = ( 'Powers of units must be constant whole or half numbers (like cm^2'
+                     ' or cm^(1/2))' )
+
     def _unit_power( self ):
         sign = 1
         while ( op := self._accept('op','-','+') ):
             sign = -sign if op == '-' else sign
-        err = self._error('the power of a unit must be a number, like cm^2 or cm^(1/2)')
+        err = self._error(self._unit_powers[0].lower() + self._unit_powers[1:])
         if self._i >= len(self._toks):
             raise err
         kind, s = self._take()
@@ -514,8 +517,7 @@ class _Parser:
             raise err
         v = sign * v
         if not math.isfinite(v) or 2 * v != round(2 * v):
-            raise MCPLError('Units can only have whole or half powers (like cm^2 or'
-                            f' cm^0.5), in expression "{self._expr}"')
+            raise MCPLError(f'{self._unit_powers}, in expression "{self._expr}"')
         return int(v) if float(v).is_integer() else float(v)
 
     def _constant( self, node ):
@@ -532,5 +534,4 @@ class _Parser:
                 return ops[node.op](self._constant(node.left),self._constant(node.right))
             except ZeroDivisionError:
                 pass
-        raise MCPLError('Powers of units must be numbers (like cm^2 or cm^(1/2)), in'
-                        f' expression "{self._expr}"')
+        raise MCPLError(f'{self._unit_powers}, in expression "{self._expr}"')

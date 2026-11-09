@@ -138,10 +138,9 @@ def _values( q, block ):
 
 class ParticleValue:
     """Numerical value calculated from particle fields with an expression
-    (with the syntax of ParticleEdit), for instance for histograms. The
-    expression must not have units, so values with units must be divided by
-    a unit, as in "ekin/MeV" or "hypot(x,y)/mm". Boolean expressions (like
-    "x > 0cm") give 1 for true and 0 for false. For instance:
+    (with the syntax of ParticleEdit), e.g. for histograms. Values with units
+    must be divided by a unit, as in "ekin/MeV" or "hypot(x,y)/mm", and
+    conditions (like "x > 0cm") give 1 for true and 0 for false. Example:
 
        val = ParticleValue("ekin/meV")
        for block in mcplfile.particle_blocks:
@@ -160,7 +159,7 @@ class ParticleValue:
         """The expression as given (with normalised whitespace)"""
         return self._expr
     def __call__( self, block ):
-        """Return array with the values for the particles in the block"""
+        """The values for the particles of the block (an array)"""
         q = self._e.evaluate(block)
         if q.d not in ( None, _dim_unknown ):
             u = _expr_unit_hints.get(q.d)
@@ -190,7 +189,7 @@ class ParticleEdit:
       * Conditions, like "ekin < 25meV", which keep the particles for which
         they are true. The statements after them only see those.
       * Assignments to fields, like "x = 2m*ux" or "z += 1cm" (also -=, *=,
-        /=, ^=, and &= and |= for integers). The values must have the units
+        /=, ^=, and for integers //=, &=, and |=). The values must have the units
         of the field (e.g. a length for x). Assigning wavelength changes the
         kinetic energy of neutrons and gammas. The vectors pos, dir, and pol
         can be assigned too, as in "pos += (0,0,1m)".
@@ -205,62 +204,58 @@ class ParticleEdit:
         given axis (through the origin), e.g. "rotate_y(90deg)" (angles
         written as numbers need a unit, deg or rad). The rotation is
         counter-clockwise when looking from the positive axis towards the
-        origin. Rotations by multiples of 90 degrees are exact (e.g.
-        "rotate_z(90deg)" changes (x,y) to exactly (-y,x)), and rotations never
-        give negative zeros (-0.0).
+        origin. Rotations by multiples of 90deg are exact.
       * rotate_around(axis,angle), which rotates them around the axis (a
         vector, which need not be a unit vector) through the origin,
         counter-clockwise when looking from the axis towards the origin, e.g.
         "rotate_around((1,1,0),30deg)".
       * rotate_frame(v,vout,u,uout), the rotation which turns the direction
-        of the vector v into that of vout, and u into uout (as RotMatrix of
-        NCrystal), e.g. a beam direction and an "up" direction of one frame
-        into those of another. The angle between v and u must be that
-        between vout and uout, and v and u must not be parallel.
+        of the vector v into that of vout, and u into uout, e.g. a beam
+        direction and an "up" direction of one frame into those of another.
+        The angle between v and u must be that between vout and uout, and v
+        and u must not be parallel.
 
-    Whitespace (including newlines) is only used to separate the parts of
-    expressions, so long expressions can be written over several lines. The
-    expression syntax is like in Python: particle fields (x, y, z, ux, uy,
-    uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, and
-    wavelength), fileidx (the position of the particles in the file,
-    counting from 0, e.g. "mod(fileidx,10) == 0" for every tenth particle),
-    numbers, arithmetic (+, -, *, /, // for the division of non-negative
-    integers, and ^ or ** for powers),
-    comparisons (which can be chained, as in "0 < x < 2cm"), logical operations
-    (and, or, not), bitwise & and | on integers (e.g. on userflags, as in
-    "userflags & 0x10", where integers which are not 0 are true), functions
-    (sqrt, abs, floor, ceil, exp, log, log10, sin, cos, tan, asin, acos,
-    atan, atan2, hypot, min, max, clamp, round, and mod(a,b) for the remainder
-    of the division of non-negative integers), the fields of the userdata of
-    particles (userdata.NAME, and userdata.NAME.at(INDEX) for the values of
-    arrays, with the units of the fields in the userdata layout, e.g.
-    "userdata.temp > 300K"),
-    vectors (pos, dir, and pol for the position,
-    direction, and polarisation, of which x is an alias of pos.x or pos.at(0),
-    or written as (0,0,1m), with +, -, *, and / by numbers, abs(v) for their
-    lengths, v^2, dot(v,w), cross(v,w), and angle(v,w) for the angle between
-    them, which is precise also for small angles), through_sphere(center,
-    radius) for whether the line of flight of the particles (through their
-    positions along their directions, both forwards and backwards) passes
-    through a sphere, as in "through_sphere((0,0,1m),5cm)", and
-    through_box(center,half) for whether it passes through a box with its
-    sides along the axes (half the sizes along x, y, and z), as in
-    "through_box((0,0,1m),(5cm,5cm,1mm))", the constant
-    pi, and the names neutron, antineutron, proton, antiproton, electron,
-    positron (or antielectron), muon, antimuon, and gamma (or photon), which
-    can be used for pdgcode values. The wavelength is only defined for
-    neutrons and gammas, so it is an error to use it for other particles, and
-    only neutrons or gammas must be kept before it is used, as in
-    "pdgcode == neutron; wavelength > 1.8Aa" or "pdgcode == neutron and
-    wavelength > 1.8Aa" (the right side of and is only evaluated for
-    particles where the left side is true, and the right side of or only for
-    particles where the left side is false).
+    Whitespace (also newlines) only separates the parts of expressions, so
+    long expressions can be written over several lines. The syntax is like
+    that of Python (but ^ is a power, as is **), with:
+
+      * The particle fields x, y, z, ux, uy, uz, polx, poly, polz, ekin,
+        time, weight, pdgcode, userflags, wavelength, and fileidx (the
+        position of the particle in the file, from 0, as in
+        "mod(fileidx,10) == 0" for every tenth particle).
+      * The fields of the userdata, userdata.NAME (and userdata.NAME.at(i)
+        for the values of arrays), with the units of the userdata layout, as
+        in "userdata.temp > 300K".
+      * Numbers, the constant pi, and the particle names neutron,
+        antineutron, proton, antiproton, electron, positron (or
+        antielectron), muon, antimuon, and gamma (or photon) for PDG codes.
+      * Arithmetic (+, -, *, /, // for integers, and ^ or ** for powers),
+        comparisons (which can be chained, as in "0cm < x < 2cm"), in and
+        not in (as in "pdgcode in (neutron,gamma)"), and, or, and not, and
+        the bitwise & and | of integers (as in "userflags & 0x10", where
+        integers other than 0 are true).
+      * The functions sqrt, abs, floor, ceil, round, exp, log, log10, sin,
+        cos, tan, asin, acos, atan, atan2, hypot, min, max, clamp, and
+        mod(a,b) (the remainder of non-negative integers).
+      * Vectors: pos, dir, and pol (x is pos.x, also written pos.at(0)), and
+        vectors like (0,0,1m), with +, -, and * and / by numbers, abs(v) for
+        their lengths, v^2, dot(v,w), cross(v,w), and angle(v,w) (precise
+        also for small angles).
+      * through_sphere(center,radius) and through_box(center,half): whether
+        the line of flight (forwards and backwards) passes through a sphere,
+        or a box with its sides along the axes (half its sizes along x, y,
+        and z), as in "through_sphere((0,0,1m),5cm)".
+
+    The wavelength is only defined for neutrons and gammas, so keep only
+    those first, as in "pdgcode == neutron; wavelength > 1.8Aa" (the right
+    side of "and" is only evaluated where the left side is true, and that of
+    "or" where it is false).
 
     Values with units must always be given with units (except for a plain 0,
     as in "x > 0"): meV, eV, keV, MeV, GeV, and TeV (energy), ns, us, ms,
     and s (time), Aa, nm, um, mm, cm, m, and km (length, also for
     wavelengths), and K (temperature, for userdata fields), as
-    in "ekin < 25meV", "pdgcode == neutron and wavelength > 0.18nm" or
+    in "ekin < 25meV", "pdgcode == neutron and wavelength > 0.18nm", or
     "x^2 + y^2 < 4cm^2" (a power directly after a unit only
     applies to the unit, and units can also have half powers, as in
     "sqrt(ekin)/sqrt(eV)"). The units deg and rad can be used for
@@ -278,9 +273,9 @@ class ParticleEdit:
     def __init__( self, expression ):
         self._expr, self._tree, self._canonical = _parsed(expression,'edit',self._unused_ok)
         self._modified = _modified_fields(self._tree.statements)
-        #(for marking stat:sum entries as not available when particles are
-        #kept by their positions in the file, by conditions and the variables
-        #they can use):
+        #(whether conditions, or the variables they can use, depend on the
+        #positions in the file, when stat:sum entries are marked as not
+        #available):
         self._uses_fileidx = any( 'fileidx' in _fields_used(st) for st in self._tree.statements
                                   if _is_condition(st) or ( isinstance(st,Assign)
                                                             and st.target not in _assignable ) )
@@ -346,9 +341,8 @@ class _EditStart(ParticleEdit):
 def _quantity_functions( coords ):
     """Functions calculating the values of expressions for a block, given as a
     dictionary of names and expressions. Each function returns the values (an
-    array) and their dimension (powers of length, energy, time and
-    temperature, in which the values are in the units of MCPL: cm, MeV, ms
-    and K, or None for values without units)."""
+    array) and their dimension (powers of length, energy, time, and
+    temperature, or None without units); values are in cm, MeV, ms, and K."""
     if isinstance(coords,str) or not hasattr(coords,'items'):
         raise MCPLError('The coords parameter must be a dictionary of'
                         ' coordinate names and expressions')

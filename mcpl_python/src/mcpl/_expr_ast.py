@@ -116,7 +116,7 @@ class Binary:
 
 @_frozen
 class Logical:
-    """and or or, of two or more values"""
+    """"and" or "or" of two or more values"""
     op: str
     values: tuple
 
@@ -196,7 +196,7 @@ def _names( node ):
 #The operators and their precedences (higher binds tighter):
 _prec_or, _prec_and, _prec_not, _prec_cmp = 1, 2, 3, 4
 _prec_unary, _prec_implied, _prec_power, _prec_atom = 10, 10.5, 11, 12
-#(and and or):
+#("and" and "or"):
 _logical_ops = { 'or' : _prec_or, 'and' : _prec_and }
 #(left-associative):
 _binary_ops = { '|' : 5, '&' : 6, '+' : 8, '-' : 8, '*' : 9, '/' : 9, '//' : 9 }

@@ -11,7 +11,7 @@
 static uint64_t add_u64( uint64_t a, uint64_t b )
 {
   if ( a > UINT64_MAX - b ) {
-    fprintf( stderr, "ERROR: Overflow\n" );
+    fprintf( stderr, "ERROR: Integer overflow\n" );
     exit( 1 );
   }
   return a + b;
@@ -66,7 +66,7 @@ int main( int argc, char ** argv )
 static std::uint64_t add_u64( std::uint64_t a, std::uint64_t b )
 {
   if ( a > UINT64_MAX - b )
-    throw std::runtime_error( "Overflow" );
+    throw std::runtime_error( "Integer overflow" );
   return a + b;
 }
 
@@ -204,7 +204,7 @@ int main( int argc, char ** argv )
 
 static void exact_cos_sin( double a, double * c, double * s )
 {
-  /* (exact for multiples of 90 degrees, as in the expressions) */
+  /* Exact for multiples of 90 degrees */
   double q = a / ( 0.5 * 3.141592653589793 );
   double k = rint( q );
   if ( fabs( q - k ) <= 8 * 2.220446049250313e-16 * ( fabs( k ) > 1.0 ? fabs( k ) : 1.0 ) ) {
@@ -284,7 +284,7 @@ int main( int argc, char ** argv )
 
 static void exact_cos_sin( double a, double * c, double * s )
 {
-  /* (exact for multiples of 90 degrees, as in the expressions) */
+  /* Exact for multiples of 90 degrees */
   double q = a / ( 0.5 * 3.141592653589793 );
   double k = std::rint( q );
   if ( std::fabs( q - k ) <= 8 * 2.220446049250313e-16 * ( std::fabs( k ) > 1.0 ? std::fabs(
@@ -374,7 +374,7 @@ int main( int argc, char ** argv )
 
 static void exact_cos_sin( double a, double * c, double * s )
 {
-  /* (exact for multiples of 90 degrees, as in the expressions) */
+  /* Exact for multiples of 90 degrees */
   double q = a / ( 0.5 * 3.141592653589793 );
   double k = rint( q );
   if ( fabs( q - k ) <= 8 * 2.220446049250313e-16 * ( fabs( k ) > 1.0 ? fabs( k ) : 1.0 ) ) {
@@ -447,7 +447,7 @@ int main( int argc, char ** argv )
 
 static void exact_cos_sin( double a, double * c, double * s )
 {
-  /* (exact for multiples of 90 degrees, as in the expressions) */
+  /* Exact for multiples of 90 degrees */
   double q = a / ( 0.5 * 3.141592653589793 );
   double k = std::rint( q );
   if ( std::fabs( q - k ) <= 8 * 2.220446049250313e-16 * ( std::fabs( k ) > 1.0 ? std::fabs(
@@ -637,7 +637,7 @@ int main( int argc, char ** argv )
 static int64_t mod_i64( int64_t a, int64_t b )
 {
   if ( a < 0 || b < 0 ) {
-    fprintf( stderr, "ERROR: Negative value\n" );
+    fprintf( stderr, "ERROR: Negative integer value\n" );
     exit( 1 );
   }
   if ( b == 0 ) {
@@ -676,7 +676,7 @@ int main( void )
 static std::int64_t mod_i64( std::int64_t a, std::int64_t b )
 {
   if ( a < 0 || b < 0 )
-    throw std::runtime_error( "Negative value" );
+    throw std::runtime_error( "Negative integer value" );
   if ( b == 0 )
     throw std::runtime_error( "Division by zero" );
   return a % b;
@@ -1044,9 +1044,9 @@ int main( int argc, char ** argv )
   return 0;
 }
 Errors:
-  'x > 1MeV' with layout None: Incompatible units in comparison: length and energy in expression "x > 1MeV"
+  'x > 1MeV' with layout None: Incompatible units in comparison: length and energy, in expression "x > 1MeV"
   'userdata.temp > 300K' with layout None: No userdata field "temp" (the particles have no userdata)
   'userdata.temp > 300K' with layout 'other:float32': No userdata field "temp" (in the layout "other:float32")
-  'userdata.d > 1' with layout 'd:int32[3]': The userdata field "d" has 3 values per particle
+  'userdata.d > 1' with layout 'd:int32[3]': The userdata field "d" has 3 values per particle (use userdata.d.at(i))
   'userdata.d.at(3) > 1' with layout 'd:int32[3]': The index 3 is too large for the userdata field "d"
   'mod(userdata.f,2) == 0' with layout 'f:float32': mod(a,b) requires integers without units (like userflags or pdgcode)

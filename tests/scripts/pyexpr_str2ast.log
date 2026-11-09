@@ -168,24 +168,24 @@ Errors:
   'userdata.'              -> Syntax error in expression "userdata.", at the end: the name of a userdata field is missing
   'userdata.d.x'           -> Syntax error in expression "userdata.d.x", after "userdata.d.": values of arrays in the userdata are written as userdata.NAME.at(INDEX)
   'userdata.d.at()'        -> Syntax error in expression "userdata.d.at()", after "userdata.d.at(": the index of a value in an array must be a whole number (counting from 0)
-  '090'                    -> Invalid number 090 (integers can not start with 0) in expression "090"
-  '007'                    -> Invalid number 007 (integers can not start with 0) in expression "007"
-  '00'                     -> Invalid number 00 (integers can not start with 0) in expression "00"
-  '1_000'                  -> Invalid number 1_000 (numbers can not contain "_") in expression "1_000"
-  '1_0.5'                  -> Invalid number 1_0.5 (numbers can not contain "_") in expression "1_0.5"
-  '0x_10'                  -> Invalid number 0x_10 (numbers can not contain "_") in expression "0x_10"
-  '0o17'                   -> Invalid number 0o17 (only decimal and hexadecimal numbers, like 0x1f, can be used) in expression "0o17"
-  '0b101'                  -> Invalid number 0b101 (only decimal and hexadecimal numbers, like 0x1f, can be used) in expression "0b101"
-  '0x'                     -> Invalid number 0x in expression "0x"
-  '0xg'                    -> Invalid number 0xg in expression "0xg"
-  '1.2.3'                  -> Invalid number 1.2.3 in expression "1.2.3"
+  '090'                    -> Invalid number 090 (integers can not start with 0), in expression "090"
+  '007'                    -> Invalid number 007 (integers can not start with 0), in expression "007"
+  '00'                     -> Invalid number 00 (integers can not start with 0), in expression "00"
+  '1_000'                  -> Invalid number 1_000 (numbers can not contain "_"), in expression "1_000"
+  '1_0.5'                  -> Invalid number 1_0.5 (numbers can not contain "_"), in expression "1_0.5"
+  '0x_10'                  -> Invalid number 0x_10 (numbers can not contain "_"), in expression "0x_10"
+  '0o17'                   -> Invalid number 0o17 (only decimal and hexadecimal numbers, like 0x1f, can be used), in expression "0o17"
+  '0b101'                  -> Invalid number 0b101 (only decimal and hexadecimal numbers, like 0x1f, can be used), in expression "0b101"
+  '0x'                     -> Invalid number 0x, in expression "0x"
+  '0xg'                    -> Invalid number 0xg, in expression "0xg"
+  '1.2.3'                  -> Invalid number 1.2.3, in expression "1.2.3"
   '1e'                     -> Syntax error in expression "1e", after "1": an operator is missing
   '1e+'                    -> Syntax error in expression "1e+", after "1": an operator is missing
-  'x && y'                 -> Use "and" instead of "&&" in expressions (e.g. "x > 0 and y > 0"), in expression "x && y"
-  'x || y'                 -> Use "or" instead of "||" in expressions (e.g. "x > 0 or y > 0"), in expression "x || y"
-  '!x'                     -> Use "not" instead of "!" in expressions (e.g. "not (x > 0)"), in expression "!x"
-  'x % 2'                  -> Use "mod(a,b)" instead of "%" in expressions (e.g. "mod(userflags,4) == 1"), in expression "x % 2"
-  '~x'                     -> The operator ~ is not supported in expressions (e.g. "(userflags & 0x10) == 0" tests that a bit is not set), in expression "~x"
+  'x && y'                 -> Use "and" instead of "&&" (e.g. "x > 0 and y > 0"), in expression "x && y"
+  'x || y'                 -> Use "or" instead of "||" (e.g. "x > 0 or y > 0"), in expression "x || y"
+  '!x'                     -> Use "not" instead of "!" (e.g. "not (x > 0)"), in expression "!x"
+  'x % 2'                  -> Use "mod(a,b)" instead of "%" (e.g. "mod(userflags,4) == 1"), in expression "x % 2"
+  '~x'                     -> The operator ~ is not supported (to test that a bit is not set, use e.g. "(userflags & 0x10) == 0"), in expression "~x"
   '"a"'                    -> The character " can not be used in expressions (in ""a"")
   "'a'"                    -> The character ' can not be used in expressions (in "'a'")
   'x[0]'                   -> The character [ can not be used in expressions (in "x[0]")
@@ -194,10 +194,10 @@ Errors:
   '[1]'                    -> The character [ can not be used in expressions (in "[1]")
   '{1}'                    -> The character { can not be used in expressions (in "{1}")
   'f(x=1)'                 -> Syntax error in expression "f(x=1)", after "f(x": ")" is expected, not "=" (use == for comparisons)
-  'cm^x'                   -> Syntax error in expression "cm^x", after "cm^": the power of a unit must be a number, like cm^2 or cm^(1/2)
-  'cm^(1/0)'               -> Powers of units must be numbers (like cm^2 or cm^(1/2)), in expression "cm^(1/0)"
-  'cm^0.3'                 -> Units can only have whole or half powers (like cm^2 or cm^0.5), in expression "cm^0.3"
-  'cm^'                    -> Syntax error in expression "cm^", at the end: the power of a unit must be a number, like cm^2 or cm^(1/2)
+  'cm^x'                   -> Syntax error in expression "cm^x", after "cm^": powers of units must be constant whole or half numbers (like cm^2 or cm^(1/2))
+  'cm^(1/0)'               -> Powers of units must be constant whole or half numbers (like cm^2 or cm^(1/2)), in expression "cm^(1/0)"
+  'cm^0.3'                 -> Powers of units must be constant whole or half numbers (like cm^2 or cm^(1/2)), in expression "cm^0.3"
+  'cm^'                    -> Syntax error in expression "cm^", at the end: powers of units must be constant whole or half numbers (like cm^2 or cm^(1/2))
   'and'                    -> Syntax error in expression "and", at the start: a value is expected, not "and"
   'x and'                  -> Syntax error in expression "x and", at the end: a value is missing
   'not'                    -> Syntax error in expression "not", at the end: a value is missing

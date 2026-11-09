@@ -235,8 +235,7 @@ def _check_display_edit( value, text = None ):
         ParticleEdit(value)
     except MCPLError as e:
         where = f' in "{text}"' if text else ''
-        raise MCPLError(f'Histogram option "display_edit"{where} (the last option):'
-                        f' {e}') from None
+        raise MCPLError(f'Histogram option "display_edit"{where}: {e}') from None
 
 def _auto_logx( lo, hi ):
     """Whether values from lo to hi get a logarithmic axis with logx='auto':

@@ -964,79 +964,139 @@ def _c_string( text ):
     """The text as a string of C and C++"""
     return '"' + text.replace('\\','\\\\').replace('"','\\"').replace('\n','\\n') + '"'
 
+class _Program:
+    """A C program doing what an edit does (see _expr_ast2c), built from
+    parts which _CppProgram (in _expr_ast2cpp) gives for C++"""
+    comment_marks = ( '/* ', ' *       ', ' */' )
+    indent = '  '#(of the statements in main)
+    main_void = 'int main( void )'
+
+    def __init__( self, tree, layout, filenames, skip, limit, mark_statsums, comment ):
+        self.tree, self.layout, self.filenames = tree, layout, filenames
+        self.skip, self.limit = skip, limit
+        self.mark_statsums, self.comment = mark_statsums, comment
+        statements = () if tree is None else tree.statements
+        self.modified = _modified_fields(statements)
+        self.changes = bool(self.modified)
+        #(the body of the loop over the particles, which sets what the
+        #translator tr needs, like helpers and userdata fields):
+        self.tr = self.translator()
+        body, set_field = self.copy_lines(), None
+        if self.changes:
+            self.tr.field = self.changed_field
+            set_field = self.set_field
+        body += _Statements(self.tr,set_field)(statements)
+        if self.changes:
+            body += _universal_checks(self.tr,self.modified,self.changed_value)
+            body.append(self.add_line())
+        else:
+            body.append(self.transfer_line())
+        self.body = body
+
+    def translator( self ):
+        pin = lambda n : 'fileidx' if n == 'fileidx' else f'p_in->{_c_members[n]}'
+        return _Translator('c',pin,self.layout)
+    def copy_lines( self ):
+        return [ 'mcpl_particle_t p = *p_in;' ] if self.changes else []
+    def changed_field( self, n ):
+        return 'fileidx' if n == 'fileidx' else f'p.{_c_members[n]}'
+    def set_field( self, n, code ):
+        return f'p.{_c_members[n]} = {code};'
+    def changed_value( self, f ):
+        return f'p.{_c_members[f]}'
+    def add_line( self ):
+        return ( 'mcpl_add_particle_with_userdata( fo, &p, ud );' if self.layout
+                 else 'mcpl_add_particle( fo, &p );' )
+    def transfer_line( self ):
+        return 'mcpl_transfer_last_read_particle( fi, fo );'
+    def includes( self ):
+        return [ '#include "mcpl.h"', *( [ '#include <math.h>' ] if self.tr.math else [] ),
+                 '#include <stdio.h>', '#include <stdlib.h>' ]
+    def usage_line( self ):
+        return '    printf( "Usage: %s INPUT.mcpl OUTPUT.mcpl\\n", argv[0] );'
+    def open_lines( self, names ):
+        return [ f'mcpl_file_t fi = mcpl_open_file( {names[0]} );',
+                 f'mcpl_outfile_t fo = mcpl_create_outfile( {names[1]} );',
+                 'mcpl_transfer_metadata( fi, fo );' ]
+    add_comment = 'mcpl_hdr_add_comment( fo, '
+    mark_line = 'mcpl_hdr_scale_stat_sums( fo, -1.0 );  /* stat:sum entries not available */'
+    def seek_line( self ):
+        return f'mcpl_seek( fi, {self.skip} );'
+    def userdata_lines( self ):
+        lines = []
+        if self.tr.userdata:
+            lines.append('const char * layout = mcpl_hdr_userdata_layout( fi );')
+            for name, ( ftype, count ) in self.tr.userdata.items():
+                t = ftype + ( f'[{count}]' if count is not None else '' )
+                lines.append(f'const uint32_t offset_{name} = mcpl_userdata_offset( layout, "{name}", "{t}" );')
+        return lines
+    def universal_line( self, f ):
+        return f'const {self.universal_type(f)} universal_{f} = mcpl_hdr_universal_{f}( fi );'
+    def universal_type( self, f ):
+        """The C type of the universal value of the field (pdgcode or weight)"""
+        return self.tr.ctype(_int_field_types.get(f,'f64'))
+    def loop_lines( self ):
+        body = self.body
+        lines = [ 'const mcpl_particle_t * p_in;' ]
+        if self.layout:
+            lines.append('const uint8_t * ud;')
+        read = 'mcpl_read_with_userdata( fi, &ud )' if self.layout else 'mcpl_read( fi )'
+        if self.limit is not None or self.tr.uses_fileidx:
+            #(the particles are counted, from the first one of the range):
+            cond = '' if self.limit is None else f'n < {self.limit} && '
+            lines.append(f'for ( uint64_t n = 0; {cond}( p_in = {read} ); ++n ) {{')
+            if self.tr.uses_fileidx:
+                start = f'{self.skip} + ' if self.skip else ''
+                body = [ f'const int64_t fileidx = (int64_t)( {start}n );', *body ]
+        else:
+            lines.append(f'while ( ( p_in = {read} ) ) {{')
+        return lines + [ f'  {line}' for line in body ] + [ '}' ]
+    def end_lines( self ):
+        return [ '  mcpl_close_outfile( fo );', '  mcpl_close_file( fi );', '  return 0;', '}' ]
+    def begin_lines( self ):
+        return []
+
+    def code( self ):
+        """The program"""
+        out = [ c for line in _program_header(self.tree)
+                for c in _comment_lines(line,*self.comment_marks) ]
+        out += [ '', *self.includes() ]
+        for code in self.tr.helpers.values():
+            out += [ '', *code.split('\n') ]
+        if self.filenames is None:
+            out += [ '', 'int main( int argc, char ** argv )', '{', '  if ( argc != 3 ) {',
+                     self.usage_line(), '    return 1;', '  }' ]
+            names = ( 'argv[1]', 'argv[2]' )
+        else:
+            out += [ '', self.main_void, '{' ]
+            names = tuple( _c_string(str(f)) for f in self.filenames )
+        ind = self.indent
+        out += self.begin_lines()
+        lines = self.open_lines(names)
+        out += [ ind + line for line in lines ]
+        if self.comment is not None:
+            out += _string_call(ind + self.add_comment,self.comment,' );')
+        lines = []
+        if self.mark_statsums:
+            lines.append(self.mark_line)
+        if self.skip:
+            lines.append(self.seek_line())
+        lines += self.userdata_lines()
+        lines += [ self.universal_line(f) for f in _universal_fields if f in self.modified ]
+        lines += self.loop_lines()
+        out += [ ind + line for line in lines ]
+        out += self.end_lines()
+        return '\n'.join(_layout(out)) + '\n'
+
 def _expr_ast2c( tree = None, layout = None, *, filenames = None, skip = 0,
                  limit = None, mark_statsums = False, comment = None ):
     """A C program which writes the particles of an MCPL file which an edit
     keeps, with its changes, to a new file (tree is the checked and
     normalised tree of the edit expression, see _expressions, or None), for
-    files with the userdata layout (or None for files without userdata). The files are given as arguments of the program, or
-    else as filenames (input and output). Only the particles of the range of skip and limit (as in
-    mcpltool -s and -l) are used, the stat:sum entries of the output are
-    marked as not available if mark_statsums is set, and the comment (if
+    files with the userdata layout (or None for files without userdata).
+    The files are given as arguments of the program, or else as filenames
+    (input and output). Only the particles of the range of skip and limit
+    (None for all, see _as_limit) are used, the stat:sum entries of the output
+    are marked as not available if mark_statsums is set, and the comment (if
     any) is added to its header."""
-    statements = () if tree is None else tree.statements
-    modified = _modified_fields(statements)
-    changes = bool(modified)
-    pin = lambda n : 'fileidx' if n == 'fileidx' else f'p_in->{_c_members[n]}'
-    tr = _Translator('c',pin,layout)
-    body, set_field = [], None
-    if changes:
-        body.append('mcpl_particle_t p = *p_in;')
-        tr.field = lambda n : 'fileidx' if n == 'fileidx' else f'p.{_c_members[n]}'
-        set_field = lambda n, code : f'p.{_c_members[n]} = {code};'
-    body += _Statements(tr,set_field)(statements)
-    if changes:
-        body += _universal_checks(tr,modified,lambda f : f'p.{_c_members[f]}')
-        body.append('mcpl_add_particle_with_userdata( fo, &p, ud );' if layout
-                    else 'mcpl_add_particle( fo, &p );')
-    else:
-        body.append('mcpl_transfer_last_read_particle( fi, fo );')
-    out = [ c for line in _program_header(tree) for c in _comment_lines(line,'/* ',' *       ',' */') ]
-    out += [ '', '#include "mcpl.h"' ]
-    if tr.math:
-        out.append('#include <math.h>')
-    out += [ '#include <stdio.h>', '#include <stdlib.h>' ]
-    for code in tr.helpers.values():
-        out += [ '', *code.split('\n') ]
-    if filenames is None:
-        out += [ '', 'int main( int argc, char ** argv )', '{',
-                 '  if ( argc != 3 ) {',
-                 '    printf( "Usage: %s INPUT.mcpl OUTPUT.mcpl\\n", argv[0] );',
-                 '    return 1;', '  }' ]
-        names = ( 'argv[1]', 'argv[2]' )
-    else:
-        out += [ '', 'int main( void )', '{' ]
-        names = tuple( _c_string(str(f)) for f in filenames )
-    out += [ f'  mcpl_file_t fi = mcpl_open_file( {names[0]} );',
-             f'  mcpl_outfile_t fo = mcpl_create_outfile( {names[1]} );',
-             '  mcpl_transfer_metadata( fi, fo );' ]
-    if comment is not None:
-        out += _string_call('  mcpl_hdr_add_comment( fo, ',comment,' );')
-    if mark_statsums:
-        out.append('  mcpl_hdr_scale_stat_sums( fo, -1.0 );  /* stat:sum entries not available */')
-    if skip:
-        out.append(f'  mcpl_seek( fi, {skip} );')
-    if tr.userdata:
-        out.append('  const char * layout = mcpl_hdr_userdata_layout( fi );')
-        for name, ( ftype, count ) in tr.userdata.items():
-            t = ftype + ( f'[{count}]' if count is not None else '' )
-            out.append(f'  const uint32_t offset_{name} = mcpl_userdata_offset( layout, "{name}", "{t}" );')
-    for f in _universal_fields:
-        if f in modified:
-            t = 'int32_t' if f == 'pdgcode' else 'double'
-            out.append(f'  const {t} universal_{f} = mcpl_hdr_universal_{f}( fi );')
-    out.append('  const mcpl_particle_t * p_in;')
-    if layout:
-        out.append('  const uint8_t * ud;')
-    read = 'mcpl_read_with_userdata( fi, &ud )' if layout else 'mcpl_read( fi )'
-    if limit or tr.uses_fileidx:
-        #(the particles are counted, from the first one of the range):
-        cond = f'n < {limit} && ' if limit else ''
-        out.append(f'  for ( uint64_t n = 0; {cond}( p_in = {read} ); ++n ) {{')
-        if tr.uses_fileidx:
-            body.insert(0,f'const int64_t fileidx = (int64_t)( {f"{skip} + " if skip else ""}n );')
-    else:
-        out.append(f'  while ( ( p_in = {read} ) ) {{')
-    out += [ f'    {line}' for line in body ]
-    out += [ '  }', '  mcpl_close_outfile( fo );', '  mcpl_close_file( fi );', '  return 0;', '}' ]
-    return '\n'.join(_layout(out)) + '\n'
+    return _Program(tree,layout,filenames,skip,limit,mark_statsums,comment).code()

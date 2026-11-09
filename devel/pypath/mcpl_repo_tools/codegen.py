@@ -51,6 +51,8 @@ _cases = [
     ( 'misc', 'angle(dir,(0,0,1)) < 30deg' ),
     ( 'misc', 'angle((x,y),(1,1)) < 1rad' ),
     ( 'misc', 'through_sphere((0,0,1m),20cm)' ),
+    ( 'misc', 'pos^2.0 < 1m^2' ),
+    ( 'misc', 'fileidx > -9223372036854775808' ),
     ( 'misc', 'through_box((0,0,1m),(10cm,10cm,5cm))' ),
     ( 'misc', 'pdgcode == neutron and wavelength > 1Aa' ),
     ( 'misc', 'userflags & 0x1 == 0 and userflags | 2 > 0' ),

@@ -110,11 +110,6 @@ Errors when evaluating:
   'through_box((0,0,1cm),1cm)': MCPLError: through_box(center,half) takes the center and the half dimensions of the box (half its sizes along x, y, and z), both 3D vectors, as in through_box((0,0,1m),(5cm,5cm,1mm)) in expression "through_box((0,0,1cm),1cm)"
   'through_box((0,0,0),(1cm,-1cm,1cm))': MCPLError: The half dimensions of through_box(center,half) can not be negative in expression "through_box((0,0,0),(1cm,-1cm,1cm))"
   'round(1e30)': MCPLError: round(..) of values too large for integers in expression "round(1e30)"
-  'exp(1,2)': MCPLError: exp(..) takes one argument in expression "exp(1,2)"
-  'hypot(x)': MCPLError: hypot(..) takes two or more arguments in expression "hypot(x)"
-  'clamp(x,1)': MCPLError: clamp(value,low,high) takes three arguments in expression "clamp(x,1)"
-  'atan2(x)': MCPLError: atan2(..) takes two arguments in expression "atan2(x)"
-  'min(x)': MCPLError: Wrong number of arguments for min(..) in expression "min(x)"
   'wavelength': MCPLError: The wavelength is only defined for neutrons and gammas, so keep only those before using it, e.g. "pdgcode == neutron; wavelength > 1.8Aa" (in expression "wavelength")
   'pdgcode == gamma and wavelength > 0': [False, True, False] dim None type bool
   'not pos': MCPLError: not can not be used for vectors (here a 3D vector of lengths) in expression "not pos"

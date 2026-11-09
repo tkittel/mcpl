@@ -28,7 +28,7 @@ __all__ = []
 import functools
 import math
 
-from ._expr_ast import Assign, Call, Name, _walk
+from ._expr_ast import Assign, Call, Float, Int, Name, _walk
 from ._exprunits import _dim_E, _dim_K, _dim_L, _dim_T
 from ._particles import _wavelength_pdgcodes
 from ._physics import _pdg_label, _pdg_name
@@ -65,8 +65,58 @@ _functions_int = ( 'mod', 'abs', *_functions_toint, 'min', 'max', 'clamp' )
 _functions_vector = ( 'dot', 'cross', 'angle' )
 #(functions using the position and direction of the particles):
 _functions_flight = { 'through_sphere' : ( 'pos', 'dir' ), 'through_box' : ( 'pos', 'dir' ) }
-_expr_functions = frozenset(( 'sqrt', 'atan2', 'mod', *_functions_vector, *_functions_flight,
-                              *_functions_nodim, *_functions_toint, *_functions_samedim ))
+#The arguments of the functions (as in the help):
+_function_args = { **{ f : ( 'a', ) for f in ( *_functions_nodim, *_functions_toint, 'sqrt', 'abs' ) },
+                   'atan2' : ( 'y', 'x' ), 'mod' : ( 'a', 'b' ), 'clamp' : ( 'v', 'low', 'high' ),
+                   **{ f : ( 'a', 'b', '...' ) for f in ( 'hypot', 'min', 'max' ) },
+                   **{ f : ( 'v', 'w' ) for f in _functions_vector },
+                   'through_sphere' : ( 'c', 'r' ), 'through_box' : ( 'c', 'h' ) }
+_expr_functions = frozenset(_function_args)
+#Integers work like in C, with its integer promotions and usual arithmetic
+#conversions (but results which do not fit their types are errors), with the
+#types 'i32', 'u32', 'i64', and 'u64' (and 'f64' for floating point numbers):
+_int_bits = { 'i32' : 32, 'u32' : 32, 'i64' : 64, 'u64' : 64 }
+#(the types of the integer fields):
+_int_field_types = { 'pdgcode' : 'i32', 'userflags' : 'u32', 'fileidx' : 'i64' }
+
+def _int_range( t ):
+    """The smallest and largest values of the integer type t"""
+    bits = _int_bits[t]
+    return ( 0, 2**bits - 1 ) if t[0] == 'u' else ( -2**(bits-1), 2**(bits-1) - 1 )
+
+def _promoted_type( bits, unsigned ):
+    """The type of integers of the size (in bits) after the integer promotions"""
+    return 'i32' if bits < 32 else f'{"u" if unsigned else "i"}{bits}'
+
+def _value_type( ftype ):
+    """The type of the values of a userdata field of the type ftype (like
+    'uint16' or 'float32')"""
+    if ftype.startswith('float'):
+        return 'f64'
+    return _promoted_type(int(ftype.removeprefix('u').removeprefix('int')),ftype[0] == 'u')
+
+def _common_int_type( *types ):
+    """The type of results of integers of the types (the usual arithmetic
+    conversions)"""
+    res = types[0]
+    for t in types[1:]:
+        if t == res:
+            continue
+        if ( t[0] == 'u' ) == ( res[0] == 'u' ):
+            res = res if _int_bits[res] >= _int_bits[t] else t
+        else:
+            u, s = ( res, t ) if res[0] == 'u' else ( t, res )
+            res = u if _int_bits[u] >= _int_bits[s] else s
+    return res
+
+def _int_constant_type( v ):
+    """The type of an integer constant (int32 if it fits, then int64, then
+    uint64), or None if it is too large"""
+    for t, lo, hi in ( ( 'i32', -2**31, 2**31 ), ( 'i64', -2**63, 2**63 ), ( 'u64', 0, 2**64 ) ):
+        if lo <= v < hi:
+            return t
+    return None
+
 #Functions used as statements in edits:
 _edit_statements = ( 'swap', 'rotate_x', 'rotate_y', 'rotate_z', 'rotate_around',
                      'rotate_frame' )
@@ -109,6 +159,11 @@ def _fields_used( node ):
             elif name in _expr_fields:
                 res.add(name)
     return frozenset(res)
+
+def _is_square( power ):
+    """Whether the power (the tree of an exponent) is the constant 2, the only
+    power of vectors (v^2 is their length squared)"""
+    return isinstance(power,( Int, Float )) and power.value == 2
 
 def _is_condition( st ):
     """Whether a parsed statement of an edit expression is a condition (not

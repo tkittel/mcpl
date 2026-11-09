@@ -51,6 +51,7 @@ from ._expr_vocab import (
     _expr_fields,
     _expr_functions,
     _expr_vectors,
+    _function_args,
     _is_condition,
     _rotation_matrix_args,
     _rotation_matrix_usage,
@@ -86,6 +87,8 @@ def _check_names( node, text, variables = () ):
             raise MCPLError(f'Unsupported function call in expression "{text}"'
                             ' (available functions are: '
                             + ', '.join(sorted(_expr_functions)) + ')')
+        if isinstance(n,Call):
+            _check_args(n,text)
         if isinstance(n,Name) and not ( n.id in _expr_fields or n.id in _expr_vectors
                                         or n.id in variables or n.id in _expr_constants ):
             if n.id == 'userdata':
@@ -93,6 +96,17 @@ def _check_names( node, text, variables = () ):
                                 f' in expression "{text}"')
             raise MCPLError(f'Unknown name "{n.id}" in expression "{text}"'
                             ' (particle fields are: ' + ', '.join(_expr_fields) + ')')
+
+_numbers = { 1 : 'one', 2 : 'two', 3 : 'three' }
+
+def _check_args( call, text ):
+    """Check the number of arguments of a call of a function"""
+    args = _function_args[call.name]
+    n, more = len(args) - ( args[-1] == '...' ), args[-1] == '...'
+    if len(call.args) == n or ( more and len(call.args) > n ):
+        return
+    raise MCPLError(f'{call.name}({",".join(args)}) takes {_numbers[n]}{" or more" if more else ""}'
+                    f' argument{"s" if n > 1 else ""}, in expression "{text}"')
 
 def _check_condition( node, text ):
     """Raise MCPLError where a PDG code is used as a condition (or as a part

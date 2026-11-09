@@ -50,7 +50,10 @@ def test_values():
            'userdata.d.at(2)', 'through_sphere((0,0,1m),5cm)', 'through_box((0,0,1m),(5cm,5cm,1mm))',
            'mod(fileidx,10)',
            'foo', 'r + 1', 'userdata', 'sqrt', 'neutron + sqrt', 'foo(x)', 'rotate_x(90deg)',
-           'swap(x,y)', 'sqrt(foo(bar))', '(a + b) * c', 'f(1) + g', '1e400', 'x < 1e400cm', '-1e999' ),'value')
+           'swap(x,y)', 'sqrt(foo(bar))', '(a + b) * c', 'f(1) + g', '1e400', 'x < 1e400cm', '-1e999',
+           #(numbers of arguments):
+           'exp(1,2)', 'hypot(x)', 'clamp(x,1)', 'atan2(x)', 'min(x)', 'angle(pos)',
+           'through_sphere((0,0,1m))' ),'value')
 
 def test_conditions():
     print('Conditions (PDG codes and pdgcode are not conditions):')

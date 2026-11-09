@@ -159,7 +159,7 @@ class Value:
 @_frozen
 class Edit:
     """The statements of an edit expression: assignments, calls like
-    swap(x,y), and conditions"""
+    swap(x,y), and filter conditions"""
     statements: tuple
 
 def _children( node ):

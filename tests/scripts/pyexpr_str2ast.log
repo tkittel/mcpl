@@ -126,7 +126,7 @@ Statements of edits:
   ' x = 1 ;; y = 2 ; '               -> {(= x 1); (= y 2)}   written: 'x=1;y=2'
   ''                                 -> {}   written: ''
   ' ; ; '                            -> {}   written: ''
-Conditions in edits (anywhere), and inactive statements (left out):
+Filter conditions in edits (anywhere), and inactive statements (left out):
   'x > 0'                            -> {(cmp x > 0)}   written: 'x>0'
   'r = hypot(x,y); r > 2cm'          -> {(= r hypot(x, y)); (cmp r > 2<cm>)}   written: 'r=hypot(x,y);r>2cm'
   'pdgcode == neutron;'              -> {(cmp pdgcode == p:neutron)}   written: 'pdgcode==neutron'
@@ -225,7 +225,7 @@ Errors of statements:
   'x = 1; y +'             -> Syntax error in expression "x = 1; y +", at the end: a value is missing
   'x = (1;y = 2)'          -> Syntax error in expression "x = (1;y = 2)", after "x = (1": ")" is expected, not ";"
   'rotate_x(90deg;x=1cm)'  -> Syntax error in expression "rotate_x(90deg;x=1cm)", after "rotate_x(90deg": ")" is expected, not ";"
-Errors of statements with conditions, and of inactive statements:
+Errors of statements with filter conditions, and of inactive statements:
   'r = hypot(x,y); r >'    -> Syntax error in expression "r = hypot(x,y); r >", at the end: a value is missing
   'r = 1, r > 0'           -> Separate statements with ";" (not ","), in expression "r = 1, r > 0"
   'inactive()'             -> Syntax error in expression "inactive()", after "inactive(": a value is missing

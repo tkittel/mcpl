@@ -82,8 +82,8 @@ def _particle_name( pdgcode ):
     (or the code, if it has no name)"""
     return next( ( n for n, p in _particle_names.items() if p == pdgcode ), str(pdgcode) )
 
-def _particle_condition( pdgcode ):
-    """The condition keeping the particles of a type (a PDG code), like
+def _particle_filter( pdgcode ):
+    """The filter condition keeping the particles of a type (a PDG code), like
     pdgcode == neutron, or None for all"""
     return None if pdgcode is None else f'pdgcode == {_particle_name(pdgcode)}'
 

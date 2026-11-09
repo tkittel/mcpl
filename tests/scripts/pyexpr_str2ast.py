@@ -158,7 +158,7 @@ def test_valid():
                   'swap(x,y)', 'rotate_z(90deg)', 'pos += (0,0,1m)', 'x > 0',
                   'z += 1cm; weight *= 0.5', ' x = 1 ;; y = 2 ; ', '', ' ; ; ' ):
         check(text,'edit')
-    print('Conditions in edits (anywhere), and inactive statements (left out):')
+    print('Filter conditions in edits (anywhere), and inactive statements (left out):')
     for text in ( 'x > 0', 'r = hypot(x,y); r > 2cm', 'pdgcode == neutron;', 'a = 1; b = a; b > 0',
                   'x > 0; y > 0', 'rotate_y(90deg); x > 0cm', 'x > 0; inactive(y += 1cm); z = 1',
                   ' inactive( swap(x,y) ) ; x > 0', 'inactive (x > 0)', 'inactive(x)+1 > 0' ):
@@ -181,7 +181,7 @@ def test_errors():
     for text in ( 'x =', '= 1', 'userdata.t = 1', 'userdata.t.at(0) += 1', 'x = y = 1',
                   'x += ', '1 = x', 'x, y = 1, 2', 'x = 1; y +', 'x = (1;y = 2)', 'rotate_x(90deg;x=1cm)' ):
         error(text,'edit')
-    print('Errors of statements with conditions, and of inactive statements:')
+    print('Errors of statements with filter conditions, and of inactive statements:')
     for text in ( 'r = hypot(x,y); r >', 'r = 1, r > 0', 'inactive()', 'inactive(x +)',
                   'inactive(x;y)', 'x > 0; inactive(1 2)' ):
         error(text,'edit')

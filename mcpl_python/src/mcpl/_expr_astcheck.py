@@ -53,7 +53,7 @@ from ._expr_vocab import (
     _expr_vectors,
     _function_args,
     _int_constant_type,
-    _is_condition,
+    _is_filter,
     _rotation_matrix_args,
     _rotation_matrix_usage,
 )
@@ -142,7 +142,7 @@ def _check_condition( node, text ):
 
 def _check_statement( st, text, variables, used ):
     """Check a statement, adding the variables it assigns and uses"""
-    if _is_condition(st):
+    if _is_filter(st):
         _check_names(st,text,variables)
         used.update( _names(st) & variables )
         _check_condition(st,text)

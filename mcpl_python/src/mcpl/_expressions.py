@@ -51,7 +51,7 @@ from ._expr_vocab import (
     _expr_value_names,
     _fields_used,
     _filters_on_fileidx,
-    _is_condition,
+    _is_filter,
     _modified_fields,
 )
 from ._exprunits import _dim_unknown
@@ -186,8 +186,8 @@ class ParticleEdit:
 
     The statements are:
 
-      * Conditions, like "ekin < 25meV", which keep the particles for which
-        they are true. The statements after them only see those.
+      * Filter conditions, like "ekin < 25meV", which keep the particles for
+        which they are true. The statements after them only see those.
       * Assignments to fields, like "x = 2m*ux" or "z += 1cm" (also -=, *=,
         /=, ^=, and for integers //=, &=, and |=). The values must have the units
         of the field (e.g. a length for x). Assigning wavelength changes the
@@ -274,7 +274,7 @@ class ParticleEdit:
         self._expr, self._tree, self._canonical = _parsed(expression,'edit',self._unused_ok)
         statements = self._tree.statements
         self._modified = _modified_fields(statements)
-        self._has_filters = any( _is_condition(st) for st in statements )
+        self._has_filters = any( _is_filter(st) for st in statements )
         self._filters_on_fileidx = _filters_on_fileidx(statements)
         self._apply(_EmptyBlock())#check units etc.
 

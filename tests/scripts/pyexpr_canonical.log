@@ -41,7 +41,7 @@ Histogram strings of the help:
   'x : y : z' -> 'x:y:z;maxpoints=5000'
   'pdgcode;bar' -> 'pdgcode;bar'
   'userdata.nscat;bar;unweighted' -> 'userdata.nscat;bar;unweighted'
-Canonical forms (condition):
+Canonical forms (filter):
   'pdgcode == neutron' -> 'pdgcode==neutron'
   '(pdgcode==2112)' -> 'pdgcode==neutron'
   'pdgcode == positron' -> 'pdgcode==positron'
@@ -147,7 +147,7 @@ Canonical histogram strings:
   'ekin/MeV;foo': Unknown histogram option "foo" in "ekin/MeV;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, maxpoints, equal, display_edit)
   'ekin/MeV;bins=x': bins must be a positive integer (or two for 2D histograms, like bins=50,40) in "ekin/MeV;bins=x"
   'x > 1MeV': Incompatible units in comparison: length and energy, in expression "x > 1MeV"
-Files extracted with conditions written in different ways can be merged:
+Files extracted with filter conditions written in different ways can be merged:
   a.mcpl (-e "pdgcode == neutron and ekin > 5000 eV"): mcpltool: extracted particles with -e "pdgcode==neutron and ekin>5keV"
   b.mcpl (-e "(pdgcode==2112) and ekin>5keV"): mcpltool: extracted particles with -e "pdgcode==neutron and ekin>5keV"
   merged.mcpl: 5 + 5 = 10 particles

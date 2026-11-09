@@ -524,6 +524,21 @@ class _Filler:
     #given to the filler, for the title, see _selection_title):
     _selection = None
 
+    def _need_equal( self ):
+        """Check that the values have the same units, for equal scales of the
+        axes (when the units are known, e.g. of userdata, see _values)"""
+        if _dim_unknown in ( v.dim for v in self._vals ):
+            self._unchecked.append(self._check_equal)
+        else:
+            self._check_equal()
+    def _check_equal( self ):
+        dims = [ v.dim for v in self._vals ]
+        if any( d != dims[0] for d in dims ):
+            raise MCPLError('Equal scales of the axes (the histogram option "equal")'
+                            ' need expressions with the same units, not'
+                            f' {_listed(_dimstr(d) for d in dims)} (of'
+                            f' {_listed(v.expression_original for v in self._vals)})')
+
     @property
     def _title( self ):
         return _selection_title(self._selection,self._display and self._display.expression)
@@ -761,23 +776,11 @@ class _Hist2DFiller(_Filler):
         self._log = [ logx, logy ]
         self._positive = [ lg is True for lg in self._log ]
         if equal:
-            #(checked when the units are known, e.g. of userdata, see _values):
-            if _dim_unknown in ( self._vals[0].dim, self._vals[1].dim ):
-                self._unchecked.append(self._check_equal)
-            else:
-                self._check_equal()
+            self._need_equal()
         self._ranges = [ self._range_of(xrange,0,'xrange'), self._range_of(yrange,1,'yrange') ]
         self.needs_range = None in self._ranges
         if not self.needs_range:
             self._setup()
-
-    def _check_equal( self ):
-        if self._vals[0].dim != self._vals[1].dim:
-            raise MCPLError('Equal scales of the axes (the histogram option "equal")'
-                            ' need expressions with the same units, not'
-                            f' {_dimstr(self._vals[0].dim)} and {_dimstr(self._vals[1].dim)}'
-                            f' (of {self._vals[0].expression_original} and'
-                            f' {self._vals[1].expression_original})')
 
     def start_fill( self ):
         for i, r in enumerate(self._ranges):
@@ -865,24 +868,11 @@ class _PointSet3DFiller(_Filler):
         self._npoints = maxpoints or _default_maxpoints
         self._equal = equal
         if equal:
-            #(checked when the units are known, e.g. of userdata, see _values):
-            if _dim_unknown in ( v.dim for v in self._vals ):
-                self._unchecked.append(self._check_equal)
-            else:
-                self._check_equal()
+            self._need_equal()
         self._dby = _DisplayByValue(display_by) if display_by is not None else None
         self._max_curves = max_curves
         self._keys, self._pts, self._sv = np.zeros(0), np.zeros((0,3)), np.zeros(0)
         self._n = 0
-
-    def _check_equal( self ):
-        a, b, c = self._vals
-        if not ( a.dim == b.dim == c.dim ):
-            raise MCPLError('Equal scales of the axes (the histogram option "equal")'
-                            ' need expressions with the same units, not'
-                            f' {_dimstr(a.dim)}, {_dimstr(b.dim)}, and {_dimstr(c.dim)}'
-                            f' (of {a.expression_original}, {b.expression_original},'
-                            f' and {c.expression_original})')
 
     def _add( self, flabel, b ):
         vals, w, defined = self._values(b)

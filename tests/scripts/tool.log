@@ -4,17 +4,17 @@ Running mcpltool -h
 Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 
 Usage:
-  python -m mcpl [options] FILE                  Show the header and first particles
+  python -m mcpl [options] FILE                  Show the header and particles
   python -m mcpl -S [options] FILE               Summary of the particles
   python -m mcpl -H HIST [options] FILE [...]    Histogram in a window
   python -m mcpl -t -H HIST [options] FILE [...] Histogram in the terminal
-  python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles
   python -m mcpl -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
-  python -m mcpl -r FILE                         Repair a file not properly closed
+  python -m mcpl -r FILE                         Repair an unclosed file
 
 Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
-  -e EDIT        Pick and change particles, e.g.
+  -e EDIT        Filter and change particles, e.g.
                  -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
   -o FILE        Save the histogram in FILE (.png, .pdf, or .svg, or .txt with
                  -t).
@@ -36,17 +36,17 @@ Running mcpltool --help
 Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 
 Usage:
-  python -m mcpl [options] FILE                  Show the header and first particles
+  python -m mcpl [options] FILE                  Show the header and particles
   python -m mcpl -S [options] FILE               Summary of the particles
   python -m mcpl -H HIST [options] FILE [...]    Histogram in a window
   python -m mcpl -t -H HIST [options] FILE [...] Histogram in the terminal
-  python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles
   python -m mcpl -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
-  python -m mcpl -r FILE                         Repair a file not properly closed
+  python -m mcpl -r FILE                         Repair an unclosed file
 
 Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
-  -e EDIT        Pick and change particles, e.g.
+  -e EDIT        Filter and change particles, e.g.
                  -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
   -o FILE        Save the histogram in FILE (.png, .pdf, or .svg, or .txt with
                  -t).
@@ -1430,7 +1430,7 @@ python -m mcpl: error: argument -l/--limit: expected a non-negative whole number
 Running mcpltool -x -e 'pdgcode == 022' --no-comment miscphys.mcpl.gz extracted_6.mcpl.gz
 ----------------------------------------------
 usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-python -m mcpl: error: Invalid number 022 (integers can not start with 0) in expression "pdgcode == 022"
+python -m mcpl: error: Invalid number 022 (integers can not start with 0), in expression "pdgcode == 022"
 Run with "-e help" for how to write edit expressions
 
 ===> Command failed!
@@ -1444,7 +1444,7 @@ python -m mcpl: The output file "dirout.mcpl.gz" already exists
 Running mcpltool -x -e 'pdgcode == abc' miscphysnogz.mcpl badpdg.mcpl
 ----------------------------------------------
 usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-python -m mcpl: error: Unknown name "abc" in expression "pdgcode == abc" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+python -m mcpl: error: Unknown name "abc", in expression "pdgcode == abc" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 Run with "-e help" for how to write edit expressions
 
 ===> Command failed!
@@ -1452,7 +1452,7 @@ Run with "-e help" for how to write edit expressions
 Running mcpltool -x -e 'pdgcode == Neutron' miscphysnogz.mcpl badpdg.mcpl
 ----------------------------------------------
 usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-python -m mcpl: error: Unknown name "Neutron" in expression "pdgcode == Neutron" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+python -m mcpl: error: Unknown name "Neutron", in expression "pdgcode == Neutron" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 Run with "-e help" for how to write edit expressions
 
 ===> Command failed!
@@ -2058,13 +2058,13 @@ MCPL: Successfully extracted 15 / 195 particles from miscphys.mcpl.gz into extra
 ----------------------------------------------
 Running mcpltool --merge merged_comment_1.mcpl extracted_comment_1.mcpl extracted_comment_5.mcpl
 ----------------------------------------------
-python -m mcpl: Requested files are incompatible for merge as they have different header info (comment 1 differs)
+python -m mcpl: The files can not be merged: comment 1 differs
 
 ===> Command failed!
 ----------------------------------------------
 Running mcpltool --merge merged_comment_2.mcpl extracted_comment_7.mcpl extracted_comment_6.mcpl
 ----------------------------------------------
-python -m mcpl: Requested files are incompatible for merge as they have different header info (comment 1 differs)
+python -m mcpl: The files can not be merged: comment 1 differs
 
 ===> Command failed!
 ----------------------------------------------

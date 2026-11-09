@@ -25,13 +25,12 @@ __all__ = []
 
 from ._numpy import np
 
-#(the tolerance of rotate_frame, as in NCrystal's RotMatrix):
+#(the tolerance of rotate_frame):
 _rotate_frame_tolerance = 1e-6
 
 def _exact_cos_sin( angle ):
-    """The cos and sin of the angles (in radians), exact (0 and +-1) for
-    multiples of 90 degrees (whose cos and sin in radians are not exactly 0
-    and +-1)"""
+    """The cos and sin of the angles (in radians), exactly 0 or +-1 for
+    multiples of 90 degrees"""
     q = np.asarray(angle,dtype=float) / ( 0.5 * np.pi )
     k = np.round(q)
     quarter = np.abs( q - k ) <= 8 * np.finfo(float).eps * np.maximum( 1.0, np.abs(k) )

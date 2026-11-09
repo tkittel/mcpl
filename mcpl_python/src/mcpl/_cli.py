@@ -35,17 +35,17 @@ _short_help = """
 Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 
 Usage:
-  PROGNAME [options] FILE                  Show the header and first particles
+  PROGNAME [options] FILE                  Show the header and particles
   PROGNAME -S [options] FILE               Summary of the particles
   PROGNAME -H HIST [options] FILE [...]    Histogram in a window
   PROGNAME -t -H HIST [options] FILE [...] Histogram in the terminal
-  PROGNAME -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  PROGNAME -x [options] FILE OUT.mcpl.gz   Extract particles
   PROGNAME -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
-  PROGNAME -r FILE                         Repair a file not properly closed
+  PROGNAME -r FILE                         Repair an unclosed file
 
 Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
-  -e EDIT        Pick and change particles, e.g.
+  -e EDIT        Filter and change particles, e.g.
                  -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
   -o FILE        Save the histogram in FILE (.png, .pdf, or .svg, or .txt with
                  -t).
@@ -66,15 +66,15 @@ _full_help = """
 Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 
 Usage:
-  PROGNAME [options] FILE                  Show the header and first particles
+  PROGNAME [options] FILE                  Show the header and particles
   PROGNAME -S [options] FILE               Summary of the particles
   PROGNAME -H HIST [options] FILE [...]    Histogram in a window
   PROGNAME -t -H HIST [options] FILE [...] Histogram in the terminal
-  PROGNAME -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  PROGNAME -x [options] FILE OUT.mcpl.gz   Extract particles
   PROGNAME -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
   PROGNAME --forcemerge OUT.mcpl.gz FILE1 FILE2 ...
-  PROGPADS                                 Merge also incompatible files
-  PROGNAME -r FILE                         Repair a file not properly closed
+  PROGPADS                                 Merge files, also incompatible ones
+  PROGNAME -r FILE                         Repair an unclosed file
   PROGNAME --text FILE OUT.txt             Write the particles as text
   PROGNAME --create-examples[=N]           Create example files
   PROGNAME -v | -h | --full-help
@@ -83,7 +83,7 @@ Particles (when showing particles, and with -S, -H, and -x):
   -sN, --skip N    Skip the first N particles in the file.
   -lN, --limit N   Use only N particles (all with -l0). Without -l, at most 10
                    particles are shown when showing particles.
-  -e, --edit EDIT  Pick and change the particles with the statements in EDIT,
+  -e, --edit EDIT  Filter and change the particles with the statements in EDIT,
                    executed in order, e.g. -e "pdgcode == neutron; z += 1m;
                    through_sphere((0,0,2m),10cm)" (see -e help).
   -s and -l choose particles by their position in the file, before -e.
@@ -351,10 +351,10 @@ def _app_mcpltool(progname,args):
     allowed('-j',('dump',),'--justhead' in flags)
     allowed('-n',('dump',),'--nohead' in flags)
     allowed('-b',('dump',),opt_blobkey is not None)
-    stats_hint = ' (-S only prints text, for plots use -H)' if mode == '--stats' else ''
+    stats_hint = ' (-S only prints text)' if mode == '--stats' else ''
     allowed('-H',histmodes,'--hist' in values)
     if '--output' in values and '--hist' not in values:
-        _bad("-o can only be used with a histogram (-H HIST)" + stats_hint)
+        _bad("-o can only be used with -H HIST" + stats_hint)
     allowed('--color',('--terminal',),'--color' in values)
     if values.get('--color',"auto") not in ('auto','always','never'):
         _bad("--color must be auto, always, or never")
@@ -519,7 +519,7 @@ def _app_mcpltool(progname,args):
         with MCPLFile(filelist[0]) as f:
             thedata = f.blobs.get(opt_blobkey,None)
             if thedata is None and 'blobs_raw' in f._hdr:
-                #Under LANG=C and python3, utf-8 keys might be in trouble:
+                #(non-UTF-8 locales may not print the keys):
                 thedata = f._hdr['blobs_raw'].get(os.fsencode(opt_blobkey),None)
             if thedata is None:
                 raise MCPLError(f'{filelist[0]}: no blob with the key "{opt_blobkey}"')
@@ -564,8 +564,7 @@ def _mcpltool_merge(filelist, opt_forcemerge, opt_inplace, opt_keepuserflags,
             with _open_raw(filelist[ifirst]) as f1, _open_raw(f) as f2:
                 reason = _merge_incompat_reason(f1, f2)
             if reason is not None:
-                raise MCPLError("Requested files are incompatible for merge as they have"
-                                f" different header info ({reason})")
+                raise MCPLError(f"The files can not be merged: {reason}")
     if opt_inplace:
         for f in filelist[ifirst+1:]:
             merge_inplace(filelist[ifirst],f,dry_run=dry_run)

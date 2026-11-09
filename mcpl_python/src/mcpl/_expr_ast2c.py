@@ -21,9 +21,9 @@
 
 """C code doing what edit expressions do (see _expressions): complete programs
 reading an MCPL file and writing the particles kept, with their changes, to a
-new file. Interface: _expr_ast2c(edit, layout), where layout is the userdata layout
-of the files the program is for (or None). The translation of the trees of
-expressions (_Translator) is also used for C++ (see _expr_ast2cpp).
+new file. Interface: _expr_ast2c(edit, layout), where layout is the userdata
+layout of the files the program is for (or None). The translation of the
+trees of expressions (_Translator) is also used for C++ (see _expr_ast2cpp).
 
 Integers work as in the expressions: with the integer types of C, and with
 the operations which can fail (overflow, division by zero, and negative
@@ -60,6 +60,7 @@ from ._expr_vocab import (
     _expr_constants,
     _expr_vector_names,
     _expr_vectors,
+    _expr_wl_unit,
     _functions_nodim,
     _functions_toint,
     _int_bits,
@@ -81,8 +82,6 @@ _c_members = { **{ c : f'{_expr_vector_names[v]}[{i}]' for v, comps in _expr_vec
                **{ f : f for f in ( 'ekin', 'time', 'weight', 'pdgcode', 'userflags' ) } }
 _ctypes = { 'i32' : 'int32_t', 'u32' : 'uint32_t', 'i64' : 'int64_t', 'u64' : 'uint64_t',
             'f64' : 'double' }
-#(the constants of the wavelengths, see _physics):
-_wl_unit = 1e-8
 
 #The generated code stays within _width columns where it can: long lines are
 #broken after the operators && and || (marked with _BRK, one operand per
@@ -382,7 +381,9 @@ class _Translator:
                                 else ' (the particles have no userdata)' ))
         name, ftype, count = fields[node.field]
         if ( node.index is None ) != ( count is None ):
-            raise MCPLError(f'The userdata field "{name}" has {count or 1} values per particle')
+            raise MCPLError(f'The userdata field "{name}" has '
+                            + ( f'{count} values per particle (use userdata.{name}.at(i))' if count
+                                else f'one value per particle (use userdata.{name} without .at(i))' ))
         if node.index is not None and node.index >= count:
             raise MCPLError(f'The index {node.index} is too large for the userdata field "{name}"')
         self.userdata[name] = ( ftype, count )
@@ -599,18 +600,18 @@ class _Translator:
         one, two = f'{{name}}( {T} a )', f'{{name}}( {T} a, {T} b )'
         if op == 'as':
             return self.function(f'as_{t}',f'{T} {{name}}( {self.ctype("i64")} a )',
-                                 self.fail('a < 0','Negative value') + f'  return {self.cast("a",t)};\n')
+                                 self.fail('a < 0','Negative integer value') + f'  return {self.cast("a",t)};\n')
         if op == 'neg':
             if signed:
-                body = self.fail(f'a == {mn}','Overflow') + '  return -a;\n'
+                body = self.fail(f'a == {mn}','Integer overflow') + '  return -a;\n'
             else:
-                body = self.fail('a != 0','Negative value') + '  return 0;\n'
+                body = self.fail('a != 0','Negative integer value') + '  return 0;\n'
             return self.function(name,f'{T} {one}',body)
         if op == 'abs':
-            return self.function(name,f'{T} {one}',self.fail(f'a == {mn}','Overflow')
+            return self.function(name,f'{T} {one}',self.fail(f'a == {mn}','Integer overflow')
                                  + '  return a < 0 ? -a : a;\n')
         if op in ( 'div', 'mod' ):
-            body = self.fail('a < 0 || b < 0','Negative value') if signed else ''
+            body = self.fail('a < 0 || b < 0','Negative integer value') if signed else ''
             body += self.fail('b == 0','Division by zero')
             return self.function(name,f'{T} {two}',body + f'  return a {"/" if op == "div" else "%"} b;\n')
         sym = { 'add' : '+', 'sub' : '-', 'mul' : '*' }[op]
@@ -619,7 +620,7 @@ class _Translator:
             wide = 'i64' if signed or op == 'sub' else 'u64'
             check = ( f'r < {mn} || r > {mx}' if signed else 'r < 0' if op == 'sub' else f'r > {umx}' )
             body = ( f'  {self.ctype(wide)} r = {self.cast("a",wide)} {sym} b;\n'
-                     + self.fail(check,'Overflow') + f'  return {self.cast("r",t)};\n' )
+                     + self.fail(check,'Integer overflow') + f'  return {self.cast("r",t)};\n' )
             return self.function(name,f'{T} {two}',body)
         if op == 'add':
             check = ( f'( b > 0 && a > {mx} - b ) || ( b < 0 && a < {mn} - b )' if signed
@@ -631,7 +632,7 @@ class _Translator:
             check = ( f'a > 0 ? ( b > 0 ? a > {mx} / b : b < {mn} / a )'
                       f' : ( b > 0 ? a < {mn} / b : ( a != 0 && b < {mx} / a ) )' if signed
                       else f'a != 0 && b > {umx} / a' )
-        return self.function(name,f'{T} {two}',self.fail(check,'Overflow') + f'  return a {sym} b;\n')
+        return self.function(name,f'{T} {two}',self.fail(check,'Integer overflow') + f'  return a {sym} b;\n')
 
     def finite( self, code ):
         """The floating point number with the code, checked to be finite (as
@@ -697,7 +698,7 @@ class _Translator:
         sq = lambda e : self.fct('sqrt',e)
         return self.function('angle','double {name}( double ax, double ay, double az,\n'
                              '                     double bx, double by, double bz )',
-                             '  /* (precise also for small angles, as in the expressions) */\n'
+                             '  /* Precise also for small angles */\n'
                              f'  double na = {sq("ax*ax + ay*ay + az*az")}, nb = {sq("bx*bx + by*by + bz*bz")};\n'
                              '  double dx = ax/na - bx/nb, dy = ay/na - by/nb, dz = az/na - bz/nb;\n'
                              '  double sx = ax/na + bx/nb, sy = ay/na + by/nb, sz = az/na + bz/nb;\n'
@@ -706,31 +707,32 @@ class _Translator:
     def wavelength_code( self ):
         from .constants import hc_eV_Aa, neutron_mass_energy
         return self.function('wavelength',f'double {{name}}( double ekin, {self.ctype("i32")} pdgcode )',
-                             '  /* (in cm, of neutrons and gammas) */\n'
+                             '  /* Wavelength in cm, of neutrons and gammas */\n'
                              + self.fail('pdgcode != 2112 && pdgcode != 22',
                                          'The wavelength is only defined for neutrons and gammas')
                              + self.fail('!( ekin > 0.0 )','The wavelength is infinite for zero kinetic energy')
                              + '  double pc = pdgcode == 22 ? ekin : '
                              + self.fct('sqrt',f'ekin * ( ekin + 2 * {neutron_mass_energy!r} )') + ';\n'
-                             + f'  return {hc_eV_Aa!r} * 1e-6 / pc * {_wl_unit!r};\n')
+                             + f'  return {hc_eV_Aa!r} * 1e-6 / pc * {_expr_wl_unit!r};\n')
 
     def ekin_code( self ):
         from .constants import hc_eV_Aa, neutron_mass_energy
         mc2 = repr(neutron_mass_energy)
         return self.function('ekin_of_wavelength',
                              f'double {{name}}( double wl, {self.ctype("i32")} pdgcode )',
-                             '  /* (of a wavelength in cm, for neutrons and gammas) */\n'
+                             '  /* Kinetic energy of a wavelength in cm, of neutrons and gammas */\n'
                              + self.fail('pdgcode != 2112 && pdgcode != 22',
-                                         'The wavelength can only be set for neutrons and gammas')
+                                         'The wavelength can only be set for neutrons and gammas,'
+                                         ' so keep only those first')
                              + self.fail('!( wl > 0.0 )','The wavelength must be positive')
-                             + f'  double pc = {hc_eV_Aa!r} * 1e-6 / ( wl / {_wl_unit!r} );\n'
+                             + f'  double pc = {hc_eV_Aa!r} * 1e-6 / ( wl / {_expr_wl_unit!r} );\n'
                              + '  if ( pdgcode == 22 )\n    return pc;\n'
                              + f'  return pc * pc / ( {self.fct("sqrt",f"pc * pc + {mc2}*{mc2}")} + {mc2} );\n')
 
     def exact_cos_sin_code( self ):
         f = self.fct
         return self.function('exact_cos_sin','void {name}( double a, double * c, double * s )',
-                             '  /* (exact for multiples of 90 degrees, as in the expressions) */\n'
+                             '  /* Exact for multiples of 90 degrees */\n'
                              '  double q = a / ( 0.5 * 3.141592653589793 );\n'
                              f'  double k = {f("rint","q")};\n'
                              f'  if ( {f("fabs","q - k")} <= 8 * 2.220446049250313e-16 * ( {f("fabs","k")} > 1.0 ? {f("fabs","k")} : 1.0 ) ) {{\n'
@@ -752,7 +754,7 @@ class _Translator:
                       '  if ( !( n > 0.0 && n <= 1.7976931348623157e308 ) )\n    return 0;\n'
                       '  u[0] = v[0] / n;\n  u[1] = v[1] / n;\n  u[2] = v[2] / n;\n  return 1;\n')
         self.function('exact_matrix','void {name}( double * R )',
-                      '  /* (elements within 1e-15 of 0 or +-1 are exact) */\n'
+                      '  /* Elements within 1e-15 of 0 or +-1 are exact */\n'
                       '  for ( int i = 0; i < 9; ++i ) {\n'
                       f'    if ( {f("fabs","R[i]")} <= 1e-15 )\n      R[i] = 0.0;\n'
                       f'    if ( {f("fabs","R[i] - 1.0")} <= 1e-15 )\n      R[i] = 1.0;\n'
@@ -769,7 +771,7 @@ class _Translator:
                                  '      R[3*i+j] = c * ( i == j ? 1.0 : 0.0 ) + s * cr[3*i+j] + ( 1.0 - c ) * k[i] * k[j];\n'
                                  '  exact_matrix( R );\n')
         self.function('frame','void {name}( const double * e1, const double * w, double * E )',
-                      '  /* (the columns e1, e2, and e1 x e2) */\n'
+                      '  /* The columns e1, e2, and e1 x e2 */\n'
                       '  double d = w[0]*e1[0] + w[1]*e1[1] + w[2]*e1[2];\n'
                       '  double e2[3] = { w[0] - d * e1[0], w[1] - d * e1[1], w[2] - d * e1[2] };\n'
                       f'  double n = {sq("e2[0]*e2[0] + e2[1]*e2[1] + e2[2]*e2[2]")};\n'
@@ -792,7 +794,7 @@ class _Translator:
                              + self.fail(f'{f("fabs",angle_diff)} > 1e-6',
                                          'In rotate_frame(..), the angle between v and u must be that between vout and uout')
                              + '  frame( v, u, E );\n  frame( vo, uo, F );\n'
-                             '  /* (R = F E^T) */\n'
+                             '  /* R = F E^T */\n'
                              '  for ( int i = 0; i < 3; ++i )\n'
                              '    for ( int j = 0; j < 3; ++j )\n'
                              '      R[3*i+j] = F[3*i]*E[3*j] + F[3*i+1]*E[3*j+1] + F[3*i+2]*E[3*j+2];\n'
@@ -808,15 +810,14 @@ class _Translator:
             off = f'{off} + {index} * {_ud_sizes[ftype]}'
         return f'mcpl_userdata_get_{ftype}( ud, {off} )'
 
-#(the functions which can give NaN or infinite values of finite values):
 #(the sizes of the userdata types, in bytes):
 _ud_sizes = { t : int(code[1:]) for t, code in _userdata_types.items() }
 
 class _Statements:
-    """The C or C++ statements of the statements of edit expressions (with
-    the translator tr, of particles whose fields are set by set_field(name,
-    code), or None if no fields are changed), where
-    a condition skips the particles for which it is false"""
+    """Translates the statements of edit expressions to C or C++ (with the
+    translator tr), where set_field(name, code) sets a field (None if no
+    fields are changed), and conditions skip the particles for which they
+    are false"""
 
     def __init__( self, tr, set_field ):
         self.tr, self.set_field = tr, set_field
@@ -962,9 +963,8 @@ def _expr_ast2c( edit = None, layout = None, *, filenames = None, skip = 0,
     """A C program which writes the particles of an MCPL file which the edit
     keeps, with its changes, to a new file (the edit is a ParticleEdit or a
     text, or None), for files with the userdata layout (or None for files
-    without userdata). The
-    files are given as arguments of the program, or else as filenames (input
-    and output). Only the particles of the range of skip and limit (as in
+    without userdata). The files are given as arguments of the program, or
+    else as filenames (input and output). Only the particles of the range of skip and limit (as in
     mcpltool -s and -l) are used, the stat:sum entries of the output are
     marked as not available if mark_statsums is set, and the comment (if
     any) is added to its header."""

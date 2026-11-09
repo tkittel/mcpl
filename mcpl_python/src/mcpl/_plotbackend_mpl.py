@@ -235,11 +235,12 @@ def _draw_panel( fig, ax, panel, several = False ):
         ax.set_xlim(*panel.xlim)
     if panel.ylim:
         ax.set_ylim(*panel.ylim)
-    if panel.aspect and hasattr(ax,'set_zlabel'):
-        ax.set_aspect('equal',adjustable='box')
-        _single_tick_on_short_axes(ax)
-    elif panel.aspect:
-        ax.set_aspect(panel.aspect,adjustable='box')
+    if panel.aspect:
+        if hasattr(ax,'set_zlabel'):
+            ax.set_aspect('equal',adjustable='box')
+            _single_tick_on_short_axes(ax)
+        else:
+            ax.set_aspect(panel.aspect,adjustable='box')
     if panel.title:
         ax.set_title(panel.title)
     if panel.xlabel:

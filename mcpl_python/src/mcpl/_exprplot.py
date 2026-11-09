@@ -109,7 +109,7 @@ def _plot_unit( dim, lo, hi, log = False, wavelength = False ):
     units of MCPL (values are divided by it), or (None, 1.0) for values without
     units.
     For a single base dimension (with a power, as for x^2 or sqrt(ekin)):
-    wavelengths from 0.5e-3 to 5e3 Aa are in Aa, logarithmic axes are in m, eV,
+    wavelengths in _plot_wl_range are in Aa, logarithmic axes are in m, eV,
     s, or K, and linear axes in the largest unit in which the largest absolute
     value is at least 1. Other dimensions are in the units of MCPL."""
     if dim is None or dim == _dim_unknown:#(the latter if no particles were read)

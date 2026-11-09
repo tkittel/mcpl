@@ -101,8 +101,8 @@ class MCPLFile:
         The particles kept are returned in blocks of about blocklength
         particles (small blocks are merged). The nparticles attribute is still
         the number of particles in the file, and the fileidx of the particles
-        their position in the file. These particles can not be skipped with
-        skip_forward(). Edited particles can be passed to
+        their position in the file. Files opened with edit, skip, or limit do
+        not support skip_forward(). Edited particles can be passed to
         MCPLOutFile.add_particles like any other particles, in which case
         their unchanged fields are transferred exactly.
         """
@@ -1016,7 +1016,7 @@ def dump_file(filename,header=True,particles=True,limit=10,skip=0,**kwargs):
         _dump(f,header,particles,limit,skip)
 
 def _dump(f,header,particles,limit,skip=0):
-    """The dump of dump_file of the file f (an MCPLFile)"""
+    """Print the header and/or particles of the open file f (see dump_file)"""
     print(f"Opened MCPL file {os.path.basename(f._filename)}:")
     if header:
         f.dump_hdr()

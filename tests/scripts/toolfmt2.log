@@ -4,17 +4,17 @@ Running mcpltool -h
 Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 
 Usage:
-  python -m mcpl [options] FILE                  Show the header and first particles
+  python -m mcpl [options] FILE                  Show the header and particles
   python -m mcpl -S [options] FILE               Summary of the particles
   python -m mcpl -H HIST [options] FILE [...]    Histogram in a window
   python -m mcpl -t -H HIST [options] FILE [...] Histogram in the terminal
-  python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles
   python -m mcpl -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
-  python -m mcpl -r FILE                         Repair a file not properly closed
+  python -m mcpl -r FILE                         Repair an unclosed file
 
 Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
-  -e EDIT        Pick and change particles, e.g.
+  -e EDIT        Filter and change particles, e.g.
                  -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
   -o FILE        Save the histogram in FILE (.png, .pdf, or .svg, or .txt with
                  -t).
@@ -36,17 +36,17 @@ Running mcpltool --help
 Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 
 Usage:
-  python -m mcpl [options] FILE                  Show the header and first particles
+  python -m mcpl [options] FILE                  Show the header and particles
   python -m mcpl -S [options] FILE               Summary of the particles
   python -m mcpl -H HIST [options] FILE [...]    Histogram in a window
   python -m mcpl -t -H HIST [options] FILE [...] Histogram in the terminal
-  python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  python -m mcpl -x [options] FILE OUT.mcpl.gz   Extract particles
   python -m mcpl -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
-  python -m mcpl -r FILE                         Repair a file not properly closed
+  python -m mcpl -r FILE                         Repair an unclosed file
 
 Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
-  -e EDIT        Pick and change particles, e.g.
+  -e EDIT        Filter and change particles, e.g.
                  -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
   -o FILE        Save the histogram in FILE (.png, .pdf, or .svg, or .txt with
                  -t).

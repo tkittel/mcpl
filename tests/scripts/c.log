@@ -37,17 +37,17 @@ mcpltool: error: -s specified more than once
 Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 
 Usage:
-  mcpltool [options] FILE                  Show the header and first particles
+  mcpltool [options] FILE                  Show the header and particles
   mcpltool -S [options] FILE               Summary of the particles
   mcpltool -H HIST [options] FILE [...]    Histogram in a window
   mcpltool -t -H HIST [options] FILE [...] Histogram in the terminal
-  mcpltool -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  mcpltool -x [options] FILE OUT.mcpl.gz   Extract particles
   mcpltool -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
-  mcpltool -r FILE                         Repair a file not properly closed
+  mcpltool -r FILE                         Repair an unclosed file
 
 Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
-  -e EDIT        Pick and change particles, e.g.
+  -e EDIT        Filter and change particles, e.g.
                  -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
   -o FILE        Save the histogram in FILE (.png, .pdf, or .svg, or .txt with
                  -t).
@@ -74,17 +74,17 @@ mcpltool: error: unrecognized arguments: ref/reffile_12.mcpl
 Tool for inspecting or modifying Monte Carlo Particle List (.mcpl) files.
 
 Usage:
-  mcpltool [options] FILE                  Show the header and first particles
+  mcpltool [options] FILE                  Show the header and particles
   mcpltool -S [options] FILE               Summary of the particles
   mcpltool -H HIST [options] FILE [...]    Histogram in a window
   mcpltool -t -H HIST [options] FILE [...] Histogram in the terminal
-  mcpltool -x [options] FILE OUT.mcpl.gz   Extract particles into a new file
+  mcpltool -x [options] FILE OUT.mcpl.gz   Extract particles
   mcpltool -m OUT.mcpl.gz FILE1 FILE2 ...  Merge compatible files
-  mcpltool -r FILE                         Repair a file not properly closed
+  mcpltool -r FILE                         Repair an unclosed file
 
 Common options:
   -lN, -sN       Use only N particles, or skip the first N particles.
-  -e EDIT        Pick and change particles, e.g.
+  -e EDIT        Filter and change particles, e.g.
                  -e "pdgcode == neutron; z += 1cm; ekin < 25meV".
   -o FILE        Save the histogram in FILE (.png, .pdf, or .svg, or .txt with
                  -t).
@@ -366,7 +366,7 @@ Second line.
 Rødgrød med
 fløde.
 ===> mcpltool ended with exit code 0
-0x410x00x50xa0xd0x420x6c0x610x7f0x3d0x3d0x3d0x3e0x200x6d0x630x700x6c0x740x6f0x6f0x6c0x200x650x6e0x640x650x640x200x770x690x740x680x200x650x780x690x740x200x630x6f0x640x650x200x300xa===> mcpltool ended with MCPLError exception: can not calculate statistics for an empty file
+0x410x00x50xa0xd0x420x6c0x610x7f0x3d0x3d0x3d0x3e0x200x6d0x630x700x6c0x740x6f0x6f0x6c0x200x650x6e0x640x650x640x200x770x690x740x680x200x650x780x690x740x200x630x6f0x640x650x200x300xa===> mcpltool ended with MCPLError exception: Can not calculate statistics for an empty file
 ------------------------------------------------------------------------------
 nparticles   : 15
 sum(weights) : 15

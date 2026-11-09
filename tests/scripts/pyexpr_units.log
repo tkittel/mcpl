@@ -45,4 +45,4 @@ Constant expressions:
   'mm^2': 0.01
   '1/um^2': 100000000.0
   '90deg': 1.5707963267948966
-  '1e308km': MCPLError: A constant has NaN or infinite values in expression "1e308km"
+  '1e308km': MCPLError: A number is too large, in expression "1e308km"

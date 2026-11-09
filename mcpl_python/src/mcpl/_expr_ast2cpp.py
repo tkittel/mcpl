@@ -22,8 +22,9 @@
 """C++ code doing what edit expressions do (see _expressions), with the C++
 API of MCPL (mcplcpp.h): complete programs reading an MCPL file and writing
 the particles kept, with their changes, to a new file. Interface:
-_expr_ast2cpp(edit, layout), as _expr_ast2c, whose translation of expressions it uses (so
-the C and C++ code compute the same), with errors as exceptions."""
+_expr_ast2cpp(edit, layout), as _expr_ast2c, whose translation of expressions
+it uses (so the C and C++ code compute the same), with errors as
+exceptions."""
 
 __all__ = []
 

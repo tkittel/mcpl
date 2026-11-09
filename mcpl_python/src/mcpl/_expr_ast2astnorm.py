@@ -27,7 +27,7 @@ same values (and errors) as the trees they come from:
 
 * Numbers with units are written in the unit in which their magnitude is at
   least 1 and as small as possible (5000eV as 5keV, 0.5mm as 500um, and
-  40000mm^2 as 400cm^2), and zero in the SI unit (0eV, 0m, 0s). Whole
+  40000mm^2 as 400cm^2), and zero in eV, m, s, or K (as 0eV). Whole
   numbers with units have no decimals (5.0keV as 5keV). Angles and half
   powers keep their units.
 * Particle names are used where a value is compared with pdgcode (with ==,
@@ -119,7 +119,7 @@ def _norm_in( node ):
 #Numbers with units:
 
 #The units of zero values:
-_si_units = ( 'eV', 's', 'm', 'K' )
+_zero_units = _base_units_si
 #Whole numbers from this size on are written as floating point numbers (like
 #1e+20):
 _max_whole = 10**15
@@ -152,7 +152,7 @@ def _norm_quantity( q ):
         with decimal.localcontext() as ctx:
             ctx.prec = len(d.as_tuple().digits) + 2#(scaleb is exact)
             if d == 0:
-                si = next( ( u for _, u in family if u in _si_units ), q.unit )
+                si = next( ( u for _, u in family if u in _zero_units ), q.unit )
                 candidates.insert(0,Quantity(Int(0),si,q.power))
             else:
                 #(the smallest magnitude of at least 1, or else the largest):

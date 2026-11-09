@@ -38,7 +38,7 @@ def _shell_arg( expression ):
 def _option_arg( text ):
     """The text of -e as a command-line argument, with its first statement
     (before the first ";") in parentheses if it starts with "-", which would
-    else be taken as an option (statements starting with "-" are conditions,
+    otherwise be taken as an option (statements starting with "-" are conditions,
     which can be put in parentheses)"""
     if text.startswith('-'):
         first, sep, rest = text.partition(';')

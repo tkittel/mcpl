@@ -19,9 +19,9 @@ v2.2.9  (work in progress)
       * Edit expressions filter and change particles, e.g. "pdgcode ==
         neutron; rotate_z(90deg); z += 1cm; ekin < 1MeV": statements executed
         in order, where filter conditions keep the particles for which they
-        are true. Values with units must be given with units, and errors say
-        where the problem is. Expressions have vectors, rotations,
-        through_sphere and through_box, userdata fields, and C-like integers.
+        are true. Quantities need explicit units (e.g. 10cm). Expressions have
+        vectors, rotations, through_sphere and through_box, userdata fields,
+        and C-like integers.
         Available as ParticleEdit and the edit argument in Python, -e in
         mcpltool, and as generated C or C++ programs (mcpltool -x
         --code=c or --code=cpp).
@@ -30,8 +30,7 @@ v2.2.9  (work in progress)
         colour), or saved as .pdf, .png, .svg, or .txt, also 2D histograms,
         bar charts, and 3D plots of points.
       * mcpltool is now the command-line tool of the mcpl-python package (the
-        compiled one is removed), with all the old commands and -e, -H,
-        --create-examples, --dry-run, and --allow-overwrite.
+        compiled one is removed), see the changes to the command line below.
       * MCPLFile.to_scipp and scipp_blocks give the particles as scipp
         DataArrays (needs the "scipp" extra).
 
@@ -73,9 +72,10 @@ v2.2.9  (work in progress)
 
     Changes to the command line:
 
-      * mcpltool: -x extracts (was -e), -e EDIT edits (-p and -E are replaced
-        by it; the old forms give errors saying what to use), -H HIST for
-        histograms, --code=c|cpp, --keep-statsum, --no-comment, --dry-run,
+      * mcpltool: -x extracts (was -e), -e EDIT edits (replacing -p; the old
+        forms give errors saying what to use), -H HIST for histograms (-t
+        shows them in the terminal; -t was --text in 2.2.x),
+        --code=c|cpp, --keep-statsum, --no-comment, --dry-run,
         --allow-overwrite, --create-examples, and --color. --pdf and --gui are
         removed. Errors go to standard error, in the usual form of
         command-line tools.

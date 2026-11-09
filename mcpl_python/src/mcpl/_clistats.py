@@ -47,13 +47,14 @@ def _plot_backend( outfn, terminal, color = None, allow_overwrite = False ):
                          hint=' Use -t to show the histogram in the terminal.')
 
 def mcpltool_stats(filename,skip,limit,edit):
-    from ._stats import _EditedFile, dump_stats
-    f = _EditedFile(_view(filename,skip,limit,edit),None)
-    if f.nparticles == 0:
-        raise MCPLError("can not calculate statistics for an empty file"
-                        if MCPLFile(filename).nparticles == 0 else
-                        "can not calculate statistics when no particles are kept")
-    dump_stats(f)
+    from ._stats import _collect_stats, dump_stats
+    with MCPLFile(filename,skip=skip,limit=limit,edit=edit) as f:
+        stats = _collect_stats(f,'all',False)
+        if stats is None:
+            raise MCPLError("Can not calculate statistics for an empty file"
+                            if f._nparticles_raw == 0 else
+                            "Can not calculate statistics when no particles are kept")
+    dump_stats(stats)
 
 def mcpltool_hist(filelist,o,skip,limit,edit,outfn,terminal,color=None,
                   allow_overwrite=False):

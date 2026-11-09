@@ -95,7 +95,7 @@ def _angle_highres( a, b ):
     precise also for small angles (unlike acos of the dot product of the
     normalised vectors). Based on the formula on page 47 of "How Futile are
     Mindless Assessments of Roundoff in Floating-Point Computation?" by W.
-    Kahan (2006), like NCrystal::Vector::angle_highres."""
+    Kahan (2006)."""
     a = [ np.asarray(c,dtype=np.float64) for c in a ]
     b = [ np.asarray(c,dtype=np.float64) for c in b ]
     na = np.sqrt( a[0]*a[0] + a[1]*a[1] + a[2]*a[2] )
@@ -217,7 +217,7 @@ class _ExprEvaluator:
         self._cache = { k : _kept_value(q,idx,n) for k, q in self._cache.items() }
         self.state = { k : _kept_value(q,idx,n) for k, q in self.state.items() }
     def error( self, msg ):
-        raise MCPLError(f'{msg} in expression "{self._expr}"')
+        raise MCPLError(f'{msg}, in expression "{self._expr}"')
     def name( self, n ):
         if n == 'wavelength':
             self._check_wavelength()
@@ -324,8 +324,8 @@ class _ExprEvaluator:
         pdg = np.asarray(self.name('pdgcode').v)
         if self._any_active(~np.isin(pdg,_wavelength_pdgcodes)):
             raise MCPLError('The wavelength is only defined for neutrons and gammas,'
-                            ' so keep only those before using it, e.g. "pdgcode =='
-                            f' neutron; wavelength > 1.8Aa" (in expression "{self._expr}")')
+                            ' so keep only those first (e.g. "pdgcode == neutron;'
+                            f' wavelength > 1.8Aa"), in expression "{self._expr}"')
     def _any_active( self, mask ):
         """Whether the mask is true for any of the active particles (see
         _with_active)"""
@@ -355,7 +355,8 @@ class _ExprEvaluator:
         if a.d != b.d and ( a.zero or b.zero ):
             return a.v, b.v, ( a.d or b.d )
         if a.d != b.d:
-            hint = _unit_hint(a.d or b.d) if None in (a.d,b.d) else ''
+            #(no hint for swap(..), which takes fields or variables):
+            hint = _unit_hint(a.d or b.d) if None in (a.d,b.d) and what != 'swap(..)' else ''
             self.error(f'Incompatible units in {what}: {_dimstr(a.d)} and'
                        f' {_dimstr(b.d)}{hint}')
         return a.v, b.v, a.d
@@ -375,12 +376,17 @@ class _ExprEvaluator:
         return _Q(c,zero=(v==0))
     def _float( self, node ):
         v = node.value
-        return self.finite(_Q(v,zero=(v==0)),'A constant has')
+        return self.constant(_Q(v,zero=(v==0)))
     def _quantity( self, node ):
         #(exact for units which are powers of ten, see _quantity_value):
         d = self.dimpow(_expr_units[node.unit][1],node.power,f'The unit {node.unit}')
         v = _quantity_value(node.number.value,node.unit,node.power)
-        return self.finite(_Q(v,d),'A constant has')
+        return self.constant(_Q(v,d))
+    def constant( self, q ):
+        """The constant q, refused if it is not finite (like 1e400)"""
+        if not np.isfinite(q.v):
+            self.error('A number is too large')
+        return q
     def _unit( self, node ):
         d = self.dimpow(_expr_units[node.unit][1],node.power,f'The unit {node.unit}')
         return _Q(_unit_size(node.unit,node.power),d)
@@ -416,7 +422,7 @@ class _ExprEvaluator:
         q = self(c)
         if isinstance(q,_V):
             if node.op == 'not':
-                self.error(f'not can not be used for vectors (here {q.describe()})')
+                self.error(f'"not" can not be used with vectors (here {q.describe()})')
             return _V( self.negate(c) for c in q.c ) if node.op == '-' else q
         if node.op == 'not':
             return _Q(np.logical_not(self.boolval(q,c)))
@@ -478,7 +484,7 @@ class _ExprEvaluator:
                 return _Q(np.true_divide(a.v,b.v),self.muldim(a.d,b.d,-1))
             #Power:
             if b.d not in ( None, _dim_unknown ):
-                self.error(f'Exponent with units ({_dimstr(b.d)})')
+                self.error(f'Exponents can not have units (here {_dimstr(b.d)})')
             if a.d in ( None, _dim_unknown ):
                 return _Q(np.power(a.v,b.v),a.d)
             e = np.asarray(b.v)
@@ -516,8 +522,7 @@ class _ExprEvaluator:
         if np.any(self.masked(bad)):
             desc = ( f'{"unsigned " if rt.kind == "u" else ""}'
                      f'{8*rt.itemsize}-bit integers' )
-            self.error(f'{what} of integers gives values outside the range of'
-                       f' the result ({desc})')
+            self.error(f'{what} of integers gives values outside the range of {desc}')
     def int_arith( self, op, a, b, what ):
         """+, -, *, and // of integers, like in C, but with errors instead of
         wrapping around (// only divides non-negative integers, where Python
@@ -635,7 +640,7 @@ class _ExprEvaluator:
                 v = np.asarray(fct(self.nodim(args[0],f'{fname}(..)')))
                 big = ~( np.abs(v) < 2.0**62 )
                 if self._any_active(big):
-                    self.error(f'{fname}(..) of values too large for integers')
+                    self.error(f'{fname}(..) gets values too large for integers')
                 return _Q(np.where(big,0,v).astype(np.int64))
             if fname == 'sqrt':
                 q = args[0]
@@ -705,8 +710,8 @@ class _ExprEvaluator:
             self.error(f'{fname}(v,w) takes two vectors')
         v, w = args
         if len(v.c) != len(w.c) or ( fname == 'cross' and len(v.c) != 3 ):
-            self.error(f'{fname}(v,w) takes two vectors of the same size'
-                       + ( ' (3D)' if fname == 'cross' else '' ))
+            self.error('cross(v,w) takes two 3D vectors' if fname == 'cross'
+                       else f'{fname}(v,w) takes two vectors of the same size')
         if fname == 'angle':
             #(precise also for small angles, and of 2D vectors as in 3D):
             pad = [ 0.0 ] * ( 3 - len(v.c) )
@@ -915,7 +920,7 @@ def _condition( ev, node, text ):
     v = np.asarray(ev.scalar(q,'a condition').v)
     if v.dtype.kind not in 'iub':
         raise MCPLError(f'"{_expr_ast2str(node)}" is neither a condition (e.g. a comparison)'
-                        f' nor a change of the particles (e.g. x = 2*y), in "{text}"')
+                        f' nor a change of the particles (e.g. x = 2*y), in expression "{text}"')
     return ev.boolval(q,node)
 
 def _rotate( ev, call, modified ):
@@ -924,10 +929,8 @@ def _rotate( ev, call, modified ):
     qa = ev.scalar(ev(call.args[0]),f'an angle in {fname}(..)')
     if qa.d not in ( None, _dim_unknown ):
         ev.error(f'{fname}(..) requires an angle (e.g. 90deg), not {_dimstr(qa.d)}')
-    #Rotations by multiples of 90 degrees are exact, with cos and sin
-    #exactly 0 and +-1 (e.g. rotate_z(90deg) gives exactly (x,y) ->
-    #(-y,x), as the values are finite). Adding 0.0 to the results
-    #avoids negative zeros (-0.0 + 0.0 is 0.0):
+    #Exact for multiples of 90deg (cos and sin exactly 0 or +-1), and adding
+    #0.0 avoids negative zeros:
     c, s = _exact_cos_sin(qa.v)
     for a, b in _rotation_planes[fname]:
         va, vb = ev.name(a), ev.name(b)
@@ -937,16 +940,18 @@ def _rotate( ev, call, modified ):
         ev.state[b] = ev.finite(_Q(rb + 0.0, vb.d),f'{fname}(..) gives')
         modified.update((a,b))
 
+def _with_article( noun ):
+    return f'{"an" if noun[0] in "aeiou" else "a"} {noun}'
+
 def _assign_field( ev, name, q, text, modified ):
     """Assign the value q to the field"""
     d = _expr_field_dims.get(name)
     if q.d not in ( d, _dim_unknown ) and not q.zero:
-        what = _dimstr(q.d) if q.d is None else f'value with {_dimstr(q.d)}'
-        dname = 'unitless' if d is None else f'a {_dimstr(d)}'
-        dname = dname.replace('a energy','an energy')
+        what = 'a value without units' if q.d is None else _with_article(_dimstr(q.d))
+        dname = 'has no units' if d is None else f'is {_with_article(_dimstr(d))}'
         hint = _unit_hint(d) if q.d is None else ''
-        raise MCPLError(f'Can not assign {what} to {name}, which is'
-                        f' {dname}{hint}, in expression "{text}"')
+        raise MCPLError(f'Can not assign {what} to {name}, which {dname}{hint},'
+                        f' in expression "{text}"')
     v = np.broadcast_to(np.asarray(q.v,dtype=( float if name not in
                                                ('pdgcode','userflags')
                                                else None )),(len(ev._block),))
@@ -1004,14 +1009,14 @@ def _rotate_by_matrix( ev, call, modified ):
             modified.add(c)
 
 def _set_wavelength( ev, wl, text, modified ):
-    """Set kinetic energy from wavelength (given in cm)"""
+    """Set ekin from the wavelengths (in cm)"""
     pdg = np.asarray(ev.name('pdgcode').v)
     if not np.all( np_isin_few( pdg, _wavelength_pdgcodes ) ):
-        raise MCPLError('wavelength can only be assigned to neutrons'
-                        ' (pdgcode 2112) and gammas (pdgcode 22)'
+        raise MCPLError('The wavelength can only be set for neutrons and gammas, so keep'
+                        ' only those first (e.g. "pdgcode == neutron; wavelength = 1.8Aa"),'
                         f' in expression "{text}"')
     if np.any( np.asarray(wl) <= 0.0 ):
-        raise MCPLError('wavelength must be assigned positive values'
+        raise MCPLError('The wavelength must be set to positive values,'
                         f' in expression "{text}"')
     ev.state['ekin'] = _Q(np.broadcast_to(ekin_from_wavelength(wl/_expr_wl_unit,pdg),
                                           wl.shape),_dim_E)

@@ -34,7 +34,7 @@ mcpltool --dry-run --merge out.mcpl a1.mcpl a2.mcpl a3.mcpl.gz: exit code 0, rea
 mcpltool --dry-run --merge out.mcpl.gz a1.mcpl a2.mcpl: exit code 0, real run changed files
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --merge out.mcpl a1.mcpl b_dp.mcpl: exit code 1, real run did not change files
-   | python -m mcpl: Requested files are incompatible for merge as they have different header info (source name: "MySim" vs "Other")
+   | python -m mcpl: The files can not be merged: source name: "MySim" vs "Other"
 mcpltool --dry-run --merge a2.mcpl a1.mcpl a3.mcpl.gz: exit code 1, real run did not change files
    | python -m mcpl: The output file "a2.mcpl" already exists
 mcpltool --dry-run --merge --inplace a1.mcpl a2.mcpl a3.mcpl.gz: exit code 0, real run changed files
@@ -226,7 +226,7 @@ mcpltool -jd a1.mcpl: exit code 0
    | 
 mcpltool -d --stats -o s.pdf a1.mcpl: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-   | python -m mcpl: error: -o can only be used with a histogram (-H HIST) (-S only prints text, for plots use -H)
+   | python -m mcpl: error: -o can only be used with -H HIST (-S only prints text)
 mcpltool --dry-run --terminal --hist ekin/MeV --output h.txt a1.mcpl: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
    | python -m mcpl: error: -d can not be used with -o (which saves plots in files)

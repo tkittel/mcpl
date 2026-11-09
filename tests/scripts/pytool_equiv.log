@@ -13,7 +13,7 @@ mcpltool --merge --inplace a1.mcpl a2.mcpl a3.mcpl.gz: exit code 0
 mcpltool -m --inplace a3.mcpl.gz a1.mcpl: exit code 1
    | python -m mcpl: direct modification of gzipped files is not supported.
 mcpltool --merge out.mcpl a1.mcpl b_dp.mcpl: exit code 1
-   | python -m mcpl: Requested files are incompatible for merge as they have different header info (source name: "MySim" vs "Other")
+   | python -m mcpl: The files can not be merged: source name: "MySim" vs "Other"
 mcpltool --merge out.mcpl a1.mcpl: exit code 0
    file out.mcpl: md5 3e4d8851e2f2febf37d76ff079c9be7f
 mcpltool --merge a2.mcpl a1.mcpl a1.mcpl: exit code 1
@@ -551,19 +551,19 @@ mcpltool --extract a1.mcpl out.mcpl --edit=x > 10m: MCPL: Successfully extracted
 Results of the edit as expected: True
 mcpltool --extract a1.mcpl out.mcpl --edit ekin: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-   | python -m mcpl: error: "ekin" is neither a condition (e.g. a comparison) nor a change of the particles (e.g. x = 2*y), in "ekin"
+   | python -m mcpl: error: "ekin" is neither a condition (e.g. a comparison) nor a change of the particles (e.g. x = 2*y), in expression "ekin"
    | Run with "-e help" for how to write edit expressions
 mcpltool --extract a1.mcpl out.mcpl --edit foo>1: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-   | python -m mcpl: error: Unknown name "foo" in expression "foo>1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
+   | python -m mcpl: error: Unknown name "foo", in expression "foo>1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
    | Run with "-e help" for how to write edit expressions
 mcpltool --extract a1.mcpl out.mcpl --edit x>1: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-   | python -m mcpl: error: Incompatible units in comparison: length and value without units (add units, e.g. 2cm) in expression "x>1"
+   | python -m mcpl: error: Incompatible units in comparison: length and value without units (add units, e.g. 2cm), in expression "x>1"
    | Run with "-e help" for how to write edit expressions
 mcpltool --extract a1.mcpl out.mcpl --edit x=2*ux: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-   | python -m mcpl: error: Can not assign value without units to x, which is a length (add units, e.g. 2cm), in expression "x=2*ux"
+   | python -m mcpl: error: Can not assign a value without units to x, which is a length (add units, e.g. 2cm), in expression "x=2*ux"
    | Run with "-e help" for how to write edit expressions
 mcpltool --extract a1.mcpl out.mcpl --edit: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
@@ -572,7 +572,7 @@ mcpltool --extract a1.mcpl out.mcpl --edit x>1cm --edit y>1cm: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
    | python -m mcpl: error: -e specified more than once
 mcpltool --extract a1.mcpl out.mcpl --edit wavelength=1.8Aa: exit code 1
-   | python -m mcpl: wavelength can only be assigned to neutrons (pdgcode 2112) and gammas (pdgcode 22) in expression "wavelength=1.8Aa"
+   | python -m mcpl: The wavelength can only be set for neutrons and gammas, so keep only those first (e.g. "pdgcode == neutron; wavelength = 1.8Aa"), in expression "wavelength=1.8Aa"
 mcpltool --edit x>1cm -j a1.mcpl: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
    | python -m mcpl: error: do not specify -e with -j
@@ -581,10 +581,10 @@ mcpltool --edit x>1cm -ba a1.mcpl: exit code 2
    | python -m mcpl: error: -b can not be combined with -j, -n, -l, -s, or -e
 mcpltool --edit x>1meV a1.mcpl: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-   | python -m mcpl: error: Incompatible units in comparison: length and energy in expression "x>1meV"
+   | python -m mcpl: error: Incompatible units in comparison: length and energy, in expression "x>1meV"
    | Run with "-e help" for how to write edit expressions
 mcpltool --stats --edit x>1km a1.mcpl: exit code 1
-   | python -m mcpl: can not calculate statistics when no particles are kept
+   | python -m mcpl: Can not calculate statistics when no particles are kept
 mcpltool --stats -pantimuon a1.mcpl: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
    | python -m mcpl: error: -p is not an option (use -e, e.g. -e "pdgcode == neutron")

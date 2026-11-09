@@ -268,7 +268,7 @@ class _Hist2DData(_HistData):
 
 class _PointSet3DData(_HistData):
     """The values of three expressions for randomly sampled particles (the
-    result of _PointSet3DFiller: as many as points, sampled according to weights,
+    result of _PointSet3DFiller: at most maxpoints, sampled according to weights,
     unless unweighted, so they are distributed as the particles), in
     groups (label -> array of shape (n,3), with the label None for one group,
     see display_by). For expressions with units, the values are in the units
@@ -750,8 +750,7 @@ class _HistDiscreteFiller(_Filler):
         return h
 
 class _Hist2DFiller(_Filler):
-    """Makes the histogram of histogram2d() (see _Filler; the files are
-    combined)"""
+    """Makes 2D histograms (see _Filler; the files are combined)"""
     def __init__( self, xexpression, yexpression, bins = 'auto',
                   xrange = None, yrange = None, unweighted = False,
                   _maxbins = None, logz = 'auto', equal = False, display_edit = None,

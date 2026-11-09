@@ -24,7 +24,7 @@ MCPL WARNING: File contains particles with NaN or infinite values (first one fou
 MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 7). They can not be added to other MCPL files.
 MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 7). They can not be added to other MCPL files.
 collect_stats: MCPLError: Can not calculate statistics for particles with NaN or infinite values
-ParticleEdit("x > 10cm"): MCPLError: The particle field x has NaN or infinite values in expression "x > 10cm"
+ParticleEdit("x > 10cm"): MCPLError: The particle field x has NaN or infinite values, in expression "x > 10cm"
 ParticleEdit("ekin > 1.2MeV") keeps 20
 add_particles(block): MCPLError: add_particles asked to transfer particle with NaN or infinite position
 add_particles(block of finite particles): no error

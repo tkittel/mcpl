@@ -118,9 +118,9 @@ _cases = [
 ]
 
 def _option_arg( text ):
-    """The edit expression as the argument of -e, with its first statement in
-    parentheses if it starts with "-", which would else be taken as an
-    option (as in the commands which mcpltool generates)"""
+    """The edit as the argument of -e, with its first statement in
+    parentheses if it starts with "-" (no shell quoting, as no shell is
+    used)."""
     if not text.startswith('-'):
         return text
     first, sep, rest = text.partition(';')
@@ -128,7 +128,6 @@ def _option_arg( text ):
 
 def _write_universal( fn ):
     """A file with the neutrons of miscphys, with universal pdgcode and weight"""
-    sys.path.insert(0,str(pyroot/'src'))
     import mcpl
     with ( mcpl.MCPLFile(_files['misc'],edit = 'pdgcode == neutron') as f,
            mcpl.MCPLOutFile(fn,opt_universalpdgcode = 2112,opt_universalweight = 0.5) as o ):
@@ -183,9 +182,8 @@ def _cmake_project( programs ):
     return '\n'.join(lines) + '\n'
 
 def _particles( fn ):
-    import numpy as np
-    sys.path.insert(0,str(pyroot/'src'))
     import mcpl
+    import numpy as np
     names = ( 'x', 'y', 'z', 'ux', 'uy', 'uz', 'polx', 'poly', 'polz', 'ekin', 'time', 'weight',
               'pdgcode', 'userflags' )
     with mcpl.MCPLFile(fn) as f:
@@ -216,6 +214,7 @@ def run( nprocs, nrandom = 200 ):
     """Build MCPL and the generated programs, run them, and compare (in the
     current directory)"""
     from .cmake import CMakeRunner
+    #(mcpl from the sources, also for the functions above):
     sys.path.insert(0,str(pyroot/'src'))
     import mcpl
     from mcpl._expressions import _edit_code

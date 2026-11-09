@@ -28,18 +28,10 @@ exceptions."""
 
 __all__ = []
 
-from ._expr_ast2c import (
-    _c_string,
-    _comment_lines,
-    _layout,
-    _program_header,
-    _Statements,
-    _string_call,
-    _Translator,
-    _universal_checks,
-    _universal_fields,
-)
-from ._expr_vocab import _modified_fields
+from ._expr_ast2c import _Program, _Translator
+from ._expr_vocab import _expr_vector_names
+from ._userdata import _types as _userdata_types
+from ._userdata import userdata_fields
 
 #The userdata types, as types of C++:
 _cpp_ud_types = { t : { 'float32' : 'float', 'float64' : 'double' }.get(t,f'std::{t}_t')
@@ -52,93 +44,89 @@ class _CppTranslator(_Translator):
         self.uses_p = True
         return f'ud_{name}( p )' if index is None else f'ud_{name}( p, {index} )'
 
+class _CppProgram(_Program):
+    """The C++ program (see _Program)"""
+    comment_marks = ( '// ', '//       ' )
+    indent = '    '#(in the try block)
+    main_void = 'int main()'
+    add_comment = 'fout.add_comment( '
+    mark_line = 'fout.scale_stat_sums( -1.0 );  // stat:sum entries not available'
+
+    def translator( self ):
+        return _CppTranslator('cpp',self.field_getter('p'),self.layout)
+    def field_getter( self, obj ):
+        def get( n ):
+            if n == 'fileidx':
+                return n
+            self.tr.uses_p = self.tr.uses_p or obj == 'p'
+            return f'{obj}.{n}()'
+        return get
+    def copy_lines( self ):
+        if not self.changes:
+            return []
+        lines = [ f'out.set_{v}( p.{v}() );' for v in ( *_expr_vector_names.values(), 'ekin', 'time',
+                                                        'weight', 'pdgcode', 'userflags' ) ]
+        return lines + [ f'out.set_userdata( out_{name}, ud_{name}( p ) );'
+                         for name, _, _ in self.fields ]
+    def changed_field( self, n ):
+        return self.field_getter('out')(n)
+    def set_field( self, n, code ):
+        return f'out.set_{n}( {code} );'
+    def changed_value( self, f ):
+        return f'out.{f}()'
+    def add_line( self ):
+        return 'fout.add( out );'
+    def transfer_line( self ):
+        return 'fout.transfer_last_read_particle( fin );'
+    def includes( self ):
+        #(mcplcpp.h has the integer types and std::runtime_error):
+        return [ '#include "mcplcpp.h"', *( [ '#include <cmath>' ] if self.tr.math else [] ),
+                 '#include <iostream>' ]
+    def usage_line( self ):
+        return '    std::cout << "Usage: " << argv[0] << " INPUT.mcpl OUTPUT.mcpl" << std::endl;'
+    def begin_lines( self ):
+        return [ '  try {' ]
+    def open_lines( self, names ):
+        return [ f'mcpl::MCPLFile fin( {names[0]} );', f'mcpl::MCPLOutFile fout( {names[1]} );',
+                 'fout.transfer_metadata( fin );' ]
+    def seek_line( self ):
+        return f'fin.seek( {self.skip} );'
+    def userdata_lines( self ):
+        #(the userdata fields used, and for changes all of them, to copy them):
+        lines = []
+        for name, ftype, count in self.fields:
+            if name in self.tr.userdata or self.changes:
+                targs = _cpp_ud_types[ftype] + ( f',{count}' if count is not None else '' )
+                lines.append(f'auto ud_{name} = fin.userdata_field<{targs}>( "{name}" );')
+                if self.changes:
+                    lines.append(f'auto out_{name} = fout.userdata_field<{targs}>( "{name}" );')
+        return lines
+    def universal_line( self, f ):
+        return f'const {self.universal_type(f)} universal_{f} = fin.universal_{f}();'
+    def loop_lines( self ):
+        lines = [ 'auto out = fout.new_particle();' ] if self.changes else []
+        counted = self.limit is not None or self.tr.uses_fileidx
+        if counted:
+            #(the particles are counted, from the first one of the range):
+            lines.append('std::uint64_t n = 0;')
+        #(the particles are not used when kept only by fileidx):
+        unused = '' if self.tr.uses_p or self.changes else '[[maybe_unused]] '
+        lines.append(f'for ( {unused}auto p : fin ) {{')
+        if self.limit is not None:
+            lines += [ f'  if ( n == {self.limit} )', '    break;' ]
+        if self.tr.uses_fileidx:
+            start = f'{self.skip} + ' if self.skip else ''
+            lines.append(f'  const std::int64_t fileidx = static_cast<std::int64_t>( {start}n );')
+        if counted:
+            lines.append('  ++n;')
+        return lines + [ f'  {line}' for line in self.body ] + [ '}' ]
+    def end_lines( self ):
+        return [ '    fout.close();', '    fin.close();', '  } catch ( const std::runtime_error& e ) {',
+                 '    std::cerr << "ERROR: " << e.what() << std::endl;', '    return 1;', '  }',
+                 '  return 0;', '}' ]
+
 def _expr_ast2cpp( tree = None, layout = None, *, filenames = None, skip = 0,
                    limit = None, mark_statsums = False, comment = None ):
     """A C++ program which writes the particles of an MCPL file which an edit
     keeps, with its changes, to a new file (see _expr_ast2c)"""
-    from ._userdata import userdata_fields
-    statements = () if tree is None else tree.statements
-    modified = _modified_fields(statements)
-    changes = bool(modified)
-    def field( obj ):
-        def get( n ):
-            if n == 'fileidx':
-                return n
-            tr.uses_p = tr.uses_p or obj == 'p'
-            return f'{obj}.{n}()'
-        return get
-    tr = _CppTranslator('cpp',field('p'),layout)
-    body, set_field = [], None
-    fields = userdata_fields(layout) if layout else []
-    if changes:
-        body += [ f'out.set_{v}( p.{v}() );' for v in ( *_vector_setters, 'ekin', 'time', 'weight',
-                                                       'pdgcode', 'userflags' ) ]
-        body += [ f'out.set_userdata( out_{name}, ud_{name}( p ) );' for name, _, _ in fields ]
-        tr.field = field('out')
-        def set_field( n, code ):
-            return f'out.set_{n}( {code} );'
-    body += _Statements(tr,set_field)(statements)
-    if changes:
-        body += _universal_checks(tr,modified,lambda f : f'out.{f}()')
-        body.append('fout.add( out );')
-    else:
-        body.append('fout.transfer_last_read_particle( fin );')
-    out = [ c for line in _program_header(tree) for c in _comment_lines(line,'// ','//       ') ]
-    out += [ '', '#include "mcplcpp.h"' ]
-    #(mcplcpp.h has the integer types and std::runtime_error):
-    if tr.math:
-        out.append('#include <cmath>')
-    out.append('#include <iostream>')
-    for code in tr.helpers.values():
-        out += [ '', *code.split('\n') ]
-    if filenames is None:
-        out += [ '', 'int main( int argc, char ** argv )', '{',
-                 '  if ( argc != 3 ) {',
-                 '    std::cout << "Usage: " << argv[0] << " INPUT.mcpl OUTPUT.mcpl" << std::endl;',
-                 '    return 1;', '  }' ]
-        names = ( 'argv[1]', 'argv[2]' )
-    else:
-        out += [ '', 'int main()', '{' ]
-        names = tuple( _c_string(str(f)) for f in filenames )
-    out += [ '  try {',
-             f'    mcpl::MCPLFile fin( {names[0]} );',
-             f'    mcpl::MCPLOutFile fout( {names[1]} );',
-             '    fout.transfer_metadata( fin );' ]
-    if comment is not None:
-        out += _string_call('    fout.add_comment( ',comment,' );')
-    if mark_statsums:
-        out.append('    fout.scale_stat_sums( -1.0 );  // stat:sum entries not available')
-    if skip:
-        out.append(f'    fin.seek( {skip} );')
-    #(the userdata fields used, and for changes all of them, to copy them):
-    used = { name for name in tr.userdata }
-    for name, ftype, count in fields:
-        if name in used or changes:
-            targs = _cpp_ud_types[ftype] + ( f',{count}' if count is not None else '' )
-            out.append(f'    auto ud_{name} = fin.userdata_field<{targs}>( "{name}" );')
-            if changes:
-                out.append(f'    auto out_{name} = fout.userdata_field<{targs}>( "{name}" );')
-    if changes:
-        for f in _universal_fields:
-            if f in modified:
-                t = 'std::int32_t' if f == 'pdgcode' else 'double'
-                out.append(f'    const {t} universal_{f} = fin.universal_{f}();')
-        out.append('    auto out = fout.new_particle();')
-    counted = limit or tr.uses_fileidx
-    if counted:
-        #(the particles are counted, from the first one of the range):
-        out.append('    std::uint64_t n = 0;')
-    #(the particles are not used when kept only by fileidx):
-    unused = '' if tr.uses_p or changes else '[[maybe_unused]] '
-    out.append(f'    for ( {unused}auto p : fin ) {{')
-    if limit:
-        out += [ f'      if ( n == {limit} )', '        break;' ]
-    if tr.uses_fileidx:
-        out.append(f'      const std::int64_t fileidx = static_cast<std::int64_t>( {f"{skip} + " if skip else ""}n );')
-    if counted:
-        out.append('      ++n;')
-    out += [ f'      {line}' for line in body ]
-    out += [ '    }', '    fout.close();', '    fin.close();', '  } catch ( const std::runtime_error& e ) {',
-             '    std::cerr << "ERROR: " << e.what() << std::endl;', '    return 1;', '  }',
-             '  return 0;', '}' ]
-    return '\n'.join(_layout(out)) + '\n'
+    return _CppProgram(tree,layout,filenames,skip,limit,mark_statsums,comment).code()

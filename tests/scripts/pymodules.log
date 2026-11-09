@@ -3,7 +3,7 @@ Modules of the mcpl package and their imports from the package (in parentheses: 
   __main__             <- _cli
   _ascii               <- _reader, (_common)
   _blocks              <- _common, _numpy, (_physics)
-  _cli                 <- _common, _messages, _reader, (_ascii), (_clistats), (_examples), (_expressions), (_exprhelp), (_extract), (_fileops), (_histfill), (_histstring)
+  _cli                 <- _common, _messages, _reader, (_ascii), (_clistats), (_examples), (_expressions), (_exprhelp), (_extract), (_fileops), (_histfill), (_histstring), (_writer)
   _clistats            <- _common, _reader, (_histfigures), (_histfill), (_histstring), (_plotregistry), (_stats)
   _common              <- -
   _examples            <- _common, _messages, _numpy, (_writer)

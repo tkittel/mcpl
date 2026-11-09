@@ -24,7 +24,7 @@
 
 # Test histograms: mcpl.histogram (its read-only results), the histograms with
 # all their details and options (made as by mcpl.histogram and mcpltool, see
-# _histfill), and mcpltool -w and -t, using the plotting backend for tests
+# _histfill), and mcpltool -H and -t, using the plotting backend for tests
 # (which prints descriptions of the figures), and that plot_stats is no longer
 # available.
 
@@ -282,7 +282,7 @@ def test_cmdline():
     ex = str(example_file)
     tool('-H','ekin/MeV;logx=1;display_by=pdgcode',ex)
     tool('-t','-H','ekin/eV;lethargy=1;bins=5;print=1','-e','pdgcode == neutron',ex)
-    tool('--window','--hist','x/cm : y/cm;bins=4;print=1','-e','pdgcode == gamma',ex)
+    tool('--hist','x/cm : y/cm;bins=4;print=1','-e','pdgcode == gamma',ex)
     tool('--terminal','--hist=x/cm:y/cm;bins=2;xrange=-10:10;yrange=0:5;print=1',ex)
     tool('-H','x/cm : y/cm;bins=2;xrange=-10:10;print=1',ex)
     tool('-H','x/cm : y/cm;bins=3,2;print=1',ex)
@@ -320,7 +320,7 @@ def test_cmdline():
 
 def test_cmdline_more():
     #Statistics, saving a file with the test backend (which describes the
-    #figures), and argument errors (also of the forms of -w and -t):
+    #figures), and argument errors (also of the forms of -t):
     ex = str(example_file)
     tool('-S','-o','stats.txt','-e','pdgcode == gamma',ex)
     tool('-S','-s1000','-e','x = 1cm',ex)
@@ -337,7 +337,7 @@ def test_cmdline_more():
                      ['-S','-H','x/cm',ex], [ex,ex,ex],
                      ['-H','x/cm;bins=2;print','-H','pdgcode;bar=2;print',ex],
                      ['--text',ex], ['--text',ex,'hist.txt'],
-                     ['-t',ex], ['-w',ex,'-o','x.pdf'], ['-t',ex,ex], ['-w',ex,'x/cm'], ['-wx/cm',ex],
+                     ['-t',ex], ['-t',ex,ex],
                      ['-H','x/cm',ex], ['-B','test',ex], ['--te','x',ex],
                      ['-j','-H','x/cm',ex], ['--no-comment','-S',ex],
                      ['-H','x/cm : y/cm;display_by=pdgcode',ex],

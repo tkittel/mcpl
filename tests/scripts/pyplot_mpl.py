@@ -23,7 +23,7 @@
 # NEEDS: numpy matplotlib
 
 # Test that plots of all reference files can be saved with the matplotlib
-# plotting backend, as PDF and PNG files (also with mcpltool -w).
+# plotting backend, as PDF and PNG files (also with mcpltool -H).
 
 import pathlib
 
@@ -66,7 +66,7 @@ def test_png():
     created = sorted(f.name for f in pathlib.Path('.').glob('tool*.png'))
     assert rc == 0 and created == ['tool.png'] and all(
         pathlib.Path(f).read_bytes()[:4] == b'\x89PNG' for f in created )
-    print(f'mcpltool -w with -o tool.png created {created}')
+    print(f'mcpltool -H with -o tool.png created {created}')
 
 def test_items():
     #All kinds of items (a 3D plot, an empty cell, same scales, coloured

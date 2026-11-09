@@ -200,7 +200,7 @@ python -m mcpl: error: do not specify -l or -s with -j
 Running mcpltool rf16cp.mcpl -l2 -r
 ----------------------------------------------
 usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-python -m mcpl: error: -l can only be used when showing particles, or with -S, -w, -t, or -x
+python -m mcpl: error: -l can only be used when showing particles, or with -S, -H, -t, or -x
 
 ===> Command failed!
 ----------------------------------------------

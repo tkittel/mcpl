@@ -263,9 +263,8 @@ def main():
     cmd('--merge','mix.mcpl',f2v2,f2)
     cmd('-l0','mix.mcpl')
     #test that extraction & merges do not change bytes in transferred particles
-    #(using hidden --preventcomment flag):
-    cmd('-x','difficult_unitvector.mcpl','extracted_all','-l0','--preventcomment')
-    cmd('-x','difficult_unitvector.mcpl','extracted_none','-s999999999','--preventcomment')
+    cmd('-x','difficult_unitvector.mcpl','extracted_all','-l0','--no-comment')
+    cmd('-x','difficult_unitvector.mcpl','extracted_none','-s999999999','--no-comment')
     #comments describing the extraction (and --no-comment):
     cmd('-x','-l3','-s2','-e','pdgcode == neutron',fmiscnogz,'extracted_comment_1.mcpl')
     cmd('-x','-e','pdgcode == -11',fmiscnogz,'extracted_comment_2.mcpl')

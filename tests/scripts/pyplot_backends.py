@@ -80,24 +80,23 @@ def test_window_errors():
     print('\n'.join(err))
 
 def test_tool_backends():
-    #-w shows the histogram with matplotlib, and -t in the terminal, and -o
-    #saves it (as .png, .pdf, or .svg with -w and .txt with -t):
+    #-H shows the histogram with matplotlib, and with -t in the terminal, and
+    #-o saves it (as .png, .pdf, or .svg, or with -t as .txt):
     h = 'ekin/MeV;bins=3;display_by=single'
     for args, env in ( ( ['-t'], {} ), ( ['-t','-o','tool1.txt'], {} ),
-                       ( ['-w','-o','tool2.svg'], {} ), ( ['-w','-o','tool3.txt'], {} ),
+                       ( ['-o','tool2.svg'], {} ), ( ['-o','tool3.txt'], {} ),
                        ( ['-t','-o','tool4.svg'], {} ),
                        #(matplotlib can not show the plot without a display):
-                       ( ['-w'], { 'MPLBACKEND' : 'agg' } ) ):
+                       ( [], { 'MPLBACKEND' : 'agg' } ) ):
         sys.stdout.flush()
         #(with UTF-8 output, also on Windows, so the plots in the terminal are
         #drawn with the unicode backend):
         #(with the errors, from standard error, in the output):
-        rv = subprocess.run([sys.executable, '-m', 'mcpldev', args[0], '-H', h,
-                             *args[1:], str(example_file)],
+        rv = subprocess.run([sys.executable, '-m', 'mcpldev', '-H', h, *args, str(example_file)],
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                             encoding='utf-8', check=False,
                             env=dict(os.environ, PYTHONIOENCODING='utf-8', **env))
-        print(f'==> mcpltool {args[0]} -H {h} {" ".join(args[1:])}'
+        print(f'==> mcpltool -H {h} {" ".join(args)}'
               f'{" with "+str(env) if env else ""}: exit code {rv.returncode}')
         for line in rv.stdout.splitlines()[:4]:
             print(f'   | {line}')

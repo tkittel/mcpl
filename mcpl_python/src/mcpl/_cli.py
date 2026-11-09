@@ -204,18 +204,18 @@ _flag_opts = { '--stats' : '-S', '--extract' : '-x', '--merge' : '-m',
                '--nohead' : '-n', '--version' : '-v',
                '--help' : '-h', '--forcemerge' : None, '--inplace' : None,
                '--keepuserflags' : None, '--text' : None,
-               '--no-comment' : None, '--preventcomment' : None,
+               '--no-comment' : None,
                '--keep-statsum' : None, '--full-help' : None,
                '--allow-overwrite' : None,
                '--hist-help' : None, '--traceback' : None,
-               '--window' : '-w', '--terminal' : '-t' }
+               '--terminal' : '-t' }
 #Options which take a value, by long name (with short name, if any):
 _value_opts = { '--edit' : '-e', '--hist' : '-H', '--output' : '-o',
                 '--color' : None, '--code' : None }
 #Options of earlier versions, which are removed:
 _removed_opts = {
-    '--pdf' : 'a similar option now is: -H HIST -o FILE.pdf',
-    '--gui' : 'use -w instead',
+    '--pdf' : 'use -H HIST -o FILE.pdf',
+    '--gui' : 'use -H HIST',
 }
 
 #The options -e (--extract) and -pPDGCODE of earlier versions:
@@ -231,10 +231,8 @@ def _parser():
 
     class Parser(argparse.ArgumentParser):
         def error( self, message ):
-            #(as by newer Pythons also with older ones, which report a flag
-            #followed by more characters, like -vy, as "argument -v/--version:
-            #ignored explicit argument 'y'"):
-            import re
+            #(older Pythons report -vy as "argument -v/--version: ignored
+            #explicit argument 'y'", reported as newer Pythons do):
             m = re.fullmatch(r"argument \S+: ignored explicit argument '(.*)'",message)
             if message == 'argument -e/--edit: expected one argument':
                 _bad(_old_extract)
@@ -280,7 +278,6 @@ def _parse_args( args ):
 def _app_mcpltool(progname,args):
     if not args:
         _bad("no input file specified")
-    bad = _bad
     opts, filelist = _parse_args(args)
 
     #(--create-examples can only be combined with --dry-run):
@@ -289,13 +286,13 @@ def _app_mcpltool(progname,args):
         others = [ n for n, v in opts.items() if v not in ( None, False )
                    and n not in ( '--dry-run', '--traceback', '--allow-overwrite' ) ]
         if others or filelist:
-            bad("--create-examples can only be combined with --dry-run and"
+            _bad("--create-examples can only be combined with --dry-run and"
                 " --allow-overwrite")
         n = None
         if opt_examples:
             n = _parse_count(opt_examples)
             if not n:
-                bad("--create-examples=N requires a positive integer N")
+                _bad("--create-examples=N requires a positive integer N")
         from ._examples import create_examples
         dry_run = opts['--dry-run']
         create_examples( n, dry_run = dry_run, allow_overwrite = opts['--allow-overwrite'] )
@@ -305,7 +302,7 @@ def _app_mcpltool(progname,args):
     #The options as flags (set of long names), values (dict by long name), -l,
     #-s, and -b:
     if opts['-p'] is not None:
-        bad(_old_pick(opts['-p']))
+        _bad(_old_pick(opts['-p']))
     flags = { n for n in _flag_opts if opts[n] }
     values = { n : opts[n] for n in _value_opts if opts[n] is not None }
     opt_limit, opt_skip, opt_blobkey = opts['-l'], opts['-s'], opts['-b']
@@ -327,13 +324,11 @@ def _app_mcpltool(progname,args):
                           '--forcemerge','--repair','--text','--version')
               if m in flags ]
     modenames = { 'dump' : 'when showing particles', '--stats' : '-S',
-                  '--window' : '-w', '--terminal' : '-t', '--extract' : '-x',
+                  '--window' : '-H', '--terminal' : '-t', '--extract' : '-x',
                   '--merge' : '-m', '--forcemerge' : '--forcemerge', '--repair' : '-r',
                   '--text' : '--text', '--version' : '-v' }
-    if '--hist' in values and not opts['--window']:
-        modenames['--window'] = '-H'#(the window of a histogram, without -w)
     if len(modes) > 1:
-        bad(f"{modenames[modes[0]]} and {modenames[modes[1]]} can not be used"
+        _bad(f"{modenames[modes[0]]} and {modenames[modes[1]]} can not be used"
             " together")
     mode = modes[0] if modes else 'dump'
     def allowed(optname, okmodes, given, hint = '', msg = None):
@@ -347,7 +342,7 @@ def _app_mcpltool(progname,args):
                                 if len(others) > 1 else others[0] )
             if 'dump' in okmodes:
                 w = modenames['dump'] + ( f', or {w}' if w else '' )
-            bad(msg or f"{optname} can only be used {w}{hint}")
+            _bad(msg or f"{optname} can only be used {w}{hint}")
     datamodes = ('dump','--stats','--window','--terminal','--extract')
     histmodes = ('--window','--terminal')
     allowed('-l',datamodes,opt_limit is not None)
@@ -359,56 +354,57 @@ def _app_mcpltool(progname,args):
     stats_hint = ' (-S only prints text, for plots use -H)' if mode == '--stats' else ''
     allowed('-H',histmodes,'--hist' in values)
     if '--output' in values and '--hist' not in values:
-        bad("-o can only be used with a histogram (-H HIST)" + stats_hint)
+        _bad("-o can only be used with a histogram (-H HIST)" + stats_hint)
     allowed('--color',('--terminal',),'--color' in values)
     if values.get('--color',"auto") not in ('auto','always','never'):
-        bad("--color must be auto, always, or never")
+        _bad("--color must be auto, always, or never")
     if '--color' in values and '--output' in values:
-        bad("--color can not be used with -o (plots are saved without colours)")
-    allowed('--no-comment',('--extract',),bool(flags & {'--no-comment','--preventcomment'}))
+        _bad("--color can not be used with -o (plots are saved without colours)")
+    opt_nocomment = '--no-comment' in flags
+    allowed('--no-comment',('--extract',),opt_nocomment)
     allowed('--keep-statsum',('--extract',),'--keep-statsum' in flags)
     allowed('--code',('--extract',),'--code' in values)
     if values.get('--code','c') not in ('c','cpp'):
-        bad("--code must be c or cpp")
+        _bad("--code must be c or cpp")
     if '--code' in values:
         others = [ o for o, given in ( ( '-d', '--dry-run' in flags ),
                                        ( '--allow-overwrite', '--allow-overwrite' in flags ) )
                    if given ]
         if others:
-            bad(f"--code can not be used with {others[0]} (it writes no files)")
+            _bad(f"--code can not be used with {others[0]} (it writes no files)")
     allowed('--inplace',('--merge',),'--inplace' in flags)
     allowed('--keepuserflags',('--forcemerge',),'--keepuserflags' in flags)
     opt_allow_overwrite = '--allow-overwrite' in flags
     if opt_allow_overwrite and ( '--inplace' in flags or mode not in
                                  ('--merge','--forcemerge','--extract','--text')
                                  and not ( mode in histmodes and '--output' in values ) ):
-        bad("--allow-overwrite can only be used with --merge, --forcemerge,"
-            " --extract, --text, or -o")
-    #(-w and -t only choose where a histogram of -H is shown):
+        _bad("--allow-overwrite can only be used with -m (not with --inplace),"
+            " --forcemerge, -x, --text, or -o")
+    #(-t only chooses where a histogram of -H is shown):
     hist = values.get('--hist')
     if mode in histmodes and hist is None:
-        bad(f"{modenames[mode]} is used with -H HIST (see --hist-help)")
+        _bad(f"{modenames[mode]} requires -H HIST (to write particles as text, use --text)")
     if hist is not None:
         ext = os.path.splitext(values.get('--output',''))[1].lower()
         if mode == '--window' and ext == '.txt':
-            bad('histograms are saved as .txt files with -t (as in -t -H HIST -o FILE.txt)')
+            _bad('histograms are saved as .txt files with -t (as in -t -H HIST -o FILE.txt)')
         if mode == '--terminal' and ext not in ( '', '.txt' ):
-            bad('-t saves histograms as .txt files (without -t, as .png, .pdf, or .svg files)')
+            _bad('-t saves histograms as .txt files (without -t, as .png, .pdf, or .svg files)')
     opt_dryrun = '--dry-run' in flags
     if opt_dryrun and '--output' in values:
-        bad("-d can not be used with -o (which saves plots in files)")
+        _bad("-d can not be used with -o (which saves plots in files)")
 
     #-e, which is checked here to give errors before reading files:
     edit = None
     if '--edit' in values:
         v = values['--edit'].strip()
         if v.endswith(('.mcpl','.gz')) or os.path.exists(v):
-            bad(_old_extract)
+            _bad(_old_extract)
         from ._expressions import ParticleEdit
         try:
             edit = ParticleEdit(values['--edit'])
         except MCPLError as e:
-            bad(str(e),'--edit')
+            _bad(str(e),'--edit')
     #(and the histogram, with the same checks as when it is made):
     if hist is not None:
         from ._histfill import _filler_for
@@ -416,17 +412,17 @@ def _app_mcpltool(progname,args):
         try:
             _filler_for(_parse_hist(hist))
         except MCPLError as e:
-            bad(str(e),'--hist')
+            _bad(str(e),'--hist')
 
     if mode == '--version':
         if filelist:
-            bad(f"unrecognized arguments: {' '.join(filelist)}")
+            _bad(f"unrecognized arguments: {' '.join(filelist)}")
         print(f"MCPL version {_determine_version()}")
         sys.exit(0)
 
     if mode in ('--merge','--forcemerge'):
         _mcpltool_merge(filelist,mode == '--forcemerge','--inplace' in flags,
-                        '--keepuserflags' in flags,opt_dryrun,bad,
+                        '--keepuserflags' in flags,opt_dryrun,
                         allow_overwrite = opt_allow_overwrite)
         _mcpltool_dryrun_note(opt_dryrun)
         sys.exit(0)
@@ -434,9 +430,8 @@ def _app_mcpltool(progname,args):
     if mode == '--extract' and '--code' in values:
         from ._extract import _mcpltool_code
         _check_inputs(filelist[:1])
-        _mcpltool_code(filelist,values['--code'],opt_limit,opt_skip,edit,
-                       bool(flags & {'--no-comment','--preventcomment'}),
-                       '--keep-statsum' in flags,bad)
+        _mcpltool_code(filelist,values['--code'],opt_limit,opt_skip,edit,opt_nocomment,
+                       '--keep-statsum' in flags,_bad)
         sys.exit(0)
 
     if mode == '--extract':
@@ -446,9 +441,8 @@ def _app_mcpltool(progname,args):
         if len(filelist) != 2:
             _bad("must specify both input and output files with -x")
         _check_inputs(filelist[:1])
-        _mcpltool_extract(filelist,opt_limit,opt_skip,edit,
-                          bool(flags & {'--no-comment','--preventcomment'}),
-                          '--keep-statsum' in flags,opt_dryrun,bad,
+        _mcpltool_extract(filelist,opt_limit,opt_skip,edit,opt_nocomment,
+                          '--keep-statsum' in flags,opt_dryrun,_bad,
                           allow_overwrite = opt_allow_overwrite)
         _mcpltool_dryrun_note(opt_dryrun)
         sys.exit(0)
@@ -461,16 +455,16 @@ def _app_mcpltool(progname,args):
             _bad("the histogram option print can not be used together with -o or --color")
         _check_inputs(filelist)
         mcpltool_hist(filelist,hist,opt_skip,opt_limit,edit,
-                      values.get('--output'),mode == '--terminal',bad,
+                      values.get('--output'),mode == '--terminal',
                       color=values.get('--color'),
                       allow_overwrite=opt_allow_overwrite)
         sys.exit(0)
 
     if mode == '--text':
         if len(filelist)>2:
-            bad("too many arguments")
+            _bad("too many arguments")
         if len(filelist)!=2:
-            bad("must specify both input and output files with --text")
+            _bad("must specify both input and output files with --text")
         _check_inputs(filelist[:1])
         #(the output file must not be the input file, or exist unless allowed):
         try:
@@ -491,9 +485,7 @@ def _app_mcpltool(progname,args):
         try:
             fout = open(filelist[1],'w')  # noqa: SIM115
         except OSError:
-            fout = None
-        if not fout:
-            raise MCPLError(f'{filelist[1]}: can not open the file for writing')
+            raise MCPLError(f'{filelist[1]}: can not open the file for writing') from None
         try:
             convert2ascii(filelist[0],fout)
         finally:
@@ -502,9 +494,9 @@ def _app_mcpltool(progname,args):
 
     #Dump, stats, or repair:
     if len(filelist)>1:
-        bad("too many arguments")
+        _bad("too many arguments")
     if not filelist:
-        bad("no input file specified")
+        _bad("no input file specified")
     _check_inputs(filelist)
 
     if mode == '--repair':
@@ -523,7 +515,7 @@ def _app_mcpltool(progname,args):
     if opt_blobkey:
         if ( opt_justhead or opt_nohead or opt_limit is not None
              or opt_skip is not None or edit is not None ):
-            bad("do not specify other dump options with -b")
+            _bad("-b can not be combined with -j, -n, -l, -s, or -e")
         with MCPLFile(filelist[0]) as f:
             thedata = f.blobs.get(opt_blobkey,None)
             if thedata is None and 'blobs_raw' in f._hdr:
@@ -537,11 +529,11 @@ def _app_mcpltool(progname,args):
             _output_bytearray_raw(thedata)
             sys.exit(0)
     if (opt_limit is not None or opt_skip is not None) and opt_justhead:
-        bad("do not specify -l or -s with --justhead")
+        _bad("do not specify -l or -s with -j")
     if edit is not None and opt_justhead:
-        bad("do not specify -e with --justhead")
+        _bad("do not specify -e with -j")
     if opt_justhead and opt_nohead:
-        bad("do not specify both --justhead and --nohead")
+        _bad("do not specify both -j and -n")
     #(-l and -s give the range of particles in the file, before -e):
     from ._reader import _dump
     with MCPLFile(filelist[0],skip=opt_skip,limit=opt_limit,edit=edit) as f:
@@ -578,11 +570,10 @@ def _mcpltool_merge(filelist, opt_forcemerge, opt_inplace, opt_keepuserflags,
         for f in filelist[ifirst+1:]:
             merge_inplace(filelist[ifirst],f,dry_run=dry_run)
         return
-    from ._extract import _mcpltool_close, _tool_check_outfn
+    from ._extract import _mcpltool_close
+    from ._writer import _check_merge_output
     outfn = filelist[0]
-    err = _tool_check_outfn( outfn, filelist[1:], allow_overwrite )
-    if err:
-        raise MCPLError(err)
+    _check_merge_output(outfn,filelist[1:],allow_overwrite)
     if opt_forcemerge:
         out = forcemerge_files(outfn,filelist[1:],keep_userflags=opt_keepuserflags,
                                allow_overwrite=allow_overwrite,dry_run=dry_run)

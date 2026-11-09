@@ -347,7 +347,7 @@ mcpltool -t -H ekin/eV;lethargy=1;bins=5;print=1 -e pdgcode == neutron example.m
    | 435758.52 7705899.2 119.40181
    | 7705899.2 1.3627016e+08 20.886614
    | 1.3627016e+08 2.4097844e+09 5.2216536
-mcpltool --window --hist x/cm : y/cm;bins=4;print=1 -e pdgcode == gamma example.mcpl: exit code 0
+mcpltool --hist x/cm : y/cm;bins=4;print=1 -e pdgcode == gamma example.mcpl: exit code 0
    | # 2D histogram of: x/cm : y/cm
    | # edit: pdgcode==gamma
    | # values: weights per bin
@@ -686,10 +686,10 @@ mcpltool -e x > 0 -e x < 1cm example.mcpl: exit code 2
    | mcpltool: error: -e specified more than once
 mcpltool --pdf example.mcpl: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
-   | mcpltool: error: --pdf is no longer supported as an option (a similar option now is: -H HIST -o FILE.pdf)
+   | mcpltool: error: --pdf is not an option (use -H HIST -o FILE.pdf)
 mcpltool --gui example.mcpl: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
-   | mcpltool: error: --gui is no longer supported as an option (use -w instead)
+   | mcpltool: error: --gui is not an option (use -H HIST)
 mcpltool --select x > 0 example.mcpl: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
    | mcpltool: error: unrecognized arguments: --select
@@ -713,18 +713,9 @@ mcpltool --text example.mcpl hist.txt: exit code 1
 mcpltool -t example.mcpl: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
    | mcpltool: error: -t requires -H HIST (to write particles as text, use --text)
-mcpltool -w example.mcpl -o x.pdf: exit code 2
-   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
-   | mcpltool: error: -o can only be used with a histogram (-H HIST)
 mcpltool -t example.mcpl example.mcpl: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
    | mcpltool: error: -t requires -H HIST (to write particles as text, use --text)
-mcpltool -w example.mcpl x/cm: exit code 2
-   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
-   | mcpltool: error: -w is used with -H HIST (see --hist-help)
-mcpltool -wx/cm example.mcpl: exit code 2
-   | usage: mcpltool [options] FILE ...  (see mcpltool -h)
-   | mcpltool: error: unrecognized arguments: -/cm
 mcpltool -H x/cm example.mcpl: exit code 1
    | mcpltool: Plots can not be shown in a window here (is there no display?). Use -t to show the histogram in the terminal.
 mcpltool -B test example.mcpl: exit code 2

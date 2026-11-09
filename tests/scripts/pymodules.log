@@ -9,19 +9,19 @@ Modules of the mcpl package and their imports from the package (in parentheses: 
   _examples            <- _common, _messages, _numpy, (_writer)
   _expr_ast            <- -
   _expr_ast2astnorm    <- _expr_ast, _exprunits, _particles
-  _expr_ast2c          <- _common, _expr_ast, _expr_ast2str, _expr_vocab, _exprunits, _particles, (_expr_eval), (_expressions), (_userdata), (constants)
-  _expr_ast2cpp        <- _expr_ast2c, (_expressions), (_userdata)
+  _expr_ast2c          <- _common, _expr_ast, _expr_ast2str, _expr_vocab, _exprunits, _particles, (_expr_eval), (_userdata), (constants)
+  _expr_ast2cpp        <- _expr_ast2c, _expr_vocab, (_userdata)
   _expr_ast2str        <- _expr_ast
   _expr_astcheck       <- _common, _expr_ast, _expr_ast2str, _expr_vocab, _exprunits, _particles
   _expr_eval           <- _common, _expr_ast, _expr_ast2str, _expr_vocab, _exprrotation, _exprunits, _numpy, _particles, _physics, (_userdata)
   _expr_str2ast        <- _common, _expr_ast, _exprunits, _particles
   _expr_vocab          <- _expr_ast, _exprunits, _particles, _physics
-  _expressions         <- _blocks, _common, _expr_ast, _expr_ast2astnorm, _expr_ast2str, _expr_astcheck, _expr_eval, _expr_str2ast, _expr_vocab, _exprunits, _numpy
+  _expressions         <- _blocks, _common, _expr_ast, _expr_ast2astnorm, _expr_ast2str, _expr_astcheck, _expr_eval, _expr_str2ast, _expr_vocab, _exprunits, _numpy, (_expr_ast2c), (_expr_ast2cpp)
   _exprhelp            <- _particles, (_helptext)
   _exprplot            <- _common, _expr_eval, _expr_vocab, _expressions, _exprunits, _numpy
   _exprrotation        <- _numpy
   _exprunits           <- -
-  _extract             <- _common, _messages, _reader, _statsum, _writer, (_expr_ast2c), (_expr_ast2cpp)
+  _extract             <- _messages, _reader, _writer, (_expressions)
   _figures             <- -
   _fileops             <- _common, _messages, _reader, _statsum, _writer
   _helptext            <- -

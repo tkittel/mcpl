@@ -27,15 +27,14 @@
 # errors. The log freezes the generated code.
 
 from mcpldev._common import MCPLError
-from mcpldev._expr_ast2c import _expr_ast2c
-from mcpldev._expr_ast2cpp import _expr_ast2cpp
+from mcpldev._expressions import _edit_code
 
 
 def show( edit, layout = None, **options ):
-    for lang, fct in ( ( 'C', _expr_ast2c ), ( 'C++', _expr_ast2cpp ) ):
+    for lang, key in ( ( 'C', 'c' ), ( 'C++', 'cpp' ) ):
         print(f'===== {lang} for edit {edit!r}' + ( f', layout {layout!r}' if layout else '' )
               + ''.join( f', {k} {v!r}' for k, v in options.items() ))
-        print(fct(edit,layout,**options),end='')
+        print(_edit_code(key,edit,layout,**options),end='')
 
 def test_programs():
     show('pdgcode in (neutron,gamma) and userdata.id+1 > 100 and mod(userflags,4) == 0;'
@@ -69,7 +68,7 @@ def test_helpers():
             ( 'through_box((0,0,1m),(5cm,5cm,1mm))', None ),
             ( 'rotate_around((1,1,0),30deg); rotate_frame(dir,(0,0,1),pos,(1,0,0))', None ),
             ( 'userdata.temp > 300K', 'temp:float32:K' ) ):
-        code = _expr_ast2c(edit,layout)
+        code = _edit_code('c',edit,layout)
         helpers = [ line.split('(')[0].split()[-1] for line in code.splitlines()
                     if line.startswith('static ') ]
         print(f'Helpers for edit {edit!r}: {", ".join(helpers) or "none"}')
@@ -83,8 +82,8 @@ def test_widths():
                   ' (x+y+z)/cm*ux*uy*uz/(ekin/MeV+1)>hypot(x,y)/cm*sqrt(ekin/MeV)'
                   '+polx*poly*polz+time/ms' )
     comment = 'mcpltool: extracted particles with -e "' + long_edit + '"'
-    for lang, fct in ( ( 'C', _expr_ast2c ), ( 'C++', _expr_ast2cpp ) ):
-        lines = fct(long_edit,comment=comment).split('\n')
+    for lang, key in ( ( 'C', 'c' ), ( 'C++', 'cpp' ) ):
+        lines = _edit_code(key,long_edit,comment=comment).split('\n')
         print(f'{lang}: {len(lines)} lines, the longest {max(map(len,lines))} columns')
     show(long_edit,comment=comment)
 
@@ -96,7 +95,7 @@ def test_errors():
                           ( 'userdata.d.at(3) > 1', 'd:int32[3]' ),
                           ( 'mod(userdata.f,2) == 0', 'f:float32' ) ):
         try:
-            _expr_ast2c(edit,layout)
+            _edit_code('c',edit,layout)
             print(f'  {edit!r} with layout {layout!r}: no error')
         except MCPLError as e:
             print(f'  {edit!r} with layout {layout!r}: {e}')

@@ -375,6 +375,17 @@ def _quantity_functions( coords ):
         res[name] = fct
     return res
 
+def _edit_code( lang, edit, layout = None, **kwargs ):
+    """A C ('c') or C++ ('cpp') program doing what the edit (an edit
+    expression, a ParticleEdit, or None) does, for files with the userdata
+    layout (see _expr_ast2c for the keyword arguments)"""
+    edit = _as_edit(edit)
+    if lang == 'c':
+        from ._expr_ast2c import _expr_ast2c as generate
+    else:
+        from ._expr_ast2cpp import _expr_ast2cpp as generate
+    return generate(None if edit is None else edit._tree,layout,**kwargs)
+
 def _as_expression( cls, expr ):
     """The expression as an object of the class (ParticleEdit or
     ParticleValue) if it is a text, else as given (e.g. None)"""

@@ -48,6 +48,13 @@ class _EditedFile:
     def __getattr__(self,name):
         return getattr(self._f,name)
     @property
+    def stat_sum(self):
+        """The stat_sum of the file, with both edits"""
+        if self._edt is None:
+            return self._f.stat_sum
+        from ._expressions import ParticleEdit
+        return self._f._stat_sum_for(ParticleEdit(self.edit))
+    @property
     def particle_blocks(self):
         for b in self._f.particle_blocks:
             yield self._edt(b) if self._edt is not None else b

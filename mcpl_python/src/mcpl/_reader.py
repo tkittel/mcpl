@@ -93,16 +93,15 @@ class MCPLFile:
 
         With skip and limit, only the particles in a range of the file are
         used (before the edit): without the first skip particles of the file,
-        and at most limit particles (all if limit is None), like the -s and -l
-        options of mcpltool:
+        and at most limit particles (all if limit is None or 0):
 
            f = MCPLFile("in.mcpl", skip=1000, limit=500, edit="ekin > 1MeV")
 
         The particles kept are returned in blocks of about blocklength
-        particles (small blocks are merged). The nparticles attribute is still
-        the number of particles in the file, and the fileidx of the particles
-        their position in the file. Files opened with edit, skip, or limit do
-        not support skip_forward(). Edited particles can be passed to
+        particles (small blocks are merged), and the fileidx of the particles
+        is their position in the file. The nparticles and stat_sum properties
+        take the range and the edit into account. Files opened with edit,
+        skip, or limit do not support skip_forward(). Edited particles can be passed to
         MCPLOutFile.add_particles like any other particles, in which case
         their unchanged fields are transferred exactly.
         """
@@ -147,7 +146,7 @@ class MCPLFile:
         #load info from mcpl header:
         self._loadhdr()
         #Check if empty files are actually broken (like in mcpl.c):
-        if self.nparticles==0 and _recover:
+        if self._np==0 and _recover:
             if filename.endswith('.gz'):
                 #compressed - can only detect and raise error
                 try:
@@ -200,7 +199,7 @@ class MCPLFile:
             #Uncompressed files with particles must have exactly the size
             #given by their header (like in mcpl.c):
             size = int(os.stat(filename).st_size)
-            expected = self.headersize + self.nparticles * self.particlesize
+            expected = self.headersize + self._np * self.particlesize
             if size < expected:
                 raise MCPLError('Input file is truncated (it has fewer'
                                 ' particles than given in its header)')
@@ -223,7 +222,7 @@ class MCPLFile:
         self._ipos = 0
         self._blocklength = int(blocklength)
         self._iblock = 0
-        self._nblocks = self.nparticles // self._blocklength + (1 if self.nparticles%self._blocklength else 0)
+        self._nblocks = self._np // self._blocklength + (1 if self._np%self._blocklength else 0)
         #reuse same block object for whole file (to reuse fixed columns and internal caches)
         self._currentblock = MCPLParticleBlock(self.opt_polarisation,self.opt_userflags,
                                                self.opt_universalweight,self.opt_universalpdgcode,self.version,
@@ -368,7 +367,7 @@ class MCPLFile:
     def _edited_blocks(self):
         """Blocks of the edited particles (in the range of skip and limit),
         merging small blocks"""
-        start, end = _particle_range(self.nparticles,self._skip,self._limit)
+        start, end = _particle_range(self._np,self._skip,self._limit)
         #(the blocks before the range are not read):
         first = start // self._blocklength
         if first and self._iblock == 0:
@@ -396,7 +395,7 @@ class MCPLFile:
         #read next block:
         to_read = self._blocklength
         if self._iblock+1==self._nblocks and self._np%self._blocklength:
-            to_read = self.nparticles%self._blocklength#last block is shorter
+            to_read = self._np%self._blocklength#last block is shorter
         x = self._fileread(dtype=self._pdt,count=to_read)
         if len(x)!=to_read:
             raise MCPLError('Errors encountered while attempting to read particle data.')
@@ -494,7 +493,7 @@ class MCPLFile:
             self._ipos = inew
             return True
         if inew >= self._np:
-            self._ipos = self.nparticles
+            self._ipos = self._np
             self._iblock = self._nblocks
             return False#EOF
         #skip to a given block:
@@ -553,8 +552,17 @@ class MCPLFile:
         return self._hdr['version']
     @property
     def nparticles(self):
-        """Number of particles in file"""
-        return self._hdr['nparticles']
+        """Number of particles in the file, or in its range when opened with
+        skip or limit. None when opened with an edit which can filter out
+        particles (see ParticleEdit.has_filters)."""
+        if self._edt is not None and self._edt.has_filters:
+            return None
+        first, end = _particle_range(self._np,self._skip,self._limit)
+        return end - first
+    @property
+    def _nparticles_raw(self):
+        """Number of particles in the file"""
+        return self._np
     @property
     def particlesize(self):
         """Uncompressed per-particle storage size in file [bytes]"""
@@ -622,8 +630,24 @@ class MCPLFile:
     def stat_sum(self):
         """Access "stat:sum:..." data from file comments as a convenient
         key->value dictionary. Note that any key present with a value of -1 in
-        the file will get the value None here in the Python interface.
-        """
+        the file will get the value None here in the Python interface. When
+        opened with skip, limit, or edit, the values are those a file with the
+        particles read would get: None if they do not hold for them (with
+        skip or limit, or an edit which filters on fileidx or changes
+        weights)."""
+        return self._stat_sum_for(self._edt)
+    def _stat_sum_for(self,edit):
+        """The stat_sum of the particles in the range of skip and limit, with
+        the edit (a ParticleEdit, or None)"""
+        from ._statsum import _statsum_marking
+        d = self._stat_sum_raw
+        if _statsum_marking(d,self._np,self._skip,self._limit,edit) is None:
+            return d
+        from types import MappingProxyType
+        return MappingProxyType(dict.fromkeys(d))
+    @property
+    def _stat_sum_raw(self):
+        """The stat:sum entries in the file (see stat_sum)"""
         h = self._hdr
         d = h.get('stat_sum')
         if d is not None:
@@ -811,7 +835,7 @@ class MCPLFile:
         if saw_any_statsum:
             #Trigger loading of stat:sum:'s already, to emit errors in case of
             #detected issues.
-            _ = self.stat_sum
+            _ = self._stat_sum_raw
         if saw_any_unsupportedstat:
             _warning("Opened file with unknown \"stat:...\" "
                      "syntax in comments. The present installation only has"
@@ -909,7 +933,7 @@ class MCPLFile:
         #3) loop and print
         fmt1 = "%5i %11i %11.5g %11.5g %11.5g %11.5g %11.5g %11.5g %11.5g %11.5g"
         fmt2 = " %11.5g %11.5g %11.5g"
-        for i in range(limit if limit!=0 else self.nparticles):
+        for i in range(self._np if limit is None else limit):
             p = next(particles,None)
             if p is None:
                 break

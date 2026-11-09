@@ -751,7 +751,48 @@ def test_properties():
         print(f'{edit!r}: filters {e.has_filters}, changes {e.has_changes}, weight changes'
               f' {e.has_weight_changes}, filters on fileidx {e.filters_on_fileidx}')
 
+def test_file_counts():
+    """nparticles and stat_sum of files opened with skip, limit, or edit"""
+    fn = test_data_dir.joinpath('ref','ref_statsum.mcpl.gz')
+    for kw in ( {}, { 'skip' : 1 }, { 'limit' : 2 }, { 'skip' : 1, 'limit' : 1000000 },
+                { 'edit' : 'ekin < 1MeV' }, { 'edit' : 'z += 1cm' }, { 'edit' : 'weight *= 2' },
+                { 'edit' : 'mod(fileidx,2) == 0' }, { 'limit' : 0 },
+                { 'skip' : 1000 } ):
+        with mcpl.MCPLFile(fn,**kw) as f:
+            n = sum( len(b) for b in f.particle_blocks )
+            print(f'{kw}: nparticles {f.nparticles}, read {n}, stat_sum {dict(f.stat_sum)}')
+    for edit in ( 'weight *= 2', 'ekin < 1MeV' ):
+        s = mcpl.collect_stats(fn,edit = edit)
+        print(f'collect_stats with {edit!r}: stat_sum {s["file"]["stat_sum"]}')
+    with mcpl.MCPLFile(fn,edit = 'x = fileidx*1cm') as f:
+        s = mcpl.collect_stats(f,edit = 'x > 5cm')
+        print(f'collect_stats with both edits: stat_sum {s["file"]["stat_sum"]}')
+
+def test_rotation_overflow():
+    """Rotations giving infinite values are errors (as in the generated C
+    code)"""
+    fn = test_data_dir.joinpath('ref','ref_statsum.mcpl.gz')
+    for edit in ( 'x = 1.7e308cm; y = 1.7e308cm; rotate_z(45deg)',
+                  'x = 1.7e308cm; y = 1.7e308cm; rotate_around((0,0,1),45deg)' ):
+        try:
+            with mcpl.MCPLFile(fn,edit=edit) as f:
+                f.read_block()
+        except mcpl.MCPLError as e:
+            print(f'{edit!r}: {e}')
+
+def test_unknown_units():
+    """Messages about userdata fields checked without a file (whose units
+    are not known)"""
+    for expr in ( '(userdata.a,0,0) == 1', ):
+        try:
+            mcpl.ParticleValue(expr)
+        except mcpl.MCPLError as e:
+            print(f'{expr!r}: {e}')
+
 if __name__ == '__main__':
+    test_rotation_overflow()
+    test_unknown_units()
+    test_file_counts()
     test_properties()
     test_integers()
     test_variables_in_conditions()

@@ -46,7 +46,11 @@ def convert2ascii(mcplfile,outfile,*,allow_overwrite=False):
 
     fout = outfile
     fin = mcplfile
-    fout.write(f"#MCPL-ASCII\n#ASCII-FORMAT: v1\n#NPARTICLES: {fin.nparticles}\n")
+    n = fin.nparticles
+    if n is None:
+        #(an edit filters out particles, so they must be counted first):
+        n = sum( len(b) for b in fin.particle_blocks )
+    fout.write(f"#MCPL-ASCII\n#ASCII-FORMAT: v1\n#NPARTICLES: {n}\n")
     #Userdata is not included in the output, which is noted in the header:
     if fin.userdata_size:
         fout.write("#WARNING: The userdata of the particles in the MCPL file is"

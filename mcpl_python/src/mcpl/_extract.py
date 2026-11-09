@@ -26,6 +26,7 @@ __all__ = []
 
 from ._messages import _info, _warning
 from ._reader import MCPLFile, _blocks_in_range, _particle_range
+from ._statsum import _statsum_marking
 from ._writer import MCPLOutFile
 
 
@@ -52,22 +53,6 @@ def _range_options( skip, limit, edit ):
     if edit is not None:
         opts += [ '-e', _option_arg(edit) ]
     return opts
-
-def _statsum_marking( f, skip, limit, edit, keepstatsum = False ):
-    """Why the stat:sum entries of the file f are marked as not available (-1)
-    in a file with its particles in a range (skip and limit), edited (with a
-    ParticleEdit, or None): 'positions' when keeping particles based on their
-    positions in the file, 'weights' when editing their weights (unless
-    keepstatsum), or None (see the guidelines for stat:sum entries)"""
-    if not any( v is not None for v in f.stat_sum.values() ):
-        return None
-    n = f.nparticles
-    if n > 0 and ( ( skip or 0 ) > 0 or 0 < ( limit or 0 ) < n
-                   or ( edit is not None and edit.filters_on_fileidx ) ):
-        return 'positions'
-    if not keepstatsum and edit is not None and edit.has_weight_changes:
-        return 'weights'
-    return None
 
 def _mcpltool_close(outfile):
     """Close the output of --merge, --forcemerge, or --extract, returning its
@@ -98,7 +83,7 @@ def _mcpltool_code(filelist, lang, limit, skip, edit, preventcomment, keepstatsu
     skip, limit = skip or 0, limit or 0
     with MCPLFile(filelist[0]) as f:
         layout = f.userdata_layout
-        marking = _statsum_marking(f,skip,limit,edit,keepstatsum)
+        marking = _statsum_marking(f.stat_sum,f._nparticles_raw,skip,limit,edit,keepstatsum)
     if lang == 'c':
         from ._expr_ast2c import _expr_ast2c as generate
     else:
@@ -133,7 +118,7 @@ def _mcpltool_extract(filelist, limit, skip, edit, preventcomment,
             n_in = fi.nparticles
             if not preventcomment:
                 fo.hdr_add_comment(_extraction_comment(skip,limit,edit))
-            marking = _statsum_marking(fi,skip,limit,edit,keepstatsum)
+            marking = _statsum_marking(fi.stat_sum,fi._nparticles_raw,skip,limit,edit,keepstatsum)
             if marking == 'positions':
                 _warning("Marking stat:sum entries in output file as "
                          "not available (-1) when filtering based on particle "

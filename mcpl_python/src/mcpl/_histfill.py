@@ -40,6 +40,7 @@ from ._histstring import (
     _as_range,
     _auto_logx,
     _check_range,
+    _default_maxpoints,
     _display_by,
 )
 from ._numpy import np
@@ -278,6 +279,7 @@ class _PointSet3DData(_HistData):
         self.expressions, self.units = list(expressions), list(units)
         self.notes = [ None ] * 3
         self.nparticles = nparticles#(of which the points were chosen)
+        self.equal = False#(the same scale on all axes)
         self.groups = {}
         self.colors = {}#(label -> colour index, see _figures.StepHist)
 
@@ -475,9 +477,9 @@ def _filler_for( o, labels = ( None, ), _maxbins = None ):
     by_file = len(labels) > 1 and o['display_by'] is None and len(o['exprs']) == 1
     display_by = None if by_file else _display_by(o)
     if len(o['exprs']) == 3:
-        return _PointSet3DFiller(o['exprs'],points = o['points'],
+        return _PointSet3DFiller(o['exprs'],maxpoints = o['maxpoints'],
                                  unweighted = o['unweighted'],display_by = display_by,
-                                 display_edit = o['display_edit'])
+                                 equal = o['equal'],display_edit = o['display_edit'])
     if len(o['exprs']) == 2:
         return _Hist2DFiller(o['exprs'][0],o['exprs'][1],bins = bins,
                              xrange = o['xrange'],yrange = o['yrange'],
@@ -858,14 +860,30 @@ class _PointSet3DFiller(_Filler):
     according to weights (the method of Efraimidis and Spirakis: those with the
     largest u^(1/w), with u from the positions of the particles in the file, see
     _index_random), which needs no ranges"""
-    def __init__( self, expressions, points = None, unweighted = False,
-                  display_by = None, max_curves = 8, display_edit = None ):
+    def __init__( self, expressions, maxpoints = None, unweighted = False,
+                  display_by = None, max_curves = 8, equal = False, display_edit = None ):
         super().__init__(list(expressions),unweighted,( None, ),display_edit)
-        self._npoints = points or 5000
+        self._npoints = maxpoints or _default_maxpoints
+        self._equal = equal
+        if equal:
+            #(checked when the units are known, e.g. of userdata, see _values):
+            if _dim_unknown in ( v.dim for v in self._vals ):
+                self._unchecked.append(self._check_equal)
+            else:
+                self._check_equal()
         self._dby = _DisplayByValue(display_by) if display_by is not None else None
         self._max_curves = max_curves
         self._keys, self._pts, self._sv = np.zeros(0), np.zeros((0,3)), np.zeros(0)
         self._n = 0
+
+    def _check_equal( self ):
+        a, b, c = self._vals
+        if not ( a.dim == b.dim == c.dim ):
+            raise MCPLError('Equal scales of the axes (the histogram option "equal")'
+                            ' need expressions with the same units, not'
+                            f' {_dimstr(a.dim)}, {_dimstr(b.dim)}, and {_dimstr(c.dim)}'
+                            f' (of {a.expression_original}, {b.expression_original},'
+                            f' and {c.expression_original})')
 
     def _add( self, flabel, b ):
         vals, w, defined = self._values(b)
@@ -888,12 +906,15 @@ class _PointSet3DFiller(_Filler):
         pts, dby = self._pts, self._dby
         units = []
         for i, v in enumerate(self._vals):
-            lo, hi = ( pts[:,i].min(), pts[:,i].max() ) if len(pts) else ( 0.0, 1.0 )
+            #(with equal scales, the same unit for all axes, from all values):
+            col = pts if self._equal else pts[:,i]
+            lo, hi = ( col.min(), col.max() ) if len(pts) else ( 0.0, 1.0 )
             units.append(_plot_unit(v.dim,lo,hi,False,v.wavelength))
         res = _PointSet3DData([ v.expression for v in self._vals ],weighted = self._weighted,
                        title = self._title,units = [ u for u, _ in units ],
                        nparticles = self._n)
         res.notes = [ n.note() for n in self._notes ]
+        res.equal = self._equal
         res._points = pts#(all points, in the units of the values, see _histogram)
         scaled = pts / np.array([ s for _, s in units ]) if len(pts) else pts
         if dby is None:

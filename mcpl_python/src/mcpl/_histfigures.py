@@ -82,7 +82,7 @@ def _hist2d_panel( h ):
 def _points3d_panel( h ):
     x, y, z = h.labels
     p = Panel( title = '\n'.join( t for t in ( h.title, points_note(h) ) if t ),
-               xlabel = x, ylabel = y, zlabel = z )
+               xlabel = x, ylabel = y, zlabel = z, aspect = 1 if h.equal else None )
     for i, ( label, pts ) in enumerate(h.groups.items()):
         p.add(Scatter3D(pts[:,0],pts[:,1],pts[:,2],label = h._plot_label(label),
                         color = h.colors.get(label,i)))
@@ -93,7 +93,7 @@ def points_note( h ):
     particles, or which of them"""
     n = sum( len(p) for p in h.groups.values() )
     if n >= h.nparticles:
-        return f'all {h.nparticles:,} particles'
+        return f'all {h.nparticles:,} particles shown'
     how = 'according to weights' if h.weighted else 'all equally likely'
     return f'{n:,} of {h.nparticles:,} particles, randomly sampled {how}'
 

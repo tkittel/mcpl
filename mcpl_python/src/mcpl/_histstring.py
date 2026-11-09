@@ -42,7 +42,7 @@ _hist_options = { 'bins' : 'bins', 'range' : 'range', 'xrange' : 'range',
                   'yrange' : 'range', 'logx' : 'auto', 'logy' : 'auto', 'logz' : 'bool',
                   'lethargy' : 'bool', 'display_by' : 'expr',
                   'bar' : 'count', 'unweighted' : 'bool', 'print' : 'bool',
-                  'points' : 'count', 'equal' : 'bool', 'display_edit' : 'edit' }
+                  'maxpoints' : 'maxpoints', 'equal' : 'bool', 'display_edit' : 'edit' }
 #The values of the options given without a value (as "logy" or "bar"):
 _hist_implied = { 'logx' : '1', 'logy' : '1', 'logz' : '1', 'lethargy' : '1', 'unweighted' : '1',
                   'print' : '1', 'bar' : 'auto', 'equal' : '1' }
@@ -75,17 +75,21 @@ def _hist_count( name, value, text ):
     raise MCPLError(f'Histogram option "{name}" must be a number of at least 2 or auto{off}'
                     f' (not "{value}"), in "{text}"')
 
+#The largest number of points of 3D plots, unless given:
+_default_maxpoints = 5000
+
 def _hist_defaults( exprs ):
     """The options of a histogram of the expressions (one, two for 2D
     histograms, or three for 3D plots) when none are given"""
     return { 'exprs' : list(exprs), 'bins' : None, 'range' : None, 'xrange' : None,
              'yrange' : None, 'logx' : False, 'logy' : None, 'logz' : None, 'lethargy' : False,
-             'display_by' : None, 'unweighted' : False, 'print' : False,
-             'bar' : False, 'points' : None, 'equal' : False, 'display_edit' : None }
+             'display_by' : None, 'unweighted' : False, 'print' : False, 'bar' : False,
+             'maxpoints' : _default_maxpoints if len(exprs) == 3 else None,
+             'equal' : False, 'display_edit' : None }
 
 def _parse_hist( text ):
     """Parse a histogram string: an expression (or two separated by ":" for 2D
-    histograms, or three for 3D plots of randomly sampled particles), followed
+    histograms, or three for 3D plots of particles), followed
     by options NAME=VALUE separated by ";", like
     "ekin/MeV;logx;bins=50" or "x/cm : y/cm;xrange=-10:10". Returns a
     dict with the expressions (a list of one, two, or three), and the options (with
@@ -121,6 +125,11 @@ def _parse_hist( text ):
             v = _hist_count(name,value,text)
             #(bar=auto is given as True):
             res[name] = True if ( name == 'bar' and v is None ) else v
+        elif kind == 'maxpoints':
+            if not ( value.isdigit() and int(value) >= 1 ):
+                raise MCPLError(f'Histogram option "maxpoints" must be a positive integer'
+                                f' (not "{value}"), in "{text}"')
+            res['maxpoints'] = int(value)
         elif name == 'bins':
             nb = [ e.strip() for e in value.split(',') ]
             if ( len(nb) > len(exprs) or not all( e.isdigit() and int(e) > 0
@@ -143,7 +152,8 @@ def _canonical_hist( text ):
     """The canonical form of a histogram string: the same for all ways of
     writing it which are recognised as the same. Its expressions are in their
     canonical forms (see ParticleEdit.expression), and only the options
-    which do not have their default values are given, in the order of
+    which do not have their default values, or the values used by default,
+    are given (and always maxpoints for 3D plots), in the order of
     _hist_options, and each in one way (as logx for logx=1, and single for
     display_by=1). Raises MCPLError for invalid histogram strings."""
     from ._expressions import ParticleEdit, ParticleValue, _Expr
@@ -156,7 +166,7 @@ def _canonical_hist( text ):
         return None if v is None else ParticleValue(v).expression
     for name, kind in _hist_options.items():
         v = o[name]
-        if v == defaults[name]:
+        if v == defaults[name] and not ( name == 'maxpoints' and v ):
             continue
         #(display_by is left out if it gives the same curves as without it):
         if name == 'display_by' and used_display_by(o) == used_display_by({ **o, name : None }):
@@ -233,37 +243,33 @@ def _auto_logx( lo, hi ):
     if they are positive and span more than two decades"""
     return bool( lo > 0 and hi > 100 * lo )
 
-def _check_hist_options( o, text ):
-    """Check that the options o (see _parse_hist) of the histogram text can be
-    used together"""
-    if len(o['exprs']) == 2:
-        for name in ('lethargy','display_by','bar'):
-            if o[name] and o[name] not in _single:
-                raise MCPLError(f'Histogram option "{name}" can not be used'
-                                f' for 2D histograms, in "{text}"')
-        if o['equal'] and ( o['logx'] or o['logy'] ):
-            raise MCPLError('Histogram option "equal" (equal scales of the axes) can not'
-                            f' be used with logarithmic axes, in "{text}"')
-    if len(o['exprs']) == 3:
-        for name in ('logx','logy','lethargy','bar','bins'):
-            if o[name]:
-                raise MCPLError(f'Histogram option "{name}" can not be used'
-                                f' for 3D plots, in "{text}"')
-    elif o['points'] is not None:
-        raise MCPLError(f'Histogram option "points" can only be used for 3D plots'
-                        f' (of three expressions), in "{text}"')
-    if o['bar'] is not False:
-        for name in ('bins','range','logx','lethargy','display_by'):
-            if o[name] and o[name] not in _single:
-                hint = ' (logy=1 gives a logarithmic scale of the bars)' if name == 'logx' else ''
-                raise MCPLError(f'Histogram option "{name}" can not be used for bar'
-                                f' charts{hint}, in "{text}"')
-    if o['equal'] and len(o['exprs']) != 2:
-        raise MCPLError(f'Histogram option "equal" (equal scales of the axes) can only'
-                        f' be used for 2D histograms, in "{text}"')
-    if o['logz'] is not None and len(o['exprs']) != 2:
-        raise MCPLError(f'Histogram option "logz" (the colour scale) can only be used'
-                        f' for 2D histograms, in "{text}"')
+def _plot_kind( o ):
+    """The kind of plot of a histogram with the options o (see _parse_hist):
+    a key of _plot_kinds"""
+    n = len(o['exprs'])
+    return '3D' if n == 3 else '2D' if n == 2 else 'bars' if o['bar'] is not False else '1D'
+
+def _kinds_text( kinds ):
+    """The kinds of plots (keys of _plot_kinds) as text, e.g. "1D or 2D
+    histograms, or bar charts" """
+    names = [ _plot_kinds[k] for k in kinds if k != '2D' or '1D' not in kinds ]
+    if '1D' in kinds and '2D' in kinds:
+        names[0] = '1D or 2D histograms'
+    return _listed(names,'or')
+
+def _check_hist_options( o, given, text ):
+    """Check that the options o (see _parse_hist) of the histogram text, of
+    which those named in given were given, can be used together"""
+    kind = _plot_kind(o)
+    for name in _hist_options:
+        if name in given and kind not in _option_kinds[name]:
+            hint = _option_hints.get((name,kind))
+            kinds = _kinds_text(_option_kinds[name])
+            raise MCPLError(f'Histogram option "{name}" can only be used for {kinds}'
+                            + ( f' ({hint})' if hint else '' ) + f', in "{text}"')
+    if o['equal'] and True in ( o['logx'], o['logy'] ):
+        raise MCPLError('Histogram option "equal" (equal scales of the axes) can not'
+                        f' be used with logarithmic axes, in "{text}"')
 
 class _Range:
     """Range of an axis of a histogram: lo and hi in the units of MCPL, with

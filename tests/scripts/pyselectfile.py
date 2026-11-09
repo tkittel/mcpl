@@ -75,11 +75,11 @@ def test_read():
     mcpl.dump_file(ex, header=False, limit=3, edit='pdgcode == gamma; x = 0')
     with mcpl.MCPLFile(ex, edit='pdgcode == neutron; z += 1m; ekin < 1MeV') as f:
         mcpl.dump_stats(mcpl.collect_stats(f, bin_data=False))
-    #Conditions after changes see the changed values:
+    #Filter conditions after changes see the changed values:
     h = mcpl.MCPLFile(ex, edit='rotate_z(90deg); x > 0cm')
     kept = np.concatenate([ b.fileidx for b in h.particle_blocks ])
     ok = np.array_equal(kept, np.flatnonzero(-ref.y > 0))
-    print(f'condition after a rotation: {len(kept)} particles, as expected: {ok}')
+    print(f'filter after a rotation: {len(kept)} particles, as expected: {ok}')
     assert ok
 
 def test_write():
@@ -169,7 +169,7 @@ def test_range():
             ok = ok and np.array_equal(got, idx) and [ p.fileidx for p in f.particles ] == list(idx)
             ok = ok and np.allclose(np.concatenate([ b.z for b in f.particle_blocks ] or [[]]),
                                     ref.z[idx] + 100)
-        print(f'skip={skip} limit={limit} condition={cond!r}: {len(idx)} particles, as expected: {ok}')
+        print(f'skip={skip} limit={limit} filter={cond!r}: {len(idx)} particles, as expected: {ok}')
         assert ok
     for bad in ( {'skip':-1}, {'limit':2.5}, {'skip':True} ):
         try:

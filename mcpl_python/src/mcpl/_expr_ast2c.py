@@ -65,7 +65,9 @@ from ._expr_vocab import (
     _functions_toint,
     _int_bits,
     _int_constant_type,
-    _is_condition,
+    _int_field_types,
+    _int_range,
+    _is_filter,
     _is_square,
     _rotated_vectors,
     _rotation_planes,
@@ -788,7 +790,7 @@ _ud_sizes = { t : int(code[1:]) for t, code in _userdata_types.items() }
 class _Statements:
     """Translates the statements of edit expressions to C or C++ (with the
     translator tr), where set_field(name, code) sets a field (None if no
-    fields are changed), and conditions skip the particles for which they
+    fields are changed), and filter conditions skip the particles for which they
     are false"""
 
     def __init__( self, tr, set_field ):
@@ -799,7 +801,7 @@ class _Statements:
         for st in statements:
             if isinstance(st,Assign):
                 lines += self.assign(st)
-            elif _is_condition(st):
+            elif _is_filter(st):
                 lines += [ f'if ( !( {self.tr.condition(st)} ) )', '  continue;' ]
             elif st.name == 'swap':
                 lines += self.swap(*( a.id for a in st.args ))

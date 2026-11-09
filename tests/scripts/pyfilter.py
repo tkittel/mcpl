@@ -421,7 +421,7 @@ def test_vectors():
         assert abs(a[0]-np.arctan(eps)) <= 1e-15*eps
     a = mcpl.ParticleValue('angle((1,1e-9,0),(1,0,0))')(b)
     assert np.all( np.abs(a-1e-9) <= 1e-24 )
-    #Conditions and changes with vectors (and vector variables):
+    #Filter conditions and changes with vectors (and vector variables):
     for cond, ref in ( ('d = pos - (0,0,1m); abs(d) < 100.5cm', np.linalg.norm(pos-[0,0,100],axis=1) < 100.5),
                        ('angle(dir,(0,0,1)) < 30deg', np.degrees(np.arccos(np.clip(b.uz,-1,1))) < 30),
                        #(the line of flight, forwards and backwards, through a sphere):
@@ -431,7 +431,7 @@ def test_vectors():
                        #at overlapping distances; along a plane it must be between them):
                        ('through_box((1cm,-2cm,30cm),(4cm,3cm,2cm))', through_box_ref(pos,d)) ):
         assert np.array_equal(keeps(cond,b),ref), cond
-        print(f'condition {cond!r} as with numpy ({np.count_nonzero(ref)} of {len(ref)})')
+        print(f'filter {cond!r} as with numpy ({np.count_nonzero(ref)} of {len(ref)})')
     for edit, ref in ( ('pos += (0,0,1m)', {'x': b.x, 'y': b.y, 'z': b.z+100}),
                        ('pos += 50cm*dir', {'x': b.x+50*b.ux, 'y': b.y+50*b.uy, 'z': b.z+50*b.uz}),
                        ('x += 1cm; pos = pos/2', {'x': (b.x+1)/2, 'y': b.y/2, 'z': b.z/2}),
@@ -502,7 +502,7 @@ def test_canonical():
     for e in ( 'pdgcode==neutron and (ekin<1MeV)', 'not (x > 1cm) or y<0',
                '(x>0 or y>0) and z>0', 'ekin < 4cm^2*1MeV/cm^2' ):
         k = _expr_canonical(e)
-        print(f'condition {e!r}: {k!r}')
+        print(f'filter {e!r}: {k!r}')
         assert ( keeps(e,b) == keeps(k,b) ).all()
         assert _expr_canonical(k) == k
     for e in ( 'z += 1cm;weight *= 0.5', 'rotate_z(90deg) ; z+=10 cm' ):
@@ -632,9 +632,9 @@ def test_in_and_userdata():
     print('bar chart of userdata.nscat:', type(h).__name__)
     pathlib.Path(fn).unlink()
 
-def test_variables_in_conditions():
+def test_variables_in_filters():
     from mcpldev._expressions import _expr_canonical
-    #Variables can be assigned before conditions, giving the same as without
+    #Variables can be assigned before filter conditions, giving the same as without
     #them:
     with mcpl.MCPLFile(example_file) as f:
         b = f.read_block()
@@ -795,7 +795,7 @@ if __name__ == '__main__':
     test_file_counts()
     test_properties()
     test_integers()
-    test_variables_in_conditions()
+    test_variables_in_filters()
     test_help_examples()
     test_in_and_userdata()
     test_canonical()

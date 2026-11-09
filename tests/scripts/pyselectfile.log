@@ -38,13 +38,24 @@ pdgcode      :        2112 (n)                   466 (100.00%)
 userflags    :           0 (0x00000000)          466 (100.00%)
                      [ values ]             [ weighted counts ]
 ------------------------------------------------------------------------------
-condition after a rotation: 478 particles, as expected: True
-skip=5 limit=None condition=None: 1001 particles, as expected: True
-skip=0 limit=13 condition=None: 13 particles, as expected: True
-skip=250 limit=300 condition='pdgcode == neutron': 275 particles, as expected: True
-skip=999 limit=50 condition=None: 7 particles, as expected: True
-skip=2000 limit=None condition=None: 0 particles, as expected: True
-skip=10 limit=0 condition=None: 0 particles, as expected: True
+filter after a rotation: 478 particles, as expected: True
+skip=5 limit=None filter=None: 1001 particles, as expected: True
+skip=0 limit=13 filter=None: 13 particles, as expected: True
+skip=250 limit=300 filter='pdgcode == neutron': 275 particles, as expected: True
+skip=999 limit=50 filter=None: 7 particles, as expected: True
+skip=2000 limit=None filter=None: 0 particles, as expected: True
+skip=10 limit=0 filter=None: 996 particles, as expected: True
+dump_particles(limit=4,skip=0) of neutrons, blocks of 7: indices [3, 4, 5, 6], as expected: True
+dump_particles(limit=4,skip=3) of neutrons, blocks of 7: indices [6, 7, 8, 9], as expected: True
+dump_particles(limit=4,skip=7) of neutrons, blocks of 7: indices [10, 11, 12, 13], as expected: True
+dump_particles(limit=4,skip=500) of neutrons, blocks of 7: indices [547, 548, 549, 550], as expected: True
+dump_particles(limit=4,skip=10000) of neutrons, blocks of 7: indices [], as expected: True
+dump_particles(limit=4,skip=0) of neutrons, blocks of 10000: indices [3, 4, 5, 6], as expected: True
+dump_particles(limit=4,skip=3) of neutrons, blocks of 10000: indices [6, 7, 8, 9], as expected: True
+dump_particles(limit=4,skip=7) of neutrons, blocks of 10000: indices [10, 11, 12, 13], as expected: True
+dump_particles(limit=4,skip=500) of neutrons, blocks of 10000: indices [547, 548, 549, 550], as expected: True
+dump_particles(limit=4,skip=10000) of neutrons, blocks of 10000: indices [], as expected: True
+dump_particles(skip=2.5): skip must be a number of particles (not 2.5)
 {'skip': -1}: skip must be a number of particles (not -1)
 {'limit': 2.5}: limit must be a number of particles (not 2.5)
 {'skip': True}: skip must be a number of particles (not True)

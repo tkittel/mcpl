@@ -22,12 +22,13 @@
 # NEEDS: numpy
 
 # Tests of the canonical forms of expressions (the .expression of values and
-# edit expressions, with or without conditions) and of histogram strings, across the modules: for all
-# examples of the help, a list of expressions, and random expressions, the
-# normalised trees give exactly the same values (or the same errors) as the
-# trees as parsed, on the particles of a reference file, and the canonical
-# texts are their own canonical texts. The log freezes the canonical forms.
-# Files extracted with conditions written in different ways can be merged.
+# edit expressions, with or without filter conditions) and of histogram
+# strings, across the modules: for all examples of the help, a list of
+# expressions, and random expressions, the normalised trees give exactly the
+# same values (or the same errors) as the trees as parsed, on the particles of
+# a reference file, and the canonical texts are their own canonical texts. The
+# log freezes the canonical forms. Files extracted with filter conditions
+# written in different ways can be merged.
 
 import os
 import pathlib
@@ -50,8 +51,8 @@ from MCPLTestUtils.dirs import test_data_dir
 
 reffile = test_data_dir / 'ref' / 'miscphys.mcpl.gz'
 #(the expressions of histograms are values which can have units):
-#(conditions are edit expressions, listed apart):
-classes = { 'condition' : mcpl.ParticleEdit, 'value' : mcpl.ParticleValue,
+#(filter conditions are edit expressions, listed apart):
+classes = { 'filter' : mcpl.ParticleEdit, 'value' : mcpl.ParticleValue,
             'edit' : mcpl.ParticleEdit, 'plot' : _PlotValue }
 
 def block():
@@ -65,7 +66,7 @@ def outcome( text, kind, b, normalise ):
     fields and the positions of the particles kept"""
     try:
         t = _expr_normalise(text)
-        kind = { 'plot' : 'value', 'condition' : 'edit' }.get(kind,kind)
+        kind = { 'plot' : 'value', 'filter' : 'edit' }.get(kind,kind)
         tree = _expr_str2ast(t,kind)
         _expr_astcheck(tree,t)
         if normalise:
@@ -130,7 +131,7 @@ def test_examples( b ):
         print(f'  {text!r} -> {c!r}')
 
 expressions = {
-    'condition' : ( 'pdgcode == neutron', '(pdgcode==2112)', 'pdgcode == positron', 'pdgcode == antielectron',
+    'filter' : ( 'pdgcode == neutron', '(pdgcode==2112)', 'pdgcode == positron', 'pdgcode == antielectron',
                'pdgcode == -11', 'pdgcode in (neutron, gamma)', 'pdgcode in (22,2112,neutron)',
                'pdgcode not in (proton,antiproton)', 'abs(pdgcode) in (11,electron)',
                'ekin > 5000 eV and pdgcode == neutron', '(pdgcode==2112) and ekin>5keV', 'ekin > 5e3eV',
@@ -184,12 +185,12 @@ def test_errors( b ):
     #(invalid expressions, and errors when evaluating, which must be the same
     #for the normalised trees):
     print('Errors:')
-    for text, kind in ( ( 'x > 1MeV', 'condition' ), ( 'mod(pdgcode,3) == 1', 'condition' ), ( 'pdgcode * 1000000000 > 0', 'condition' ),
-                        ( 'x < 1e400cm', 'condition' ), ( 'x > 1e308km', 'condition' ), ( 'x/cm < cm^1e400', 'condition' ),
-                        ( 'x/cm < 2cm^1e20', 'condition' ), ( 'wavelength > 1Aa', 'condition' ),
-                        ( 'pdgcode in (neutron) and ekin/(ekin-ekin) > 0', 'condition' ), ( 'x', 'value' ),
-                        ( 'pdgcode = 2.5', 'edit' ), ( 'x = 1MeV', 'edit' ), ( 'ekin < 5000 eV + x', 'condition' ),
-                        ( 'neutron', 'condition' ), ( 'pdgcode in (1cm)', 'condition' ) ):
+    for text, kind in ( ( 'x > 1MeV', 'filter' ), ( 'mod(pdgcode,3) == 1', 'filter' ), ( 'pdgcode * 1000000000 > 0', 'filter' ),
+                        ( 'x < 1e400cm', 'filter' ), ( 'x > 1e308km', 'filter' ), ( 'x/cm < cm^1e400', 'filter' ),
+                        ( 'x/cm < 2cm^1e20', 'filter' ), ( 'wavelength > 1Aa', 'filter' ),
+                        ( 'pdgcode in (neutron) and ekin/(ekin-ekin) > 0', 'filter' ), ( 'x', 'value' ),
+                        ( 'pdgcode = 2.5', 'edit' ), ( 'x = 1MeV', 'edit' ), ( 'ekin < 5000 eV + x', 'filter' ),
+                        ( 'neutron', 'filter' ), ( 'pdgcode in (1cm)', 'filter' ) ):
         assert not check(text,kind,b)
 
 def random_expressions( rng ):
@@ -222,7 +223,7 @@ def random_expressions( rng ):
         if k < 0.85:
             return 'not ' + cond(d-1)
         return f'({cond(d-1)})'
-    return [ ( val(4), 'value' ) for _ in range(300) ] + [ ( cond(3), 'condition' ) for _ in range(300) ]
+    return [ ( val(4), 'value' ) for _ in range(300) ] + [ ( cond(3), 'filter' ) for _ in range(300) ]
 
 def test_random( b ):
     nvalid = 0
@@ -258,7 +259,7 @@ def test_hist():
             print(f'  {bad!r}: {e}')
 
 def test_merge():
-    print('Files extracted with conditions written in different ways can be merged:')
+    print('Files extracted with filter conditions written in different ways can be merged:')
     d = pathlib.Path('merge')
     d.mkdir()
     env = { **os.environ, 'PYMCPLTOOL_FAKE_PYVERSION' : '1' }

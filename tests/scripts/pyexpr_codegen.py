@@ -42,7 +42,7 @@ def test_programs():
          ' ekin = 25meV; x += 1cm','id:uint64')
     show('pdgcode == neutron and ekin < 25meV')
     show('rotate_z(90deg); pos += 50cm*dir; pdgcode = antielectron')
-    #(conditions after changes):
+    #(filter conditions after changes):
     show('rotate_y(90deg); x > 0cm; weight *= 2')
     #(edits of weights and PDG codes, which are refused in files with universal
     #weights or PDG codes):

@@ -198,7 +198,7 @@ def main():
     cmd('-x','-e','pdgcode == abc',fmiscnogz,'badpdg.mcpl',fail=True)
     cmd('-x','-e','pdgcode == Neutron',fmiscnogz,'badpdg.mcpl',fail=True)
     cmd('-x','-e','pdgcode == neutron',fmiscnogz,'extracted_names_1.mcpl')
-    #Conditions after changes see the changed values:
+    #Filter conditions after changes see the changed values:
     cmd('-x','-e','rotate_y(90deg); x > 0cm; weight *= 2','--no-comment',fmiscnogz,'extracted_rotated.mcpl')
     cmd('-n','-l3','extracted_rotated.mcpl')
     #The -e (extracting) and -pPDGCODE of earlier versions give errors:

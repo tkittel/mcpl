@@ -165,8 +165,8 @@ def _is_square( power ):
     power of vectors (v^2 is their length squared)"""
     return isinstance(power,( Int, Float )) and power.value == 2
 
-def _is_condition( st ):
-    """Whether a parsed statement of an edit expression is a condition (not
+def _is_filter( st ):
+    """Whether a parsed statement of an edit expression is a filter condition (not
     an assignment, swap(..), or a rotation)"""
     return not ( isinstance(st,Assign) or ( isinstance(st,Call) and st.name in _edit_statements ) )
 
@@ -175,7 +175,7 @@ def _modified_fields( statements ):
     (ekin for assignments of the wavelength)"""
     res = set()
     for st in statements:
-        if _is_condition(st):
+        if _is_filter(st):
             continue
         if isinstance(st,Assign):
             if st.target in _assignable:
@@ -208,7 +208,7 @@ def _filters_on_fileidx( statements ):
         return False
     for st in statements:
         uses = bool( _depends_on(st) & dep )
-        if _is_condition(st):
+        if _is_filter(st):
             if uses:
                 return True
         elif isinstance(st,Assign):

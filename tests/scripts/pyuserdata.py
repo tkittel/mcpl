@@ -455,7 +455,7 @@ def test_expressions():
     with mcpl.MCPLFile(test_data_dir.joinpath('example.mcpl')) as f:
         b = f.read_block()
         show(mcpl.ParticleEdit,'userdata.temp > 0K')
-    #Conditions on particles added as arrays to output files:
+    #Filters on particles added as arrays to output files:
     with mcpl.MCPLOutFile('udexpr2.mcpl', userdata_layout = layout,
                           edit = 'userdata.temp > 295K') as o:
         o.add_particles( ekin = [1.0,2.0,3.0], uz = 1.0, pdgcode = 2112,
@@ -464,7 +464,7 @@ def test_expressions():
     with mcpl.MCPLFile('udexpr2.mcpl') as f:
         print('  kept from arrays added to MCPLOutFile:',
               f.read_block().userdata['temp'].tolist())
-    #Conditions on blocks added with other userdata use that userdata:
+    #Filters on blocks added with other userdata use that userdata:
     with mcpl.MCPLFile('udexpr.mcpl') as f, mcpl.MCPLOutFile(
             'udexpr3.mcpl', userdata_layout = layout,
             edit = 'userdata.temp > 295K') as o:

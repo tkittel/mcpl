@@ -132,17 +132,14 @@ class HistDiscrete(_Result):
         return _readonly([ self._d._value_sums[k] for k in self._sorted() ])
 
 class PointSet3D(_Result):
-    """Values of three expressions for particles randomly sampled according
-    to weights, the result of histogram() for a histogram string with three
-    expressions, e.g. "x/cm : y/cm : z/cm". At most as many particles as the
-    option maxpoints gives (5000 unless given) are chosen, according to their
-    weights and none more than once (or all equally likely, with the option
-    unweighted): the particles
-    with the largest values of u^(1/w), where w is the weight and u a number
-    from a fixed hash of the position of the particle in the file. So the
-    same particles are always chosen for the same file, and particles which
-    remain after a stricter condition stay. With fewer particles, all are used.
-    Their plots say which particles they show."""
+    """Values of three expressions for randomly sampled particles, the result
+    of histogram() for a histogram string with three expressions, e.g.
+    "x/cm : y/cm : z/cm". At most maxpoints particles (5000 unless given) are
+    sampled according to their weights, none more than once (all equally
+    likely with the option unweighted). The same file always gives the same
+    particles, and particles which remain after a stricter filter stay. With
+    fewer particles, all are used. Their plots say which particles they
+    show."""
     __slots__ = ()
     @property
     def expressions( self ):

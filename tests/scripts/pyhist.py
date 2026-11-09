@@ -159,7 +159,7 @@ def test_public_api():
     print(describe([ hist_figure(mcpl,p3) ]).splitlines()[1])
     print(describe([ hist_figure(mcpl,mcpl.histogram(ex, 'x : y : z')) ]).splitlines()[1])
     #(the particles chosen depend only on the particles, so those which remain
-    #after a stricter condition stay chosen):
+    #after a stricter filter stay chosen):
     full = mcpl.histogram(ex, 'x/cm : y/cm : z/cm;maxpoints=50')
     with mcpl.MCPLFile(ex, edit='x > 0cm') as f:
         sub = mcpl.histogram(f, 'x/cm : y/cm : z/cm;maxpoints=50')
@@ -291,7 +291,7 @@ def test_cmdline():
     tool('-t','-H','ekin/MeV : time/ms;logx=1;logy=auto',ex)
     tool('-H','ekin/MeV;display_by=pdgcode;range=0:10;bins=2;print=1',
          '-e','x > 1km',ex)
-    #-l, -s, and -e (where conditions after changes see the changed values):
+    #-l, -s, and -e (where filter conditions after changes see the changed values):
     tool('-H','z/cm;bins=2;range=0:100;print=1','-s1000',ex)
     #(numbers like 1e3 for -l and -s):
     tool('-H','z/cm;bins=2;range=0:100;print=1','-s1e3','-l2.5e1',ex)

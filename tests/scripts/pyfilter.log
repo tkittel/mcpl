@@ -230,10 +230,10 @@ hypot(x,y) > 3cm or (ekin < 25meV and pdgcode == neutron and time >: Syntax erro
 z += 1cm; x = : Syntax error in expression "z += 1cm; x =", at the end: a value is missing
 x = 2cm;  y + ;z=1cm: Syntax error in expression "x = 2cm; y + ;z=1cm", after "x = 2cm; y +": a value is missing
 rotate_x(90deg;x=1cm: Syntax error in expression "rotate_x(90deg;x=1cm", after "rotate_x(90deg": ")" is expected, not ";"
-condition 'pdgcode==neutron and (ekin<1MeV)': 'pdgcode==neutron and ekin<1MeV'
-condition 'not (x > 1cm) or y<0': 'not x>1cm or y<0'
-condition '(x>0 or y>0) and z>0': '(x>0 or y>0) and z>0'
-condition 'ekin < 4cm^2*1MeV/cm^2': 'ekin<4cm^2*1MeV/cm^2'
+filter 'pdgcode==neutron and (ekin<1MeV)': 'pdgcode==neutron and ekin<1MeV'
+filter 'not (x > 1cm) or y<0': 'not x>1cm or y<0'
+filter '(x>0 or y>0) and z>0': '(x>0 or y>0) and z>0'
+filter 'ekin < 4cm^2*1MeV/cm^2': 'ekin<4cm^2*1MeV/cm^2'
 edit 'z += 1cm;weight *= 0.5': 'z+=1cm;weight*=0.5'
 edit 'rotate_z(90deg) ; z+=10 cm': 'rotate_z(90deg);z+=10cm'
 parsed 'pdgcode == neutron and wavelength > 1.8Aa': fields ['pdgcode', 'wavelength'], names ['neutron', 'pdgcode', 'wavelength'], canonical 'pdgcode==neutron and wavelength>1.8Aa'
@@ -264,10 +264,10 @@ angle(pos,dir)/deg of the first particles: [14.360296 22.479602  5.704463]
 angle between (1,1e-06,0) and (1,0,0): 1e-06 (acos of dot product: 1.00004e-06)
 angle between (1,1e-09,0) and (1,0,0): 1e-09 (acos of dot product: 0)
 angle between (1,1e-12,0) and (1,0,0): 1e-12 (acos of dot product: 0)
-condition 'd = pos - (0,0,1m); abs(d) < 100.5cm' as with numpy (1001 of 1006)
-condition 'angle(dir,(0,0,1)) < 30deg' as with numpy (313 of 1006)
-condition 'through_sphere((1cm,-2cm,30cm),4cm)' as with numpy (104 of 1006)
-condition 'through_box((1cm,-2cm,30cm),(4cm,3cm,2cm))' as with numpy (116 of 1006)
+filter 'd = pos - (0,0,1m); abs(d) < 100.5cm' as with numpy (1001 of 1006)
+filter 'angle(dir,(0,0,1)) < 30deg' as with numpy (313 of 1006)
+filter 'through_sphere((1cm,-2cm,30cm),4cm)' as with numpy (104 of 1006)
+filter 'through_box((1cm,-2cm,30cm),(4cm,3cm,2cm))' as with numpy (116 of 1006)
 edit 'pos += (0,0,1m)' changes ['x', 'y', 'z'] as with numpy
 edit 'pos += 50cm*dir' changes ['x', 'y', 'z'] as with numpy
 edit 'x += 1cm; pos = pos/2' changes ['x', 'y', 'z'] as with numpy

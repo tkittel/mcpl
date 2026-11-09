@@ -135,8 +135,8 @@ def _write_universal( fn ):
         for b in f.particle_blocks:
             o.add_particles(b,weight = 0.5)
 
-def _random_conditions( n, seed = 123 ):
-    """Random conditions, of values and functions of many kinds"""
+def _random_filters( n, seed = 123 ):
+    """Random filter conditions, of values and functions of many kinds"""
     rng = random.Random(seed)
     plain = [ 'ux', 'uz', '(x/cm)', '(ekin/MeV)', 'weight', '2', '3.5', '1e3', '0x10', 'pdgcode',
               'userflags', '(4cm^2/cm^2)', '(25meV/eV)', '(2cm^(-1)*x)', '(sqrt(ekin)/sqrt(eV))',
@@ -228,7 +228,7 @@ def run( nprocs, nrandom = 200 ):
     c.do_install()
     _files['universal'] = cwd/'universal.mcpl'
     _write_universal(_files['universal'])
-    cases = _cases + [ ( 'misc', p ) for p in _random_conditions(nrandom) ]
+    cases = _cases + [ ( 'misc', p ) for p in _random_filters(nrandom) ]
     gen = cwd/'gen'
     gen.mkdir()
     programs, runs = [], []

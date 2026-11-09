@@ -61,7 +61,8 @@ from ._expr_vocab import (
     _functions_toint,
     _functions_vector,
     _int_constant_type,
-    _is_condition,
+    _int_field_types,
+    _is_filter,
     _is_square,
     _promoted_type,
     _rotated_vectors,
@@ -204,7 +205,7 @@ class _ExprEvaluator:
         #Particles for which the current part of the expression is used (None
         #for all), e.g. only those for which the left side of and is true:
         self.active = None
-        #The positions in the block of the particles kept by the conditions of
+        #The positions in the block of the particles kept by the filters of
         #edit expressions (None for all, see keep):
         self.kept = None
     def keep( self, mask ):
@@ -851,12 +852,12 @@ def _run_statements( ev, statements, text, modified, counts = None ):
     with the evaluator ev (of a block), which gets the values of the variables
     and of the changed fields in its state, adding the names of the changed
     fields to the set modified (text is the expression, for messages). The
-    conditions remove the particles for which they are false (see
+    filter conditions remove the particles for which they are false (see
     _ExprEvaluator.keep). counts (if given) gets the number of particles left
     after each statement added."""
     for i, st in enumerate(statements):
         state = ev.state
-        if _is_condition(st):
+        if _is_filter(st):
             keep = np.broadcast_to(_condition(ev,st,text),(len(ev._block),))
             if not keep.all():
                 ev.keep(keep)

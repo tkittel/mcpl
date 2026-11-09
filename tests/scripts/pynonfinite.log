@@ -18,7 +18,7 @@ MCPL WARNING: File contains particles with NaN or infinite values (first one fou
 MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 7). They can not be added to other MCPL files.
 ==> particles twice of nan2.mcpl:
 MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 7). They can not be added to other MCPL files.
-==> condition (with blocklength 10):
+==> filter (with blocklength 10):
 MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 7). They can not be added to other MCPL files.
    selected 12 particles
 MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 7). They can not be added to other MCPL files.

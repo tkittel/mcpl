@@ -63,9 +63,9 @@ def _statsum_marking( f, skip, limit, edit, keepstatsum = False ):
         return None
     n = f.nparticles
     if n > 0 and ( ( skip or 0 ) > 0 or 0 < ( limit or 0 ) < n
-                   or ( edit is not None and edit._uses_fileidx ) ):
+                   or ( edit is not None and edit.filters_on_fileidx ) ):
         return 'positions'
-    if not keepstatsum and edit is not None and 'weight' in edit.modified_fields:
+    if not keepstatsum and edit is not None and edit.has_weight_changes:
         return 'weights'
     return None
 

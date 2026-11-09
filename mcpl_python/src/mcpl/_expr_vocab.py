@@ -200,3 +200,43 @@ def _modified_fields( statements ):
             for vector in _rotated_vectors:
                 res.update(vector)
     return frozenset(res)
+
+def _depends_on( node ):
+    """The fields (as with _fields_used, with ekin and pdgcode for
+    wavelength) and variables which the values in a parsed node depend on"""
+    res = set()
+    for f in _fields_used(node):
+        res.update( ( 'ekin', _expr_field_domains[f][0] ) if f == 'wavelength' else ( f, ) )
+    res.update( n.id for n in _walk(node) if isinstance(n,Name) )
+    return res
+
+def _filters_on_fileidx( statements ):
+    """Whether the particles which the parsed statements of an edit
+    expression filter out can depend on their positions in the file
+    (fileidx), also through fields and variables assigned from it"""
+    dep = { 'fileidx' }#(the fields and variables depending on fileidx)
+    if not any( 'fileidx' in _fields_used(st) for st in statements ):
+        return False
+    for st in statements:
+        uses = bool( _depends_on(st) & dep )
+        if _is_condition(st):
+            if uses:
+                return True
+        elif isinstance(st,Assign):
+            targets = _assigned_fields(st.target)
+            if uses or ( st.op is not None and dep.intersection(targets) ):
+                dep.update(targets)
+            elif st.op is None:
+                dep.difference_update(targets)#(the old values are replaced)
+        elif st.name == 'swap':
+            a, b = ( _assigned_fields(a.id)[0] for a in st.args )
+            if ( a in dep ) != ( b in dep ):
+                dep ^= { a, b }
+        else:
+            #(rotations: the components of each vector rotated depend on
+            #each other, and on the arguments):
+            planes = _rotation_planes.get(st.name,_rotated_vectors)
+            for plane in planes:
+                if uses or dep.intersection(plane):
+                    dep.update(plane)
+    return False

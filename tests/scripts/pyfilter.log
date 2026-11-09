@@ -1,3 +1,23 @@
+'ekin < 1MeV': filters True, changes False, weight changes False, filters on fileidx False
+'weight *= 2': filters False, changes True, weight changes True, filters on fileidx False
+'swap(x,y)': filters False, changes True, weight changes False, filters on fileidx False
+'r = hypot(x,y); r > 1cm': filters True, changes False, weight changes False, filters on fileidx False
+'mod(fileidx,2) == 0': filters True, changes False, weight changes False, filters on fileidx True
+'i = fileidx; mod(i,2) == 0': filters True, changes False, weight changes False, filters on fileidx True
+'x = fileidx*1cm': filters False, changes True, weight changes False, filters on fileidx False
+'x = fileidx*1cm; x > 5cm': filters True, changes True, weight changes False, filters on fileidx True
+'pos = (fileidx*1cm,0,0); x > 5cm': filters True, changes True, weight changes False, filters on fileidx True
+'x = fileidx*1cm; x = 1cm; x > 0': filters True, changes True, weight changes False, filters on fileidx False
+'x = fileidx*1cm; x += 1cm; x > 0': filters True, changes True, weight changes False, filters on fileidx True
+'x = fileidx*1cm; swap(x,y); y > 0': filters True, changes True, weight changes False, filters on fileidx True
+'x = fileidx*1cm; swap(x,y); x > 0': filters True, changes True, weight changes False, filters on fileidx False
+'x = fileidx*1cm; rotate_z(90deg); y > 0': filters True, changes True, weight changes False, filters on fileidx True
+'x = fileidx*1cm; rotate_x(90deg); y > 0': filters True, changes True, weight changes False, filters on fileidx False
+'a = fileidx*1deg; rotate_z(a); x > 0': filters True, changes True, weight changes False, filters on fileidx True
+'ekin = fileidx*1meV; wavelength > 1Aa': filters True, changes True, weight changes False, filters on fileidx True
+'x = fileidx*1cm; ekin < 1MeV': filters True, changes True, weight changes False, filters on fileidx False
+'i = fileidx; i = 3; i > 2': filters True, changes False, weight changes False, filters on fileidx False
+'pdgcode = 2112 + mod(fileidx,2)*(22-2112); wavelength > 1Aa': filters True, changes True, weight changes False, filters on fileidx True
 Integers:
   userflags > 0: [False, True, True]
   userflags & 0x80000000: [False, False, True]

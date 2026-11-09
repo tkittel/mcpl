@@ -32,7 +32,7 @@ import re
 
 from ._blocks import _EditedParticleBlock
 from ._common import MCPLError
-from ._expr_ast import Assign, Name, _names
+from ._expr_ast import Name, _names
 from ._expr_ast2astnorm import _expr_ast2astnorm
 from ._expr_ast2str import _expr_ast2str
 from ._expr_astcheck import _expr_astcheck
@@ -45,12 +45,12 @@ from ._expr_eval import (
 )
 from ._expr_str2ast import _expr_normalise, _expr_str2ast
 from ._expr_vocab import (
-    _assignable,
     _expr_field_domains,
     _expr_fields,
     _expr_unit_hints,
     _expr_value_names,
     _fields_used,
+    _filters_on_fileidx,
     _is_condition,
     _modified_fields,
 )
@@ -272,15 +272,10 @@ class ParticleEdit:
 
     def __init__( self, expression ):
         self._expr, self._tree, self._canonical = _parsed(expression,'edit',self._unused_ok)
-        self._modified = _modified_fields(self._tree.statements)
-        #(whether conditions, or the variables they can use, depend on the
-        #positions in the file, when stat:sum entries are marked as not
-        #available):
-        self._uses_fileidx = any( 'fileidx' in _fields_used(st) for st in self._tree.statements
-                                  if _is_condition(st) or ( isinstance(st,Assign)
-                                                            and st.target not in _assignable ) )
-        #(whether particles can be dropped):
-        self._has_conditions = any( _is_condition(st) for st in self._tree.statements )
+        statements = self._tree.statements
+        self._modified = _modified_fields(statements)
+        self._has_filters = any( _is_condition(st) for st in statements )
+        self._filters_on_fileidx = _filters_on_fileidx(statements)
         self._apply(_EmptyBlock())#check units etc.
 
     @property
@@ -299,6 +294,28 @@ class ParticleEdit:
         """Names of the fields which the expression can change (ekin for
         changes of the wavelength)."""
         return self._modified
+
+    @property
+    def has_filters( self ):
+        """Whether the expression can filter out particles"""
+        return self._has_filters
+
+    @property
+    def has_changes( self ):
+        """Whether the expression can change particles"""
+        return bool(self._modified)
+
+    @property
+    def has_weight_changes( self ):
+        """Whether the expression can change the weights of particles"""
+        return 'weight' in self._modified
+
+    @property
+    def filters_on_fileidx( self ):
+        """Whether the particles which the expression filters out can depend
+        on their positions in the file (fileidx), as with "mod(fileidx,10) ==
+        0", or "x = fileidx*1cm; x > 5cm"."""
+        return self._filters_on_fileidx
 
     def __call__( self, block ):
         """The particles of the block which are kept, with their changes (a

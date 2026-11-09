@@ -649,7 +649,7 @@ def test_variables_in_conditions():
         flt, ref = mcpl.ParticleEdit(edit), mcpl.ParticleEdit(inline)
         same = np.array_equal(keeps(flt,b),keeps(ref,b))
         print(f'edit {flt.expression!r}: same as {inline!r}: {same} ({int(keeps(flt,b).sum())} kept),'
-              f' fileidx: {flt._uses_fileidx}, canonical: {_expr_canonical(edit,True)!r}')
+              f' fileidx: {flt.filters_on_fileidx}, canonical: {_expr_canonical(edit,True)!r}')
         assert same
     #(the same in files and histograms):
     edit = 'r = hypot(x,y); r > 2cm'
@@ -734,7 +734,25 @@ def test_integers():
         except mcpl.MCPLError as err:
             print(f'  edit {e}: MCPLError: {err}')
 
+def test_properties():
+    """What edits can do: filter, change, change weights, and filter on the
+    positions of the particles in the file (also through assigned fields and
+    variables)"""
+    for edit in ( 'ekin < 1MeV', 'weight *= 2', 'swap(x,y)', 'r = hypot(x,y); r > 1cm',
+                  'mod(fileidx,2) == 0', 'i = fileidx; mod(i,2) == 0', 'x = fileidx*1cm',
+                  'x = fileidx*1cm; x > 5cm', 'pos = (fileidx*1cm,0,0); x > 5cm',
+                  'x = fileidx*1cm; x = 1cm; x > 0', 'x = fileidx*1cm; x += 1cm; x > 0',
+                  'x = fileidx*1cm; swap(x,y); y > 0', 'x = fileidx*1cm; swap(x,y); x > 0',
+                  'x = fileidx*1cm; rotate_z(90deg); y > 0', 'x = fileidx*1cm; rotate_x(90deg); y > 0',
+                  'a = fileidx*1deg; rotate_z(a); x > 0', 'ekin = fileidx*1meV; wavelength > 1Aa',
+                  'x = fileidx*1cm; ekin < 1MeV', 'i = fileidx; i = 3; i > 2',
+                  'pdgcode = 2112 + mod(fileidx,2)*(22-2112); wavelength > 1Aa' ):
+        e = mcpl.ParticleEdit(edit)
+        print(f'{edit!r}: filters {e.has_filters}, changes {e.has_changes}, weight changes'
+              f' {e.has_weight_changes}, filters on fileidx {e.filters_on_fileidx}')
+
 if __name__ == '__main__':
+    test_properties()
     test_integers()
     test_variables_in_conditions()
     test_help_examples()

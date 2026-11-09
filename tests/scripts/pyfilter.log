@@ -41,7 +41,7 @@ Integers:
   userflags & 2^3: MCPLError: The bitwise operator & can only be used with integers (use "and" and "or" for logical and/or) in expression "userflags & 2^3"
   (x > 0) & (y > 0): MCPLError: The bitwise operator & can only be used with integers (use "and" and "or" for logical and/or) in expression "(x > 0) & (y > 0)"
   ~userflags == 0: MCPLError: The operator ~ is not supported in expressions (e.g. "(userflags & 0x10) == 0" tests that a bit is not set), in expression "~userflags == 0"
-  18446744073709551616 > 0: MCPLError: The integer 18446744073709551616 is too large (integers must fit in 64 bits) in expression "18446744073709551616 > 0"
+  18446744073709551616 > 0: MCPLError: The integer 18446744073709551616 is too large (integers must fit in 64 bits), in expression "18446744073709551616 > 0"
   userflags > 0 and userflags - 1 == 0: [False, True, False]
   edit userflags = userflags + 1: MCPLError: Addition of integers gives values outside the range of the result (unsigned 32-bit integers) in expression "userflags = userflags + 1"
   edit userflags = userflags / 2: MCPLError: Non-integer values assigned to userflags in expression "userflags = userflags / 2"

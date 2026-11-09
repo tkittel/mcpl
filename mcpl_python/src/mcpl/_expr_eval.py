@@ -440,9 +440,11 @@ class _ExprEvaluator:
             res = eq if res is None else np.logical_or(res,eq)
         return _Q(np.logical_not(res) if node.negated else res)
     def _compare( self, node ):
+        #(each comparison of a chain is only used for particles for which
+        #those before it are true, as with "and"):
         left, res = self.scalar(self(node.first),'compared'), None
         for op, c in zip(node.ops,node.values):
-            right = self.scalar(self(c),'compared')
+            right = self.scalar(self(c) if res is None else self._with_active(res,c),'compared')
             a, b, _ = self.same(left,right,'comparison')
             cmp = self.compare(_compare_fcts[op],a,b)
             res = cmp if res is None else np.logical_and(res,cmp)
@@ -696,8 +698,9 @@ class _ExprEvaluator:
     def vcall( self, fname, args ):
         """The functions of vectors: dot, cross, angle, and abs (the length)"""
         if fname == 'abs':
+            #(of floating point numbers, also for integers):
             v = args[0]
-            return _Q(np.sqrt(sum( np.square(c.v) for c in v.c )),v.d)
+            return _Q(np.sqrt(sum( np.square(self.as_float(c).v) for c in v.c )),v.d)
         if not all( isinstance(q,_V) for q in args ):
             self.error(f'{fname}(v,w) takes two vectors')
         v, w = args

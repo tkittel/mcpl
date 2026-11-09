@@ -64,7 +64,9 @@ def test_conditions():
            'rotate_z(90deg); x > 0', 'x > 1; y > 2', 'R = 1; R > 0', 'cm = 1; cm > 0',
            'pi = 3; pi > 0', 'neutron = 1; neutron > 0', 'sqrt = 1; sqrt > 0',
            'swap = 1; swap > 0', 'fileidx = 1; x > 0', 'r = foo; r > 0', 'r = 1; foo > r',
-           'inactive = 1; inactive > 0', 'x > 0; inactive(foo > 1)' ),'edit')
+           'inactive = 1; inactive > 0', 'x > 0; inactive(foo > 1)', 'and = 1; x > 0cm',
+           'in = 1cm; x > in', 'userdata = 2; x > 0cm', 'x > 99999999999999999999',
+           'x/cm > 1' + '0' * 400 + 'cm/cm' ),'edit')
 
 def test_edits():
     print('Edits:')

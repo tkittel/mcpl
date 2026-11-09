@@ -29,6 +29,7 @@ the names and functions exist, and the units fit, is checked later."""
 
 __all__ = []
 
+import math
 import re
 
 from ._common import MCPLError
@@ -512,7 +513,7 @@ class _Parser:
         else:
             raise err
         v = sign * v
-        if 2 * v != round(2 * v):
+        if not math.isfinite(v) or 2 * v != round(2 * v):
             raise MCPLError('Units can only have whole or half powers (like cm^2 or'
                             f' cm^0.5), in expression "{self._expr}"')
         return int(v) if float(v).is_integer() else float(v)

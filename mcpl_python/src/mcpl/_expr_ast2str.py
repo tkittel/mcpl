@@ -165,4 +165,6 @@ def _implied( node ):
         last = last.right if isinstance(last,Binary) else last.operand
     if not ( left.endswith(')') or isinstance(last,(Int,Float)) ):
         return None
-    return left + _write(node.right)[0]
+    #(with a space after hexadecimal numbers, as for quantities):
+    space = ' ' if isinstance(last,Int) and last.hex and not left.endswith(')') else ''
+    return left + space + _write(node.right)[0]

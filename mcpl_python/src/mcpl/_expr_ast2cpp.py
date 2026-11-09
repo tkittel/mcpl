@@ -73,8 +73,8 @@ def _expr_ast2cpp( edit = None, layout = None, *, filenames = None, skip = 0,
                                                        'pdgcode', 'userflags' ) ]
         body += [ f'out.set_userdata( out_{name}, ud_{name}( p ) );' for name, _, _ in fields ]
         tr.field = field('out')
-        def set_field( n, code, op = '' ):
-            return f'out.set_{n}( {f"out.{n}() {op} " if op else ""}{code} );'
+        def set_field( n, code ):
+            return f'out.set_{n}( {code} );'
     if edit is not None:
         body += _Statements(tr,set_field)(edit._tree.statements)
     if changes:
@@ -138,6 +138,6 @@ def _expr_ast2cpp( edit = None, layout = None, *, filenames = None, skip = 0,
         out.append('      ++n;')
     out += [ f'      {line}' for line in body ]
     out += [ '    }', '    fout.close();', '    fin.close();', '  } catch ( const std::runtime_error& e ) {',
-             '    std::cout << "ERROR: " << e.what() << std::endl;', '    return 1;', '  }',
+             '    std::cerr << "ERROR: " << e.what() << std::endl;', '    return 1;', '  }',
              '  return 0;', '}' ]
     return '\n'.join(_layout(out)) + '\n'

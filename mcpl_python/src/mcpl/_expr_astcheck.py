@@ -52,6 +52,7 @@ from ._expr_vocab import (
     _expr_functions,
     _expr_vectors,
     _function_args,
+    _int_constant_type,
     _is_condition,
     _rotation_matrix_args,
     _rotation_matrix_usage,
@@ -76,13 +77,26 @@ def _expr_astcheck( tree, text, unused_ok = False ):
                         f' in "{text}" (fields which can be assigned are: '
                         + ', '.join(_assignable) + ')')
 
+def _as_float( v ):
+    """The number as a floating point number (inf if it is too large)"""
+    try:
+        return float(v)
+    except OverflowError:
+        return math.inf
+
 def _check_names( node, text, variables = () ):
     """Check that the names and functions in the expression exist (variables
     are those assigned before it), and that the constants are finite"""
+    #(the numbers of quantities, like 2 in 2cm, are not integers of C):
+    numbers = { id(n.number) for n in _walk(node) if isinstance(n,Quantity) }
     for n in _walk(node):
-        if isinstance(n,Float) and not math.isfinite(n.value):
-            #(like 1e400):
+        if ( isinstance(n,Float) and not math.isfinite(n.value) ) or (
+                isinstance(n,Quantity) and not math.isfinite(_as_float(n.number.value)) ):
+            #(like 1e400, or 1e400cm also when written with all its digits):
             raise MCPLError(f'A constant has NaN or infinite values in expression "{text}"')
+        if isinstance(n,Int) and id(n) not in numbers and _int_constant_type(n.value) is None:
+            raise MCPLError(f'The integer {n.value} is too large (integers must fit in 64 bits),'
+                            f' in expression "{text}"')
         if isinstance(n,Call) and n.name not in _expr_functions:
             raise MCPLError(f'Unsupported function call in expression "{text}"'
                             ' (available functions are: '
@@ -158,7 +172,8 @@ def _check_variable( name, text ):
                         f' file) can not be changed, in "{text}"')
     if not ( name.isidentifier() and name == name.lower() ) or (
             name in _expr_constants or name in _particle_names or name in _expr_units
-            or name in _expr_functions or name in _edit_statements or name == 'inactive' ):
+            or name in _expr_functions or name in _edit_statements
+            or name in ( 'inactive', 'userdata', 'and', 'or', 'not', 'in' ) ):
         raise MCPLError(f'Can not assign to "{name}" in "{text}" (fields which can'
                         ' be assigned are: ' + ', '.join(_assignable) + ', and other'
                         ' lowercase names which are not names of fields, units,'

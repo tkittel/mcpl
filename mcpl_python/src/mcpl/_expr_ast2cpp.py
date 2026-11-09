@@ -29,8 +29,11 @@ __all__ = []
 
 from ._expr_ast2c import (
     _c_string,
+    _comment_lines,
+    _layout,
     _program_header,
     _Statements,
+    _string_call,
     _Translator,
     _universal_checks,
     _universal_fields,
@@ -79,7 +82,7 @@ def _expr_ast2cpp( edit = None, layout = None, *, filenames = None, skip = 0,
         body.append('fout.add( out );')
     else:
         body.append('fout.transfer_last_read_particle( fin );')
-    out = [ f'// {line}' for line in _program_header(edit) ]
+    out = [ c for line in _program_header(edit) for c in _comment_lines(line,'// ','//       ') ]
     out += [ '', '#include "mcplcpp.h"' ]
     #(mcplcpp.h has the integer types and std::runtime_error):
     if tr.math:
@@ -101,7 +104,7 @@ def _expr_ast2cpp( edit = None, layout = None, *, filenames = None, skip = 0,
              f'    mcpl::MCPLOutFile fout( {names[1]} );',
              '    fout.transfer_metadata( fin );' ]
     if comment is not None:
-        out.append(f'    fout.add_comment( {_c_string(comment)} );')
+        out += _string_call('    fout.add_comment( ',comment,' );')
     if mark_statsums:
         out.append('    fout.scale_stat_sums( -1.0 );  // stat:sum entries not available')
     if skip:
@@ -137,4 +140,4 @@ def _expr_ast2cpp( edit = None, layout = None, *, filenames = None, skip = 0,
     out += [ '    }', '    fout.close();', '    fin.close();', '  } catch ( const std::runtime_error& e ) {',
              '    std::cout << "ERROR: " << e.what() << std::endl;', '    return 1;', '  }',
              '  return 0;', '}' ]
-    return '\n'.join(out) + '\n'
+    return '\n'.join(_layout(out)) + '\n'

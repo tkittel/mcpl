@@ -82,6 +82,75 @@ _ud_types = { 'int8' : 'i32', 'uint8' : 'i32', 'int16' : 'i32', 'uint16' : 'i32'
 #(the constants of the wavelengths, see _physics):
 _wl_unit = 1e-8
 
+#The generated code stays within _width columns where it can: long lines are
+#broken after the operators && and || (marked with _BRK, one operand per
+#line), and lines which are still long after other operators and commas
+#(marked with _BRK2, see _layout); long comments and strings are split at
+#spaces:
+_width = 100
+_BRK, _BRK2 = '\x00', '\x01'
+_ARGSEP = ', ' + _BRK2
+
+def _unmarked( line ):
+    return line.replace(_BRK,'').replace(_BRK2,'')
+
+def _layout( lines ):
+    """The lines of code, with those longer than _width columns broken at the
+    places marked with _BRK, and then at those marked with _BRK2 where still
+    needed (the continuation lines indented 4 columns more), and the marks
+    removed"""
+    res = []
+    indent_of = lambda line : ' ' * ( len(line) - len(line.lstrip()) + 4 )
+    for line in lines:
+        if len(_unmarked(line)) <= _width:
+            res.append(_unmarked(line))
+            continue
+        first, *more = line.split(_BRK)
+        for part in [ first ] + [ indent_of(line) + p for p in more ]:
+            cur = ''
+            for piece in part.split(_BRK2):
+                if cur.strip() and len(_unmarked(cur + piece.rstrip())) > _width:
+                    res.append(cur.rstrip())
+                    cur = indent_of(part) + piece
+                else:
+                    cur += piece
+            res.append(cur.rstrip())
+    return res
+
+def _split_text( text, width, anywhere = False ):
+    """The text in parts of at most width characters (where possible, or
+    always with anywhere), split after spaces and semicolons (or anywhere in
+    longer words, with anywhere), so they join to the text"""
+    parts, cur = [], ''
+    for word in re.split(r'(?<=[ ;])',text):
+        if cur and len(cur) + len(word.rstrip()) > width and not ( anywhere and len(word) > width ):
+            parts.append(cur)
+            cur = ''
+        cur += word
+        while anywhere and len(cur) > width:
+            parts.append(cur[:width])
+            cur = cur[width:]
+    return parts + [ cur ]
+
+def _comment_lines( text, first, more, end = '' ):
+    """Comment lines with the text, after first on the first line, and more
+    on the others (as /* and *, or //), split at spaces and semicolons"""
+    parts = [ p.rstrip() for p in _split_text(text,_width - len(more) - len(end)) ]
+    lines = [ first + parts[0] ] + [ more + p for p in parts[1:] ]
+    lines[-1] += end
+    return lines
+
+def _string_call( start, text, end ):
+    """The line(s) of a call with a string argument (start ends with the
+    opening parenthesis), split in adjacent C strings if long (see
+    _split_text)"""
+    line = f'{start}{_c_string(text)}{end}'
+    if len(line) <= _width:
+        return [ line ]
+    pad = ' ' * len(start)
+    parts = [ _c_string(p) for p in _split_text(text,_width - len(start) - len(end) - 4,True) ]
+    return ( [ start + parts[0] ] + [ pad + p for p in parts[1:-1] ] + [ pad + parts[-1] + end ] )
+
 def _common_type( a, b ):
     """The type of the result of integers of the types a and b (the usual
     arithmetic conversions of C)"""
@@ -119,7 +188,7 @@ class _Translator:
     def fct( self, name, *args ):
         """A call of a function of the math library"""
         self.math = True
-        return f'{"std::" if self.lang == "cpp" else ""}{name}( {", ".join(args)} )'
+        return f'{"std::" if self.lang == "cpp" else ""}{name}( {_ARGSEP.join(args)} )'
 
     def error( self, msg ):
         """The statement stopping the program with the message"""
@@ -201,7 +270,7 @@ class _Translator:
             return v[node.index]
         if isinstance(node,Logical):
             op = ' && ' if node.op == 'and' else ' || '
-            return '( ' + op.join( self.condition(v) for v in node.values ) + ' )', 'i32'
+            return '( ' + ( op + _BRK ).join( self.condition(v) for v in node.values ) + ' )', 'i32'
         if isinstance(node,Unary):
             return self.unary(node)
         if isinstance(node,Binary):
@@ -212,11 +281,11 @@ class _Translator:
                 right = self.scalar(self(v))
                 terms.append(self.compare(op,left,right))
                 left = right
-            return ( terms[0] if len(terms) == 1 else '( ' + ' && '.join(terms) + ' )' ), 'i32'
+            return ( terms[0] if len(terms) == 1 else '( ' + f' && {_BRK}'.join(terms) + ' )' ), 'i32'
         if isinstance(node,In):
             v = self.scalar(self(node.value))
             terms = [ self.compare('==',v,self(c)) for c in node.values ]
-            res = '( ' + ' || '.join(terms) + ' )'
+            res = '( ' + f' || {_BRK}'.join(terms) + ' )'
             return ( f'!{res}' if node.negated else res ), 'i32'
         if isinstance(node,Call):
             return self.call(node.name,[ self(a) for a in node.args ])
@@ -321,7 +390,7 @@ class _Translator:
             return self.div_mod('div',a,b)
         if op in ( '+', '-', '*' ) and ints:
             t, x, y = self.int_operands(a,b)
-            return f'{self.int_helper({"+" : "add", "-" : "sub", "*" : "mul"}[op],t)}( {x}, {y} )', t
+            return f'{self.int_helper({"+" : "add", "-" : "sub", "*" : "mul"}[op],t)}( {x}, {_BRK2}{y} )', t
         a, b = self.as_float(a), self.as_float(b)
         if op == '^':
             return self.finite(self.fct('pow',a[0],b[0])), 'f64'
@@ -330,7 +399,7 @@ class _Translator:
             if not ( m and float(m.group(1)) != 0.0 ):
                 #(divisions which can give NaN or infinite values):
                 return self.finite(f'{a[0]} / {b[0]}'), 'f64'
-        return f'( {a[0]} {op} {b[0]} )', 'f64'
+        return f'( {a[0]} {op} {_BRK2}{b[0]} )', 'f64'
 
     def vector_binary( self, op, a, b ):
         va, vb = isinstance(a,list), isinstance(b,list)
@@ -432,13 +501,9 @@ class _Translator:
         """Whether the line of flight passes through the sphere (see
         _ExprEvaluator.through_sphere)"""
         pos, d = self.name('pos'), self.name('dir')
-        to_center = [ self.binary('-',c,p) for c, p in zip(center,pos) ]
-        sub = lambda i, j : self.binary('-',self.binary('*',to_center[i],d[j]),
-                                        self.binary('*',to_center[j],d[i]))
-        cr = [ sub(1,2), sub(2,0), sub(0,1) ]
-        r = self.as_float(radius)
-        self.radius_code()
-        return f'( {self.dot(cr,cr)[0]} <= radius( {r[0]} ) * radius( {r[0]} ) )', 'i32'
+        to_center = [ self.as_float(self.binary('-',c,p))[0] for c, p in zip(center,pos) ]
+        args = [ *to_center, *( self.as_float(c)[0] for c in d ), self.as_float(radius)[0] ]
+        return f'{self.sphere_code()}( {_ARGSEP.join(args)} )', 'i32'
 
     def through_box( self, center, half ):
         """Whether the line of flight passes through the box (see
@@ -447,7 +512,7 @@ class _Translator:
         to_center = [ self.as_float(self.binary('-',c,p))[0] for c, p in zip(center,pos) ]
         args = [ *to_center, *( self.as_float(c)[0] for c in d ),
                  *( self.as_float(h)[0] for h in half ) ]
-        return f'{self.box_code()}( {", ".join(args)} )', 'i32'
+        return f'{self.box_code()}( {_ARGSEP.join(args)} )', 'i32'
 
     #Helper functions (stopping the program with an error, see fail):
 
@@ -515,9 +580,18 @@ class _Translator:
                                        'Value too large for integers')
                              + f'  return {self.cast("v","i64")};\n')
 
-    def radius_code( self ):
-        return self.function('radius','double {name}( double r )',
-                             self.fail('r < 0.0','Negative radius') + '  return r;\n')
+    def sphere_code( self ):
+        """The function of through_sphere, of the vector r from the position to
+        the center, the direction d, and the radius: whether the distance of
+        the center from the line (the length of the cross product of r and d,
+        as d is a unit vector) is at most the radius"""
+        return self.function('through_sphere','int {name}( double rx, double ry, double rz,\n'
+                             '                           double dx, double dy, double dz,\n'
+                             '                           double radius )',
+                             self.fail('radius < 0.0','Negative radius')
+                             + '  double cx = ry * dz - rz * dy, cy = rz * dx - rx * dz,'
+                             ' cz = rx * dy - ry * dx;\n'
+                             '  return cx * cx + cy * cy + cz * cz <= radius * radius;\n')
 
     def box_code( self ):
         """The function of through_box, of the vector r from the position to the
@@ -838,7 +912,7 @@ def _expr_ast2c( edit = None, layout = None, *, filenames = None, skip = 0,
                     else 'mcpl_add_particle( fo, &p );')
     else:
         body.append('mcpl_transfer_last_read_particle( fi, fo );')
-    out = [ f'/* {line} */' for line in _program_header(edit) ]
+    out = [ c for line in _program_header(edit) for c in _comment_lines(line,'/* ',' *       ',' */') ]
     out += [ '', '#include "mcpl.h"' ]
     if tr.math:
         out.append('#include <math.h>')
@@ -858,7 +932,7 @@ def _expr_ast2c( edit = None, layout = None, *, filenames = None, skip = 0,
              f'  mcpl_outfile_t fo = mcpl_create_outfile( {names[1]} );',
              '  mcpl_transfer_metadata( fi, fo );' ]
     if comment is not None:
-        out.append(f'  mcpl_hdr_add_comment( fo, {_c_string(comment)} );')
+        out += _string_call('  mcpl_hdr_add_comment( fo, ',comment,' );')
     if mark_statsums:
         out.append('  mcpl_hdr_scale_stat_sums( fo, -1.0 );  /* stat:sum entries not available */')
     if skip:
@@ -886,4 +960,4 @@ def _expr_ast2c( edit = None, layout = None, *, filenames = None, skip = 0,
         out.append(f'  while ( ( p_in = {read} ) ) {{')
     out += [ f'    {line}' for line in body ]
     out += [ '  }', '  mcpl_close_outfile( fo );', '  mcpl_close_file( fi );', '  return 0;', '}' ]
-    return '\n'.join(out) + '\n'
+    return '\n'.join(_layout(out)) + '\n'

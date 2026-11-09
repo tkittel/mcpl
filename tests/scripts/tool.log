@@ -2165,7 +2165,8 @@ int main( int argc, char ** argv )
   mcpl_file_t fi = mcpl_open_file( argv[1] );
   mcpl_outfile_t fo = mcpl_create_outfile( argv[2] );
   mcpl_transfer_metadata( fi, fo );
-  mcpl_hdr_add_comment( fo, "mcpltool: extracted particles with -e \"pdgcode==neutron and ekin>5keV\"" );
+  mcpl_hdr_add_comment( fo, "mcpltool: extracted particles with -e \"pdgcode==neutron and "
+                            "ekin>5keV\"" );
   const mcpl_particle_t * p_in;
   while ( ( p_in = mcpl_read( fi ) ) ) {
     if ( !( ( p_in->pdgcode == 2112/*neutron*/ && p_in->ekin > 0.005/*5keV*/ ) ) )
@@ -2242,7 +2243,8 @@ int main( int argc, char ** argv )
   mcpl_file_t fi = mcpl_open_file( argv[1] );
   mcpl_outfile_t fo = mcpl_create_outfile( argv[2] );
   mcpl_transfer_metadata( fi, fo );
-  mcpl_hdr_add_comment( fo, "mcpltool: extracted particles with -e \"userdata.temp>300K;ekin=userdata.e\"" );
+  mcpl_hdr_add_comment( fo, "mcpltool: extracted particles with -e \"userdata.temp>300K;"
+                            "ekin=userdata.e\"" );
   const char * layout = mcpl_hdr_userdata_layout( fi );
   const uint32_t offset_temp = mcpl_userdata_offset( layout, "temp", "float32" );
   const uint32_t offset_e = mcpl_userdata_offset( layout, "e", "float64" );

@@ -74,6 +74,20 @@ def test_helpers():
                     if line.startswith('static ') ]
         print(f'Helpers for edit {edit!r}: {", ".join(helpers) or "none"}')
 
+def test_widths():
+    #Long lines are broken (after && and ||, then other operators and commas,
+    #and comments and strings at spaces, or anywhere in strings), so the code
+    #stays within 100 columns:
+    long_edit = ( 'through_sphere((1cm,2cm,3cm),1cm) and abs(x)<2cm and abs(y)<2cm and'
+                  ' abs(z)<20cm and ekin>0.1MeV and ekin<10MeV and weight>0.001 or'
+                  ' (x+y+z)/cm*ux*uy*uz/(ekin/MeV+1)>hypot(x,y)/cm*sqrt(ekin/MeV)'
+                  '+polx*poly*polz+time/ms' )
+    comment = 'mcpltool: extracted particles with -e "' + long_edit + '"'
+    for lang, fct in ( ( 'C', _expr_ast2c ), ( 'C++', _expr_ast2cpp ) ):
+        lines = fct(long_edit,comment=comment).split('\n')
+        print(f'{lang}: {len(lines)} lines, the longest {max(map(len,lines))} columns')
+    show(long_edit,comment=comment)
+
 def test_errors():
     print('Errors:')
     for edit, layout in ( ( 'x > 1MeV', None ), ( 'userdata.temp > 300K', None ),
@@ -91,4 +105,5 @@ if __name__ == '__main__':
     test_programs()
     test_options()
     test_helpers()
+    test_widths()
     test_errors()

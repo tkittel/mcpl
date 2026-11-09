@@ -78,7 +78,8 @@ class Panel:
     """One plot (a set of axes) with items like StepHist objects. Items with
     labels are shown in a legend. The zlabel is that of the z axis of 3D
     plots (see Scatter3D). With aspect, the y axis is drawn aspect times as
-    long per unit as the x axis (e.g. 1 for the same scale on both axes)."""
+    long per unit as the x axis (e.g. 1 for the same scale on both axes), or
+    for 3D plots, any aspect gives the same scale on all axes."""
     def __init__( self, title = None, xlabel = None, ylabel = None,
                   logx = False, logy = False, xlim = None, ylim = None,
                   items = None, zlabel = None, aspect = None ):

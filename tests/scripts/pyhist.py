@@ -153,15 +153,16 @@ def test_public_api():
           h2.contents.shape, np.isclose(h2.contents.sum(), w.sum()))
     hd = mcpl.histogram(ex, 'pdgcode;bar=2')
     print(type(hd).__name__, repr(hd.expression), hd.values.tolist(), hd.contents.tolist())
-    p3 = mcpl.histogram(ex, 'x/cm : y/cm : z/cm;points=10')
+    p3 = mcpl.histogram(ex, 'x/cm : y/cm : z/cm;maxpoints=10')
     print(type(p3).__name__, p3.expressions, p3.points.shape, p3.nparticles)
     from mcpldev._plotbackend_test import describe
     print(describe([ hist_figure(mcpl,p3) ]).splitlines()[1])
     print(describe([ hist_figure(mcpl,mcpl.histogram(ex, 'x : y : z')) ]).splitlines()[1])
     #(the particles chosen depend only on the particles, so those which remain
     #after a stricter condition stay chosen):
-    full = mcpl.histogram(ex, 'x/cm : y/cm : z/cm;points=50')
-    sub = mcpl.histogram(ex, 'x/cm : y/cm : z/cm;points=50', edit='x > 0cm')
+    full = mcpl.histogram(ex, 'x/cm : y/cm : z/cm;maxpoints=50')
+    with mcpl.MCPLFile(ex, edit='x > 0cm') as f:
+        sub = mcpl.histogram(f, 'x/cm : y/cm : z/cm;maxpoints=50')
     kept = { tuple(p) for p in full.points.tolist() if p[0] > 0 }
     print(f'{len(kept)} of the points have x > 0, and all are chosen with the edit x > 0:',
           kept <= { tuple(p) for p in sub.points.tolist() })
@@ -446,16 +447,16 @@ def test_3d():
     #3D plots of a sample of the particles (the same for the same particles):
     from mcpldev._plotbackend_test import describe
     ex = str(example_file)
-    h = ihist(ex,'x : y : z;points=100;display_by=single')
+    h = ihist(ex,'x : y : z;maxpoints=100;display_by=single')
     print('3D:', type(h).__name__, { k : v.shape for k, v in h.groups.items() }, h.labels,
           h.nparticles)
-    same = ihist(ex,'x : y : z;points=100;display_by=single')
+    same = ihist(ex,'x : y : z;maxpoints=100;display_by=single')
     print('same sample:', np.array_equal(h.groups[None],same.groups[None]))
     h = ihist(ex,'ux : uy : uz;display_by=mod(fileidx,10)',edit='ekin > 1keV')
     print('split:', { k : len(v) for k, v in h.groups.items() }, h.colors)
     print(describe([ hist_figure(mcpl,h) ]))
     print(h.to_text().splitlines()[:4])
-    h = ihist(ex,'x : y : z;unweighted;points=5000;display_by=single')
+    h = ihist(ex,'x : y : z;unweighted;maxpoints=5000;display_by=single')
     print('more points than particles:', len(h.groups[None]), 'of', h.nparticles)
 
 def test_logz():
@@ -480,7 +481,15 @@ def test_equal():
         h = ihist(ex,text)
         print(f'{text!r}: aspect {h.aspect} ({h.xunit}, {h.yunit}), panel {hist_panel(mcpl,h).aspect}')
     print(describe([ hist_figure(mcpl,ihist(ex,'x : y;equal')) ]).splitlines()[1])
-    for bad in ( 'x : ekin;equal', 'x;equal', 'x : y : z;equal' ):
+    #(3D plots: the same unit on all axes, from all values):
+    for text in ( 'x : y : z;equal', 'x : y : 1000*z;equal', 'x : y : 1000*z' ):
+        h = ihist(ex,text)
+        print(f'{text!r}: units {h.units}, equal {h.equal}, panel aspect {hist_panel(mcpl,h).aspect}')
+    #(with equal scales, the axes are linear by default, also for values
+    #spanning many decades):
+    p = hist_panel(mcpl,ihist(ex,'ekin : ekin;equal'))
+    print(f"'ekin : ekin;equal': logx {p.logx}, logy {p.logy}")
+    for bad in ( 'x : ekin;equal', 'x;equal', 'x : y : ekin;equal', 'ekin : ekin;equal;logy' ):
         try:
             ihist(ex,bad)
         except mcpl.MCPLError as e:
@@ -525,7 +534,7 @@ def test_display_edit():
                               ( 'x/cm : y/cm;bins=8', 'pdgcode == neutron', None ),
                               ( 'pdgcode;bar', 'ekin > 1MeV', None ),
                               ( 'ekin/MeV;bins=20;display_by=pdgcode', 'ekin < 1MeV', 'x > 0' ),
-                              ( 'x : y : z;points=50', 'ekin < 1MeV', None ),
+                              ( 'x : y : z;maxpoints=50', 'ekin < 1MeV', None ),
                               ( 'x/cm;bins=10', 'rotate_z(90deg); x > 0cm', 'ekin < 1MeV' ) ):
         h = ihist(ex,f'{text};display_edit={cond}',edit = edit)
         both = cond if edit is None else f'{edit}; {cond}'

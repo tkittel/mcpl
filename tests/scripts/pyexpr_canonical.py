@@ -235,7 +235,7 @@ def test_hist():
     print('Canonical histogram strings:')
     for text in ( 'ekin / MeV ; logx ; bins = 50', 'ekin/MeV;bins=50;logx=1', 'ekin/MeV;logx=0;bar=0',
                   'x/cm : y/cm;xrange=-10:10;yrange=0cm:0.1m;bins=50,40;logz',
-                  'pdgcode;bar=5;logy', 'ux:uy:uz;points=50;display_edit=pdgcode == 2112',
+                  'pdgcode;bar=5;logy', 'ux:uy:uz;maxpoints=50;display_edit=pdgcode == 2112',
                   'ekin/MeV;display_edit=ekin > 5000eV', 'ekin/MeV;display_by=1',
                   'x/cm:y/cm;display_edit=rotate_z(45deg); ekin > 5000eV;;',
                   'ekin/MeV;display_by=pdgcode in (neutron,gamma)', 'x/cm:y/cm;equal;logz=0',

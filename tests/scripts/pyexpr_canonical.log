@@ -38,7 +38,7 @@ Histogram strings of the help:
   'x : y;xrange=-10cm:10cm;yrange=-10cm:10cm' -> 'x:y;xrange=-10cm:10cm;yrange=-10cm:10cm'
   'atan2(uy,ux)/deg : uz' -> 'atan2(uy,ux)/deg:uz'
   'x : y;display_edit=rotate_z(45deg)' -> 'x:y;display_edit=rotate_z(45deg)'
-  'x : y : z' -> 'x:y:z'
+  'x : y : z' -> 'x:y:z;maxpoints=5000'
   'pdgcode;bar' -> 'pdgcode;bar'
   'userdata.nscat;bar;unweighted' -> 'userdata.nscat;bar;unweighted'
 Canonical forms (condition):
@@ -133,7 +133,7 @@ Canonical histogram strings:
   'ekin/MeV;logx=0;bar=0' -> 'ekin/MeV;logx=0'
   'x/cm : y/cm;xrange=-10:10;yrange=0cm:0.1m;bins=50,40;logz' -> 'x/cm:y/cm;bins=50,40;xrange=-10:10;yrange=0m:10cm;logz'
   'pdgcode;bar=5;logy' -> 'pdgcode;logy;bar=5'
-  'ux:uy:uz;points=50;display_edit=pdgcode == 2112' -> 'ux:uy:uz;points=50;display_edit=pdgcode==neutron'
+  'ux:uy:uz;maxpoints=50;display_edit=pdgcode == 2112' -> 'ux:uy:uz;maxpoints=50;display_edit=pdgcode==neutron'
   'ekin/MeV;display_edit=ekin > 5000eV' -> 'ekin/MeV;display_edit=ekin>5keV'
   'ekin/MeV;display_by=1' -> 'ekin/MeV;display_by=single'
   'x/cm:y/cm;display_edit=rotate_z(45deg); ekin > 5000eV;;' -> 'x/cm:y/cm;display_edit=rotate_z(45deg);ekin>5keV'
@@ -141,7 +141,7 @@ Canonical histogram strings:
   'x/cm:y/cm;equal;logz=0' -> 'x/cm:y/cm;logz=0;equal'
   'ekin/MeV;logx=auto;logy=auto;unweighted;print;lethargy=0' -> 'ekin/MeV;unweighted;print'
   'ekin/eV;range=0:1e3' -> 'ekin/eV;range=0:1000.0'
-  'ekin/MeV;foo': Unknown histogram option "foo" in "ekin/MeV;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, points, equal, display_edit)
+  'ekin/MeV;foo': Unknown histogram option "foo" in "ekin/MeV;foo" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, maxpoints, equal, display_edit)
   'ekin/MeV;bins=x': bins must be a positive integer (or two for 2D histograms, like bins=50,40) in "ekin/MeV;bins=x"
   'x > 1MeV': Incompatible units in comparison: length and energy in expression "x > 1MeV"
 Files extracted with conditions written in different ways can be merged:

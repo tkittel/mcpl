@@ -235,7 +235,10 @@ def _draw_panel( fig, ax, panel, several = False ):
         ax.set_xlim(*panel.xlim)
     if panel.ylim:
         ax.set_ylim(*panel.ylim)
-    if panel.aspect:
+    if panel.aspect and hasattr(ax,'set_zlabel'):
+        ax.set_aspect('equal',adjustable='box')
+        _single_tick_on_short_axes(ax)
+    elif panel.aspect:
         ax.set_aspect(panel.aspect,adjustable='box')
     if panel.title:
         ax.set_title(panel.title)
@@ -249,6 +252,20 @@ def _draw_panel( fig, ax, panel, several = False ):
         #(with larger points in the legend than in 3D plots):
         ax.legend(fontsize='small',markerscale=4 if hasattr(ax,'set_zlabel') else 1)
     ax.grid(alpha=0.3)
+
+def _single_tick_on_short_axes( ax ):
+    """With the same scale on all axes of a 3D plot, a single tick (the one
+    nearest the middle) on axes much shorter than the longest one, whose tick
+    labels would otherwise be drawn on top of each other"""
+    from matplotlib.ticker import FixedLocator, MaxNLocator
+    axes = ( ( ax.xaxis, ax.get_xlim3d() ), ( ax.yaxis, ax.get_ylim3d() ),
+             ( ax.zaxis, ax.get_zlim3d() ) )
+    longest = max( hi - lo for _, ( lo, hi ) in axes )
+    for axis, ( lo, hi ) in axes:
+        if hi - lo < 0.2 * longest:
+            middle = 0.5 * ( lo + hi )
+            ticks = MaxNLocator(nbins=1).tick_values(lo,hi)
+            axis.set_major_locator(FixedLocator([ min(ticks,key=lambda t : abs(t - middle)) ]))
 
 def _positive( interval ):
     """Whether the interval of the data (lo, hi) has positive values"""

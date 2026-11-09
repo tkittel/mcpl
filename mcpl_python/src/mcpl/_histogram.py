@@ -135,8 +135,9 @@ class PointSet3D(_Result):
     """Values of three expressions for particles randomly sampled according
     to weights, the result of histogram() for a histogram string with three
     expressions, e.g. "x/cm : y/cm : z/cm". At most as many particles as the
-    option points gives (5000 unless given) are chosen, in proportion to their
-    weights (or all equally likely, with the option unweighted): the particles
+    option maxpoints gives (5000 unless given) are chosen, according to their
+    weights and none more than once (or all equally likely, with the option
+    unweighted): the particles
     with the largest values of u^(1/w), where w is the weight and u a number
     from a fixed hash of the position of the particle in the file. So the
     same particles are always chosen for the same file, and particles which

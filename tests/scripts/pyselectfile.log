@@ -1,4 +1,4 @@
-edit=ParticleEdit('pdgcode==neutron') nparticles=1006
+edit=ParticleEdit('pdgcode==neutron') nparticles=None
 block lengths with blocklength=100: [185, 188, 179, 168, 6]
 first particle after rewind: 3
 skip_forward: skip_forward can not be used with files opened with edit, skip, or limit

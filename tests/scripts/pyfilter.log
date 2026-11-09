@@ -1,3 +1,14 @@
+{}: nparticles 100, read 100, stat_sum {'BLA': 5.0, 'some_stat_key': 1.2345678912345678e-201}
+{'skip': 1}: nparticles 99, read 99, stat_sum {'BLA': None, 'some_stat_key': None}
+{'limit': 2}: nparticles 2, read 2, stat_sum {'BLA': None, 'some_stat_key': None}
+{'skip': 1, 'limit': 1000000}: nparticles 99, read 99, stat_sum {'BLA': None, 'some_stat_key': None}
+{'edit': 'ekin < 1MeV'}: nparticles None, read 5, stat_sum {'BLA': 5.0, 'some_stat_key': 1.2345678912345678e-201}
+{'edit': 'z += 1cm'}: nparticles 100, read 100, stat_sum {'BLA': 5.0, 'some_stat_key': 1.2345678912345678e-201}
+{'edit': 'weight *= 2'}: nparticles 100, read 100, stat_sum {'BLA': None, 'some_stat_key': None}
+{'edit': 'mod(fileidx,2) == 0'}: nparticles None, read 50, stat_sum {'BLA': None, 'some_stat_key': None}
+collect_stats with 'weight *= 2': stat_sum {'BLA': None, 'some_stat_key': None}
+collect_stats with 'ekin < 1MeV': stat_sum {'BLA': 5.0, 'some_stat_key': 1.2345678912345678e-201}
+collect_stats with both edits: stat_sum {'BLA': None, 'some_stat_key': None}
 'ekin < 1MeV': filters True, changes False, weight changes False, filters on fileidx False
 'weight *= 2': filters False, changes True, weight changes True, filters on fileidx False
 'swap(x,y)': filters False, changes True, weight changes False, filters on fileidx False

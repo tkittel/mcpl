@@ -148,7 +148,7 @@ expressions = {
                'ekin=0.025eV;pdgcode=2112', 'rotate_z(90.0deg)', 'z -= 1.5km', 'pdgcode = -11',
                'tmp = x; x = y; y = tmp', 'pos += (0,0,1e3mm)', 'wavelength = 0.18nm',
                'rotate_y(90deg); x > 0cm', 'pdgcode == neutron; wavelength > 1.8Aa;  weight *= 2',
-               'x > 0; inactive(y += 1cm); z += 2cm' ),
+               'x > 0; inactive(y += 1cm); z += 2cm', 'ekin = (ekin/MeV)^0x2*MeV' ),
 }
 #Groups of expressions with the same canonical form, and different ones:
 same_forms = [
@@ -185,7 +185,8 @@ def test_errors( b ):
     #for the normalised trees):
     print('Errors:')
     for text, kind in ( ( 'x > 1MeV', 'condition' ), ( 'mod(pdgcode,3) == 1', 'condition' ), ( 'pdgcode * 1000000000 > 0', 'condition' ),
-                        ( 'x < 1e400cm', 'condition' ), ( 'x > 1e308km', 'condition' ), ( 'wavelength > 1Aa', 'condition' ),
+                        ( 'x < 1e400cm', 'condition' ), ( 'x > 1e308km', 'condition' ), ( 'x/cm < cm^1e400', 'condition' ),
+                        ( 'x/cm < 2cm^1e20', 'condition' ), ( 'wavelength > 1Aa', 'condition' ),
                         ( 'pdgcode in (neutron) and ekin/(ekin-ekin) > 0', 'condition' ), ( 'x', 'value' ),
                         ( 'pdgcode = 2.5', 'edit' ), ( 'x = 1MeV', 'edit' ), ( 'ekin < 5000 eV + x', 'condition' ),
                         ( 'neutron', 'condition' ), ( 'pdgcode in (1cm)', 'condition' ) ):

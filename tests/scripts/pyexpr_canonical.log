@@ -111,6 +111,7 @@ Canonical forms (edit):
   'rotate_y(90deg); x > 0cm' -> 'rotate_y(90deg);x>0m'
   'pdgcode == neutron; wavelength > 1.8Aa;  weight *= 2' -> 'pdgcode==neutron;wavelength>1.8Aa;weight*=2'
   'x > 0; inactive(y += 1cm); z += 2cm' -> 'x>0;z+=2cm'
+  'ekin = (ekin/MeV)^0x2*MeV' -> 'ekin=(ekin/MeV)^0x2 MeV'
 8 groups of expressions have the same canonical forms, and 18 different ones different forms
 Errors:
   'x > 1MeV': Incompatible units in comparison: length and energy in expression "x > 1MeV"
@@ -118,6 +119,8 @@ Errors:
   'pdgcode * 1000000000 > 0': Multiplication of integers gives values outside the range of the result (32-bit integers) in expression "pdgcode * 1000000000 > 0"
   'x < 1e400cm': A constant has NaN or infinite values in expression "x < 1e400cm"
   'x > 1e308km': A constant has NaN or infinite values in expression "x > 1e308km"
+  'x/cm < cm^1e400': Units can only have whole or half powers (like cm^2 or cm^0.5), in expression "x/cm < cm^1e400"
+  'x/cm < 2cm^1e20': Incompatible units in comparison: value without units and length^100000000000000000000 in expression "x/cm < 2cm^1e20"
   'wavelength > 1Aa': The wavelength is only defined for neutrons and gammas, so keep only those before using it, e.g. "pdgcode == neutron; wavelength > 1.8Aa" (in expression "wavelength > 1Aa")
   'pdgcode in (neutron) and ekin/(ekin-ekin) > 0': Division gives NaN or infinite values in expression "pdgcode in (neutron) and ekin/(ekin-ekin) > 0"
   'x': Expression "x" has units (length), so divide it by a unit, e.g. x/cm

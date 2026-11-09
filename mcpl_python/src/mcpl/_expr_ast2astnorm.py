@@ -156,7 +156,10 @@ def _norm_quantity( q ):
                 candidates.insert(0,Quantity(Int(0),si,q.power))
             else:
                 #(the smallest magnitude of at least 1, or else the largest):
-                values = [ ( d.scaleb(( n - m ) * int(q.power)), u ) for m, u in family ]
+                try:
+                    values = [ ( d.scaleb(( n - m ) * int(q.power)), u ) for m, u in family ]
+                except decimal.InvalidOperation:
+                    return candidates[0]#(for huge powers of the unit)
                 large = [ e for e in values if abs(e[0]) >= 1 ]
                 v, u = ( min(large,key=lambda e : abs(e[0])) if large
                          else max(values,key=lambda e : abs(e[0])) )

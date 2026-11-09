@@ -86,37 +86,67 @@ _wl_unit = 1e-8
 
 #The generated code stays within _width columns where it can: long lines are
 #broken after the operators && and || (marked with _BRK, one operand per
-#line), and lines which are still long after other operators and commas
-#(marked with _BRK2, see _layout); long comments and strings are split at
-#spaces:
+#line), then where still needed after other operators and commas (marked
+#with _BRK2), and last after the opening parentheses of calls (_BRK3), see
+#_layout; long comments and strings are split at spaces:
 _width = 100
-_BRK, _BRK2 = '\x00', '\x01'
+_BRK, _BRK2, _BRK3 = '\x00', '\x01', '\x02'
 _ARGSEP = ', ' + _BRK2
 
 def _unmarked( line ):
-    return line.replace(_BRK,'').replace(_BRK2,'')
+    return line.replace(_BRK,'').replace(_BRK2,'').replace(_BRK3,'')
+
+def _marked( line ):
+    """The line, with the places after commas, &&, and || (outside of strings
+    and comments) also marked with _BRK2"""
+    res, quoted, i = [], False, 0
+    while i < len(line):
+        if not quoted and line.startswith('/*',i):
+            end = line.find('*/',i) + 2
+            res.append(line[i:end])
+            i = end
+            continue
+        ch = line[i]
+        quoted = quoted != ( ch == '"' and line[i-1:i] != '\\' )
+        res.append(ch)
+        i += 1
+        if ( not quoted and line[i:i+1] not in ( _BRK, _BRK2, _BRK3 )
+             and any( line.startswith(s,i-len(s)) for s in ( ', ', '&& ', '|| ' ) ) ):
+            res.append(_BRK2)
+    return ''.join(res)
+
+def _fill( line, marks, indent ):
+    """The line, broken where needed at the places marked with the first of
+    the marks (as many parts on each line as fit), and parts which are still
+    too long at those of the next marks"""
+    if len(_unmarked(line)) <= _width or not marks:
+        return [ _unmarked(line) ]
+    lines, cur = [], ''
+    for piece in line.split(marks[0]):
+        if cur.strip() and len(_unmarked(cur + piece.rstrip())) > _width:
+            lines.append(cur.rstrip())
+            cur = indent + piece
+        else:
+            cur += piece
+    lines.append(cur.rstrip())
+    return [ done for part in lines for done in _fill(part,marks[1:],indent) ]
 
 def _layout( lines ):
     """The lines of code, with those longer than _width columns broken at the
-    places marked with _BRK, and then at those marked with _BRK2 where still
-    needed (the continuation lines indented 4 columns more), and the marks
-    removed"""
+    places marked with _BRK (one part on each line), and then where still
+    needed at those marked with _BRK2 and _BRK3 (the continuation lines
+    indented 4 columns more), and the marks removed. Long lines are also
+    marked after commas, &&, and || (see _marked)."""
     res = []
-    indent_of = lambda line : ' ' * ( len(line) - len(line.lstrip()) + 4 )
     for line in lines:
         if len(_unmarked(line)) <= _width:
             res.append(_unmarked(line))
             continue
+        line = _marked(line)
+        indent = ' ' * ( len(line) - len(line.lstrip()) + 4 )
         first, *more = line.split(_BRK)
-        for part in [ first ] + [ indent_of(line) + p for p in more ]:
-            cur = ''
-            for piece in part.split(_BRK2):
-                if cur.strip() and len(_unmarked(cur + piece.rstrip())) > _width:
-                    res.append(cur.rstrip())
-                    cur = indent_of(part) + piece
-                else:
-                    cur += piece
-            res.append(cur.rstrip())
+        for part in [ first ] + [ indent + p for p in more ]:
+            res += _fill(part,( _BRK2, _BRK3 ),indent)
     return res
 
 def _split_text( text, width, anywhere = False ):
@@ -142,15 +172,16 @@ def _comment_lines( text, first, more, end = '' ):
     lines[-1] += end
     return lines
 
-def _string_call( start, text, end ):
+def _string_call( start, text, end, indent = 0 ):
     """The line(s) of a call with a string argument (start ends with the
     opening parenthesis), split in adjacent C strings if long (see
-    _split_text)"""
+    _split_text), for lines indented by indent more columns"""
+    width = _width - indent
     line = f'{start}{_c_string(text)}{end}'
-    if len(line) <= _width:
+    if len(line) <= width:
         return [ line ]
     pad = ' ' * len(start)
-    parts = [ _c_string(p) for p in _split_text(text,_width - len(start) - len(end) - 4,True) ]
+    parts = [ _c_string(p) for p in _split_text(text,width - len(start) - len(end) - 4,True) ]
     return ( [ start + parts[0] ] + [ pad + p for p in parts[1:-1] ] + [ pad + parts[-1] + end ] )
 
 class _Code(tuple):
@@ -194,13 +225,13 @@ class _Translator:
     def fct( self, name, *args ):
         """A call of a function of the math library"""
         self.math = True
-        return f'{"std::" if self.lang == "cpp" else ""}{name}( {_ARGSEP.join(args)} )'
+        return f'{"std::" if self.lang == "cpp" else ""}{name}( {_BRK3}{_ARGSEP.join(args)} )'
 
     def error( self, msg ):
         """The statement stopping the program with the message"""
         if self.lang == 'cpp':
-            return f'throw std::runtime_error( "{msg}" );'
-        return f'fprintf( stderr, "ERROR: {msg}\\n" );\nexit( 1 );'
+            return '\n'.join(_string_call('throw std::runtime_error( ',msg,' );',10))
+        return '\n'.join(_string_call('fprintf( stderr, ',f'ERROR: {msg}\n',' );',10) + [ 'exit( 1 );' ])
 
     def fail( self, cond, msg, indent = '  ' ):
         """Lines stopping the program with the message if cond is true"""
@@ -336,7 +367,10 @@ class _Translator:
         if n == 'wavelength':
             self.wavelength_code()
             return _term(f'wavelength( {self.field("ekin")}, {self.field("pdgcode")} )','f64')
-        return self.field(n), _field_types.get(n,'f64')
+        if n in _int_field_types:
+            return _term(self.field(n),_int_field_types[n])
+        #(checked for each use, as in the expressions):
+        return self.finite(self.field(n))
 
     def userdata_value( self, node ):
         from ._expr_eval import _userdata_unit
@@ -374,9 +408,10 @@ class _Translator:
         return self.negate(x)
 
     @staticmethod
-    def paren( code ):
-        """The code in parentheses, unless it is a name, a member, or a number"""
-        return code if re.fullmatch(r'[\w.]+(\[\d+\])?|\w+->[\w.]+(\[\d+\])?',code) else f'( {code} )'
+    def paren( x ):
+        """The code of the number x in parentheses, unless it is a single
+        term (see _Code)"""
+        return x[0] if getattr(x,'atom',False) else f'( {x[0]} )'
 
     def negate( self, x ):
         code, t = x
@@ -425,12 +460,8 @@ class _Translator:
         a, b = self.as_float(a), self.as_float(b)
         if op == '^':
             return self.finite(self.fct('pow',a[0],b[0]))
-        if op == '/':
-            m = re.fullmatch(r'([0-9.e+-]+)(/\*.*\*/)?',b[0])
-            if not ( m and float(m.group(1)) != 0.0 ):
-                #(divisions which can give NaN or infinite values):
-                return self.finite(f'{a[0]} / {b[0]}'), 'f64'
-        return f'( {a[0]} {op} {_BRK2}{b[0]} )', 'f64'
+        #(all results checked, as in the expressions):
+        return self.finite(f'{self.paren(a)} {op} {_BRK2}{self.paren(b)}')
 
     def vector_binary( self, op, a, b ):
         va, vb = isinstance(a,list), isinstance(b,list)
@@ -454,9 +485,8 @@ class _Translator:
     def compare( self, op, a, b ):
         a, b = self.scalar(a), self.scalar(b)
         if a[1] != 'f64' and b[1] != 'f64':
-            _, x, y = self.int_operands(a,b)
-            return f'{x} {op} {y}'
-        return f'{a[0]} {op} {b[0]}'
+            _, a, b = self.int_values(a,b)
+        return f'{self.paren(a)} {op} {self.paren(b)}'
 
     def dot( self, v, w ):
         res = self.binary('*',v[0],w[0])
@@ -465,9 +495,19 @@ class _Translator:
         return res
 
     def call( self, fname, args ):
+        """The value of a call of a function (results which are floating point
+        numbers are checked, as in the expressions)"""
+        res = self._call(fname,args)
+        if isinstance(res,list) or res[1] != 'f64' or fname in ( 'through_sphere', 'through_box' ):
+            return res
+        return res if getattr(res,'checked',False) else self.finite(res[0])
+
+    def _call( self, fname, args ):
         vector_args = [ isinstance(a,list) for a in args ]
         if fname == 'abs' and len(args) == 1 and vector_args[0]:
-            return self.fct('sqrt',self.dot(args[0],args[0])[0]), 'f64'
+            #(the length, of floating point numbers also for integers):
+            v = [ self.as_float(c) for c in args[0] ]
+            return _term(self.fct('sqrt',self.dot(v,v)[0]),'f64')
         if fname in ( 'dot', 'cross', 'angle' ):
             v, w = args
             if fname == 'dot':
@@ -478,8 +518,7 @@ class _Translator:
             pad = [ ( '0.0', 'f64' ) ] * ( 3 - len(v) )
             self.angle_code()
             comps = [ self.as_float(c)[0] for c in ( *v, *pad, *w, *pad ) ]
-            #(NaN for vectors of length zero):
-            return self.finite(f'angle( {", ".join(comps)} )'), 'f64'
+            return _term(f'angle( {_ARGSEP.join(comps)} )','f64')
         if fname == 'through_sphere':
             return self.through_sphere(*args)
         if fname == 'through_box':
@@ -501,18 +540,18 @@ class _Translator:
             self.toint_code()
             return _term(f'toint( {self.fct("rint" if fname == "round" else fname,code)} )','i64')
         if fname in ( 'min', 'max', 'clamp' ):
-            def pick( a, b, op ):
+            def pick( a, b, which ):
                 if ints:
                     t, x, y = self.int_operands(a,b)
-                    return f'( {x} {op} {y} ? {x} : {y} )', t
-                a, b = self.as_float(a), self.as_float(b)
-                return f'( {a[0]} {op} {b[0]} ? {a[0]} : {b[0]} )', 'f64'
+                else:
+                    ( x, t ), ( y, _ ) = self.as_float(a), self.as_float(b)
+                return _term(f'{self.min_max_code(which,t)}( {x}, {_BRK2}{y} )',t)
             if fname == 'clamp':
                 v, lo, hi = args
-                return pick(pick(v,lo,'>'),hi,'<')
+                return pick(pick(v,lo,'max'),hi,'min')
             res = args[0]
             for a in args[1:]:
-                res = pick(res,a,'<' if fname == 'min' else '>')
+                res = pick(res,a,fname)
             return res
         if fname == 'hypot':
             #(as in the expressions, the square root of the sum of the squares):
@@ -522,9 +561,7 @@ class _Translator:
                 res = self.binary('+',res,t)
             return _term(self.fct('sqrt',res[0]),'f64')
         if fname == 'sqrt' or fname in _functions_nodim or fname == 'atan2':
-            res = self.fct(fname,*( self.as_float(a)[0] for a in args ))
-            #(functions which can give NaN or infinite values of finite ones):
-            return ( self.finite(res) if fname in _risky_functions else res ), 'f64'
+            return _term(self.fct(fname,*( self.as_float(a)[0] for a in args )),'f64')
         raise MCPLError(f'Unsupported function {fname}')
 
     def through_sphere( self, center, radius ):
@@ -602,7 +639,14 @@ class _Translator:
         name = self.function('check_finite','double {name}( double v )',
                              self.fail(f'!{self.fct("isfinite","v")}','NaN or infinite value')
                              + '  return v;\n')
-        return f'{name}( {code} )'
+        return _Code(f'{name}( {_BRK3}{code} )','f64',checked = True,atom = True)
+
+    def min_max_code( self, which, t ):
+        """The function giving the smaller (which is 'min') or larger ('max')
+        of two numbers of the type t"""
+        T = self.ctype(t)
+        return self.function(f'{which}_{t}',f'{T} {{name}}( {T} a, {T} b )',
+                             f'  return a {"<" if which == "min" else ">"} b ? a : b;\n')
 
     def toint_code( self ):
         return self.function('toint',f'{self.ctype("i64")} {{name}}( double v )',
@@ -700,6 +744,9 @@ class _Translator:
     def rotation_matrix_code( self, fname ):
         """The helpers of rotate_around or rotate_frame (see _rotation_matrix)"""
         f, sq = self.fct, lambda e : self.fct('sqrt',e)
+        #(the difference of the cosines of the angles, v-u and vout-uout):
+        angle_diff = ( f'( v[0]*u[0] + v[1]*u[1] + v[2]*u[2] ) - {_BRK2}'
+                       '( vo[0]*uo[0] + vo[1]*uo[1] + vo[2]*uo[2] )' )
         self.function('unit_vector','int {name}( const double * v, double * u )',
                       f'  double n = {sq("v[0]*v[0] + v[1]*v[1] + v[2]*v[2]")};\n'
                       '  if ( !( n > 0.0 && n <= 1.7976931348623157e308 ) )\n    return 0;\n'
@@ -742,7 +789,7 @@ class _Translator:
                              + self.fail('cross_norm( v, u ) <= 1e-6','In rotate_frame(..), v and u must not be parallel')
                              + self.fail('cross_norm( vo, uo ) <= 1e-6',
                                          'In rotate_frame(..), vout and uout must not be parallel')
-                             + self.fail(f'{f("fabs","( v[0]*u[0] + v[1]*u[1] + v[2]*u[2] ) - ( vo[0]*uo[0] + vo[1]*uo[1] + vo[2]*uo[2] )")} > 1e-6',
+                             + self.fail(f'{f("fabs",angle_diff)} > 1e-6',
                                          'In rotate_frame(..), the angle between v and u must be that between vout and uout')
                              + '  frame( v, u, E );\n  frame( vo, uo, F );\n'
                              '  /* (R = F E^T) */\n'
@@ -762,14 +809,13 @@ class _Translator:
         return f'mcpl_userdata_get_{ftype}( ud, {off} )'
 
 #(the functions which can give NaN or infinite values of finite values):
-_risky_functions = ( 'sqrt', 'exp', 'log', 'log10', 'asin', 'acos' )
 #(the sizes of the userdata types, in bytes):
 _ud_sizes = { t : int(code[1:]) for t, code in _userdata_types.items() }
 
 class _Statements:
     """The C or C++ statements of the statements of edit expressions (with
     the translator tr, of particles whose fields are set by set_field(name,
-    code, op = ''), with op for op=, or None if no fields are changed), where
+    code), or None if no fields are changed), where
     a condition skips the particles for which it is false"""
 
     def __init__( self, tr, set_field ):
@@ -792,21 +838,18 @@ class _Statements:
         """Lines declaring a new C variable (or three, for vectors) for the
         value of the variable"""
         tr = self.tr
+        #(the C names start with v_, so they are never names of the program,
+        #like p, or of C and C++, like double):
         if isinstance(value,list):
-            names = [ tr.new_name(f'{name}_{"xyz"[i]}') for i in range(len(value)) ]
+            names = [ tr.new_name(f'v_{name}_{"xyz"[i]}') for i in range(len(value)) ]
             tr.variables[name] = [ _term(n,t) for n, ( _, t ) in zip(names,value) ]
             return [ f'{tr.ctype(t)} {n} = {c};' for n, ( c, t ) in zip(names,value) ]
-        n = tr.new_name(name)
+        n = tr.new_name(f'v_{name}')
         tr.variables[name] = _term(n,value[1])
         return [ f'{tr.ctype(value[1])} {n} = {value[0]};' ]
 
     def assign( self, st ):
         tr, name = self.tr, st.target
-        if ( self.set_field is not None and st.op in ( '+', '-', '*', '/' )
-             and name in _c_members and name not in _field_types ):
-            #(as in x += 1cm, for the fields of floating point numbers):
-            value = tr.scalar(tr(st.value))
-            return [ self.set_field(name,tr.as_float(value)[0],st.op) ]
         value = tr(st.value if st.op is None else Binary(st.op,Name(name),st.value))
         return self.store(name,value)
 
@@ -906,12 +949,13 @@ def _universal_checks( tr, edit, value ):
 
 def _program_header( edit ):
     """The first comment lines of the generated code"""
-    return ( [] if edit is None else [ f'Edit: {edit.expression}' ] ) + [
-        'Code auto-generated by MCPL from above expression' ]
+    if edit is None:
+        return [ 'Code auto-generated by MCPL' ]
+    return [ f'Edit: {edit.expression}', 'Code auto-generated by MCPL from above expression' ]
 
 def _c_string( text ):
     """The text as a string of C and C++"""
-    return '"' + text.replace('\\','\\\\').replace('"','\\"') + '"'
+    return '"' + text.replace('\\','\\\\').replace('"','\\"').replace('\n','\\n') + '"'
 
 def _expr_ast2c( edit = None, layout = None, *, filenames = None, skip = 0,
                  limit = None, mark_statsums = False, comment = None ):
@@ -933,7 +977,7 @@ def _expr_ast2c( edit = None, layout = None, *, filenames = None, skip = 0,
     if changes:
         body.append('mcpl_particle_t p = *p_in;')
         tr.field = lambda n : 'fileidx' if n == 'fileidx' else f'p.{_c_members[n]}'
-        set_field = lambda n, code, op = '' : f'p.{_c_members[n]} {op}= {code};'
+        set_field = lambda n, code : f'p.{_c_members[n]} = {code};'
     if edit is not None:
         body += _Statements(tr,set_field)(edit._tree.statements)
     if changes:

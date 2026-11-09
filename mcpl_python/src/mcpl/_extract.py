@@ -84,14 +84,11 @@ def _mcpltool_code(filelist, lang, limit, skip, edit, preventcomment, keepstatsu
     with MCPLFile(filelist[0]) as f:
         layout = f.userdata_layout
         marking = _statsum_marking(f.stat_sum,f._nparticles_raw,skip,limit,edit,keepstatsum)
-    if lang == 'c':
-        from ._expr_ast2c import _expr_ast2c as generate
-    else:
-        from ._expr_ast2cpp import _expr_ast2cpp as generate
+    from ._expressions import _edit_code
     try:
-        print(generate(edit,layout,skip = skip,limit = limit or None,
-                       mark_statsums = marking is not None,
-                       comment = None if preventcomment else _extraction_comment(skip,limit,edit)),
+        print(_edit_code(lang,edit,layout,skip = skip,limit = limit,
+                         mark_statsums = marking is not None,
+                         comment = None if preventcomment else _extraction_comment(skip,limit,edit)),
               end='')
     except MCPLError as e:
         bad(str(e))

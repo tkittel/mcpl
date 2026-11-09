@@ -22,7 +22,7 @@
 """C++ code doing what edit expressions do (see _expressions), with the C++
 API of MCPL (mcplcpp.h): complete programs reading an MCPL file and writing
 the particles kept, with their changes, to a new file. Interface:
-_expr_ast2cpp(edit, layout), as _expr_ast2c, whose translation of expressions
+_expr_ast2cpp(tree, layout), as _expr_ast2c, whose translation of expressions
 it uses (so the C and C++ code compute the same), with errors as
 exceptions."""
 
@@ -39,6 +39,7 @@ from ._expr_ast2c import (
     _universal_checks,
     _universal_fields,
 )
+from ._expr_vocab import _modified_fields
 
 #The userdata types, as types of C++:
 _cpp_ud_types = { t : { 'float32' : 'float', 'float64' : 'double' }.get(t,f'std::{t}_t')
@@ -51,14 +52,14 @@ class _CppTranslator(_Translator):
         self.uses_p = True
         return f'ud_{name}( p )' if index is None else f'ud_{name}( p, {index} )'
 
-def _expr_ast2cpp( edit = None, layout = None, *, filenames = None, skip = 0,
+def _expr_ast2cpp( tree = None, layout = None, *, filenames = None, skip = 0,
                    limit = None, mark_statsums = False, comment = None ):
-    """A C++ program which writes the particles of an MCPL file which the edit
+    """A C++ program which writes the particles of an MCPL file which an edit
     keeps, with its changes, to a new file (see _expr_ast2c)"""
-    from ._expressions import _as_edit
     from ._userdata import userdata_fields
-    edit = _as_edit(edit)
-    changes = edit is not None and bool(edit.modified_fields)
+    statements = () if tree is None else tree.statements
+    modified = _modified_fields(statements)
+    changes = bool(modified)
     def field( obj ):
         def get( n ):
             if n == 'fileidx':
@@ -76,14 +77,13 @@ def _expr_ast2cpp( edit = None, layout = None, *, filenames = None, skip = 0,
         tr.field = field('out')
         def set_field( n, code ):
             return f'out.set_{n}( {code} );'
-    if edit is not None:
-        body += _Statements(tr,set_field)(edit._tree.statements)
+    body += _Statements(tr,set_field)(statements)
     if changes:
-        body += _universal_checks(tr,edit,lambda f : f'out.{f}()')
+        body += _universal_checks(tr,modified,lambda f : f'out.{f}()')
         body.append('fout.add( out );')
     else:
         body.append('fout.transfer_last_read_particle( fin );')
-    out = [ c for line in _program_header(edit) for c in _comment_lines(line,'// ','//       ') ]
+    out = [ c for line in _program_header(tree) for c in _comment_lines(line,'// ','//       ') ]
     out += [ '', '#include "mcplcpp.h"' ]
     #(mcplcpp.h has the integer types and std::runtime_error):
     if tr.math:
@@ -120,7 +120,7 @@ def _expr_ast2cpp( edit = None, layout = None, *, filenames = None, skip = 0,
                 out.append(f'    auto out_{name} = fout.userdata_field<{targs}>( "{name}" );')
     if changes:
         for f in _universal_fields:
-            if f in edit.modified_fields:
+            if f in modified:
                 t = 'std::int32_t' if f == 'pdgcode' else 'double'
                 out.append(f'    const {t} universal_{f} = fin.universal_{f}();')
         out.append('    auto out = fout.new_particle();')

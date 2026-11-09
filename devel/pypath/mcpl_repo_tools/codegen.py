@@ -218,8 +218,7 @@ def run( nprocs, nrandom = 200 ):
     from .cmake import CMakeRunner
     sys.path.insert(0,str(pyroot/'src'))
     import mcpl
-    from mcpl._expr_ast2c import _expr_ast2c
-    from mcpl._expr_ast2cpp import _expr_ast2cpp
+    from mcpl._expressions import _edit_code
     cwd = pathlib.Path('.').absolute()
     c = CMakeRunner( blddir = cwd/'bld', instdir = cwd/'inst', mode = 'install',
                      nprocs = nprocs )
@@ -240,9 +239,9 @@ def run( nprocs, nrandom = 200 ):
             mcpl.ParticleEdit(edit)
         except mcpl.MCPLError:
             continue#(only valid expressions, see the tests of expressions)
-        for lang, fct, ext in ( ( 'c', _expr_ast2c, 'c' ), ( 'cpp', _expr_ast2cpp, 'cc' ) ):
+        for lang, ext in ( ( 'c', 'c' ), ( 'cpp', 'cc' ) ):
             name = f'{lang}{i}'
-            ( gen / f'{name}.{ext}' ).write_text(fct(edit,layout,skip = skip,limit = limit))
+            ( gen / f'{name}.{ext}' ).write_text(_edit_code(lang,edit,layout,skip = skip,limit = limit))
             programs.append( ( name, f'{name}.{ext}' ) )
             runs.append( ( name, fkey, edit, skip, limit ) )
     ( gen / 'CMakeLists.txt' ).write_text(_cmake_project(programs))

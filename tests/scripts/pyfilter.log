@@ -209,8 +209,8 @@ parsed 'pdgcode == neutron and wavelength > 1.8Aa': fields ['pdgcode', 'waveleng
 parsed 'hypot(x,y)/cm': fields ['x', 'y'], names ['hypot', 'x', 'y'], canonical 'hypot(x,y)/cm'
 parsed 'mod(fileidx,10) == 0': fields ['fileidx'], names ['fileidx', 'mod'], canonical 'mod(fileidx,10)==0'
 random expressions: 448 of 448 valid ones have equivalent normalised forms
-exp(2,3): exp(..) takes one argument in expression "exp(2,3)"
-cos(ux,2): cos(..) takes one argument in expression "cos(ux,2)"
+exp(2,3): exp(a) takes one argument, in expression "exp(2,3)"
+cos(ux,2): cos(a) takes one argument, in expression "cos(ux,2)"
 pos.x/cm as with numpy
 pos.at(1)/cm as with numpy
 dir.z as with numpy
@@ -253,7 +253,7 @@ dir.x.y > 0: Only vectors have values like .x or .at(INDEX) in expression "dir.x
 sin(dir) > 0: A vector can not be used in sin(..) (here a 3D vector; abs(v) is its length, and v.x or v.at(0) its first value) in expression "sin(dir) > 0"
 pos and 1: A vector can not be a condition (here a 3D vector of lengths; abs(v) is its length, and v.x or v.at(0) its first value) in expression "pos and 1"
 not dir: not can not be used for vectors (here a 3D vector) in expression "not dir"
-angle(pos) > 0: angle(v,w) takes two vectors in expression "angle(pos) > 0"
+angle(pos) > 0: angle(v,w) takes two arguments, in expression "angle(pos) > 0"
 angle(pos,(1,0)) > 0: angle(v,w) takes two vectors of the same size in expression "angle(pos,(1,0)) > 0"
 dot(pos,1cm) > 0: dot(v,w) takes two vectors in expression "dot(pos,1cm) > 0"
 (pos,pos) == 0: A vector can not be a value of a vector (here a 3D vector of lengths; abs(v) is its length, and v.x or v.at(0) its first value) in expression "(pos,pos) == 0"
@@ -370,7 +370,7 @@ ParticleEdit('sqrt(x) < 2'): Incompatible units in comparison: length^0.5 and va
 ParticleEdit('x + time > 0cm'): Incompatible units in arithmetic: length and time in expression "x + time > 0cm"
 ParticleEdit('ekin^x > 1'): Exponent with units (length) in expression "ekin^x > 1"
 ParticleEdit('atan2(x, ekin) > 0'): Incompatible units in atan2(..): length and energy in expression "atan2(x, ekin) > 0"
-ParticleEdit('hypot(x) > 1cm'): hypot(..) takes two or more arguments in expression "hypot(x) > 1cm"
+ParticleEdit('hypot(x) > 1cm'): hypot(a,b,...) takes two or more arguments, in expression "hypot(x) > 1cm"
 ParticleEdit('hypot(x,ekin) > 1cm'): Incompatible units in hypot(..): length and energy in expression "hypot(x,ekin) > 1cm"
 ParticleEdit('abs(y) > 1cm + 1'): Incompatible units in arithmetic: length and value without units (add units, e.g. 2cm) in expression "abs(y) > 1cm + 1"
 ParticleEdit('hypot(0,x,ekin) > 1cm'): Incompatible units in hypot(..): length and energy in expression "hypot(0,x,ekin) > 1cm"
@@ -400,7 +400,7 @@ ParticleEdit('mod(pdgcode,0) == 1'): Division by zero in mod(a,b) in expression 
 ParticleEdit('mod(x,2cm) > 0'): mod(a,b) requires integers without units (like userflags or pdgcode) in expression "mod(x,2cm) > 0"
 ParticleEdit('mod(ekin/MeV,2) > 0'): mod(a,b) requires integers without units (like userflags or pdgcode) in expression "mod(ekin/MeV,2) > 0"
 ParticleEdit('mod(pdgcode,2.5) > 0'): mod(a,b) requires integers without units (like userflags or pdgcode) in expression "mod(pdgcode,2.5) > 0"
-ParticleEdit('mod(pdgcode) > 0'): mod(a,b) takes two arguments in expression "mod(pdgcode) > 0"
+ParticleEdit('mod(pdgcode) > 0'): mod(a,b) takes two arguments, in expression "mod(pdgcode) > 0"
 ParticleEdit('x > 0 && y > 0'): Use "and" instead of "&&" in expressions (e.g. "x > 0 and y > 0"), in expression "x > 0 && y > 0"
 ParticleEdit('x > 0 || y > 0'): Use "or" instead of "||" in expressions (e.g. "x > 0 or y > 0"), in expression "x > 0 || y > 0"
 ParticleEdit('!(x > 0)'): Use "not" instead of "!" in expressions (e.g. "not (x > 0)"), in expression "!(x > 0)"
@@ -413,7 +413,7 @@ ParticleEdit('x != x and 1/(x/cm - x/cm) > 1'): no error
 ParticleEdit('~x > 0cm'): The operator ~ is not supported in expressions (e.g. "(userflags & 0x10) == 0" tests that a bit is not set), in expression "~x > 0cm"
 ParticleEdit('~uz > 0'): The operator ~ is not supported in expressions (e.g. "(userflags & 0x10) == 0" tests that a bit is not set), in expression "~uz > 0"
 ParticleEdit('through_sphere((0,0,1),1cm)'): Incompatible units in the center and radius of through_sphere(center,radius), which must be lengths: value without units and length (add units, e.g. 2cm) in expression "through_sphere((0,0,1),1cm)"
-ParticleEdit('through_sphere((0,0,1m))'): through_sphere(center,radius) takes the center (a 3D vector) and the radius of the sphere, as in through_sphere((0,0,1m),5cm) in expression "through_sphere((0,0,1m))"
+ParticleEdit('through_sphere((0,0,1m))'): through_sphere(c,r) takes two arguments, in expression "through_sphere((0,0,1m))"
 ParticleEdit('through_sphere((0,0,1m),-1cm)'): The radius of through_sphere(center,radius) can not be negative in expression "through_sphere((0,0,1m),-1cm)"
 ParticleEdit('through_sphere((0,0,1m),1)'): Incompatible units in the center and radius of through_sphere(center,radius), which must be lengths: value without units and length (add units, e.g. 2cm) in expression "through_sphere((0,0,1m),1)"
 ParticleEdit('through_sphere(1m,1cm)'): through_sphere(center,radius) takes the center (a 3D vector) and the radius of the sphere, as in through_sphere((0,0,1m),5cm) in expression "through_sphere(1m,1cm)"
@@ -444,8 +444,8 @@ ParticleEdit('swap(x,2)'): swap(..) takes two fields (or variables) as arguments
 ParticleEdit('rotate_z(1cm)'): rotate_z(..) requires an angle (e.g. 90deg), not length in expression "rotate_z(1cm)"
 ParticleEdit('rotate_q(1)'): Unsupported function call in expression "rotate_q(1)" (available functions are: abs, acos, angle, asin, atan, atan2, ceil, clamp, cos, cross, dot, exp, floor, hypot, log, log10, max, min, mod, round, sin, sqrt, tan, through_box, through_sphere)
 ParticleEdit('rotate_z(1,2)'): rotate_z(..) takes one argument (an angle) in "rotate_z(1,2)"
-ParticleEdit('x = clamp(x,1cm)'): clamp(value,low,high) takes three arguments in expression "x = clamp(x,1cm)"
-ParticleEdit('x = min(x)'): Wrong number of arguments for min(..) in expression "x = min(x)"
+ParticleEdit('x = clamp(x,1cm)'): clamp(v,low,high) takes three arguments, in expression "x = clamp(x,1cm)"
+ParticleEdit('x = min(x)'): min(a,b,...) takes two or more arguments, in expression "x = min(x)"
 ParticleEdit('rotate_around((0,0,1))'): rotate_around(..) takes 2 arguments (an axis and an angle, as in rotate_around((0,0,1),90deg)) in "rotate_around((0,0,1))"
 ParticleEdit('rotate_around((0,0,0),10deg)'): In rotate_around(..), the axis must not be zero in expression "rotate_around((0,0,0),10deg)"
 ParticleEdit('rotate_around((0,0,1),1cm)'): rotate_around(..) requires an angle (e.g. 90deg) as its last argument, not length in expression "rotate_around((0,0,1),1cm)"

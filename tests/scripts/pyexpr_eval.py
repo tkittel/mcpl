@@ -87,8 +87,7 @@ def test_errors():
                   'x / 0', 'log(0)', 'pos + 1', 'pos * pos', 'cross((1,0),(0,1))', 'dot(pos,x)',
                   'abs(pos) + pos', 'pos > 0', 'x.x', 'pos.at(3)', 'through_sphere((0,0,1),1)',
                   'through_box((0,0,1),(1,1,1))', 'through_box((0,0,1cm),1cm)', 'through_box((0,0,0),(1cm,-1cm,1cm))',
-                  'round(1e30)', 'exp(1,2)', 'hypot(x)', 'clamp(x,1)', 'atan2(x)', 'min(x)',
-                  'wavelength', 'pdgcode == gamma and wavelength > 0', 'not pos', '(x,ekin)' ):
+                  'round(1e30)', 'wavelength', 'pdgcode == gamma and wavelength > 0', 'not pos', '(x,ekin)' ):
         print(f'  {text!r}: {value(text)}')
 
 def test_active():

@@ -23,6 +23,13 @@ Values:
   '1e400': A constant has NaN or infinite values in expression "1e400"
   'x < 1e400cm': A constant has NaN or infinite values in expression "x < 1e400cm"
   '-1e999': A constant has NaN or infinite values in expression "-1e999"
+  'exp(1,2)': exp(a) takes one argument, in expression "exp(1,2)"
+  'hypot(x)': hypot(a,b,...) takes two or more arguments, in expression "hypot(x)"
+  'clamp(x,1)': clamp(v,low,high) takes three arguments, in expression "clamp(x,1)"
+  'atan2(x)': atan2(y,x) takes two arguments, in expression "atan2(x)"
+  'min(x)': min(a,b,...) takes two or more arguments, in expression "min(x)"
+  'angle(pos)': angle(v,w) takes two arguments, in expression "angle(pos)"
+  'through_sphere((0,0,1m))': through_sphere(c,r) takes two arguments, in expression "through_sphere((0,0,1m))"
 Conditions (PDG codes and pdgcode are not conditions):
   'pdgcode == neutron': ok
   'neutron': neutron is a PDG code (2112), not a condition (e.g. pdgcode == neutron), in expression "neutron"

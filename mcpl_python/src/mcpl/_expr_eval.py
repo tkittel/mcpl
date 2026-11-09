@@ -50,6 +50,7 @@ from ._expr_ast import (
 from ._expr_ast2str import _expr_ast2str
 from ._expr_vocab import (
     _assignable,
+    _common_int_type,
     _expr_constants,
     _expr_field_dims,
     _expr_unit_hints,
@@ -59,7 +60,10 @@ from ._expr_vocab import (
     _functions_nodim,
     _functions_toint,
     _functions_vector,
+    _int_constant_type,
     _is_condition,
+    _is_square,
+    _promoted_type,
     _rotated_vectors,
     _rotation_matrix_args,
     _rotation_matrix_usage,
@@ -113,48 +117,34 @@ class _Q:
         self.v, self.d = v, ( None if d == _dim_none else d )
         self.zero = zero
 
-#Integers in expressions work like in C (with its integer promotions and usual
-#arithmetic conversions), but results which do not fit their type are errors
-#instead of wrapping around, and so are unsigned integers combined with
-#negative values (e.g. in comparisons, which are therefore exact):
-_int_types = { (4,False) : np.int32, (4,True) : np.uint32,
-               (8,False) : np.int64, (8,True) : np.uint64 }
+#Integers in expressions work like in C (see _common_int_type), but results
+#which do not fit their type are errors instead of wrapping around, and so are
+#unsigned integers combined with negative values (e.g. in comparisons, which
+#are therefore exact). The numpy types of the integer types:
+_np_types = { 'i32' : np.int32, 'u32' : np.uint32, 'i64' : np.int64, 'u64' : np.uint64 }
 
 def _is_int( v ):
     return np.asarray(v).dtype.kind in 'iu'
 
-def _ctype( dtype ):
-    """The type of integers (or booleans) after the integer promotions of C"""
+def _int_type( dtype ):
+    """The type of integers (or booleans) of the numpy type after the integer
+    promotions"""
     dt = np.dtype(dtype)
-    if dt.kind == 'b' or dt.itemsize < 4:
-        return np.dtype(np.int32)
-    return np.dtype(_int_types[(dt.itemsize,dt.kind == 'u')])
+    return _promoted_type(8 * dt.itemsize,dt.kind == 'u')
+
+def _ctype( dtype ):
+    """The numpy type of integers (or booleans) after the integer promotions"""
+    return np.dtype(_np_types[_int_type(dtype)])
 
 def _common_ctype( *dtypes ):
-    """The type of results of integers with these types (the usual arithmetic
-    conversions of C)"""
-    res = None
-    for dt in dtypes:
-        dt = _ctype(dt)
-        if res is None or dt == res:
-            res = dt
-            continue
-        u = [ t for t in (res,dt) if t.kind == 'u' ]
-        si = [ t for t in (res,dt) if t.kind == 'i' ]
-        if len(u) == 2 or len(si) == 2:
-            res = max(res,dt,key=lambda t : t.itemsize)
-        else:
-            res = u[0] if u[0].itemsize >= si[0].itemsize else si[0]
-    return res
+    """The numpy type of results of integers with these types"""
+    return np.dtype(_np_types[_common_int_type(*map(_int_type,dtypes))])
 
 def _int_constant( v ):
-    """Integer constants typed like in C (as int if they fit, then as int64,
-    then as uint64), or None if they are too large"""
-    for t in ( np.int32, np.int64, np.uint64 ):
-        info = np.iinfo(t)
-        if info.min <= v <= info.max:
-            return np.asarray(v,dtype=t)
-    return None
+    """Integer constants typed like in C (see _int_constant_type), or None if
+    they are too large"""
+    t = _int_constant_type(v)
+    return None if t is None else np.asarray(v,dtype=_np_types[t])
 
 class _V:
     """A vector in an expression: its values (_Q, two or three, with the same
@@ -435,8 +425,11 @@ class _ExprEvaluator:
         return q
     def _binary( self, node ):
         a, b = self(node.left), self(node.right)
-        res = ( self.vbinop(node.op,a,b) if isinstance(a,_V) or isinstance(b,_V)
-                else self.binop(node.op,a,b) )
+        if node.op == '^' and isinstance(a,_V) and _is_square(node.right):
+            res = self.call('dot',[a,a])
+        else:
+            res = ( self.vbinop(node.op,a,b) if isinstance(a,_V) or isinstance(b,_V)
+                    else self.binop(node.op,a,b) )
         return self.finite(res,f'{_op_what.get(node.op,"An operation")} gives')
     def _in( self, node ):
         #(equal to any of the values):
@@ -635,27 +628,19 @@ class _ExprEvaluator:
         args = [ self.as_float(q) for q in args ]
         with np.errstate(divide='ignore',invalid='ignore'):
             if fname in _functions_nodim:
-                if len(args) != 1:
-                    self.error(f'{fname}(..) takes one argument')
                 return _Q(fct(self.nodim(args[0],f'{fname}(..)')))
             if fname in _functions_toint:
-                if len(args) != 1:
-                    self.error(f'{fname}(..) takes one argument')
                 v = np.asarray(fct(self.nodim(args[0],f'{fname}(..)')))
                 big = ~( np.abs(v) < 2.0**62 )
                 if self._any_active(big):
                     self.error(f'{fname}(..) of values too large for integers')
                 return _Q(np.where(big,0,v).astype(np.int64))
             if fname == 'sqrt':
-                if len(args) != 1:
-                    self.error('sqrt(..) takes one argument')
                 q = args[0]
                 if q.d is None:
                     return _Q(np.sqrt(q.v))
                 return _Q(np.sqrt(q.v),self.dimpow(q.d,0.5,'sqrt(..)'))
             if fname == 'atan2':
-                if len(args) != 2:
-                    self.error('atan2(..) takes two arguments')
                 y, x, _ = self.same(args[0],args[1],'atan2(..)')
                 return _Q(np.arctan2(y,x))
             if fname == 'mod':
@@ -663,19 +648,13 @@ class _ExprEvaluator:
                            ' (like userflags or pdgcode)')
             #Functions keeping units:
             if fname == 'hypot':
-                if len(args) < 2:
-                    self.error('hypot(..) takes two or more arguments')
                 values, d = self.common(args,'hypot(..)')
                 return _Q(np.sqrt(sum( np.square(v) for v in values )),d)
             if len(args) == 1 and fname == 'abs':
                 return _Q(fct(args[0].v),args[0].d)
             if fname == 'clamp':
-                if len(args) != 3:
-                    self.error('clamp(value,low,high) takes three arguments')
                 ( v, lo, hi ), d = self.common(args,'clamp(..)')
                 return _Q(np.minimum(np.maximum(v,lo),hi),d)
-            if len(args) < 2 or fname not in ('min','max'):
-                self.error(f'Wrong number of arguments for {fname}(..)')
             values, d = self.common(args,f'{fname}(..)')
             res = values[0]
             for y in values[1:]:
@@ -711,8 +690,6 @@ class _ExprEvaluator:
                      else _V( self.binop(op,a,y) for y in b.c ) )
         if op == '/' and va and not vb:
             return _V( self.binop(op,x,b) for x in a.c )
-        if op == '^' and va and not vb and np.ndim(b.v) == 0 and b.v == 2:
-            return self.call('dot',[a,a])
         self.error('Vectors can be added and subtracted, multiplied and divided by numbers,'
                    ' and v^2 gives their lengths squared (dot(v,w) and cross(v,w) give'
                    ' their dot and cross products)')
@@ -721,7 +698,7 @@ class _ExprEvaluator:
         if fname == 'abs':
             v = args[0]
             return _Q(np.sqrt(sum( np.square(c.v) for c in v.c )),v.d)
-        if len(args) != 2 or not all( isinstance(q,_V) for q in args ):
+        if not all( isinstance(q,_V) for q in args ):
             self.error(f'{fname}(v,w) takes two vectors')
         v, w = args
         if len(v.c) != len(w.c) or ( fname == 'cross' and len(v.c) != 3 ):
@@ -795,8 +772,6 @@ class _ExprEvaluator:
     def int_call( self, fname, args, what ):
         """mod, abs, round, floor, ceil, min, max, and clamp of integers"""
         if fname == 'mod':
-            if len(args) != 2:
-                self.error('mod(a,b) takes two arguments')
             if any( q.d not in ( None, _dim_unknown ) for q in args ):
                 self.error('mod(a,b) requires integers without units'
                            ' (like userflags or pdgcode)')
@@ -808,8 +783,6 @@ class _ExprEvaluator:
                 self.error('Division by zero in mod(a,b)')
             return _Q(np.mod(a,np.where(zero,np.ones_like(b),b)))
         if fname in ('abs','round','floor','ceil'):
-            if len(args) != 1:
-                self.error(f'{what} takes one argument')
             q = args[0]
             if fname != 'abs':
                 self.nodim(q,what)
@@ -818,10 +791,6 @@ class _ExprEvaluator:
                 neg = v < 0
                 v = np.where(neg,self.int_negate(np.where(neg,v,0),what),v)
             return _Q(v,q.d,zero=q.zero)
-        if fname == 'clamp' and len(args) != 3:
-            self.error('clamp(value,low,high) takes three arguments')
-        if fname != 'clamp' and len(args) < 2:
-            self.error(f'Wrong number of arguments for {what}')
         d = args[0].d
         for q in args[1:]:
             _, _, d2 = self.same(args[0],q,what)

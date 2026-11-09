@@ -56,13 +56,20 @@ from ._expr_ast import (
 )
 from ._expr_ast2str import _expr_ast2str
 from ._expr_vocab import (
+    _common_int_type,
     _expr_constants,
     _expr_vector_names,
     _expr_vectors,
     _functions_nodim,
+    _functions_toint,
+    _int_bits,
+    _int_constant,
+    _int_constant_type,
     _is_condition,
+    _is_square,
     _rotated_vectors,
     _rotation_planes,
+    _value_type,
 )
 from ._exprunits import _quantity_value, _unit_size
 from ._particles import _particle_names
@@ -74,11 +81,6 @@ _c_members = { **{ c : f'{_expr_vector_names[v]}[{i}]' for v, comps in _expr_vec
                **{ f : f for f in ( 'ekin', 'time', 'weight', 'pdgcode', 'userflags' ) } }
 _ctypes = { 'i32' : 'int32_t', 'u32' : 'uint32_t', 'i64' : 'int64_t', 'u64' : 'uint64_t',
             'f64' : 'double' }
-_int_bits = { 'i32' : 32, 'u32' : 32, 'i64' : 64, 'u64' : 64 }
-#(the userdata types, after the integer promotions of C):
-_ud_types = { 'int8' : 'i32', 'uint8' : 'i32', 'int16' : 'i32', 'uint16' : 'i32',
-              'int32' : 'i32', 'uint32' : 'u32', 'int64' : 'i64', 'uint64' : 'u64',
-              'float32' : 'f64', 'float64' : 'f64' }
 #(the constants of the wavelengths, see _physics):
 _wl_unit = 1e-8
 
@@ -150,17 +152,6 @@ def _string_call( start, text, end ):
     pad = ' ' * len(start)
     parts = [ _c_string(p) for p in _split_text(text,_width - len(start) - len(end) - 4,True) ]
     return ( [ start + parts[0] ] + [ pad + p for p in parts[1:-1] ] + [ pad + parts[-1] + end ] )
-
-def _common_type( a, b ):
-    """The type of the result of integers of the types a and b (the usual
-    arithmetic conversions of C)"""
-    if a == b:
-        return a
-    ua, ub = a[0] == 'u', b[0] == 'u'
-    if ua == ub:
-        return a if _int_bits[a] >= _int_bits[b] else b
-    u, s = ( a, b ) if ua else ( b, a )
-    return u if _int_bits[u] >= _int_bits[s] else s
 
 class _Code(tuple):
     """A translated number: (code, type), with what is known about it: the
@@ -237,16 +228,20 @@ class _Translator:
     #Numbers:
 
     def int_constant( self, v ):
-        """An integer constant, typed like in the expressions (int32, then
-        int64, then uint64)"""
-        if -2**31 <= v < 2**31:
-            return ( f'({v+1}-1)' if v == -2**31 else str(v) ), 'i32'
-        if -2**63 <= v < 2**63:
-            text = f'({v+1}-1)' if v == -2**63 else str(v)
-            return ( f'std::int64_t( {text} )' if self.lang == 'cpp' else f'INT64_C( {text} )' ), 'i64'
-        if v < 2**64:
-            return ( f'std::uint64_t( {v}u )' if self.lang == 'cpp' else f'UINT64_C( {v} )' ), 'u64'
-        raise MCPLError(f'The integer {v} is too large (integers must fit in 64 bits)')
+        """An integer constant, typed like in the expressions (see
+        _int_constant_type)"""
+        t = _int_constant_type(v)
+        if t is None:
+            raise MCPLError(f'The integer {v} is too large (integers must fit in 64 bits)')
+        if t == 'i32':
+            return _term(f'({v+1}-1)' if v == -2**31 else str(v),t)
+        if self.lang == 'cpp':
+            text = f'({v+1}-1)' if v == -2**63 else f'{v}u' if t == 'u64' else str(v)
+            return _term(f'std::{_ctypes[t]}( {text} )',t)
+        #(the smallest int64 as (-INT64_C(...)-1), as INT64_C only takes literals):
+        if v == -2**63:
+            return _term(f'(-INT64_C( {2**63-1} )-1)',t)
+        return _term(f'{"INT64_C" if t == "i64" else "UINT64_C"}( {v} )',t)
 
     @staticmethod
     def float_constant( v, comment = None ):
@@ -298,7 +293,10 @@ class _Translator:
         if isinstance(node,Unary):
             return self.unary(node)
         if isinstance(node,Binary):
-            return self.binary(node.op,self(node.left),self(node.right))
+            left = self(node.left)
+            if node.op == '^' and isinstance(left,list) and _is_square(node.right):
+                return self.dot(left,left)
+            return self.binary(node.op,left,self(node.right))
         if isinstance(node,Compare):
             terms, left = [], self.scalar(self(node.first))
             for op, v in zip(node.ops,node.values):
@@ -360,7 +358,7 @@ class _Translator:
             #(the unit of the field, in the units of MCPL):
             unit = userdata_units(self.layout)[name]
             return f'{get} * {self.float_constant(factor,unit)[0]}', 'f64'
-        return get, _ud_types[ftype]
+        return _term(get,_value_type(ftype))
 
     def unary( self, node ):
         if node.op == 'not':
@@ -396,7 +394,7 @@ class _Translator:
 
     def int_values( self, a, b ):
         """The common type of integers, and their values in it"""
-        t = _common_type(a[1],b[1])
+        t = _common_int_type(a[1],b[1])
         if t[0] == 'u':
             return t, self.nonneg(a,t), self.nonneg(b,t)
         return t, a, b
@@ -442,8 +440,6 @@ class _Translator:
             return [ self.binary(op,x,b) for x in a ] if va else [ self.binary(op,a,y) for y in b ]
         if op == '/' and va and not vb:
             return [ self.binary(op,x,b) for x in a ]
-        if op == '^' and va and not vb and b[0] == '2':
-            return self.dot(a,a)
         raise MCPLError(f'Unsupported operation {op} of vectors')
 
     def div_mod( self, op, a, b ):

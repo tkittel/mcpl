@@ -23,8 +23,8 @@
 # NEEDS: numpy
 
 # Tests of the operations of mcpltool on files (merging, extracting,
-# repairing, and dumping), including errors, and of its --edit, and
-# --keep-statsum options.
+# repairing, and dumping), including errors, and of its --edit option, and
+# the stat:sum entries of extracted files.
 
 import gzip
 import hashlib
@@ -213,7 +213,7 @@ def py_extract(infile, outfile, edit = None):
         #expression in double quotes):
         fo.hdr_add_comment('mcpltool: extracted particles'
                            + ( f' with -e "{edt.expression}"' if edt else '' ))
-        if edt and 'weight' in edt.modified_fields:
+        if edt and edt.filters_on_fileidx:
             fo.hdr_scale_stat_sums(-1.0)
         for b in fi.particle_blocks:
             fo.add_particles(edt(b) if edt else b)
@@ -278,9 +278,7 @@ def test_edit():
                   ['--extract','-p0','a1.mcpl','out.mcpl'],
                   ['--extract','-pabc','a1.mcpl','out.mcpl'],
                   ['--extract','-pNeutron','a1.mcpl','out.mcpl'],
-                  ['--extract','-pfoo','a1.mcpl','out.mcpl'],
-                  ['--keep-statsum','a1.mcpl'],
-                  ['--stats','--keep-statsum','a1.mcpl'] ):
+                  ['--extract','-pfoo','a1.mcpl','out.mcpl'] ):
         fresh('py')
         rc, out, err = run([sys.executable, '-m', 'mcpldev', *args], 'py')
         print(f'mcpltool {" ".join(args)}: exit code {rc}')
@@ -290,22 +288,25 @@ def test_edit():
     return ok
 
 def test_statsum():
-    #stat:sum entries are kept when selecting particles by their properties or
-    #editing other fields than weights, and marked as not available (-1) when
-    #selecting based on positions in the file or editing weights:
+    #stat:sum entries are kept when filtering particles by their properties or
+    #changing them, scaled by the fraction of the particles in the range of -s
+    #and -l, and not available (-1) when filtering on the positions of the
+    #particles in the file:
     ok = True
+    fresh('py')
+    with mcpl.MCPLFile('py/a1.mcpl') as f:
+        n = f.nparticles
     for args, expected in ( (['--edit','pdgcode == neutron'], 1000.0),
                             (['--edit','z += 1cm; rotate_z(10deg)'], 1000.0),
                             (['--edit','pdgcode == gamma; wavelength = 1Aa'], 1000.0),
-                            (['--edit','weight *= 2'], None),
-                            (['--edit','tmp = weight; weight = 2*tmp'], None),
-                            (['--edit','weight *= 2','--keep-statsum'], 1000.0),
-                            (['--edit','x > 0; weight = 1','--keep-statsum'], 1000.0),
-                            (['-l5','--edit','weight *= 2','--keep-statsum'], None),
-                            (['-l5'], None),
-                            (['-s1','--edit','x > 0'], None),
+                            (['--edit','weight *= 2'], 1000.0),
+                            (['--edit','tmp = weight; weight = 2*tmp'], 1000.0),
+                            (['-l5'], 1000.0*5/n),
+                            (['-s1','--edit','x > 0'], 1000.0*(n-1)/n),
+                            (['-s3','-l2','--edit','weight *= 2'], 1000.0*2/n),
+                            ([f'-s{n}'], None),
                             (['--edit','mod(fileidx,2) == 0'], None),
-                            (['--edit','n = fileidx; n > 5'], None),
+                            (['-l5','--edit','n = fileidx; n > 5'], None),
                             (['-e','x = 1cm*fileidx'], 1000.0) ):
         fresh('py')
         rc, out, err = run([sys.executable, '-m', 'mcpldev', '--extract', 'a1.mcpl',
@@ -315,7 +316,8 @@ def test_statsum():
         print(f'mcpltool --extract {" ".join(args)}: stat:sum:nsim = {v}')
         for line in out.splitlines():
             print(f'   | {line}')
-        ok &= ( rc == 0 and not err and v == expected )
+        ok &= ( rc == 0 and not err and ( v == expected if expected is None
+                                          else abs(v-expected) < 1e-9*expected ) )
     return ok
 
 def main():

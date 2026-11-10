@@ -960,10 +960,10 @@ class _Program:
     indent = '  '#(of the statements in main)
     main_void = 'int main( void )'
 
-    def __init__( self, tree, layout, filenames, skip, limit, mark_statsums, comment ):
+    def __init__( self, tree, layout, filenames, skip, limit, statsums, comment ):
         self.tree, self.layout, self.filenames = tree, layout, filenames
         self.skip, self.limit = skip, limit
-        self.mark_statsums, self.comment = mark_statsums, comment
+        self.statsums, self.comment = statsums, comment
         statements = () if tree is None else tree.statements
         self.modified = _modified_fields(statements)
         self.changes = bool(self.modified)
@@ -1008,7 +1008,18 @@ class _Program:
                  f'mcpl_outfile_t fo = mcpl_create_outfile( {names[1]} );',
                  'mcpl_transfer_metadata( fi, fo );' ]
     add_comment = 'mcpl_hdr_add_comment( fo, '
-    mark_line = 'mcpl_hdr_scale_stat_sums( fo, -1.0 );  /* stat:sum entries not available */'
+    inline_comment_marks = ( '/* ', '   ', ' */' )
+    def scale_line( self, scale ):
+        return f'mcpl_hdr_scale_stat_sums( fo, {scale} );'
+    def statsum_range_lines( self ):
+        lines = [ 'const uint64_t ntotal = mcpl_hdr_nparticles( fi );' ]
+        rest = 'ntotal'
+        if self.skip:
+            lines.append(f'const uint64_t nskip = ntotal < {self.skip} ? ntotal : {self.skip};')
+            rest = 'ntotal - nskip'
+        nrange = rest if self.limit is None else f'{rest} < {self.limit} ? {rest} : {self.limit}'
+        return lines + [ f'const uint64_t nrange = {nrange};', 'if ( nrange < ntotal )',
+                         '  ' + self.scale_line('nrange ? (double)nrange / ntotal : -1.0') ]
     def seek_line( self ):
         return f'mcpl_seek( fi, {self.skip} );'
     def userdata_lines( self ):
@@ -1044,6 +1055,20 @@ class _Program:
         return [ '  mcpl_close_outfile( fo );', '  mcpl_close_file( fi );', '  return 0;', '}' ]
     def begin_lines( self ):
         return []
+    def statsum_lines( self ):
+        """The lines setting the stat:sum values of the output file (see
+        _statsum_scale)"""
+        if self.statsums == 'unavailable':
+            return [ *_comment_lines('stat:sum values not available, as the filter depends'
+                                     ' on the positions of the particles in the input file:',
+                                     *self.inline_comment_marks),
+                     self.scale_line('-1.0') ]
+        if self.statsums == 'scaled':
+            return [ *_comment_lines('stat:sum values scaled by the fraction of the particles'
+                                     ' of the input file in the range used (mcpltool -s and -l):',
+                                     *self.inline_comment_marks),
+                     *self.statsum_range_lines() ]
+        return []
 
     def code( self ):
         """The program"""
@@ -1066,8 +1091,7 @@ class _Program:
         if self.comment is not None:
             out += _string_call(ind + self.add_comment,self.comment,' );')
         lines = []
-        if self.mark_statsums:
-            lines.append(self.mark_line)
+        lines += self.statsum_lines()
         if self.skip:
             lines.append(self.seek_line())
         lines += self.userdata_lines()
@@ -1078,7 +1102,7 @@ class _Program:
         return '\n'.join(_layout(out)) + '\n'
 
 def _expr_ast2c( tree = None, layout = None, *, filenames = None, skip = 0,
-                 limit = None, mark_statsums = False, comment = None ):
+                 limit = None, statsums = None, comment = None ):
     """A C program which writes the particles of an MCPL file which an edit
     keeps, with its changes, to a new file (tree is the checked and
     normalised tree of the edit expression, see _expressions, or None), for
@@ -1086,6 +1110,7 @@ def _expr_ast2c( tree = None, layout = None, *, filenames = None, skip = 0,
     The files are given as arguments of the program, or else as filenames
     (input and output). Only the particles of the range of skip and limit
     (None for all, see _as_limit) are used, the stat:sum entries of the output
-    are marked as not available if mark_statsums is set, and the comment (if
-    any) is added to its header."""
-    return _Program(tree,layout,filenames,skip,limit,mark_statsums,comment).code()
+    are scaled by the fraction of the particles in the range if statsums is
+    'scaled', or set to -1 (not available) if it is 'unavailable' (see
+    _statsum_scale), and the comment (if any) is added to its header."""
+    return _Program(tree,layout,filenames,skip,limit,statsums,comment).code()

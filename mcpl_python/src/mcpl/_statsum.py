@@ -163,18 +163,21 @@ def _parse_statsum( comments ):
                         f' following the specification: "{example}"')
     return d
 
-def _statsum_marking( statsum, nparticles, skip, limit, edit, keepstatsum = False ):
-    """Why the stat:sum entries (statsum) of a file of nparticles particles
-    are marked as not available (-1) in a file with its particles in a range
-    (skip and limit), edited (with a ParticleEdit, or None): 'positions' when
-    filtering particles based on their positions in the file, 'weights' when
-    changing their weights (unless keepstatsum), or None (see the guidelines
-    for stat:sum entries)"""
+def _statsum_scale( statsum, nparticles, skip, limit, edit ):
+    """The factor by which mcpltool --extract scales the stat:sum entries
+    (statsum) of a file of nparticles particles, for its particles in the
+    range of skip and limit (None for all, see _as_limit), with the edit (a
+    ParticleEdit, or None), and why, as (factor, reason): the fraction of the
+    particles of the file in the range ('range'), -1 (not available) when the
+    edit filters on the positions of the particles in the file ('fileidx') or
+    the range is empty ('empty'), or None to keep them (None), see the
+    guidelines for stat:sum entries"""
     if not any( v is not None for v in statsum.values() ):
         return None, None
-    if nparticles > 0 and ( ( skip or 0 ) > 0 or 0 < ( limit or 0 ) < nparticles
-                            or ( edit is not None and edit.filters_on_fileidx ) ):
-        return 'positions'
-    if not keepstatsum and edit is not None and edit.has_weight_changes:
-        return 'weights'
-    return None
+    if edit is not None and edit.filters_on_fileidx:
+        return -1.0, 'fileidx'
+    first, end = _particle_range(nparticles,skip,limit)
+    n = end - first
+    if n == nparticles:
+        return None, None
+    return ( n / nparticles, 'range' ) if n else ( -1.0, 'empty' )

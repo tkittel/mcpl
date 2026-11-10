@@ -99,9 +99,11 @@ class MCPLFile:
 
         The particles kept are returned in blocks of about blocklength
         particles (small blocks are merged), and the fileidx of the particles
-        is their position in the file. The nparticles and stat_sum properties
-        take the range and the edit into account. Files opened with edit,
-        skip, or limit do not support skip_forward(). Edited particles can be passed to
+        is their position in the file. The nparticles property takes the range
+        and the edit into account (None for edits which can filter out
+        particles), and stat_sum_sliced gives the stat:sum
+        values for the particles read. Files opened with edit, skip, or limit
+        do not support skip_forward(). Edited particles can be passed to
         MCPLOutFile.add_particles like any other particles, in which case
         their unchanged fields are transferred exactly.
         """
@@ -630,24 +632,9 @@ class MCPLFile:
     def stat_sum(self):
         """Access "stat:sum:..." data from file comments as a convenient
         key->value dictionary. Note that any key present with a value of -1 in
-        the file will get the value None here in the Python interface. When
-        opened with skip, limit, or edit, the values are those a file with the
-        particles read would get: None if they do not hold for them (with
-        skip or limit, or an edit which filters on fileidx or changes
-        weights)."""
-        return self._stat_sum_for(self._edt)
-    def _stat_sum_for(self,edit):
-        """The stat_sum of the particles in the range of skip and limit, with
-        the edit (a ParticleEdit, or None)"""
-        from ._statsum import _statsum_marking
-        d = self._stat_sum_raw
-        if _statsum_marking(d,self._np,self._skip,self._limit,edit) is None:
-            return d
-        from types import MappingProxyType
-        return MappingProxyType(dict.fromkeys(d))
-    @property
-    def _stat_sum_raw(self):
-        """The stat:sum entries in the file (see stat_sum)"""
+        the file will get the value None here in the Python interface (see
+        also stat_sum_sliced).
+        """
         h = self._hdr
         d = h.get('stat_sum')
         if d is not None:
@@ -660,6 +647,30 @@ class MCPLFile:
         )
         h['stat_sum'] = d
         return d
+
+    @property
+    def _stat_sum_scale(self):
+        """The factor of the stat:sum values for the particles read, and why
+        (see _statsum_scale)"""
+        from ._statsum import _statsum_scale
+        return _statsum_scale(self.stat_sum,self._np,self._skip,self._limit,self._edt)
+
+    @property
+    def stat_sum_sliced(self):
+        """The stat:sum values which a file with the particles read would get
+        from mcpltool --extract. When the file was opened with the skip or
+        limit parameters, the values are scaled by the fraction of the
+        particles of the file in the range of skip and limit. All values are None when no
+        particles are in the range, and when the file was opened with an edit
+        which filters on fileidx (the fraction is then only known after
+        reading the particles)."""
+        d = self.stat_sum
+        scale, _ = self._stat_sum_scale
+        if scale is None:
+            return d
+        from types import MappingProxyType
+        return MappingProxyType({ k : ( None if v is None or scale == -1.0 else v * scale )
+                                  for k, v in d.items() })
 
     def _loadhdr(self):
         self._hdr={}
@@ -835,7 +846,7 @@ class MCPLFile:
         if saw_any_statsum:
             #Trigger loading of stat:sum:'s already, to emit errors in case of
             #detected issues.
-            _ = self._stat_sum_raw
+            _ = self.stat_sum
         if saw_any_unsupportedstat:
             _warning("Opened file with unknown \"stat:...\" "
                      "syntax in comments. The present installation only has"

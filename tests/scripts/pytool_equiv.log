@@ -57,13 +57,13 @@ mcpltool -x a1.mcpl out.mcpl.gz: exit code 0
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl.gz
    file out.mcpl.gz: md5 a30df74e6146d6c2562192cd08e91fdf
 mcpltool --extract -l5 a1.mcpl out.mcpl: exit code 0
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.166667)
    | MCPL: Successfully extracted 5 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 a3f13257ca49dd0447ed20b26d767713
+   file out.mcpl: md5 e7e74a315ed73f67ff230cb0e8626fc3
 mcpltool --extract -s25 a1.mcpl out: exit code 0
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.166667)
    | MCPL: Successfully extracted 5 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 ef5d67212d36a3f34ab79c811a187ac4
+   file out.mcpl: md5 08a118aebca06b41dc8bbeccd37c9946
 mcpltool --extract -l3 -s4 a3.mcpl.gz out.mcpl: exit code 0
    | MCPL: Successfully extracted 1 / 5 particles from a3.mcpl.gz into out.mcpl
    file out.mcpl: md5 f21a0f434d44bb93e6c78eb122ab2f02
@@ -77,9 +77,9 @@ mcpltool -x -e pdgcode == -11 b_dp.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 0 / 12 particles from b_dp.mcpl into out.mcpl
    file out.mcpl: md5 4f61bc786ff1d347f21c538c7622340e
 mcpltool -x -e pdgcode == 11 -l10 -s3 a1.mcpl out.mcpl: exit code 0
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.333333)
    | MCPL: Successfully extracted 3 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 965456872be8b627ab2583005d53b7ec
+   file out.mcpl: md5 009ed72b892db2b4332633dd367a4716
 mcpltool --extract -e pdgcode == 2112 c_nostat.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 3 / 9 particles from c_nostat.mcpl into out.mcpl
    file out.mcpl: md5 053c594d1ab5aead4cddf10c5b149ff6
@@ -104,13 +104,13 @@ mcpltool --extract a1.mcpl x.mcpl y.mcpl: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
    | python -m mcpl: error: too many arguments
 mcpltool --extract --no-comment -e pdgcode == 22 -l5 a1.mcpl out.mcpl: exit code 0
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.166667)
    | MCPL: Successfully extracted 2 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 d555ef4fcb424a10df21147296627a98
+   file out.mcpl: md5 496ea92c81ef6038696fa58038019d85
 mcpltool --extract -e pdgcode == 11 -l3 -s4 a1.mcpl out.mcpl: exit code 0
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.1)
    | MCPL: Successfully extracted 1 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 813caf6fd20844968f710eee3c365a03
+   file out.mcpl: md5 0fbb7658c1a68e594928532c22d53227
 mcpltool --no-comment a1.mcpl: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
    | python -m mcpl: error: --no-comment can only be used with -x
@@ -118,9 +118,9 @@ mcpltool --extract -e pdgcode == gamma a1.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
    file out.mcpl: md5 4aa9890f542e56893728441cc6ca20b2
 mcpltool --extract -e pdgcode == photon -l10 a1.mcpl out.mcpl: exit code 0
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.333333)
    | MCPL: Successfully extracted 3 / 30 particles from a1.mcpl into out.mcpl
-   file out.mcpl: md5 579d8e54c61fe51b1280b496f1ba4593
+   file out.mcpl: md5 5d1b4014796421edd6ad4d32a3878be3
 mcpltool --extract -e pdgcode == antielectron b_dp.mcpl out.mcpl: exit code 0
    | MCPL: Successfully extracted 0 / 12 particles from b_dp.mcpl into out.mcpl
    file out.mcpl: md5 4f61bc786ff1d347f21c538c7622340e
@@ -451,9 +451,9 @@ mcpltool --extract nan.mcpl out.mcpl: exit code 1
    | MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 12). They can not be added to other MCPL files.
    | python -m mcpl: add_particles asked to transfer particle with NaN or infinite position
 mcpltool --extract -l12 nan.mcpl out.mcpl: exit code 0
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.4)
    | MCPL: Successfully extracted 12 / 30 particles from nan.mcpl into out.mcpl
-   file out.mcpl: md5 13324e7af40121c4368888326f045b8a
+   file out.mcpl: md5 26a821051551c235b9deeabedc1dddd4
 mcpltool --extract -e pdgcode == 22 nan.mcpl out.mcpl: exit code 0
    | MCPL WARNING: File contains particles with NaN or infinite values (first one found at index 12). They can not be added to other MCPL files.
    | MCPL: Successfully extracted 10 / 30 particles from nan.mcpl into out.mcpl
@@ -503,9 +503,9 @@ mcpltool --forcemerge --allow-overwrite b_dp.mcpl a1.mcpl b_pol.mcpl: exit code 
    | MCPL force-merge: Transferred a total of 37 particles to new file b_dp.mcpl
    file b_dp.mcpl: md5 ab8c05a8d233c01a98867851f00433e8
 mcpltool --extract --allow-overwrite -l3 a1.mcpl a2.mcpl: exit code 0
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.1)
    | MCPL: Successfully extracted 3 / 30 particles from a1.mcpl into a2.mcpl
-   file a2.mcpl: md5 d29993a52d26b1e09a914b5fe88fafcd
+   file a2.mcpl: md5 f1fb41c2a3c38a87ff965b53f95225a4
 mcpltool --extract --allow-overwrite a1.mcpl a1.mcpl: exit code 1
    | python -m mcpl: The output file "a1.mcpl" is also one of the input files
 mcpltool --text a1.mcpl a2.mcpl: exit code 1
@@ -534,8 +534,7 @@ mcpltool --extract a1.mcpl out.mcpl --edit=x = -y; y = x; z += 1cm: MCPL: Succes
    same as with the Python API: True
 mcpltool --extract a1.mcpl out.mcpl --edit=tmp = x; x = y; y = tmp; swap(ux,uy); rotate_x(30deg): MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
-mcpltool --extract a1.mcpl out.mcpl --edit=weight *= 0.5; time = time + 1us: MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when editing particle weights (use --keep-statsum to keep them)
-MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract a1.mcpl out.mcpl --edit=weight *= 0.5; time = time + 1us: MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
 mcpltool --extract a1.mcpl out.mcpl --edit=pdgcode == 2112; wavelength = 1.8Aa: MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
@@ -543,8 +542,7 @@ mcpltool --extract a1.mcpl out.mcpl --edit=pdgcode == gamma; wavelength = wavele
    same as with the Python API: True
 mcpltool --extract a1.mcpl out.mcpl --edit=pdgcode != 11; ux = -ux; uz = -uz; pdgcode = 2112: MCPL: Successfully extracted 20 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
-mcpltool --extract a1.mcpl out.mcpl --edit=rotate_y(90deg); x > 0cm; weight *= 2: MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when editing particle weights (use --keep-statsum to keep them)
-MCPL: Successfully extracted 29 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract a1.mcpl out.mcpl --edit=rotate_y(90deg); x > 0cm; weight *= 2: MCPL: Successfully extracted 29 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
 mcpltool --extract a1.mcpl out.mcpl --edit=x > 10m: MCPL: Successfully extracted 0 / 30 particles from a1.mcpl into out.mcpl
    same as with the Python API: True
@@ -615,42 +613,33 @@ mcpltool --extract -pNeutron a1.mcpl out.mcpl: exit code 2
 mcpltool --extract -pfoo a1.mcpl out.mcpl: exit code 2
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
    | python -m mcpl: error: -p is not an option (use -e, e.g. -e "pdgcode == neutron")
-mcpltool --keep-statsum a1.mcpl: exit code 2
-   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-   | python -m mcpl: error: --keep-statsum can only be used with -x
-mcpltool --stats --keep-statsum a1.mcpl: exit code 2
-   | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
-   | python -m mcpl: error: --keep-statsum can only be used with -x
 mcpltool --extract --edit pdgcode == neutron: stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
 mcpltool --extract --edit z += 1cm; rotate_z(10deg): stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
 mcpltool --extract --edit pdgcode == gamma; wavelength = 1Aa: stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 10 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract --edit weight *= 2: stat:sum:nsim = None
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when editing particle weights (use --keep-statsum to keep them)
+mcpltool --extract --edit weight *= 2: stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract --edit tmp = weight; weight = 2*tmp: stat:sum:nsim = None
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when editing particle weights (use --keep-statsum to keep them)
+mcpltool --extract --edit tmp = weight; weight = 2*tmp: stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract --edit weight *= 2 --keep-statsum: stat:sum:nsim = 1000.0
-   | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract --edit x > 0; weight = 1 --keep-statsum: stat:sum:nsim = 1000.0
-   | MCPL: Successfully extracted 29 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract -l5 --edit weight *= 2 --keep-statsum: stat:sum:nsim = None
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+mcpltool --extract -l5: stat:sum:nsim = 166.66666666666666
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.166667)
    | MCPL: Successfully extracted 5 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract -l5: stat:sum:nsim = None
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
-   | MCPL: Successfully extracted 5 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract -s1 --edit x > 0: stat:sum:nsim = None
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+mcpltool --extract -s1 --edit x > 0: stat:sum:nsim = 966.6666666666666
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.966667)
    | MCPL: Successfully extracted 29 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract -s3 -l2 --edit weight *= 2: stat:sum:nsim = 66.66666666666667
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.0666667)
+   | MCPL: Successfully extracted 2 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract -s30: stat:sum:nsim = None
+   | MCPL WARNING: Setting stat:sum entries in output file to -1 (not available), as no particles are in the range of -s and -l
+   | MCPL: Successfully extracted 0 / 30 particles from a1.mcpl into out.mcpl
 mcpltool --extract --edit mod(fileidx,2) == 0: stat:sum:nsim = None
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+   | MCPL WARNING: Setting stat:sum entries in output file to -1 (not available), as -e filters on the positions of the particles in the file (fileidx)
    | MCPL: Successfully extracted 15 / 30 particles from a1.mcpl into out.mcpl
-mcpltool --extract --edit n = fileidx; n > 5: stat:sum:nsim = None
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
-   | MCPL: Successfully extracted 24 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --extract -l5 --edit n = fileidx; n > 5: stat:sum:nsim = None
+   | MCPL WARNING: Setting stat:sum entries in output file to -1 (not available), as -e filters on the positions of the particles in the file (fileidx)
+   | MCPL: Successfully extracted 0 / 30 particles from a1.mcpl into out.mcpl
 mcpltool --extract -e x = 1cm*fileidx: stat:sum:nsim = 1000.0
    | MCPL: Successfully extracted 30 / 30 particles from a1.mcpl into out.mcpl

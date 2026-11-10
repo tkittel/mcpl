@@ -109,9 +109,6 @@ Histogram (-H, --hist HIST):
 Extract (-x, --extract FILE OUT.mcpl.gz):
   --no-comment     Do not add comments to the header of OUT about how the
                    particles were extracted.
-  --keep-statsum   Keep stat:sum entries when -e changes weights (if the edit
-                   is known to be compatible with them). Otherwise they are
-                   marked as not available (-1), as they are with -l or -s.
   --code=LANG      Instead of extracting, print a program in C (LANG c) or C++
                    (LANG cpp) which does the same for files like FILE (with its
                    userdata layout and stat:sum entries), taking the input and
@@ -205,7 +202,7 @@ _flag_opts = { '--stats' : '-S', '--extract' : '-x', '--merge' : '-m',
                '--help' : '-h', '--forcemerge' : None, '--inplace' : None,
                '--keepuserflags' : None, '--text' : None,
                '--no-comment' : None,
-               '--keep-statsum' : None, '--full-help' : None,
+               '--full-help' : None,
                '--allow-overwrite' : None,
                '--hist-help' : None, '--traceback' : None,
                '--terminal' : '-t' }
@@ -362,7 +359,6 @@ def _app_mcpltool(progname,args):
         _bad("--color can not be used with -o (plots are saved without colours)")
     opt_nocomment = '--no-comment' in flags
     allowed('--no-comment',('--extract',),opt_nocomment)
-    allowed('--keep-statsum',('--extract',),'--keep-statsum' in flags)
     allowed('--code',('--extract',),'--code' in values)
     if values.get('--code','c') not in ('c','cpp'):
         _bad("--code must be c or cpp")
@@ -429,9 +425,10 @@ def _app_mcpltool(progname,args):
 
     if mode == '--extract' and '--code' in values:
         from ._extract import _mcpltool_code
-        _check_inputs(filelist[:1])
-        _mcpltool_code(filelist,values['--code'],opt_limit,opt_skip,edit,opt_nocomment,
-                       '--keep-statsum' in flags,_bad)
+        if len(filelist) != 1:
+            _bad("must specify one input file (and no output file) with --code")
+        _check_inputs(filelist)
+        _mcpltool_code(filelist[0],values['--code'],opt_limit,opt_skip,edit,opt_nocomment)
         sys.exit(0)
 
     if mode == '--extract':
@@ -441,8 +438,7 @@ def _app_mcpltool(progname,args):
         if len(filelist) != 2:
             _bad("must specify both input and output files with -x")
         _check_inputs(filelist[:1])
-        _mcpltool_extract(filelist,opt_limit,opt_skip,edit,opt_nocomment,
-                          '--keep-statsum' in flags,opt_dryrun,_bad,
+        _mcpltool_extract(*filelist,opt_limit,opt_skip,edit,opt_nocomment,opt_dryrun,
                           allow_overwrite = opt_allow_overwrite)
         _mcpltool_dryrun_note(opt_dryrun)
         sys.exit(0)

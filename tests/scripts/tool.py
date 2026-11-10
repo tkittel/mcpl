@@ -301,7 +301,7 @@ def main():
     cmd('--code=c',fmisc,fail=True)
     #(the code does what -e does with the range and comment options):
     cmd('-x','--code=c','-s2','-l5','--no-comment',fmisc)
-    cmd('-x','--code=cpp','-e','z > 0','--keep-statsum',fmisc)
+    cmd('-x','--code=cpp','-e','z > 0','-l5',fmisc)
     cmd('-x','--code=c','-d',fmisc,fail=True)
     cmd('-x','--code=cpp',fmisc,'out.mcpl',fail=True)
 

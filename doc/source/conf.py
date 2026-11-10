@@ -159,7 +159,8 @@ def _plaintext_docstring( app, what, name, obj, options, lines ):
 
 _page_keys = [ 'index', 'get', 'get_source', 'news', 'file_contents', 'usage',
                'usage_cmdline', 'usage_c', 'usage_cpp', 'usage_python',
-               'usage_python_advanced', 'usage_expressions', 'hooks',
+               'usage_python_advanced', 'usage_python_editing_headers',
+               'usage_expressions', 'hooks',
                'hooks_geant4', 'hooks_mcstas', 'hooks_mcxtrace',
                'hooks_mcnp', 'hooks_phits', 'hooks_others', 'format',
                'format_statsum', 'cmdline', 'c_api', 'python_api', 'cpp_api',

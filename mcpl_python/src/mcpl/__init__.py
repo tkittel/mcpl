@@ -33,7 +33,7 @@ can be found at:
      https://mctools.github.io/mcpl/usage_python/
 
 This package can be freely used as per the terms in the LICENSE file distributed with
-MCPL, also available at https://github.com/mctools/mcpl/blob/master/LICENSE .
+MCPL, also available at https://github.com/mctools/mcpl/blob/main/LICENSE .
 
 A substantial effort went into developing MCPL. If you use it for your work, we
 would appreciate it if you would use the following reference in your work:

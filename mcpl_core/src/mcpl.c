@@ -5497,8 +5497,6 @@ MCPL_LOCAL int mcpl_internal_merge_inplace( const char * file1,
 
   uint64_t np1 = f1->nparticles;
   uint64_t np2 = f2->nparticles;
-  if (!np2)
-    return 1;//nothing to take from file 2.
 
   unsigned particle_size = f1->particle_size;
   uint64_t first_particle_pos = f1->first_particle_pos;
@@ -5562,6 +5560,10 @@ MCPL_LOCAL int mcpl_internal_merge_inplace( const char * file1,
       s->writtenpos = writtenpos;
     }
   }
+
+  if ( !np2 && !nssi )
+    return 1;//nothing to take from file 2 (its stat:sum values are added
+             //also when it has no particles).
 
   //Now, close file1 and reopen a file handle in update mode:
   mcpl_close_file(ff1);

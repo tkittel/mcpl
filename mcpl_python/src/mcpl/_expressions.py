@@ -194,7 +194,7 @@ class ParticleEdit:
         kinetic energy of neutrons and gammas. The vectors pos, dir, and pol
         can be assigned too, as in "pos += (0,0,1m)".
       * Assignments to variables (lowercase names which are not names of
-        fields, units, constants, or functions), which can be used in later
+        fields, units, constants, functions, or particles), which can be used in later
         statements, as in "r = hypot(x,y); r > 2cm and r < 5cm". Variables
         keep the units of their values.
       * swap(a,b), which exchanges the values of two fields (or variables)
@@ -390,6 +390,10 @@ def _as_expression( cls, expr ):
     """The expression as an object of the class (ParticleEdit or
     ParticleValue) if it is a text, else as given (e.g. None)"""
     return cls(expr) if isinstance(expr,str) else expr
+
+def _expr_of( value ):
+    """The parsed expression (an _Expr) of a ParticleValue"""
+    return value._e
 
 def _as_edit(edit):
     return _as_expression(ParticleEdit,edit)

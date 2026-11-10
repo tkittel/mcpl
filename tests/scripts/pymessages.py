@@ -92,6 +92,7 @@ def main():
     print('==> Errors in mcpltool, with and without --traceback:')
     run_tool('nonexistent.mcpl')
     run_tool('--traceback', 'nonexistent.mcpl')
+    run_tool('--trace', 'nonexistent.mcpl')
 
     print('==> Program name in the usage with "python -m mcpl":')
     rv = subprocess.run([sys.executable, '-m', 'mcpldev', '--help'],

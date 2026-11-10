@@ -401,9 +401,28 @@ def test_statsums_until_closed():
     o.close()
     print('Closed file:',statsums_on_disk('statsums.mcpl'))
 
+def test_exception_in_with():
+    """An exception inside the with-statement leaves the file unfinished (with
+    its particles, but without their number and the stat:sum values), so it
+    can be recognised and repaired"""
+    try:
+        with mcpl.MCPLOutFile('unfinished.mcpl', stat_sum = { 'nevents' : 5.0 } ) as o:
+            for _ in range(3):
+                o.add_particle(pdgcode=2112,ekin=1.0,uz=1.0)
+            raise RuntimeError('stopped')
+    except RuntimeError as e:
+        print(f'Exception in the with-statement: {e}')
+    print('Unfinished file:',statsums_on_disk('unfinished.mcpl'))
+    with mcpl.MCPLFile('unfinished.mcpl') as f:
+        print(f'  read with {f.nparticles} particles, stat_sum {dict(f.stat_sum)}')
+    mcpl.repair('unfinished.mcpl')
+    with mcpl.MCPLFile('unfinished.mcpl') as f:
+        print(f'  after repair: {f.nparticles} particles, stat_sum {dict(f.stat_sum)}')
+
 test_reference_files()
 test_raw_values()
 test_statsums_until_closed()
+test_exception_in_with()
 test_transfers()
 test_api()
 test_api_more()

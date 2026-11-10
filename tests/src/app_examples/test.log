@@ -177,7 +177,7 @@ file had comment: 'Applied filter for neutrons with ekin<0.1MeV'
 File contains 1 particles
   found particle with pdgcode 2112 and time-stamp 29.6 ms with weight 5.89411
 do_userdatamcpl( "dummyuserdata.mcpl" )
-Userdata layout: temp:float32,nscat:uint32,volume:int32,origin:float32[3] (24 bytes per particle)
+Userdata layout: temp:float32:K,nscat:uint32,volume:int32,origin:float32[3]:cm (24 bytes per particle)
 Particle 0: ekin=2.5e-08 MeV, temp=293.15 K, nscat=0, volume=-1, origin=(0,0,0)
 Particle 1: ekin=5e-08 MeV, temp=293.65 K, nscat=1, volume=17, origin=(0,0.5,1)
 Particle 2: ekin=7.5e-08 MeV, temp=294.15 K, nscat=2, volume=17, origin=(0,1,2)
@@ -187,19 +187,19 @@ Opened MCPL file dummyuserdata.mcpl:
   Basic info
     Format             : MCPL-4
     No. of particles   : 1000
-    Header storage     : 310 bytes
+    Header storage     : 306 bytes
     Data storage       : 56000 bytes
 
   Custom meta data
     Source             : "my_cool_program_name"
     Number of comments : 1
-          -> comment 0 : "Userdata: temp is the temperature [K] at the last scattering, nscat the number of scatterings, volume the identifier of the last volume, and origin the initial position [cm]."
+          -> comment 0 : "Userdata: temp is the temperature at the last scattering, nscat the number of scatterings, volume the identifier of the last volume, and origin the initial position."
     Number of blobs    : 0
 
   Particle data format
     User flags         : no
     Polarisation info  : no
-    User data          : 24 bytes (layout "temp:float32,nscat:uint32,volume:int32,origin:float32[3]")
+    User data          : 24 bytes (layout "temp:float32:K,nscat:uint32,volume:int32,origin:float32[3]:cm")
     Fixed part. type   : yes (pdgcode 2112)
     Fixed part. weight : no
     FP precision       : single

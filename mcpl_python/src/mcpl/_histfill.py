@@ -78,8 +78,9 @@ class _DisplayByValue:
     particles"""
     def __init__( self, expr ):
         self._v = _as_expression(ParticleValue,expr)
+        self.expr = _expr_of(self._v)
         self.expression = self._v.expression
-        self.field = self._v._e.field
+        self.field = self.expr.field
         self._is_bool = None
     def __call__( self, block ):
         return self._v(block)
@@ -102,7 +103,7 @@ def _display_by_label( display_by, key, unicode = False ):
     if display_by is None or key is None:
         #No display_by, or no particles (so no values of its expression):
         return None
-    name = display_by._v._e.value_label(key,unicode)
+    name = display_by.expr.value_label(key,unicode)
     if name is not None:
         return name
     if key in (0.0,1.0) and display_by._is_bool:
@@ -350,7 +351,7 @@ class _DomainNote:
             return
         for field, vals in seen.items():
             self._seen.setdefault(field,set()).update(vals)
-        self._left_out = self._left_out or not self._v._e.domain_mask(b).all()
+        self._left_out = self._left_out or not all_defined
     def note( self, unicode = False ):
         return self._v.domain_note(self._seen,unicode) if self._left_out else None
 
@@ -757,8 +758,8 @@ class _HistDiscreteFiller(_Filler):
                 h._value_sums[k] = h._value_sums.get(k,0.0) + v
         multifile = len(self._labels) > 1
         for flabel, sums in self._sums.items():
-            for keys, lbl, plbl, color in self._curves(sums,self._limit,e._e.field,
-                                                       lambda k, u : e._e.value_label(k,u) or str(k),
+            for keys, lbl, plbl, color in self._curves(sums,self._limit,e.expr.field,
+                                                       lambda k, u : e.expr.value_label(k,u) or str(k),
                                                        flabel if multifile else None):
                 h.contents[lbl] = sum( sums[k] for k in keys )
                 h._add_label(lbl,plbl,color)

@@ -25,7 +25,7 @@ imported by the functions here."""
 
 __all__ = []
 
-from ._common import MCPLError
+from ._common import MCPLError, _as_limit, _as_skip
 from ._messages import _warning
 from ._numpy import np
 
@@ -202,13 +202,8 @@ def file_to_scipp( mcplfile, skip = 0, limit = None,
     if skip < 0:
         raise MCPLError('skip must not be negative')
     warn_if_limited = limit is None
-    if limit is None:
-        limit = _default_limit
-    limit = int(limit)
-    if limit < 0:
-        raise MCPLError('limit must not be negative')
+    nleft = _default_limit if limit is None else _as_limit(limit)
     c = _Columns(coord_functions,vectors,variances,dim)
-    nleft = limit if limit else None
     dropped = False
     for b in mcplfile.particle_blocks:
         if not len(b):
@@ -231,7 +226,7 @@ def file_to_scipp( mcplfile, skip = 0, limit = None,
         if dropped:
             break
     if dropped and warn_if_limited:
-        _warning(f'Only the first {limit} particles were converted to scipp'
+        _warning(f'Only the first {_default_limit} particles were converted to scipp'
                  ' (use the limit parameter to change this)')
     if not c._cols:
         #No particles: an empty block gives the columns:

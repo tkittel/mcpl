@@ -113,7 +113,7 @@ merge_inplace (empty file 2) -> ok
 merge_inplace (valid) -> ok
   file i1.mcpl: nparticles=5 srcname="errstate_fileops" doubleprec=0
     comment 0: "a comment"
-    comment 1: "stat:sum:nevents:                      30"
+    comment 1: "stat:sum:nevents:                      35"
     particle x values: 1 2 3 11 12
   reading back -> ok
 

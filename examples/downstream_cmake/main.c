@@ -19,7 +19,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-// A small standalone example of how to one might read particles from an MCPL
+// A small standalone example of how one might read particles from an MCPL
 // file into a C programme.
 
 #include "mcpl.h"

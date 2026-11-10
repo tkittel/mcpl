@@ -21,7 +21,7 @@
 
 """The particle types with names: the one table of their PDG codes with names
 for labels, symbols, and colours for plots, and the names which can be used for
-them in expressions (as in mcpltool -p), with their descriptions in the
+them in expressions (as in pdgcode == neutron), with their descriptions in the
 help."""
 
 __all__ = []

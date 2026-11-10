@@ -63,6 +63,12 @@ Options "puPW": identical to C with add_particles: True, with add_particle: True
 Options "dpuPW": identical to C with add_particles: True, with add_particle: True
 Unfinished file: ['stat:sum:nevents:                      -1', 'stat:sum:fromcomment:                      -1']
 Closed file: ['stat:sum:nevents:                       6', 'stat:sum:fromcomment:                       7']
+Exception in the with-statement: stopped
+Unfinished file: ['stat:sum:nevents:                      -1']
+MCPL WARNING: Input file appears to not have been closed properly. Recovered 3 particles.
+  read with 3 particles, stat_sum {'nevents': None}
+MCPL: Successfully repaired file with 3 particles.
+  after repair: 3 particles, stat_sum {'nevents': None}
 Transfer from "" to "": identical to C: True
 Transfer from "" to "d": identical to C: True
 Transfer from "" to "p": identical to C: True

@@ -19,7 +19,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-// A small standalone example of how to one might extract a subset of particles
+// A small standalone example of how one might extract a subset of particles
 // from an existing MCPL file in order to create a new smaller file.
 
 #include "mcpl.h"
@@ -65,7 +65,7 @@ int main(int argc,char**argv) {
   //we only filtered the particles based on their properties. If we had instead
   //split the file in the sense of having selected particles based on their
   //position in the file, we should have invoked the
-  //mcpl_hdr_scale_state_sums(of, scale) with an appropriate choice of scale. If
+  //mcpl_hdr_scale_stat_sums(of, scale) with an appropriate choice of scale. If
   //a proper scale is too complicated to deduce, one can always use scale=-1.0
   //since this will technically mark all the statistics parameters as being
   //unavailable (which is better than being silently misleading).

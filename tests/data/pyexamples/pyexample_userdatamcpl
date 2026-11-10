@@ -37,20 +37,21 @@ outputfile = sys.argv[1]
 ################################################################################
 
 #The userdata of each particle is described by a layout: a list of named fields
-#with types int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32
-#or float64, or arrays of them like "origin:float32[3]"). Here each particle
-#gets a temperature, the number of scatterings it underwent, the identifier of
-#the volume it was last in, and its initial position. The layout is stored in
-#the file header, so it is always known when reading the file. As usual, it is
-#a good idea to explain the fields in a comment:
-layout = 'temp:float32,nscat:uint32,volume:int32,origin:float32[3]'
+#with types int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32,
+#or float64, or arrays of them like "origin:float32[3]", optionally with units
+#like "temp:float32:K". Here each particle gets a temperature, the number of
+#scatterings it underwent, the identifier of the volume it was last in, and its
+#initial position. The layout is stored in the file header, so it is always
+#known when reading the file. As usual, it is a good idea to explain the fields
+#in a comment:
+layout = 'temp:float32:K,nscat:uint32,volume:int32,origin:float32[3]:cm'
 f = mcpl.MCPLOutFile( outputfile, sourcename = 'my_cool_program_name',
                       opt_universalpdgcode = 2112,#all are neutrons
                       userdata_layout = layout )
-f.hdr_add_comment('Userdata: temp is the temperature [K] at the last'
+f.hdr_add_comment('Userdata: temp is the temperature at the last'
                   ' scattering, nscat the number of scatterings, volume the'
                   ' identifier of the last volume, and origin the initial'
-                  ' position [cm].')
+                  ' position.')
 
 #In files with userdata, particles are added together with their userdata,
 #given as a dictionary with an array (or a single value) for each field of the

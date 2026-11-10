@@ -19,7 +19,7 @@
 ##                                                                            ##
 ################################################################################
 
-"""Help texts as blocks, shown as plain text (in terminals and by mcpltool -p
+"""Help texts as blocks, shown as plain text (in terminals and by mcpltool -e
 help) or formatted (in the windows of the viewer). The blocks are tuples of a
 kind and its texts:
 

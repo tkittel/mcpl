@@ -131,6 +131,12 @@ def main():
     cmd('-l0','-s2',dd('reffile_5.mcpl'))
     cmd('-l0','-s2',dd('reffile_empty.mcpl'))
     cmd('-l0','-s2',dd('reffile_empty.mcpl.gz'))
+    cmd('-lnone',dd('reffile_5.mcpl'),fail=True)
+    #(-S shows the stat:sum values of the whole file, and those for the
+    #particles used if different):
+    cmd('-S','-l5',dd('ref_statsum.mcpl.gz'))
+    cmd('-S','-e','fileidx < 7',dd('ref_statsum.mcpl.gz'))
+    cmd('-S','-s1000',dd('ref_statsum.mcpl.gz'),fail=True)
     cmd('-m','--inplace','rf5cp.mcpl',dd('reffile_5.mcpl.gz'))
     cmd('-m','--inpla','rf5cp.mcpl.gz',dd('reffile_5.mcpl'),fail=True)
     cmd('-m','--inplac','rf5cp.mcpl.gz',dd('reffile_5.mcpl.gz'),fail=True)

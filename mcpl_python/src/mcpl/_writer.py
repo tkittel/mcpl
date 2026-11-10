@@ -118,7 +118,9 @@ class MCPLOutFile:
     Particles are added in blocks with add_particles(..), or one at a time
     with add_particle(..). The file must be closed with close(), which happens
     automatically at the end of a with-statement (files with names ending
-    with .mcpl.gz are gzipped when closed):
+    with .mcpl.gz are gzipped when closed). After an exception in the
+    with-statement, the file is left unfinished, like files of programs which
+    stopped before closing them (see repair):
 
        with MCPLOutFile('myfile.mcpl',
                         sourcename='MySimulation',
@@ -162,9 +164,10 @@ class MCPLOutFile:
         If edit (an edit expression or a ParticleEdit) is given, only the
         particles it keeps are written, with its changes. For instance,
         MCPLOutFile("out.mcpl",edit="pdgcode == neutron; z += 1m").
-        Note that stat:sum entries are not modified, so they should for
-        instance be scaled with hdr_scale_stat_sums(-1) when particle weights
-        are edited (see the guidelines for stat:sum entries).
+        Note that the stat:sum values are not changed, so for an edit which
+        filters on the positions of the particles in the file (fileidx), they
+        should be set to -1 (not available) with hdr_scale_stat_sums(-1)
+        (see the guidelines for stat:sum entries).
         """
         self._fh = None
         #(in dry-run mode, used by the dry_run options of the file operations
@@ -247,8 +250,23 @@ class MCPLOutFile:
         return self
 
     def __exit__(self, ttype, value, traceback):
-        if self._fh is not None:
+        if self._fh is None:
+            return
+        if ttype is None:
             self.close()
+            return
+        #(the particles added are written, but not their number or the
+        #stat:sum values):
+        fh = self._fh
+        try:
+            self._flush_pending()
+            if self._hdr_notwritten:
+                self._write_header()
+        except ( OSError, MCPLError ):
+            pass#(the exception of the with-statement is the one reported)
+        finally:
+            self._fh = None
+            fh.close()
 
     def __del__(self):
         if getattr(self,'_fh',None) is not None:
@@ -1140,8 +1158,6 @@ class _DryRunHandle:
         pass
     def seek(self, pos):
         pass
-    def tell(self):
-        return 0
     def close(self):
         pass
 

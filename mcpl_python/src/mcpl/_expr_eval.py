@@ -159,11 +159,14 @@ class _V:
         """The units (of the values which are not plain zeros)"""
         return next( ( q.d for q in self.c if not q.zero ), None )
     def describe( self ):
-        return f'a {len(self.c)}D vector' + ( f' of {_dimstr(self.d)}s' if self.d else '' )
+        return f'a {len(self.c)}D vector' + ( f' of {_dimstr(self.d)}s'
+                                              if self.d not in ( None, _dim_unknown ) else '' )
 
 def _dimstr( d ):
     if d is None:
         return 'value without units'
+    if d == _dim_unknown:
+        return 'value of unknown units'#(when checked without a file)
     res = []
     for n, e in zip(('length','energy','time','temperature'),d):
         if e:
@@ -183,12 +186,12 @@ _compare_fcts = { '==' : np.equal, '!=' : np.not_equal, '<' : np.less,
 
 class _ExprEvaluator:
     """Evaluates parsed expressions on a block of particles with numpy"""
-    def __init__( self, block, expr, state = None ):
+    def __init__( self, block, expr ):
         self._block = block
         self._expr = expr
         self._cache = {}
         #Values of variables and modified fields (in edits):
-        self.state = state if state is not None else {}
+        self.state = {}
         #Particles for which the current part of the expression is used (None
         #for all), e.g. only those for which the left side of and is true:
         self.active = None
@@ -274,9 +277,8 @@ class _ExprEvaluator:
 
     def _wavelength( self ):
         #Wavelengths (NaN for particles other than neutrons and gammas, for
-        #which they are not used), also of modified particles in edits:
-        if 'wavelength' in self.state:
-            return self.state['wavelength']
+        #which they are not used), also of modified particles in edits
+        #(assignments to the wavelength change ekin):
         if 'ekin' in self.state or 'pdgcode' in self.state or 'wavelength' not in self._cache:
             q = _Q(wavelength_from_ekin(self.name('ekin').v,
                                         self.name('pdgcode').v) * _expr_wl_unit,
@@ -635,14 +637,8 @@ class _ExprEvaluator:
                 return _Q(np.sqrt(sum( np.square(v) for v in values )),d)
             if len(args) == 1 and fname == 'abs':
                 return _Q(fct(args[0].v),args[0].d)
-            if fname == 'clamp':
-                ( v, lo, hi ), d = self.common(args,'clamp(..)')
-                return _Q(np.minimum(np.maximum(v,lo),hi),d)
             values, d = self.common(args,f'{fname}(..)')
-            res = values[0]
-            for y in values[1:]:
-                res = fct(res,y)
-            return _Q(res,d)
+            return _Q(_min_max(fname,values),d)
     def scalar( self, q, what ):
         """q, if it is not a vector"""
         if isinstance(q,_V):
@@ -780,13 +776,7 @@ class _ExprEvaluator:
             _, _, d2 = self.same(args[0],q,what)
             d = d or d2
         _, vals = self.int_operands([ q.v for q in args ],what)
-        if fname == 'clamp':
-            return _Q(np.minimum(np.maximum(vals[0],vals[1]),vals[2]),d)
-        fct = np.minimum if fname == 'min' else np.maximum
-        res = vals[0]
-        for v in vals[1:]:
-            res = fct(res,v)
-        return _Q(res,d)
+        return _Q(_min_max(fname,vals),d)
     def boolval( self, q ):
         q = self.scalar(q,'a condition')
         return np.asarray(q.v).astype(bool) if np.asarray(q.v).dtype != bool else q.v

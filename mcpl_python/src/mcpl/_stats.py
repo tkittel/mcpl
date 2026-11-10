@@ -32,27 +32,6 @@ from ._physics import _pdg_database
 from ._reader import MCPLFile
 
 
-class _EditedFile:
-    """Read-only view of the particles of an MCPLFile after its own edit and
-    the edit given (an edit expression, a ParticleEdit, or None), for
-    collect_stats"""
-    def __init__(self,mcplfile,edit):
-        self._f = mcplfile
-        self._edt = None
-        if edit is not None:
-            from ._expressions import _as_edit
-            self._edt = _as_edit(edit)
-        self.edit = ';'.join( e.expression for e in ( mcplfile.edit, self._edt )
-                              if e is not None )
-        self.nparticles = sum( len(b) for b in self.particle_blocks )
-    def __getattr__(self,name):
-        return getattr(self._f,name)
-    @property
-    def particle_blocks(self):
-        for b in self._f.particle_blocks:
-            yield self._edt(b) if self._edt is not None else b
-
-
 def _unique_count(a,weights=None):
     """returns (unique,count) where unique is an array of sorted unique values in a, and count is the corresponding frequency counts"""
     unique, inverse = np.unique(a, return_inverse=True)
@@ -125,12 +104,13 @@ class _StatCollector:
 _possible_std_stats = ['ekin','x','y','z','ux','uy','uz','time','weight','polx','poly','polz']
 _possible_freq_stats = ['pdgcode','userflags']
 
-def collect_stats(mcplfile,stats='all',bin_data=True,edit=None):
-    """Efficiently collect statistics from an entire file. Returns dictionary
-    with stat names as key and the collected statistics as values. If edit
-    is given (an edit expression or a ParticleEdit), the statistics are
-    those of the particles it keeps, with its changes."""
-    if not isinstance(mcplfile,(MCPLFile,_EditedFile)):
+def collect_stats(mcplfile,stats='all',bin_data=True):
+    """Efficiently collect statistics of the particles of a file (a file name,
+    or an MCPLFile, whose skip, limit, and edit apply, as in
+    collect_stats(MCPLFile("f.mcpl",edit="pdgcode == neutron"))). Returns
+    dictionary with stat names as key and the collected statistics as
+    values."""
+    if not isinstance(mcplfile,MCPLFile):
         #(a file name: the file is closed when done):
         with MCPLFile(mcplfile) as f:
             return collect_stats(f,stats,bin_data)
@@ -140,11 +120,24 @@ def collect_stats(mcplfile,stats='all',bin_data=True,edit=None):
                  if mcplfile._nparticles_raw == 0 else
                  "Can not calculate stats when no particles are kept")
         return {}
+    return res
+
+def _collect_stats(mcplfile,stats,bin_data):
+    """collect_stats of an MCPLFile, or None when there are no particles"""
     acc = _StatsAccumulator(mcplfile,stats,bin_data)
-    if acc.needs_pass1:
+    #(the particles are only counted if their number is not known, in the
+    #first pass if there is one):
+    n = mcplfile.nparticles
+    if acc.needs_pass1 or n is None:
+        count = 0
         for pb in mcplfile.particle_blocks:
-            acc.add1(pb)
-    acc.start2(mcplfile.nparticles)
+            count += len(pb)
+            if acc.needs_pass1:
+                acc.add1(pb)
+        n = count
+    if n == 0:
+        return None
+    acc.start2(n)
     if acc.needs_pass2:
         for pb in mcplfile.particle_blocks:
             acc.add2(pb)
@@ -329,6 +322,7 @@ class _StatsAccumulator:
 
         results = { 'file':{'type':'fileinfo','integral':weight_sum,'nparticles':self._n,
                             'stat_sum':dict(mcplfile.stat_sum),
+                            'stat_sum_sliced':mcplfile.stat_sum_sliced,
                             'filename':os.path.basename(os.fsdecode(mcplfile._filename))} }
         if mcplfile.edit is not None:
             results['file']['edit'] = mcplfile.edit.expression
@@ -373,8 +367,13 @@ def dump_stats(stats):
         print(f"edit         : {stats['file']['edit']}")
     print(f"nparticles   : {stats['file']['nparticles']}")
     print('sum(weights) : {:g}'.format(stats['file']['integral']))
+    def fmt( v ):
+        return 'n/a' if v is None else f'{v:.15g}'
+    sliced = stats['file'].get('stat_sum_sliced',{})
     for key, val in stats['file'].get('stat_sum',{}).items():
-        print(f"stat:sum:{key} : {'n/a' if val is None else f'{val:.15g}'}")
+        s = sliced.get(key,val)
+        print(f"stat:sum:{key} : {fmt(val)}" + ( '' if s == val else
+                                                 f" (whole file), {fmt(s)} (in the range of -s and -l)" ))
     if set(stats).intersection(_possible_std_stats):
         print('------------------------------------------------------------------------------')
         print('             :            mean             rms             min             max')

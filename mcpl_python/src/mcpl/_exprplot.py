@@ -54,18 +54,18 @@ class _PlotValue:
         #(the dimension, which for fields of the userdata is known from the
         #first block of particles, see __call__):
         self.dim = q.d
-        self.wavelength = 'wavelength' in self._e.fields
+        self.wavelength = 'wavelength' in self.expr.fields
     def __call__( self, block ):
         """The values for the particles of the block (NaN where the expression
         is not defined, see _Expr.domains)"""
-        if not self._e.domains:
-            q = self._e.evaluate(block)
+        if not self.expr.domains:
+            q = self.expr.evaluate(block)
         else:
-            mask = self._e.domain_mask(block)
-            q = self._e.evaluate(block,active=mask)
+            mask = self.expr.domain_mask(block)
+            q = self.expr.evaluate(block,active=mask)
         if self.dim == _dim_unknown:
             self.dim = q.d
-        if not self._e.domains:
+        if not self.expr.domains:
             return _values(q,block)
         v = np.array(_values(q,block),dtype=float)
         v[~mask] = np.nan
@@ -74,18 +74,18 @@ class _PlotValue:
     def domain_values( self, block ):
         """The values of the fields deciding where the expression is defined,
         for the particles of the block where it is (as {field : set})"""
-        if not self._e.domains:
+        if not self.expr.domains:
             return {}
-        mask = self._e.domain_mask(block)
-        return { field : set( np.unique(np.broadcast_to(getattr(block,field),(len(block),))[mask]).tolist() )
-                 for field, _ in self._e.domains }
+        mask = self.expr.domain_mask(block)
+        return ( { field : set( np.unique(np.broadcast_to(getattr(block,field),(len(block),))[mask]).tolist() )
+                   for field, _ in self.expr.domains }, bool(mask.all()) )
 
     def domain_note( self, seen, unicode = False ):
         """Note for labels on the particles for which the values are defined,
         like "(n/gamma only)", given the values of domain_values seen (or None if
         defined for all particles, see _expr_value_names for unicode)"""
         return _domain_note([ ( field, [ v for v in values if v in seen.get(field,()) ] )
-                              for field, values in self._e.domains ],unicode)
+                              for field, values in self.expr.domains ],unicode)
 
 def _domain_note( domains, unicode = False ):
     """Note for labels on the values of fields for which values are defined

@@ -71,6 +71,40 @@ def _parse_count( text ):
         return None
     return int(d)
 
+def _as_limit( value ):
+    """The number of particles which a limit argument allows, or None for all
+    (a limit of None or 0). Raises MCPLError for other values than
+    non-negative whole numbers."""
+    return None if value is None else ( _as_count(value,'limit') or None )
+
+def _as_skip( value ):
+    """The number of particles which a skip argument skips (0 for None).
+    Raises MCPLError for other values than non-negative whole numbers."""
+    return 0 if value is None else _as_count(value,'skip')
+
+def _as_count( value, what ):
+    try:
+        ok = not isinstance(value,(bool,str)) and int(value) == value and value >= 0
+    except (TypeError,ValueError):
+        ok = False
+    if not ok:
+        raise MCPLError(f'{what} must be a number of particles (not {value!r})')
+    return int(value)
+
+def _listed( words, conjunction = 'and' ):
+    """The words joined as in "a and b" or "a, b, and c" (with the conjunction)"""
+    words = list(words)
+    if len(words) < 3:
+        return f' {conjunction} '.join(words)
+    return ', '.join(words[:-1]) + f', {conjunction} ' + words[-1]
+
+def _particle_range( n, skip, limit ):
+    """The range of particles (first, end) of a file of n particles, without
+    the first skip of them and with at most limit (all if limit is None, see
+    _as_limit)"""
+    first = min( skip or 0, n )
+    return first, n if limit is None else min( n, first + limit )
+
 def _determine_version():
     if os.environ.get('PYMCPLTOOL_FAKE_PYVERSION','').strip():
         return '99.99.99'

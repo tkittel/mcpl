@@ -90,19 +90,14 @@ def _mcpltool_code(filename, lang, limit, skip, edit, preventcomment):
 def _mcpltool_extract(infn, outfn, limit, skip, edit, preventcomment,
                       dry_run, allow_overwrite = False):
     from ._writer import _check_merge_output
-    outfn = filelist[1]
-    _check_merge_output(outfn,filelist[:1],allow_overwrite)
-    limit = limit or 0
-    skip = skip or 0
-    with MCPLFile(filelist[0],raw_strings=True) as fi:
-        #Only warn about NaN or infinite values in the particles in the range
-        #given by -s and -l:
-        fi._check_nonfinite = False
+    _check_merge_output(outfn,[ infn ],allow_overwrite)
+    with MCPLFile(infn,raw_strings=True,skip=skip,limit=limit,edit=edit) as fi:
+        skip, limit = fi._skip, fi._limit
         fo = MCPLOutFile(outfn, allow_overwrite = allow_overwrite, _dry_run = dry_run)
         #(a failed extraction must not leave an output file behind)
         try:
             fo.transfer_metadata(fi)
-            n_in = fi.nparticles
+            n_in = fi._nparticles_raw
             if not preventcomment:
                 fo.hdr_add_comment(_extraction_comment(skip,limit,edit))
             scale, reason = fi._stat_sum_scale

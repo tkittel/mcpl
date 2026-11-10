@@ -156,7 +156,8 @@ def test_range():
     ref = mcpl.MCPLFile(ex).read_block()
     for skip, limit, cond in ( (5,None,None), (0,13,None), (250,300,'pdgcode == neutron'),
                                (999,50,None), (2000,None,None), (10,0,None) ):
-        n = min( len(ref), skip + ( len(ref) if limit is None else limit ) )
+        #(limit None or 0 is all):
+        n = min( len(ref), skip + ( limit or len(ref) ) )
         idx = np.arange(min(skip,len(ref)),n)
         if cond is not None:
             idx = idx[ref.pdgcode[idx] == 2112]
@@ -171,7 +172,21 @@ def test_range():
                                     ref.z[idx] + 100)
         print(f'skip={skip} limit={limit} filter={cond!r}: {len(idx)} particles, as expected: {ok}')
         assert ok
-    for bad in ( {'skip':-1}, {'limit':2.5}, {'skip':True} ):
+    #dump_particles(skip=...) of edited files (which skips whole blocks):
+    neutrons = list(np.flatnonzero(ref.pdgcode == 2112))
+    for blocklength in ( 7, 10000 ):
+        for skip in ( 0, 3, 7, 500, 10000 ):
+            with mcpl.MCPLFile(ex, blocklength=blocklength, edit='pdgcode == neutron') as f:
+                shown = dumped_indices(f,limit=4,skip=skip)
+            ok = shown == neutrons[skip:skip+4]
+            print(f'dump_particles(limit=4,skip={skip}) of neutrons, blocks of'
+                  f' {blocklength}: indices {shown}, as expected: {ok}')
+            assert ok
+    try:
+        mcpl.MCPLFile(ex, edit='pdgcode == neutron').dump_particles(skip=2.5)
+    except mcpl.MCPLError as e:
+        print(f'dump_particles(skip=2.5): {e}')
+    for bad in ( {'skip':-1}, {'limit':2.5}, {'skip':True}, {'limit':'none'} ):
         try:
             mcpl.MCPLFile(ex, **bad)
         except mcpl.MCPLError as e:

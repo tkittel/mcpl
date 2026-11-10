@@ -339,11 +339,11 @@ above uint64: MCPLError: userdata field c out of range for uint64
 above int64: MCPLError: userdata field c out of range for int64
 below int64: MCPLError: userdata field c out of range for int64
 === pyexample_userdatamcpl
-Userdata layout: temp:float32,nscat:uint32,volume:int32,origin:float32[3] (24 bytes per particle)
+Userdata layout: temp:float32:K,nscat:uint32,volume:int32,origin:float32[3]:cm (24 bytes per particle)
 501 of the first 1001 particles scattered at least twice
 First particle: ekin=2.5e-08 MeV, temp=293.15 K, nscat=0, volume=-1, origin=[0.0, 0.0, 0.0]
 Read 1001 particles: mean temp 294.654 K, mean nscat 1.5005, 334 escaped, max distance from origin 1121.37 cm
-pyexample.mcpl: format version 4, userdata layout "temp:float32,nscat:uint32,volume:int32,origin:float32[3]", size 24, particle size 56
+pyexample.mcpl: format version 4, userdata layout "temp:float32:K,nscat:uint32,volume:int32,origin:float32[3]:cm", size 24, particle size 56
   particle 0 x=0 ekin=2.5e-08: 3393924300000000ffffffff...
   particle 1 x=0.1 ekin=5e-08: 33d392430100000011000000...
   particle 2 x=0.2 ekin=7.5e-08: 331393430200000011000000...

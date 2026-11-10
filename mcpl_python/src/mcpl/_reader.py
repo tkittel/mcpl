@@ -32,7 +32,13 @@ from ._blocks import (
     _surely_finite,
     record_dtype,
 )
-from ._common import MCPLError, _output_bytearray_raw
+from ._common import (
+    MCPLError,
+    _as_limit,
+    _as_skip,
+    _output_bytearray_raw,
+    _particle_range,
+)
 from ._messages import _warning
 from ._numpy import np
 
@@ -116,12 +122,7 @@ class MCPLFile:
         if edit is not None:
             from ._expressions import _as_edit
             self._edt = _as_edit(edit)
-        for name, value in ( ('skip',skip), ('limit',limit) ):
-            if value is not None and ( not isinstance(value,(int,float,np.integer))
-                                       or isinstance(value,bool) or int(value) != value
-                                       or value < 0 ):
-                raise MCPLError(f'{name} must be a number of particles (not {value!r})')
-        self._skip, self._limit = int(skip or 0), None if limit is None else int(limit)
+        self._skip, self._limit = _as_skip(skip), _as_limit(limit)
         self._fblocks, self._fpending = None, None
         #NaN or infinite values are not allowed, but files might have them, so
         #we warn when reading the first such particle (unless the check is
@@ -178,7 +179,7 @@ class MCPLFile:
                         ok, (key,val) = _parse_statsum_comment( c)
                         if not ok:
                             raise MCPLError('Unexpected problems decoding'
-                                            'stat:sum: comment second time')
+                                            ' stat:sum: comment second time')
                         if val != -1.0:
                             newc = encode_stat_sum( key, -1.0 ).encode('ascii')
                             if len(c) != len(newc):
@@ -379,7 +380,8 @@ class MCPLFile:
         raw = iter(self._read_raw_block,None) if start < end else ()
         for b in _blocks_in_range(raw,start,end):
             if self._nonfinite_mask is not None:
-                self._warn_nonfinite()
+                #(of the particles in the range):
+                self._warn_if_nonfinite(b)
             if self._edt is not None:
                 b = self._edt(b)
             if len(b):
@@ -418,11 +420,16 @@ class MCPLFile:
             return
         masks = _nonfinite_masks(block,self.opt_polarisation)
         if masks:
-            self._warned_nonfinite = True
-            i = min( int(np.argmax(m)) for m in masks.values() )
-            _warning('File contains particles with NaN or infinite values (first'
-                     f' one found at index {block.fileidx[i]}).'
-                     ' They can not be added to other MCPL files.')
+            self._nonfinite_warning(block.fileidx[min( int(np.argmax(m)) for m in masks.values() )])
+
+    def _nonfinite_warning(self, fileidx):
+        """Warn that the particle at fileidx has NaN or infinite values (once
+        per file)"""
+        self._nonfinite_mask = None
+        self._warned_nonfinite = True
+        _warning('File contains particles with NaN or infinite values (first'
+                 f' one found at index {fileidx}).'
+                 ' They can not be added to other MCPL files.')
 
     def _warn_nonfinite(self, local_idx = None, first = 0):
         """Warn (once per file) if the current block (or the particle in it at
@@ -436,11 +443,7 @@ class MCPLFile:
                 return
             local_idx = first + int(np.argmax(m[first:]))
         i = int(np.argmax(m)) if local_idx is None else local_idx
-        self._nonfinite_mask = None
-        self._warned_nonfinite = True
-        _warning('File contains particles with NaN or infinite values (first'
-                 f' one found at index {self._currentblock.file_offset + i}).'
-                 ' They can not be added to other MCPL files.')
+        self._nonfinite_warning(self._currentblock.file_offset + i)
 
     def read(self):
         """Read and return next particle in file (None when EOF) as a particle object,
@@ -455,7 +458,7 @@ class MCPLFile:
                print(p.ekin,p.time,p.weight,p.userflags)
 
         See also the particles property for an iterator-based access to
-        particles. Furthermore, note that the read_blocks() function and
+        particles. Furthermore, note that the read_block() method and
         the particle_blocks property provides block-based access, which can
         improve performance dramatically."""
         if self._filtered:
@@ -540,7 +543,7 @@ class MCPLFile:
             yield p
 
     def rewind(self):
-        """Rewind file, causing next calls to read() and read_blocks() to start again at
+        """Rewind file, causing next calls to read() and read_block() to start again at
         the beginning of the file."""
         self._fileseek(self.headersize)
         self._ipos = 0
@@ -1023,13 +1026,6 @@ def _coord_functions(coords):
     return _quantity_functions(coords)
 
 
-
-def _particle_range( n, skip, limit ):
-    """The range of particles (first, end) of a file of n particles, without
-    the first skip of them and with at most limit (all if limit is None; the
-    -l option of mcpltool, where 0 means all, is given as limit or None)"""
-    first = min( skip or 0, n )
-    return first, n if limit is None else min( n, first + limit )
 
 def _blocks_in_range( blocks, first, end ):
     """The parts of the blocks (of a file, in their order) with the particles

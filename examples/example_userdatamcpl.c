@@ -46,18 +46,19 @@ int main(int argc,char**argv) {
 
   // The userdata of each particle is described by a layout: a list of named
   // fields with types int8, uint8, int16, uint16, int32, uint32, int64, uint64,
-  // float32 or float64, or arrays of them like "origin:float32[3]"). Here each
-  // particle gets a temperature, the number of scatterings it underwent, the
-  // identifier of the volume it was last in, and its initial position. The
-  // layout is stored in the file header, so it is always known when reading
-  // the file. As usual, it is a good idea to explain the fields in a comment:
-  const char * layout = ( "temp:float32,nscat:uint32,volume:int32,"
-                          "origin:float32[3]" );
+  // float32, or float64, or arrays of them like "origin:float32[3]", optionally
+  // with units like "temp:float32:K". Here each particle gets a temperature,
+  // the number of scatterings it underwent, the identifier of the volume it was
+  // last in, and its initial position. The layout is stored in the file header,
+  // so it is always known when reading the file. As usual, it is a good idea to
+  // explain the fields in a comment:
+  const char * layout = ( "temp:float32:K,nscat:uint32,volume:int32,"
+                          "origin:float32[3]:cm" );
   mcpl_enable_userdata(fout,layout);
-  mcpl_hdr_add_comment(fout,"Userdata: temp is the temperature [K] at the last"
+  mcpl_hdr_add_comment(fout,"Userdata: temp is the temperature at the last"
                        " scattering, nscat the number of scatterings, volume"
                        " the identifier of the last volume, and origin the"
-                       " initial position [cm].");
+                       " initial position.");
 
   // Offsets of the fields in the userdata bytes, looked up once. The type is
   // checked against the layout, so mistakes are caught early:

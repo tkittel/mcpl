@@ -400,8 +400,6 @@ def merge_inplace(file1, file2, *, dry_run = False):
         if f1._is_gz:
             raise MCPLError('direct modification of gzipped files is not supported.')
         np1, np2 = f1.nparticles, f2.nparticles
-        if not np2:
-            return
         psize, first_particle_pos = f1.particlesize, f1.headersize
         positions = { i: p for i,(p,_) in enumerate(_comment_positions(f1)) }
         updates = []
@@ -417,7 +415,9 @@ def merge_inplace(file1, file2, *, dry_run = False):
                              ' to indicate that a precise result is not available.')
                     newval = -1.0
             updates.append((positions[i], key, newval))
-        if dry_run:
+        if dry_run or not ( np2 or updates ):
+            #(the stat:sum values of file2 are added also when it has no
+            #particles)
             return
         try:
             fh = open(file1,'r+b')  # noqa: SIM115

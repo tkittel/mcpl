@@ -583,6 +583,84 @@ Opened MCPL file reffile_empty.mcpl.gz:
 index     pdgcode   ekin[MeV]       x[cm]       y[cm]       z[cm]          ux          uy          uz    time[ms]      weight       pol-x       pol-y       pol-z  userflags
 
 ----------------------------------------------
+Running mcpltool -lnone '<TESTDATADIR>/ref/reffile_5.mcpl'
+----------------------------------------------
+usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
+python -m mcpl: error: argument -l/--limit: expected a non-negative whole number, not 'none'
+
+===> Command failed!
+----------------------------------------------
+Running mcpltool -S -l5 '<TESTDATADIR>/ref/ref_statsum.mcpl.gz'
+----------------------------------------------
+------------------------------------------------------------------------------
+nparticles   : 5
+sum(weights) : 16.1467
+stat:sum:BLA : 5 (whole file), 0.25 (in the range of -s and -l)
+stat:sum:some_stat_key : 1.23456789123457e-201 (whole file), 6.17283945617284e-203 (in the range of -s and -l)
+------------------------------------------------------------------------------
+             :            mean             rms             min             max
+------------------------------------------------------------------------------
+ekin   [MeV] :         6.60615          1.4765         1.41688         9.11656
+x       [cm] :        -44.8393          19.929        -72.5537          83.239
+y       [cm] :          20.659          23.219         2.58648         60.8354
+z       [cm] :         33.5727           42.17        -68.6642         67.8224
+ux           :               0               0               0               0
+uy           :               0               0               0               0
+uz           :               1               0               1               1
+time    [ms] :         28.9461          7.9945          12.979         60.6969
+weight       :         3.22935          2.3441        0.172843         6.37915
+polx         :               0               0               0               0
+poly         :               0               0               0               0
+polz         :               0               0               0               0
+------------------------------------------------------------------------------
+pdgcode      :        2112 (n)               9.91087 (61.38%)
+                        22 (gamma)           6.23587 (38.62%)
+                     [ values ]             [ weighted counts ]
+------------------------------------------------------------------------------
+userflags    :           0 (0x00000000)      16.1467 (100.00%)
+                     [ values ]             [ weighted counts ]
+------------------------------------------------------------------------------
+
+----------------------------------------------
+Running mcpltool -S -e 'fileidx < 7' '<TESTDATADIR>/ref/ref_statsum.mcpl.gz'
+----------------------------------------------
+------------------------------------------------------------------------------
+edit         : fileidx<7
+nparticles   : 7
+sum(weights) : 24.555
+stat:sum:BLA : 5 (whole file), n/a (in the range of -s and -l)
+stat:sum:some_stat_key : 1.23456789123457e-201 (whole file), n/a (in the range of -s and -l)
+------------------------------------------------------------------------------
+             :            mean             rms             min             max
+------------------------------------------------------------------------------
+ekin   [MeV] :         6.99591          1.3148         1.41688         9.11656
+x       [cm] :        -27.6335           31.57        -72.5537          83.239
+y       [cm] :         41.9935          41.592        -43.3371          94.555
+z       [cm] :         8.21209          49.074        -68.6642         67.8224
+ux           :               0               0               0               0
+uy           :               0               0               0               0
+uz           :               1               0               1               1
+time    [ms] :         38.2006          15.718          12.979         91.9026
+weight       :         3.50786          2.7592        0.172843         7.70144
+polx         :               0               0               0               0
+poly         :               0               0               0               0
+polz         :               0               0               0               0
+------------------------------------------------------------------------------
+pdgcode      :        2112 (n)               18.3192 (74.60%)
+                        22 (gamma)           6.23587 (25.40%)
+                     [ values ]             [ weighted counts ]
+------------------------------------------------------------------------------
+userflags    :           0 (0x00000000)       24.555 (100.00%)
+                     [ values ]             [ weighted counts ]
+------------------------------------------------------------------------------
+
+----------------------------------------------
+Running mcpltool -S -s1000 '<TESTDATADIR>/ref/ref_statsum.mcpl.gz'
+----------------------------------------------
+python -m mcpl: Can not calculate statistics when no particles are kept
+
+===> Command failed!
+----------------------------------------------
 Running mcpltool -m --inplace rf5cp.mcpl '<TESTDATADIR>/ref/reffile_5.mcpl.gz'
 ----------------------------------------------
 

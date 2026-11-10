@@ -19,7 +19,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-// A small standalone example of how to one might output an MCPL file from a C
+// A small standalone example of how one might output an MCPL file from a C
 // programme.
 
 

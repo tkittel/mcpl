@@ -23,7 +23,7 @@
 
 __all__ = ['encode_stat_sum', 'is_valid_stat_sum_key']
 
-from ._common import MCPLError
+from ._common import MCPLError, _particle_range
 
 
 def encode_stat_sum( key, value ):
@@ -71,96 +71,74 @@ def is_valid_stat_sum_key( key ):
     else:
         return 'a' <= k0 <= 'z'
 
+def _statsum_problem( comment ):
+    """The reason why a comment (bytes) starting with "stat:sum:" is not a
+    valid stat:sum entry (as given by the C library), or None if it is one"""
+    c = comment[len(b'stat:sum:'):]
+    i = c.find(b':')
+    if i < 0:
+        return 'did not find colon separating key and value'
+    key, v = c[:i], c[i+1:]
+    if not key:
+        return 'empty key'
+    if len(key) > 64:
+        return 'key length exceeds 64 characters'
+    if not is_valid_stat_sum_key(key.decode('ascii','replace')):
+        return 'key does not adhere to naming [a-zA-Z][a-zA-Z0-9_]*'
+    if len(v) != 24:
+        return 'value field is not exactly 24 characters wide'
+    v = v.strip(b' ')
+    if not v:
+        return 'value field missing actual value'
+    if not all( e in b'0123456789.-+eE' for e in v ):
+        return ( 'value field holds forbidden characters, only'
+                 ' 0123456789.-+eE are allowed in addition to leading'
+                 ' or trailing spaces' )
+    try:
+        val = float(v)
+    except ValueError:
+        return 'could not decode contents of value field'
+    import math
+    if math.isnan(val):
+        return 'value field holds forbidden value (NaN)'
+    if not ( val >= 0.0 or val == -1.0 ):
+        return 'value field must hold a non-negative value or -1'
+    if math.isinf(val):
+        return 'value field holds forbidden value (+INFINITY)'
+    return None
+
 def _statsum_syntax_error( comment ):
-    """Error message for invalid "stat:sum:..." comment (bytes), with the same
-    reasons as given by the C library"""
-    def reason():
-        c = comment[len(b'stat:sum:'):]
-        i = c.find(b':')
-        if i < 0:
-            return 'did not find colon separating key and value'
-        key, v = c[:i], c[i+1:]
-        if not key:
-            return 'empty key'
-        if len(key) > 64:
-            return 'key length exceeds 64 characters'
-        if not is_valid_stat_sum_key(key.decode('ascii','replace')):
-            return 'key does not adhere to naming [a-zA-Z][a-zA-Z0-9_]*'
-        if len(v) != 24:
-            return 'value field is not exactly 24 characters wide'
-        v = v.strip(b' ')
-        if not v:
-            return 'value field missing actual value'
-        if not all( e in b'0123456789.-+eE' for e in v ):
-            return ( 'value field holds forbidden characters, only'
-                     ' 0123456789.-+eE are allowed in addition to leading'
-                     ' or trailing spaces' )
-        try:
-            val = float(v)
-        except ValueError:
-            return 'could not decode contents of value field'
-        import math
-        if math.isnan(val):
-            return 'value field holds forbidden value (NaN)'
-        if not ( val >= 0.0 or val == -1.0 ):
-            return 'value field must hold a non-negative value or -1'
-        if math.isinf(val):
-            return 'value field holds forbidden value (+INFINITY)'
-        return 'unknown issue'
+    """Error message for an invalid "stat:sum:..." comment (bytes), as given
+    by the C library"""
     if len(comment) > 16 * ( 64 + 24 + len(b'stat:sum:') + 1 ):
         return ( 'Syntax error: could not properly decode comment '
                  'starting with "stat:sum:" (content too long to show)' )
     return ( 'Syntax error: could not properly decode comment starting'
-             f' with "stat:sum:" ({reason()}). Issue with comment'
+             f' with "stat:sum:" ({_statsum_problem(comment)}). Issue with comment'
              f' "{comment.decode("utf-8","replace")}"' )
 
 def _parse_statsum_comment( comment ):
-    prefix = b'stat:sum:'
-    lval = 24
-    err = ( False, (None, None) )
-    if not comment.startswith(prefix):
-        return err
-    c = comment[len(prefix):].split(b':')
-    if ( len(c) != 2 or len(c[1])!=lval ):
-        return err
-    keyb, valstr = c
-    key = keyb.decode('ascii',errors='ignore')
-    if len(keyb) != len(key) or not is_valid_stat_sum_key(key):
-        return err
-    valstr = valstr.strip(b' ')#remove leading and trailing simple spaces
-    if not all(e in b'0123456789.-+eE' for e in valstr):
-        return err
-    try:
-        val = float(valstr)
-    except ValueError:
-        val = None
-    import math
-    if ( val is None or math.isinf(val) or math.isnan(val)
-         or not (val == -1.0 or val>=0.0) ):
-        return err
-    return ( True, (key,val) )
+    """(True, (key, value)) for a valid stat:sum comment (bytes), and
+    otherwise (False, (None, None))"""
+    if not comment.startswith(b'stat:sum:') or _statsum_problem(comment):
+        return ( False, (None, None) )
+    key, value = comment[len(b'stat:sum:'):].split(b':')
+    return ( True, (key.decode('ascii'), float(value)) )
 
 def _parse_statsum( comments ):
-    #Parse list of byte strings for any stat:sum: entries.
+    """The stat:sum entries of the comments (bytes), as a dict of the values
+    by key, with None for -1 (not available)"""
     d = {}
-    prefix = b'stat:sum:'
-    error_comment = None
     for comment in comments:
-        if not comment.startswith(prefix):
+        if not comment.startswith(b'stat:sum:'):
             continue
-        ok, (key,val) = _parse_statsum_comment( comment)
-        if ok:
-            if key in d:
-                raise MCPLError('Duplicate stat:sum: key. The key '
-                                f'"{key}" appears more than once in the file.')
-            d[key] = None if val == -1.0 else val
-        else:
-            error_comment = comment
-            break
-    if error_comment:
-        example = error_comment.decode('utf-8',errors='backslashreplace')
-        raise MCPLError('Input has "stat:sum:..." comment entry not'
-                        f' following the specification: "{example}"')
+        ok, (key,val) = _parse_statsum_comment(comment)
+        if not ok:
+            raise MCPLError(_statsum_syntax_error(comment))
+        if key in d:
+            raise MCPLError('Duplicate stat:sum: key. The key '
+                            f'"{key}" appears more than once in the file.')
+        d[key] = None if val == -1.0 else val
     return d
 
 def _statsum_scale( statsum, nparticles, skip, limit, edit ):

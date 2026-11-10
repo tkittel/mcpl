@@ -127,7 +127,7 @@ Merge (-m, --merge OUT.mcpl.gz FILE1 FILE2 ...):
 
 Other options:
   -d, --dry-run    Do everything except writing files (ignored by commands
-                   which do not write files).
+                   which write no files; not allowed with --code or -o).
   --allow-overwrite
                    Allow the output files of -m, --forcemerge, -x, --text, -o,
                    and --create-examples to overwrite existing files.
@@ -578,13 +578,20 @@ def _mcpltool_merge(filelist, opt_forcemerge, opt_inplace, opt_keepuserflags,
     if out is not None:
         _mcpltool_close(out)
 
+def _is_traceback_option( arg ):
+    """Whether the argument is --traceback, or an abbreviation of it which the
+    parser accepts (one which no other option starts with)"""
+    names = [ *_flag_opts, *_value_opts ]
+    return ( arg.startswith('--') and '--traceback'.startswith(arg)
+             and [ n for n in names if n.startswith(arg) ] == [ '--traceback' ] )
+
 def main():
     """This function simply calls app_mcpltool(), but any raised MCPLError
     exception will be caught and printed to standard error, followed by a call
     to sys.exit(1). This is what the mcpltool command and "python -m mcpl"
     run. With the --traceback option, MCPLError exceptions are not caught, so
     their Python traceback is shown."""
-    if '--traceback' in sys.argv[1:]:
+    if any( _is_traceback_option(a) for a in sys.argv[1:] ):
         app_mcpltool()
         return
     try:

@@ -8,18 +8,18 @@ mcpltool --dry-run --extract a1.mcpl out.mcpl.gz: exit code 0, real run changed 
    | MCPL: Would extract 30 / 30 particles from a1.mcpl into out.mcpl.gz
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --extract -l5 -s3 a1.mcpl out.mcpl: exit code 0, real run changed files
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.166667)
    | MCPL: Would extract 5 / 30 particles from a1.mcpl into out.mcpl
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --extract -e pdgcode == 2112 and ekin > 5keV a3.mcpl.gz out.mcpl: exit code 0, real run changed files
    | MCPL: Would extract 0 / 5 particles from a3.mcpl.gz into out.mcpl
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --extract --edit weight *= 2 a1.mcpl out.mcpl: exit code 0, real run changed files
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when editing particle weights (use --keep-statsum to keep them)
    | MCPL: Would extract 30 / 30 particles from a1.mcpl into out.mcpl
    | MCPL: dry run, nothing was written
-mcpltool --dry-run --extract --edit weight *= 2 --keep-statsum a1.mcpl out.mcpl: exit code 0, real run changed files
-   | MCPL: Would extract 30 / 30 particles from a1.mcpl into out.mcpl
+mcpltool --dry-run --extract -l5 a1.mcpl out.mcpl: exit code 0, real run changed files
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.166667)
+   | MCPL: Would extract 5 / 30 particles from a1.mcpl into out.mcpl
    | MCPL: dry run, nothing was written
 mcpltool --dry-run --extract --edit ekin < 1 meV + a1.mcpl out.mcpl: exit code 2, real run did not change files
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
@@ -195,7 +195,7 @@ mcpltool --dry-run --bkey1 a1.mcpl: exit code 2, real run did not change files
    | usage: python -m mcpl [options] FILE ...  (see python -m mcpl -h)
    | python -m mcpl: error: unrecognized arguments: --bkey1
 mcpltool -d --extract -l2 a1.mcpl out.mcpl: exit code 0
-   | MCPL WARNING: Marking stat:sum entries in output file as not available (-1) when filtering based on particle positions
+   | MCPL: Scaling stat:sum entries in output file by the fraction of the particles in the range of -s and -l (0.0666667)
    | MCPL: Would extract 2 / 30 particles from a1.mcpl into out.mcpl
    | MCPL: dry run, nothing was written
 mcpltool -jd a1.mcpl: exit code 0

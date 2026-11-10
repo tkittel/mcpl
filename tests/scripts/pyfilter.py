@@ -752,7 +752,8 @@ def test_properties():
               f' {e.has_weight_changes}, filters on fileidx {e.filters_on_fileidx}')
 
 def test_file_counts():
-    """nparticles and stat_sum of files opened with skip, limit, or edit"""
+    """nparticles, stat_sum, and stat_sum_sliced of files opened with skip,
+    limit, or edit"""
     fn = test_data_dir.joinpath('ref','ref_statsum.mcpl.gz')
     for kw in ( {}, { 'skip' : 1 }, { 'limit' : 2 }, { 'skip' : 1, 'limit' : 1000000 },
                 { 'edit' : 'ekin < 1MeV' }, { 'edit' : 'z += 1cm' }, { 'edit' : 'weight *= 2' },
@@ -760,13 +761,8 @@ def test_file_counts():
                 { 'skip' : 1000 } ):
         with mcpl.MCPLFile(fn,**kw) as f:
             n = sum( len(b) for b in f.particle_blocks )
-            print(f'{kw}: nparticles {f.nparticles}, read {n}, stat_sum {dict(f.stat_sum)}')
-    for edit in ( 'weight *= 2', 'ekin < 1MeV' ):
-        s = mcpl.collect_stats(fn,edit = edit)
-        print(f'collect_stats with {edit!r}: stat_sum {s["file"]["stat_sum"]}')
-    with mcpl.MCPLFile(fn,edit = 'x = fileidx*1cm') as f:
-        s = mcpl.collect_stats(f,edit = 'x > 5cm')
-        print(f'collect_stats with both edits: stat_sum {s["file"]["stat_sum"]}')
+            print(f'{kw}: nparticles {f.nparticles}, read {n}, stat_sum {dict(f.stat_sum)},'
+                  f' stat_sum_sliced {dict(f.stat_sum_sliced)}')
 
 def test_rotation_overflow():
     """Rotations giving infinite values are errors (as in the generated C

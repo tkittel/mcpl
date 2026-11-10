@@ -49,12 +49,14 @@ def test_programs():
 
 def test_options():
     #(fixed filenames, the range of particles as by mcpltool -s and -l, a
-    #comment, and stat:sum entries marked as not available, as for the code of
-    #the viewer and mcpltool -x --code):
+    #comment, and stat:sum entries scaled to the range or not available, as
+    #for the code of the viewer and mcpltool -x --code):
     show('mod(fileidx,3) == 0',filenames = ( 'in "a".mcpl', 'out.mcpl' ),skip = 5,limit = 10,
-         comment = 'mcpltool: extracted particles with -e "mod(fileidx,3)==0"',mark_statsums = True)
-    show('x = fileidx*1cm',skip = 2)
-    show('z > 0',limit = 7)
+         comment = 'mcpltool: extracted particles with -e "mod(fileidx,3)==0"',
+         statsums = 'unavailable')
+    show('x = fileidx*1cm',skip = 2,statsums = 'scaled')
+    show('z > 0',limit = 7,statsums = 'scaled')
+    show(None,skip = 5,limit = 10,statsums = 'scaled')
 
 def test_helpers():
     #(the helper functions used by each kind of expression):

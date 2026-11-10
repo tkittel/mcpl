@@ -75,10 +75,9 @@ v2.2.9  (work in progress)
       * mcpltool: -x extracts (was -e), -e EDIT edits (replacing -p; the old
         forms give errors saying what to use), -H HIST for histograms (-t
         shows them in the terminal; -t was --text in 2.2.x),
-        --code=c|cpp, --keep-statsum, --no-comment, --dry-run,
-        --allow-overwrite, --create-examples, and --color. --pdf and --gui are
-        removed. Errors go to standard error, in the usual form of
-        command-line tools.
+        --code=c|cpp, --no-comment, --dry-run, --allow-overwrite,
+        --create-examples, and --color. --pdf and --gui are removed. Errors
+        go to standard error, in the usual form of command-line tools.
       * The comment of extracted files describes the extraction (so files
         extracted in the same way can be merged).
       * ssw2mcpl and phits2mcpl: the -n option is no longer needed (and gives
@@ -96,6 +95,11 @@ v2.2.9  (work in progress)
       * Output files have -1 (not available) as stat:sum values until they
         are closed, in C and Python, so unfinished files (e.g. after a crash)
         never have values.
+      * mcpltool --extract with -l and -s scales the stat:sum values by the
+        fraction of the particles in the range (instead of setting them to
+        -1).
+      * In Python, an exception inside "with MCPLOutFile(..)" leaves the file
+        unfinished (as in C), instead of closing it as if complete.
       * NaN and infinite values are no longer allowed in new files (existing
         files can still be read, with a warning).
       * Readers refuse files which break the format: wrong sizes, flags,

@@ -50,7 +50,22 @@ class _CppProgram(_Program):
     indent = '    '#(in the try block)
     main_void = 'int main()'
     add_comment = 'fout.add_comment( '
-    mark_line = 'fout.scale_stat_sums( -1.0 );  // stat:sum entries not available'
+    inline_comment_marks = ( '// ', '// ' )
+    def __init__( self, tree, layout, *args ):
+        #(the userdata fields, which changes copy):
+        self.fields = userdata_fields(layout) if layout else []
+        super().__init__(tree,layout,*args)
+    def scale_line( self, scale ):
+        return f'fout.scale_stat_sums( {scale} );'
+    def statsum_range_lines( self ):
+        lines = [ 'const std::uint64_t ntotal = fin.nparticles();' ]
+        rest = 'ntotal'
+        if self.skip:
+            lines.append(f'const std::uint64_t nskip = std::min<std::uint64_t>( ntotal, {self.skip} );')
+            rest = 'ntotal - nskip'
+        nrange = rest if self.limit is None else f'std::min<std::uint64_t>( {rest}, {self.limit} )'
+        return lines + [ f'const std::uint64_t nrange = {nrange};', 'if ( nrange < ntotal )',
+                         '  ' + self.scale_line('nrange ? double(nrange) / ntotal : -1.0') ]
 
     def translator( self ):
         return _CppTranslator('cpp',self.field_getter('p'),self.layout)
@@ -126,7 +141,7 @@ class _CppProgram(_Program):
                  '  return 0;', '}' ]
 
 def _expr_ast2cpp( tree = None, layout = None, *, filenames = None, skip = 0,
-                   limit = None, mark_statsums = False, comment = None ):
+                   limit = None, statsums = None, comment = None ):
     """A C++ program which writes the particles of an MCPL file which an edit
     keeps, with its changes, to a new file (see _expr_ast2c)"""
-    return _CppProgram(tree,layout,filenames,skip,limit,mark_statsums,comment).code()
+    return _CppProgram(tree,layout,filenames,skip,limit,statsums,comment).code()

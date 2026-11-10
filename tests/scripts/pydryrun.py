@@ -137,7 +137,7 @@ def test_tool():
         ['--extract','-l5','-s3','a1.mcpl','out.mcpl'],
         ['--extract','-e','pdgcode == 2112 and ekin > 5keV','a3.mcpl.gz','out.mcpl'],
         ['--extract','--edit','weight *= 2','a1.mcpl','out.mcpl'],
-        ['--extract','--edit','weight *= 2','--keep-statsum','a1.mcpl','out.mcpl'],
+        ['--extract','-l5','a1.mcpl','out.mcpl'],
         ['--extract','--edit','ekin < 1 meV +','a1.mcpl','out.mcpl'],
         ['--extract','a1.mcpl','a2.mcpl'],
         ['--extract','nosuch.mcpl','out.mcpl'],

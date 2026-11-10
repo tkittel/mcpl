@@ -25,8 +25,7 @@ file names of mcpltool."""
 __all__ = []
 
 from ._messages import _info, _warning
-from ._reader import MCPLFile, _blocks_in_range, _particle_range
-from ._statsum import _statsum_marking
+from ._reader import MCPLFile
 from ._writer import MCPLOutFile
 
 
@@ -74,31 +73,22 @@ def _extraction_comment( skip, limit, edit ):
     opts = _range_options(skip,limit,None if edit is None else edit.expression)
     return 'mcpltool: extracted particles' + ( ' with ' + ' '.join(opts) if opts else '' )
 
-def _mcpltool_code(filelist, lang, limit, skip, edit, preventcomment, keepstatsum, bad):
+def _mcpltool_code(filename, lang, limit, skip, edit, preventcomment):
     """Print the program in the language (c or cpp) which does what mcpltool
     -x does with the options, for files like the given one (with its
     userdata layout and stat:sum entries), see _expr_ast2c"""
-    if len(filelist) != 1:
-        bad("must specify one input file (and no output file) with --code")
-    skip, limit = skip or 0, limit or 0
-    with MCPLFile(filelist[0]) as f:
-        layout = f.userdata_layout
-        marking = _statsum_marking(f.stat_sum,f._nparticles_raw,skip,limit,edit,keepstatsum)
+    with MCPLFile(filename,skip=skip,limit=limit,edit=edit) as f:
+        layout, ( scale, reason ) = f.userdata_layout, f._stat_sum_scale
+        skip, limit = f._skip, f._limit
     from ._expressions import _edit_code
-    try:
-        print(_edit_code(lang,edit,layout,skip = skip,limit = limit,
-                         mark_statsums = marking is not None,
-                         comment = None if preventcomment else _extraction_comment(skip,limit,edit)),
-              end='')
-    except MCPLError as e:
-        bad(str(e))
+    print(_edit_code(lang,edit,layout,skip = skip,limit = limit,
+                     statsums = ( None if scale is None else 'unavailable'
+                                  if reason == 'fileidx' else 'scaled' ),
+                     comment = None if preventcomment else _extraction_comment(skip,limit,edit)),
+          end='')
 
-def _mcpltool_extract(filelist, limit, skip, edit, preventcomment,
-                      keepstatsum, dry_run, bad, allow_overwrite = False):
-    if len(filelist) > 2:
-        bad("too many arguments")
-    if len(filelist) != 2:
-        bad("must specify both input and output files with -x")
+def _mcpltool_extract(infn, outfn, limit, skip, edit, preventcomment,
+                      dry_run, allow_overwrite = False):
     from ._writer import _check_merge_output
     outfn = filelist[1]
     _check_merge_output(outfn,filelist[:1],allow_overwrite)
@@ -115,17 +105,18 @@ def _mcpltool_extract(filelist, limit, skip, edit, preventcomment,
             n_in = fi.nparticles
             if not preventcomment:
                 fo.hdr_add_comment(_extraction_comment(skip,limit,edit))
-            marking = _statsum_marking(fi.stat_sum,fi._nparticles_raw,skip,limit,edit,keepstatsum)
-            if marking == 'positions':
-                _warning("Marking stat:sum entries in output file as "
-                         "not available (-1) when filtering based on particle "
-                         "positions")
-            elif marking == 'weights':
-                _warning("Marking stat:sum entries in output file as "
-                         "not available (-1) when editing particle weights"
-                         " (use --keep-statsum to keep them)")
-            if marking is not None:
-                fo.hdr_scale_stat_sums(-1.0)
+            scale, reason = fi._stat_sum_scale
+            if scale == -1.0:
+                _warning("Setting stat:sum entries in output file to -1"
+                         " (not available), as "
+                         + ( "-e filters on the positions of the particles in"
+                             " the file (fileidx)" if reason == 'fileidx'
+                             else "no particles are in the range of -s and -l" ))
+            elif scale is not None:
+                _info("Scaling stat:sum entries in output file by the fraction"
+                      f" of the particles in the range of -s and -l ({scale:.6g})")
+            if scale is not None:
+                fo.hdr_scale_stat_sums(scale)
             for b in fi.particle_blocks:
                 fo.add_particles(b)
             n_added = fo.nparticles

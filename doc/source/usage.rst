@@ -104,4 +104,5 @@ MCPL paper (section
    usage_cpp
    usage_python
    usage_python_advanced
+   usage_python_editing_headers
    usage_expressions

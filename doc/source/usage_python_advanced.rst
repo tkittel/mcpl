@@ -161,8 +161,9 @@ Copying, filtering, or converting existing files
 Blocks of particles read with ``MCPLFile`` can be passed directly to
 ``add_particles``, in which case the particle data is transferred exactly. The
 whole header of an existing file, including its settings, can be copied with
-``transfer_metadata`` (as in the next section). To change the settings, parts
-of the header can instead be copied individually. For instance, the following
+``transfer_metadata`` (as in the next section), and then changed as described
+in :doc:`Editing headers <usage_python_editing_headers>`. Parts of the header can also
+be copied individually. For instance, the following
 copies a file while changing its settings to use double precision and to drop
 polarisation information (any binary blobs and stat:sum entries are not copied
 here, but could be with ``hdr_add_data`` and ``hdr_add_stat_sum``):
@@ -426,3 +427,6 @@ can be selected, edited, and plotted. More complete examples can be found in
 `pyexample_filtermcpl <https://github.com/mctools/mcpl/blob/main/examples/pyexample_filtermcpl>`__,
 and
 `pyexample_editmcpl <https://github.com/mctools/mcpl/blob/main/examples/pyexample_editmcpl>`__.
+How to change the header of a file when copying it (e.g. to remove its
+stat:sum entries, or to reduce it to single precision) is described in
+:doc:`Editing headers <usage_python_editing_headers>`.

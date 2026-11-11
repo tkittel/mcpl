@@ -87,7 +87,7 @@ dependencies = {
     '_reader'           : ( '_blocks', '_common', '_expressions', '_messages', '_numpy', '_scipp', '_statsum', '_userdata' ),
     '_records'          : ( '_blocks', '_common', '_numpy', '_particles', '_physics' ),
     '_scipp'            : ( '_common', '_messages', '_numpy', '_userdata' ),
-    '_stats'            : ( '_common', '_expressions', '_messages', '_numpy', '_physics', '_reader' ),
+    '_stats'            : ( '_common', '_messages', '_numpy', '_physics', '_reader' ),
     '_statsum'          : ( '_common', ),
     '_termcolor'        : ( '_common', ),
     '_userdata'         : ( '_common', '_numpy' ),

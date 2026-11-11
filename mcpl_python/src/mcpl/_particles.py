@@ -40,7 +40,7 @@ _particles = (
     ( 11, 'e-', 'e\u207b', 1, ( ( 'electron', 'electrons' ), ) ),
     ( -11, 'e+', 'e\u207a', 3, ( ( 'positron', 'positrons' ),
                                 ( 'antielectron', 'positrons (same as positron)' ) ) ),
-    ( 13, 'mu-', '\u03bc\u207b', 5, ( ( 'muon', 'muons (negative)' ), ) ),
+    ( 13, 'mu-', '\u03bc\u207b', 5, ( ( 'muon', 'negative muons' ), ) ),
     ( -13, 'mu+', '\u03bc\u207a', 6, ( ( 'antimuon', 'antimuons (positive muons)' ), ) ),
     ( 22, 'gamma', '\u03b3', 8, ( ( 'gamma', 'gammas (photons)' ),
                                 ( 'photon', 'photons (same as gamma)' ) ) ),

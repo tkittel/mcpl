@@ -160,11 +160,11 @@ Errors:
   'a in ((1))'             -> Syntax error in expression "a in ((1))", after "a in (": the values after "in" must be integers or names of particles, as in pdgcode in (neutron,gamma) or userflags in (1,2)
   '(1,2,3,4)'              -> Syntax error in expression "(1,2,3,4)", at the end: vectors have two or three values
   '()'                     -> Syntax error in expression "()", after "(": a value is expected, not ")"
-  'pos.w'                  -> Syntax error in expression "pos.w", after "pos.": the values of vectors are written as .x, .y, .z or .at(INDEX) (as in pos.x or pos.at(0))
+  'pos.w'                  -> Syntax error in expression "pos.w", after "pos.": the values of vectors are written as .x, .y, .z, or .at(INDEX) (as in pos.x or pos.at(0))
   'pos.at(x)'              -> Syntax error in expression "pos.at(x)", after "pos.at(": the index of a value of a vector must be a whole number (counting from 0)
   'pos.at(-1)'             -> Syntax error in expression "pos.at(-1)", after "pos.at(": the index of a value of a vector must be a whole number (counting from 0)
   'pos.at(1.5)'            -> Syntax error in expression "pos.at(1.5)", after "pos.at(": the index of a value of a vector must be a whole number (counting from 0)
-  'pos.'                   -> Syntax error in expression "pos.", at the end: the values of vectors are written as .x, .y, .z or .at(INDEX) (as in pos.x or pos.at(0))
+  'pos.'                   -> Syntax error in expression "pos.", at the end: the values of vectors are written as .x, .y, .z, or .at(INDEX) (as in pos.x or pos.at(0))
   'userdata.'              -> Syntax error in expression "userdata.", at the end: the name of a userdata field is missing
   'userdata.d.x'           -> Syntax error in expression "userdata.d.x", after "userdata.d.": values of arrays in the userdata are written as userdata.NAME.at(INDEX)
   'userdata.d.at()'        -> Syntax error in expression "userdata.d.at()", after "userdata.d.at(": the index of a value in an array must be a whole number (counting from 0)

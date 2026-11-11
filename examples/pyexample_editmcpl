@@ -72,7 +72,7 @@ with mcpl.MCPLFile('neutrons.mcpl') as f:
     print(f'Neutron wavelengths in neutrons.mcpl: {np.min(wl):.4g}Aa - {np.max(wl):.4g}Aa')
     print(f'1.8Aa neutrons have ekin = {b.ekin[0]*1e9:.4g}meV')
 
-#The same edits can be expressed as strings, which is convenient when they are
+#The edits of the neutron file can be expressed as strings, which is convenient when they are
 #for instance provided by users of a script:
 #
 #   edit = mcpl.ParticleEdit('pdgcode == neutron; rotate_z(90deg); z += 10cm;'

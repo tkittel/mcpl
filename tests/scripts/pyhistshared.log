@@ -1,0 +1,31 @@
+Histograms filled with and without sharing:
+  blocks of 1 particles: 11 of 11 the same
+  blocks of 7 particles: 11 of 11 the same
+  blocks of 50 particles: 11 of 11 the same
+  blocks of 10000 particles: 11 of 11 the same
+  two files: 11 of 11 the same
+The distinct values are found once per block and expression:
+  same expression, same block: reused True
+  other expression: not reused True
+  other block: not reused True
+block_keys with sharing is keys() of the values kept:
+  three values, mask all: same (3 values, all 0 or 1: False)
+  three values, mask none: same (0 values, all 0 or 1: None)
+  three values, mask some: same (3 values, all 0 or 1: False)
+  three values, mask first: same (1 values, all 0 or 1: False)
+  one value, mask all: same (1 values, all 0 or 1: False)
+  one value, mask none: same (0 values, all 0 or 1: None)
+  one value, mask some: same (1 values, all 0 or 1: False)
+  one value, mask first: same (1 values, all 0 or 1: False)
+  with NaN, mask all: same (3 values, all 0 or 1: False)
+  with NaN, mask none: same (0 values, all 0 or 1: None)
+  with NaN, mask some: same (3 values, all 0 or 1: False)
+  with NaN, mask first: same (1 values, all 0 or 1: False)
+  conditions, mask all: same (2 values, all 0 or 1: True)
+  conditions, mask none: same (0 values, all 0 or 1: None)
+  conditions, mask some: same (2 values, all 0 or 1: True)
+  conditions, mask first: same (1 values, all 0 or 1: True)
+Too many distinct values:
+  shared: The expression "pdgcode" of display_by has too many different values (more than 1000)
+  not shared: The expression "pdgcode" of display_by has too many different values (more than 1000)
+  shared, 1000 kept: 1000 values

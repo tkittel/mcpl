@@ -460,10 +460,12 @@ def test_3d():
     print('more points than particles:', len(h.groups[None]), 'of', h.nparticles)
 
 def test_logz():
-    #The colour scale of 2D histograms is logarithmic unless logz=0, which
-    #makes another plot (logz and logz=1 make the same as without logz):
+    #The colour scale of 2D histograms is logarithmic with logz=1, linear with
+    #logz=0, and by default (logz=auto) logarithmic if the contents span more
+    #than two decades:
     ex = str(example_file)
-    for text in ( 'x : y', 'x : y;logz', 'x : y;logz=0' ):
+    for text in ( 'x : y', 'x : y;logz', 'x : y;logz=0', 'x : y;logz=auto', 'x : y;bins=2',
+                  'ekin : x' ):
         h = ihist(ex,text)
         print(f'{text!r}: logz {h.logz}, panel {hist_panel(mcpl,h).items[0].logz}')
     for bad in ( 'x;logz=0', 'x : y : z;logz', 'x : y;logz=2' ):

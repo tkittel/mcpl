@@ -9,12 +9,31 @@ x/cm;bins=10;display_edit=rotate_z(90deg); x > 0cm (edit ekin < 1MeV): as editin
 'x;display_edit=foo > 1': Histogram option "display_edit" in "x;display_edit=foo > 1": Unknown name "foo", in expression "foo > 1" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
 'x;display_edit=1cm': Histogram option "display_edit" in "x;display_edit=1cm": "1cm" is neither a condition (e.g. a comparison) nor a change of the particles (e.g. x = 2*y), in expression "1cm"
 'x;display_edit=x > 0cm;logy': Histogram option "display_edit" in "x;display_edit=x > 0cm;logy": Unknown name "logy", in expression "x > 0cm;logy" (particle fields are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, fileidx)
-'x : y': logz True, panel True
+bins=5: 1D, 2D
+range=0:1: 1D
+xrange=0:1: 2D
+yrange=0:1: 2D
+logx=0: 1D, 2D
+logy=0: 1D, bars, 2D
+logz=0: 2D
+lethargy=0: 1D
+display_by=single: 1D, 3D
+bar=0: 1D, bars
+unweighted=0: 1D, bars, 2D, 3D
+print=0: 1D, bars, 2D, 3D
+maxpoints=10: 3D
+equal=0: 2D, 3D
+display_edit=x > 0cm: 1D, bars, 2D, 3D
+Histogram option "logy" can only be used for 1D or 2D histograms or bar charts, in "x/cm : y/cm : z/cm;logy=0"
+'x : y': logz auto, panel True
 'x : y;logz': logz True, panel True
 'x : y;logz=0': logz False, panel False
-'x;logz=0': Histogram option "logz" (the colour scale) can only be used for 2D histograms, in "x;logz=0"
-'x : y : z;logz': Histogram option "logz" (the colour scale) can only be used for 2D histograms, in "x : y : z;logz"
-'x : y;logz=2': Histogram option "logz" must be 1 or 0 (not "2"), in "x : y;logz=2"
+'x : y;logz=auto': logz auto, panel True
+'x : y;bins=2': logz auto, panel False
+'ekin : x': logz auto, panel True
+'x;logz=0': Histogram option "logz" can only be used for 2D histograms, in "x;logz=0"
+'x : y : z;logz': Histogram option "logz" can only be used for 2D histograms, in "x : y : z;logz"
+'x : y;logz=2': Histogram option "logz" must be 1, 0, or auto (not "2"), in "x : y;logz=2"
 'x : y;equal': aspect 1.0 (cm, cm), panel 1.0
 'x : 0.02*y;equal': aspect 1.0 (cm, cm), panel 1.0
 'ux : uy;equal': aspect 1.0 (None, None), panel 1.0
@@ -73,11 +92,11 @@ unit of wavelength, up to 1mm: ('mm', 0.1)
 unit of no units: (None, 1.0)
 histogram('x'): label 'x [cm]', edges from -65 to 70
 histogram('ekin;logx=auto'): label 'ekin [eV]', edges from 1393 to 9.725e+09
-histogram('wavelength'): label 'wavelength [Aa]', edges from 0 to 0.008
+histogram('wavelength'): label 'wavelength [m]', edges from 3.857e-16 to 7.662e-13
 histogram('x;range=-10cm:10cm;bins=2'): label 'x [cm]', edges from -10 to 10
 histogram('x;range=0:1m;bins=2'): label 'x [m]', edges from 0 to 1
 histogram('x/cm;bins=2'): label 'x/cm', edges from -65 to 70
-histogram('hypot(x,y)'): label 'hypot(x,y) [cm]', edges from 0 to 70
+histogram('hypot(x,y)'): label 'hypot(x,y) [m]', edges from 0.0008119 to 0.6942
 histogram2d(x, ekin/MeV): # 2D histogram of: x [cm] : ekin/MeV
 histogram('x;range=-10:10'): The range of "x" must be given with units, as it has units (length), e.g. range=0cm:10cm
 histogram('x/cm;range=-10cm:10cm'): The range of "x/cm" must be given without units, as it has none
@@ -97,7 +116,7 @@ pi+ (211) | 5
 pi- (-211) | 2
 nu_mu (14) | 1
 Figure 1 (1x1): None
-  Panel None xlabel='weights' ylabel='pdgcode' 
+  Panel None xlabel='weights' ylabel='pdgcode' logx
     Bars 'n (2112) (72.17%)'=726, 'γ (22) (23.76%)'=239, 'e⁻ (11) (1.49%)'=15, 'p (2212) (0.99%)'=10, 'e⁺ (-11) (0.80%)'=8, 'π⁺ (211) (0.50%)'=5, 'π⁻ (-211) (0.20%)'=2, 'νμ (14) (0.10%)'=1 (horizontal)
 histogram('pdgcode;bar=3',{}):
 # bars of: pdgcode
@@ -174,19 +193,19 @@ histogram2d(wavelength,x): wavelength [Aa] (n/gamma only) | x [cm] | 965.0
 histogram('x;bar=auto',{}): Bar charts are of whole numbers without units, like pdgcode or round(x/cm), not of "x"
 histogram('pdgcode;bar=1',{}): Histogram option "bar" must be a number of at least 2 or auto, or 0 (not "1"), in "pdgcode;bar=1"
 histogram('pdgcode;bar=on',{}): Histogram option "bar" must be a number of at least 2 or auto, or 0 (not "on"), in "pdgcode;bar=on"
-histogram('pdgcode;bar=auto;logx=1',{}): Histogram option "logx" can not be used for bar charts (logy=1 gives a logarithmic scale of the bars), in "pdgcode;bar=auto;logx=1"
-histogram('pdgcode;bar=auto;display_by=pdgcode',{}): Histogram option "display_by" can not be used for bar charts, in "pdgcode;bar=auto;display_by=pdgcode"
-histogram('x:y;bar=auto',{}): Histogram option "bar" can not be used for 2D histograms, in "x:y;bar=auto"
+histogram('pdgcode;bar=auto;logx=1',{}): Histogram option "logx" can only be used for 1D or 2D histograms (logy gives a logarithmic scale of the bars), in "pdgcode;bar=auto;logx=1"
+histogram('pdgcode;bar=auto;display_by=pdgcode',{}): Histogram option "display_by" can only be used for 1D histograms or 3D plots, in "pdgcode;bar=auto;display_by=pdgcode"
+histogram('x:y;bar=auto',{}): Histogram option "bar" can only be used for 1D histograms or bar charts, in "x:y;bar=auto"
 histogram('ekin/MeV;groups=3',{}): Unknown histogram option "groups" in "ekin/MeV;groups=3" (the options are: bins, range, xrange, yrange, logx, logy, logz, lethargy, display_by, bar, unweighted, print, maxpoints, equal, display_edit)
 histogram('pdgcode',{'bar': 1}): The histogram argument bar must be True or a number of at least 2 (not 1)
 histogram('pdgcode',{'bar': 'auto'}): The histogram argument bar must be True or a number of at least 2 (not 'auto')
 histogram('pdgcode;bar=auto',{'bar': 4}): The histogram option bar can not be given both as an argument and in the expression "pdgcode;bar=auto"
-histogram('pdgcode',{'bar': True, 'logx': True}): Histogram option "logx" can not be used for bar charts (logy=1 gives a logarithmic scale of the bars), in "pdgcode"
+histogram('pdgcode',{'bar': True, 'logx': True}): Histogram option "logx" can only be used for 1D or 2D histograms (logy gives a logarithmic scale of the bars), in "pdgcode"
 histogram('ekin/MeV;bar=auto',{}): Bar charts are of whole numbers without units, like pdgcode or round(x/cm), not of "ekin/MeV"
 histogram('round(x);bar=auto',{}): round(..) requires a value without units, not length, in expression "round(x)"
 histogram('round(1e300*x/cm);bar=auto',{}): round(..) gets values too large for integers, in expression "round(1e300*x/cm)"
 Figure 1 (1x1): None
-  Panel None xlabel='ekin/MeV' ylabel='weights per bin' logx xlim=[0.00139345,9724.96]
+  Panel None xlabel='ekin/MeV' ylabel='weights per bin' logx logy xlim=[0.00139345,9724.96]
     StepHist label='n (2112)' color=0 bins=30 edges=[0.00139345,9724.96] sum=726 max=106 nonzero_bins=26
     StepHist label='γ (22)' color=8 bins=30 edges=[0.00139345,9724.96] sum=239 max=46 nonzero_bins=13
     StepHist label='e⁻ (11)' color=1 bins=30 edges=[0.00139345,9724.96] sum=15 max=3 nonzero_bins=10
@@ -244,7 +263,7 @@ Figure 1 (1x1): None
     StepHist label='reffile_1.mcpl' color=1 bins=8 edges=[-20,20] sum=5 max=5 nonzero_bins=1
 underflow: {'example.mcpl': 51.0, 'reffile_1.mcpl': 0.0} overflow: {'example.mcpl': 43.0, 'reffile_1.mcpl': 0.0}
 Figure 1 (1x1): None
-  Panel None xlabel='pdgcode' ylabel='weights per bin' xlim=[-300,2300]
+  Panel None xlabel='pdgcode' ylabel='weights per bin' logy xlim=[-300,2300]
     StepHist label='mod(fileidx,10) = 0' color=0 bins=26 edges=[-300,2300] sum=101 max=72 nonzero_bins=4
     StepHist label='mod(fileidx,10) = 1' color=1 bins=26 edges=[-300,2300] sum=101 max=68 nonzero_bins=4
     StepHist label='mod(fileidx,10) = 2' color=2 bins=26 edges=[-300,2300] sum=101 max=72 nonzero_bins=5
@@ -328,7 +347,7 @@ plot created ['plot.txt']
 plot to an existing file: The output file "plot.txt" already exists
 mcpltool -H ekin/MeV;logx=1;display_by=pdgcode example.mcpl: exit code 0
    | Figure 1 (1x1): None
-   |   Panel None xlabel='ekin/MeV' ylabel='weights per bin' logx xlim=[0.00139345,9724.96]
+   |   Panel None xlabel='ekin/MeV' ylabel='weights per bin' logx logy xlim=[0.00139345,9724.96]
    |     StepHist label='n (2112)' color=0 bins=30 edges=[0.00139345,9724.96] sum=726 max=106 nonzero_bins=26
    |     StepHist label='γ (22)' color=8 bins=30 edges=[0.00139345,9724.96] sum=239 max=46 nonzero_bins=13
    |     StepHist label='e⁻ (11)' color=1 bins=30 edges=[0.00139345,9724.96] sum=15 max=3 nonzero_bins=10
@@ -459,19 +478,19 @@ mcpltool --hist=ekin/MeV;print=1;bins=2 --ed pdgcode==22 example.mcpl: exit code
    | # edit: pdgcode==gamma
    | # values: weights per bin
    | # lower edge | upper edge | gamma (22)
-   | 0 95 238
-   | 95 190 1
+   | 0.24947436 6.7429566 207
+   | 6.7429566 182.25305 32
 mcpltool -H ekin example.mcpl: exit code 0
    | Figure 1 (1x1): None
-   |   Panel None xlabel='ekin [GeV]' ylabel='weights per bin' xlim=[0,10]
-   |     StepHist label='n (2112)' color=0 bins=30 edges=[0,10] sum=726 max=721 nonzero_bins=5
-   |     StepHist label='γ (22)' color=8 bins=30 edges=[0,10] sum=239 max=239 nonzero_bins=1
-   |     StepHist label='e⁻ (11)' color=1 bins=30 edges=[0,10] sum=15 max=15 nonzero_bins=1
-   |     StepHist label='p (2212)' color=4 bins=30 edges=[0,10] sum=10 max=4 nonzero_bins=4
-   |     StepHist label='e⁺ (-11)' color=3 bins=30 edges=[0,10] sum=8 max=8 nonzero_bins=1
-   |     StepHist label='π⁺ (211)' color=2 bins=30 edges=[0,10] sum=5 max=2 nonzero_bins=3
-   |     StepHist label='π⁻ (-211)' color=7 bins=30 edges=[0,10] sum=2 max=1 nonzero_bins=2
-   |     StepHist label='νμ (14)' color=9 bins=30 edges=[0,10] sum=1 max=1 nonzero_bins=1
+   |   Panel None xlabel='ekin [eV]' ylabel='weights per bin' logx logy xlim=[1393.45,9.72496e+09]
+   |     StepHist label='n (2112)' color=0 bins=30 edges=[1393.45,9.72496e+09] sum=726 max=106 nonzero_bins=26
+   |     StepHist label='γ (22)' color=8 bins=30 edges=[1393.45,9.72496e+09] sum=239 max=46 nonzero_bins=13
+   |     StepHist label='e⁻ (11)' color=1 bins=30 edges=[1393.45,9.72496e+09] sum=15 max=3 nonzero_bins=10
+   |     StepHist label='p (2212)' color=4 bins=30 edges=[1393.45,9.72496e+09] sum=10 max=3 nonzero_bins=4
+   |     StepHist label='e⁺ (-11)' color=3 bins=30 edges=[1393.45,9.72496e+09] sum=8 max=2 nonzero_bins=5
+   |     StepHist label='π⁺ (211)' color=2 bins=30 edges=[1393.45,9.72496e+09] sum=5 max=1 nonzero_bins=5
+   |     StepHist label='π⁻ (-211)' color=7 bins=30 edges=[1393.45,9.72496e+09] sum=2 max=1 nonzero_bins=2
+   |     StepHist label='νμ (14)' color=9 bins=30 edges=[1393.45,9.72496e+09] sum=1 max=1 nonzero_bins=1
 mcpltool -H ekin/MeV;bins=0 example.mcpl: exit code 2
    | usage: mcpltool [options] FILE ...  (see mcpltool -h)
    | mcpltool: error: bins must be a positive integer (or two for 2D histograms, like bins=50,40) in "ekin/MeV;bins=0"

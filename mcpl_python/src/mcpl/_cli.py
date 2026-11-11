@@ -407,7 +407,8 @@ def _app_mcpltool(progname,args):
         from ._histfill import _filler_for
         from ._histstring import _parse_hist
         try:
-            _filler_for(_parse_hist(hist))
+            hist = _parse_hist(hist)
+            _filler_for(hist)
         except MCPLError as e:
             _bad(str(e),'--hist')
 
@@ -418,6 +419,8 @@ def _app_mcpltool(progname,args):
         sys.exit(0)
 
     if mode in ('--merge','--forcemerge'):
+        if len(filelist) < 2:
+            _bad(f"too few arguments for {modenames[mode]}")
         _mcpltool_merge(filelist,mode == '--forcemerge','--inplace' in flags,
                         '--keepuserflags' in flags,opt_dryrun,
                         allow_overwrite = opt_allow_overwrite)

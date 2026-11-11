@@ -98,9 +98,9 @@ def _domain_note( domains, unicode = False ):
 #Units of the base dimensions for plots (see _plot_unit), by increasing size,
 #and the standard ones for logarithmic axes:
 _plot_units = [ [ u for u, ( _, d ) in sorted(_expr_units.items(),key=lambda e : e[1][0])
-                  if d == base ] for base in ( _dim_L, _dim_E, _dim_T, _dim_K ) ]
-_plot_units_log = ( 'm', 'eV', 's', 'K' )
-_plot_units_mcpl = ( 'cm', 'MeV', 'ms', 'K' )
+                  if d == base ] for base in _base_dims ]
+_plot_units_log = _base_units_si
+_plot_units_mcpl = _base_units_mcpl
 #Wavelengths in this range (in Aa) are shown in Aa:
 _plot_wl_range = ( 0.5e-3, 5e3 )
 

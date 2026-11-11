@@ -120,4 +120,4 @@ def _mcpltool_extract(infn, outfn, limit, skip, edit, preventcomment,
             fo._abort()
             raise
     _info(f"{'Would extract' if dry_run else 'Successfully extracted'}"
-          f" {n_added} / {n_in} particles from {filelist[0]} into {outname}")
+          f" {n_added} / {n_in} particles from {infn} into {outname}")

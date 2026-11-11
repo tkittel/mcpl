@@ -607,7 +607,7 @@ class _ExprEvaluator:
                 return self.vcall(fname,args)
         for q in args:
             self.scalar(q,f'used in {fname}(..)')
-        if fname in ('mod','abs','round','floor','ceil','min','max','clamp') and all(
+        if fname in _functions_int and all(
                 np.asarray(q.v).dtype.kind in 'iub' for q in args ):
             return self.int_call(fname,args,f'{fname}(..)')
         fct = _np_functions.get(fname)
@@ -624,8 +624,6 @@ class _ExprEvaluator:
                 return _Q(np.where(big,0,v).astype(np.int64))
             if fname == 'sqrt':
                 q = args[0]
-                if q.d is None:
-                    return _Q(np.sqrt(q.v))
                 return _Q(np.sqrt(q.v),self.dimpow(q.d,0.5,'sqrt(..)'))
             if fname == 'atan2':
                 y, x, _ = self.same(args[0],args[1],'atan2(..)')
@@ -814,9 +812,8 @@ class _EmptyBlock:
     def __len__( self ):
         return 0
     def __getattr__( self, name ):
-        dtypes = { 'pdgcode' : np.int32, 'userflags' : np.uint32,
-                   'fileidx' : np.int64 }
-        return np.zeros(0,dtype = dtypes.get(name,float))
+        t = _int_field_types.get(name)
+        return np.zeros(0,dtype = float if t is None else _np_types[t])
 
 #The statements of edit expressions:
 

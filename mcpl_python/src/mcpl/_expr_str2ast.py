@@ -440,7 +440,7 @@ class _Parser:
                 self._i += 1
                 index = self._at_index('a value of a vector')
             else:
-                raise self._error('the values of vectors are written as .x, .y, .z or'
+                raise self._error('the values of vectors are written as .x, .y, .z, or'
                                   ' .at(INDEX) (as in pos.x or pos.at(0))')
             node = Part(node,index)
         return node

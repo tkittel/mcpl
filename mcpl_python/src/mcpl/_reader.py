@@ -459,7 +459,7 @@ class MCPLFile:
 
         See also the particles property for an iterator-based access to
         particles. Furthermore, note that the read_block() method and
-        the particle_blocks property provides block-based access, which can
+        the particle_blocks property provide block-based access, which can
         improve performance dramatically."""
         if self._filtered:
             if self._fpending is None:

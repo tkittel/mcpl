@@ -76,7 +76,7 @@ Usage:
   PROGPADS                                 Merge files, also incompatible ones
   PROGNAME -r FILE                         Repair an unclosed file
   PROGNAME --text FILE OUT.txt             Write the particles as text
-  PROGNAME --create-examples[=N]           Create example files
+  PROGNAME --create-examples[=N]           Create example files (N particles)
   PROGNAME -v | -h | --full-help
 
 Particles (when showing particles, and with -S, -H, and -x):
@@ -277,7 +277,8 @@ def _app_mcpltool(progname,args):
         _bad("no input file specified")
     opts, filelist = _parse_args(args)
 
-    #(--create-examples can only be combined with --dry-run):
+    #(--create-examples can only be combined with --dry-run, --allow-overwrite,
+    #and --traceback):
     opt_examples = opts.pop('--create-examples')
     if opt_examples is not None:
         others = [ n for n, v in opts.items() if v not in ( None, False )

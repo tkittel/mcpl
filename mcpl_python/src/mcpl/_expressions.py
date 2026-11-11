@@ -199,7 +199,7 @@ class ParticleEdit:
         keep the units of their values.
       * swap(a,b), which exchanges the values of two fields (or variables)
         with the same units, e.g. "swap(x,y)".
-      * rotate_x(angle), rotate_y(angle), rotate_z(angle), which rotate the
+      * rotate_x(angle), rotate_y(angle), and rotate_z(angle), which rotate the
         position, direction, and polarisation of the particles around the
         given axis (through the origin), e.g. "rotate_y(90deg)" (angles
         written as numbers need a unit, deg or rad). The rotation is

@@ -77,10 +77,10 @@ Integers:
   18446744073709551616 > 0: MCPLError: The integer 18446744073709551616 is too large (integers must fit in 64 bits), in expression "18446744073709551616 > 0"
   userflags > 0 and userflags - 1 == 0: [False, True, False]
   edit userflags = userflags + 1: MCPLError: Addition of integers gives values outside the range of unsigned 32-bit integers, in expression "userflags = userflags + 1"
-  edit userflags = userflags / 2: MCPLError: Non-integer values assigned to userflags in expression "userflags = userflags / 2"
+  edit userflags = userflags / 2: MCPLError: Non-integer values assigned to userflags, in expression "userflags = userflags / 2"
   edit userflags = userflags // 2: {'userflags': [0, 0, 2147483647]}
   edit pdgcode = pdgcode * 1.0: {'pdgcode': [2112, 2212, -2212]}
-  edit pdgcode = 2.5: MCPLError: Non-integer values assigned to pdgcode in expression "pdgcode = 2.5"
+  edit pdgcode = 2.5: MCPLError: Non-integer values assigned to pdgcode, in expression "pdgcode = 2.5"
   edit pdgcode = 4294967295: MCPLError: Values assigned to pdgcode must be integers from -2147483648 to 2147483647, in expression "pdgcode = 4294967295"
   edit swap(pdgcode,userflags): MCPLError: Values assigned to pdgcode must be integers from -2147483648 to 2147483647, in expression "swap(pdgcode,userflags)"
 edit 'r=hypot(x,y);r>2cm and r<5cm': same as 'hypot(x,y) > 2cm and hypot(x,y) < 5cm': True (158 kept), fileidx: False, canonical: 'r=hypot(x,y);r>2cm and r<5cm'
@@ -280,7 +280,7 @@ pos < 1cm: A vector can not be compared (here a 3D vector of lengths; abs(v) is 
 pos + 1cm: Vectors can only be added to or subtracted from vectors of the same size (not a 3D vector of lengths and a number), in expression "pos + 1cm"
 (x,ux) == 0: Incompatible units in a vector: length and value without units (add units, e.g. 2cm), in expression "(x,ux) == 0"
 pos.at(3) > 0: The index 3 is too large for a 3D vector of lengths (the values are counted from 0), in expression "pos.at(3) > 0"
-pos.w > 0: Syntax error in expression "pos.w > 0", after "pos.": the values of vectors are written as .x, .y, .z or .at(INDEX) (as in pos.x or pos.at(0))
+pos.w > 0: Syntax error in expression "pos.w > 0", after "pos.": the values of vectors are written as .x, .y, .z, or .at(INDEX) (as in pos.x or pos.at(0))
 cross((1,0),(0,1)).x > 0: cross(v,w) takes two 3D vectors, in expression "cross((1,0),(0,1)).x > 0"
 dir.x.y > 0: Only vectors have values like .x or .at(INDEX), in expression "dir.x.y > 0"
 sin(dir) > 0: A vector can not be used in sin(..) (here a 3D vector; abs(v) is its length, and v.x or v.at(0) its first value), in expression "sin(dir) > 0"
@@ -510,7 +510,7 @@ ParticleEdit('v = dir; swap(v,dir)'): A vector can not be swapped (here a 3D vec
 ParticleEdit('x == 1cm'): no error
 ParticleEdit('pi = 3'): Can not assign to "pi", in expression "pi = 3" (variables must be lowercase names which are not names of units, constants, particles, or functions; the fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol)
 ParticleEdit('wl = 1Aa'): Variable "wl" is assigned but never used, in expression "wl = 1Aa" (if it should be a field, the fields which can be assigned are: x, y, z, ux, uy, uz, polx, poly, polz, ekin, time, weight, pdgcode, userflags, wavelength, pos, dir, pol)
-ParticleEdit('x = 1cm, y = 1cm'): Separate statements with ";" (not ",") in "x = 1cm, y = 1cm"
+ParticleEdit('x = 1cm, y = 1cm'): Separate statements with ";" (not ","), in expression "x = 1cm, y = 1cm"
 ParticleEdit('fileidx = 2'): fileidx (the position of the particles in the file) can not be changed, in expression "fileidx = 2"
 ParticleEdit('fileidx += 1'): fileidx (the position of the particles in the file) can not be changed, in expression "fileidx += 1"
 ParticleEdit('swap(fileidx,pdgcode)'): fileidx (the position of the particles in the file) can not be changed, in expression "swap(fileidx,pdgcode)"
@@ -518,9 +518,9 @@ ParticleEdit('swap(x,wavelength)'): swap(..) can not be used with wavelength (wh
 ParticleEdit('x = floor(x)'): floor(..) requires a value without units, not length, in expression "x = floor(x)"
 ParticleEdit('x = ceil(2cm)'): ceil(..) requires a value without units, not length, in expression "x = ceil(2cm)"
 ParticleEdit('x = y = 1cm'): Syntax error in expression "x = y = 1cm", after "x = y": unexpected "="
-ParticleEdit('x, y = y, x'): Separate statements with ";" (not ",") in "x, y = y, x"
+ParticleEdit('x, y = y, x'): Separate statements with ";" (not ","), in expression "x, y = y, x"
 ParticleEdit(''): no error
-ParticleEdit('pdgcode = 1.5'): Non-integer values assigned to pdgcode in expression "pdgcode = 1.5"
+ParticleEdit('pdgcode = 1.5'): Non-integer values assigned to pdgcode, in expression "pdgcode = 1.5"
 ParticleEdit('x = sqrt(x/cm)*1cm'): sqrt(..) gives NaN or infinite values, in expression "x = sqrt(x/cm)*1cm"
 ParticleEdit('weight = 1/(x/cm - x/cm)'): Division gives NaN or infinite values, in expression "weight = 1/(x/cm - x/cm)"
 ParticleEdit('wavelength = 0') on neutrons: The wavelength must be set to positive values, in expression "wavelength = 0"

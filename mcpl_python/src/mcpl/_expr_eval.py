@@ -777,9 +777,15 @@ class _ExprEvaluator:
             d = d or d2
         _, vals = self.int_operands([ q.v for q in args ],what)
         return _Q(_min_max(fname,vals),d)
-    def boolval( self, q ):
-        q = self.scalar(q,'a condition')
-        return np.asarray(q.v).astype(bool) if np.asarray(q.v).dtype != bool else q.v
+    def boolval( self, q, node ):
+        """The values of q, of the expression node, as a condition (true for
+        integers which are not 0, like in C, e.g. for "userflags & 0x10")"""
+        v = np.asarray(self.scalar(q,'a condition').v)
+        if v.dtype.kind in 'iu':
+            return v != 0
+        if v.dtype != bool:
+            self.error(f'"{_expr_ast2str(node)}" is not a condition (e.g. a comparison)')
+        return v
 
 def _min_max( fname, values ):
     """The values of min(..), max(..), or clamp(v,low,high) of the values"""

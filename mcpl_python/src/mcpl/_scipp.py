@@ -198,9 +198,7 @@ def file_to_scipp( mcplfile, skip = 0, limit = None,
                    dim = 'particle' ):
     """See MCPLFile.to_scipp (coord_functions are as for _Columns)."""
     sc = _import_scipp()
-    skip = int(skip)
-    if skip < 0:
-        raise MCPLError('skip must not be negative')
+    skip = _as_skip(skip)
     warn_if_limited = limit is None
     nleft = _default_limit if limit is None else _as_limit(limit)
     c = _Columns(coord_functions,vectors,variances,dim)

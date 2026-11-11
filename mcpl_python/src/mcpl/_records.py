@@ -29,7 +29,7 @@ import math
 
 from ._blocks import _nonfinite_masks, record_dtype
 from ._common import MCPLError
-from ._numpy import np
+from ._numpy import np, np_isin_few
 
 #The particle fields which can be given when writing particles:
 _fields_vector = ( ('position', ('x','y','z')),
@@ -40,6 +40,12 @@ _fields_all = frozenset( [ v for v,_ in _fields_vector ]
                          + [ c for _,cs in _fields_vector for c in cs ]
                          + list(_fields_scalar) )
 
+
+#The fields stored in columns of their own in particle records (not ekin and
+#the direction, which are packed together), and those columns:
+_own_columns = { 'x' : 'x', 'y' : 'y', 'z' : 'z', 'time' : 't', 'weight' : 'w',
+                 'pdgcode' : 'pdg', 'userflags' : 'uf', 'polx' : 'polx',
+                 'poly' : 'poly', 'polz' : 'polz', 'userdata' : 'ud' }
 
 class _RecordFormat:
     """The particle records of a file being written: its options (the universal
@@ -119,20 +125,46 @@ class _RecordFormat:
             checks.append( ( ekin < 0.0,
                              'attempting to add particle with negative kinetic energy' ) )
         if self.singleprec:
-            fields = [ ('position',('x','y','z')) ]
-            if self.polarisation:
-                fields.append( ('polarisation',('polx','poly','polz')) )
-            fields += [ ('kinetic energy',('ekin',)), ('time',('time',)) ]
-            if not self.universalweight:
-                fields.append( ('weight',('weight',)) )
-            for name, cs in fields:
-                with np.errstate(over='ignore',invalid='ignore'):
-                    m = np.logical_or.reduce([ np.isfinite(col(c))
-                                               & ~np.isfinite(col(c).astype(np.float32))
-                                               for c in cs ])
-                checks.append( ( m, ( f'attempting to add particle with {name} too'
-                                      ' large for single precision storage' ) ) )
+            checks += self._singleprec_checks(col)
         _raise_first_failure(checks)
+
+    def _singleprec_checks(self, col, fields = None):
+        """The checks of validate for values too large for single precision
+        storage (of the fields given, or of all)"""
+        groups = [ ('position',('x','y','z')) ]
+        if self.polarisation:
+            groups.append( ('polarisation',('polx','poly','polz')) )
+        groups += [ ('kinetic energy',('ekin',)), ('time',('time',)) ]
+        if not self.universalweight:
+            groups.append( ('weight',('weight',)) )
+        checks = []
+        for name, cs in groups:
+            cs = [ c for c in cs if fields is None or c in fields ]
+            if not cs:
+                continue
+            with np.errstate(over='ignore',invalid='ignore'):
+                m = np.logical_or.reduce([ np.isfinite(col(c))
+                                           & ~np.isfinite(col(c).astype(np.float32))
+                                           for c in cs ])
+            checks.append( ( m, ( f'attempting to add particle with {name} too'
+                                  ' large for single precision storage' ) ) )
+        return checks
+
+    def override(self, data, cols):
+        """The records data (of this format) with the values of the fields in
+        cols, which must all be stored in columns of their own (see
+        _own_columns), checked for single precision storage as in validate
+        (the other checks must be done before)"""
+        n = len(data)
+        if self.singleprec:
+            _raise_first_failure(self._singleprec_checks(
+                lambda c : np.broadcast_to(np.asarray(cols[c],dtype=float),(n,)),cols))
+        arr = data.copy()
+        for name, v in cols.items():
+            column = _own_columns[name]
+            if column in arr.dtype.names:#(not for universal values)
+                arr[column] = np.broadcast_to(v,(n,))
+        return arr
 
     def validate_one(self, v, ekin, time, weight):
         """Like validate, for a single particle with values given as Python
@@ -168,7 +200,7 @@ class _RecordFormat:
         #(only imported when needed):
         from ._particles import _wavelength_pdgcodes
         from ._physics import ekin_from_wavelength
-        if not np.all( np.isin( pdgcode, _wavelength_pdgcodes ) ):
+        if not np.all( np_isin_few( pdgcode, _wavelength_pdgcodes ) ):
             raise MCPLError('wavelength can only be specified for neutrons'
                             ' (pdgcode 2112) and gammas (pdgcode 22)')
         cols['ekin'] = ekin_from_wavelength( cols.pop('wavelength'), pdgcode )

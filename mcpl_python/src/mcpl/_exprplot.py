@@ -73,9 +73,10 @@ class _PlotValue:
 
     def domain_values( self, block ):
         """The values of the fields deciding where the expression is defined,
-        for the particles of the block where it is (as {field : set})"""
+        for the particles of the block where it is (as {field : set}), and
+        whether it is defined for all particles of the block"""
         if not self.expr.domains:
-            return {}
+            return {}, True
         mask = self.expr.domain_mask(block)
         return ( { field : set( np.unique(np.broadcast_to(getattr(block,field),(len(block),))[mask]).tolist() )
                    for field, _ in self.expr.domains }, bool(mask.all()) )

@@ -81,7 +81,7 @@ from ._exprunits import (
     _quantity_value,
     _unit_size,
 )
-from ._numpy import np
+from ._numpy import np, np_isin_few
 from ._particles import _particle_names, _wavelength_pdgcodes
 from ._physics import ekin_from_wavelength, wavelength_from_ekin
 
@@ -190,6 +190,8 @@ class _ExprEvaluator:
         self._block = block
         self._expr = expr
         self._cache = {}
+        #(the keys of the values in _cache which are all finite, see _cached):
+        self._all_finite = set()
         #Values of variables and modified fields (in edits):
         self.state = {}
         #Particles for which the current part of the expression is used (None
@@ -300,7 +302,7 @@ class _ExprEvaluator:
         return q
     def _check_wavelength( self ):
         pdg = np.asarray(self.name('pdgcode').v)
-        if self._any_active(~np.isin(pdg,_wavelength_pdgcodes)):
+        if self._any_active(~np_isin_few(pdg,_wavelength_pdgcodes)):
             raise MCPLError('The wavelength is only defined for neutrons and gammas,'
                             ' so keep only those first (e.g. "pdgcode == neutron;'
                             f' wavelength > 1.8Aa"), in expression "{self._expr}"')

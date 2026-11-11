@@ -384,9 +384,7 @@ class _DomainNote:
     def __init__( self, value ):
         self._v, self._seen, self._left_out = value, {}, False
     def add( self, b ):
-        seen = self._v.domain_values(b)
-        if not seen:
-            return
+        seen, all_defined = self._v.domain_values(b)
         for field, vals in seen.items():
             self._seen.setdefault(field,set()).update(vals)
         self._left_out = self._left_out or not all_defined

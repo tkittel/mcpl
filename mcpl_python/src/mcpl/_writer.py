@@ -45,6 +45,7 @@ from ._records import (
     _fields_all,
     _fields_vector,
     _int_field,
+    _own_columns,
     _raise_first_failure,
     _RecordFormat,
     collect_fields,
@@ -1017,6 +1018,8 @@ class MCPLOutFile:
             udarr = overrides.pop('userdata')
             if not isinstance(udarr,np.ndarray) or udarr.dtype != self._userdata_dtype():
                 udarr, _ = self._userdata_arg(udarr,'add_particles')
+        #(whether values other than those of the edited block are given):
+        given = bool(overrides)
         edits = getattr(block,'_edits',None)
         if edits:
             #Edited block: transfer packed data, with edited fields as overrides
@@ -1067,21 +1070,27 @@ class MCPLOutFile:
             checks.append( ( m, lambda i : 'add_particles asked to transfer particle'
                              f' with weight {weight[i]:g} into a file with universal'
                              f' weight of {self._opt_universalweight:g}' ) )
-        if ocols:
+        if not given:
+            #(the edited block has the values, with packed directions, see
+            #_nonfinite_masks):
+            src = block[sel]
+        else:
             src = _Columns(n,lambda name : ( ocols[name] if name in ocols
                                              else getattr(block,name)[sel] ))
-        else:
-            src = block[sel]
         for name, m in _nonfinite_masks(src,self._opt_polarisation,
                                         not self._opt_universalweight).items():
             checks.append( ( m, ( 'add_particles asked to transfer particle with'
                                   f' NaN or infinite {name}' ) ) )
         _raise_first_failure(checks)
         src_singleprec = ( data.dtype['x'].itemsize == 4 )
-        if not ocols and block._fmtversion != 2 and data.dtype == self._fmt().dtype:
+        same_format = ( block._fmtversion != 2 and data.dtype == self._fmt().dtype )
+        if same_format and not ocols:
             #Particle data is encoded in exactly the same manner in source and
             #target, so simply transfer the bytes:
             arr = data
+        elif same_format and set(ocols).issubset(_own_columns):
+            #(only the changed values are packed):
+            arr = self._fmt().override(data,ocols)
         else:
             cols = { 'x' : block.x[sel], 'y' : block.y[sel], 'z' : block.z[sel],
                      'ux' : block.ux[sel], 'uy' : block.uy[sel], 'uz' : block.uz[sel],

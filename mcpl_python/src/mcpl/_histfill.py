@@ -87,15 +87,53 @@ class _DisplayByValue:
     def keys( self, values ):
         """The distinct values (at most 1000), and the index of each value in
         them"""
-        if len(values):
+        keys, index = _distinct(values)
+        return self._checked(keys), index
+    def block_keys( self, b, defined, shared = None ):
+        """keys() of the values of the particles of the block b with the mask
+        defined, with the distinct values of all particles of the block found
+        only once for all fillers given the same shared (see _SharedKeys)"""
+        if shared is None:
+            return self.keys(np.asarray(self(b),dtype=float)[defined])
+        keys, index = shared.distinct(self,b)
+        index = index[defined]
+        present = np.bincount(index,minlength=len(keys)) > 0
+        if not present.all():
+            keys, index = keys[present], ( np.cumsum(present) - 1 )[index]
+        return self._checked(keys), index
+    def _checked( self, keys ):
+        """The distinct values keys, after checking that there are at most
+        1000, and noting whether they are all 0 or 1"""
+        if len(keys):
             #(labels as a condition only if all values, in all blocks, are 0 or 1):
-            b01 = bool(np.all((values==0)|(values==1)))
+            b01 = bool(np.all((keys==0)|(keys==1)))
             self._is_bool = b01 if self._is_bool is None else self._is_bool and b01
-        keys, index = np.unique(values,return_inverse=True)
         if len(keys) > 1000:
             raise MCPLError(f'The expression "{self._v.expression_original}" of display_by has too many'
                             ' different values (more than 1000)')
-        return keys, index.ravel()
+        return keys
+
+def _distinct( values ):
+    """The distinct values of the array (sorted), and the index of each value
+    in them (as np.unique(values,return_inverse=True), but faster)"""
+    keys = np.unique(values)
+    return keys, np.searchsorted(keys,values).ravel()
+
+class _SharedKeys:
+    """The distinct values of the display_by expressions of the particles of
+    one block, found once for all fillers filling from it (see
+    _DisplayByValue.block_keys): a new one is given with each block to the
+    add methods of the fillers"""
+    def __init__( self ):
+        self._found = {}#(block, expression) -> (keys, index)
+    def distinct( self, dby, b ):
+        """The distinct values of the display_by expression dby (a
+        _DisplayByValue) of the particles of the block b, and the index of the
+        value of each particle in them"""
+        key = ( id(b), dby.expression )
+        if key not in self._found:
+            self._found[key] = _distinct(np.asarray(dby(b),dtype=float))
+        return self._found[key]
 
 def _display_by_label( display_by, key, unicode = False ):
     """Label of the curve of a value of the expression of display_by (with
@@ -544,8 +582,12 @@ class _Filler:
     def _title( self ):
         return _selection_title(self._selection,self._display and self._display.expression)
 
-    def add( self, flabel, b ):
-        self._add(flabel,self._shown(b))
+    def add( self, flabel, b, shared = None ):
+        """Add the particles of the block b, of the file with the label
+        flabel. Fillers given the same block together can share the values
+        found from it (shared, see _SharedKeys)."""
+        #(an edited block is not the one the values were shared for):
+        self._add(flabel,self._shown(b),shared if self._display is None else None)
 
     def _shown( self, b ):
         """The particles of the block which are shown (see display_edit)"""
@@ -653,12 +695,12 @@ class _Hist1DFiller(_Filler):
         self._acc = {}#(file label,display_by key) -> [contents,sumw2,underflow,overflow]
         self._nentries = 0#(in the range, with non-zero weights, see _auto_nbins)
 
-    def _add( self, flabel, b ):
+    def _add( self, flabel, b, shared ):
         edges, dby = self._edges, self._dby
         n = len(edges) - 1
         ( v, ), w, defined = self._values(b)
         if dby is not None:
-            keys, kidx = dby.keys(self._display_by_values(dby,b,defined))
+            keys, kidx = dby.block_keys(b,defined,shared)
         else:
             keys, kidx = [ None ], np.zeros(len(v),dtype=np.intp)
         #(all curves at once: the sums by curve and bin, below and above):
@@ -733,7 +775,7 @@ class _HistDiscreteFiller(_Filler):
         raise MCPLError('Bar charts are of whole numbers without units, like pdgcode'
                         f' or round(x/cm), not of "{self._vals[0].expression_original}"')
 
-    def _add( self, flabel, b ):
+    def _add( self, flabel, b, shared ):
         ( v, ), w, _ = self._values(b)
         if self._vals[0].dim is not None or not np.all( v == np.floor(v) ):
             self._not_whole()
@@ -809,7 +851,7 @@ class _Hist2DFiller(_Filler):
         self._contents = np.zeros((bx,by))
         self._nentries = 0#(see _auto_nbins)
 
-    def _add( self, flabel, b ):
+    def _add( self, flabel, b, shared ):
         xe, ye = self._xe, self._ye
         ( x, y ), w, _ = self._values(b)
         inside = ( x >= xe[0] ) & ( x <= xe[-1] ) & ( y >= ye[0] ) & ( y <= ye[-1] )
@@ -875,7 +917,7 @@ class _PointSet3DFiller(_Filler):
         self._keys, self._pts, self._sv = np.zeros(0), np.zeros((0,3)), np.zeros(0)
         self._n = 0
 
-    def _add( self, flabel, b ):
+    def _add( self, flabel, b, shared ):
         vals, w, defined = self._values(b)
         pts = np.column_stack(vals)
         sv = ( self._display_by_values(self._dby,b,defined) if self._dby is not None

@@ -29,7 +29,7 @@ __all__ = []
 
 import math
 
-from ._common import MCPLError
+from ._common import MCPLError, _listed
 from ._expr_eval import _dimstr
 from ._expr_vocab import _expr_unit_hints
 from ._exprplot import _PlotValue, _range_value
@@ -39,13 +39,27 @@ from ._numpy import np
 #Options of histogram strings ("EXPR;logx;bins=50"), as NAME=VALUE, with the
 #kinds of their values (bool: 1 or 0, auto: also auto):
 _hist_options = { 'bins' : 'bins', 'range' : 'range', 'xrange' : 'range',
-                  'yrange' : 'range', 'logx' : 'auto', 'logy' : 'auto', 'logz' : 'bool',
+                  'yrange' : 'range', 'logx' : 'auto', 'logy' : 'auto', 'logz' : 'auto',
                   'lethargy' : 'bool', 'display_by' : 'expr',
                   'bar' : 'count', 'unweighted' : 'bool', 'print' : 'bool',
                   'maxpoints' : 'maxpoints', 'equal' : 'bool', 'display_edit' : 'edit' }
 #The values of the options given without a value (as "logy" or "bar"):
 _hist_implied = { 'logx' : '1', 'logy' : '1', 'logz' : '1', 'lethargy' : '1', 'unweighted' : '1',
                   'print' : '1', 'bar' : 'auto', 'equal' : '1' }
+#The kinds of plots each option can be used for:
+_plot_kinds = { '1D' : '1D histograms', 'bars' : 'bar charts', '2D' : '2D histograms',
+                '3D' : '3D plots' }
+_all_kinds = tuple(_plot_kinds)
+_option_kinds = { 'bins' : ( '1D', '2D' ), 'range' : ( '1D', ), 'xrange' : ( '2D', ),
+                  'yrange' : ( '2D', ), 'logx' : ( '1D', '2D' ), 'logy' : ( '1D', 'bars', '2D' ),
+                  'logz' : ( '2D', ), 'lethargy' : ( '1D', ), 'display_by' : ( '1D', '3D' ),
+                  'bar' : ( '1D', 'bars' ), 'unweighted' : _all_kinds, 'print' : _all_kinds,
+                  'maxpoints' : ( '3D', ), 'equal' : ( '2D', '3D' ),
+                  'display_edit' : _all_kinds }
+#(hints for options used for the wrong kind of plot):
+_option_hints = { ( 'range', '2D' ) : 'use xrange and yrange',
+                  ( 'xrange', '1D' ) : 'use range', ( 'yrange', '1D' ) : 'use range',
+                  ( 'logx', 'bars' ) : 'logy gives a logarithmic scale of the bars' }
 #(words for booleans, which are written 1 or 0):
 _bool_words = ( 'true', 'false', 'on', 'off', 'yes', 'no' )
 
@@ -82,7 +96,7 @@ def _hist_defaults( exprs ):
     """The options of a histogram of the expressions (one, two for 2D
     histograms, or three for 3D plots) when none are given"""
     return { 'exprs' : list(exprs), 'bins' : None, 'range' : None, 'xrange' : None,
-             'yrange' : None, 'logx' : False, 'logy' : None, 'logz' : None, 'lethargy' : False,
+             'yrange' : None, 'logx' : 'auto', 'logy' : 'auto', 'logz' : 'auto', 'lethargy' : False,
              'display_by' : None, 'unweighted' : False, 'print' : False, 'bar' : False,
              'maxpoints' : _default_maxpoints if len(exprs) == 3 else None,
              'equal' : False, 'display_edit' : None }
@@ -138,14 +152,13 @@ def _parse_hist( text ):
                                 f' for 2D histograms, like bins=50,40) in "{text}"')
             res['bins'] = int(nb[0]) if len(nb) == 1 else tuple( int(e) for e in nb )
         elif name in ('range','xrange','yrange'):
-            _check_range_option(name,len(exprs),text)
             res[name] = _as_range(value,name,text)
         elif name == 'display_edit':
             _check_display_edit(value,text)
             res['display_edit'] = value
         else:
             res['display_by'] = value
-    _check_hist_options(res,text)
+    _check_hist_options(res,seen,text)
     return res
 
 def _canonical_hist( text ):
@@ -185,18 +198,6 @@ def _canonical_hist( text ):
             value = str(v)
         parts.append(name if value is None else f'{name}={value}')
     return ';'.join(parts)
-
-def _check_range_option( name, nexprs, text ):
-    """Check that the option range, xrange, or yrange can be used for a
-    histogram of nexprs expressions"""
-    if nexprs == 3:
-        raise MCPLError(f'Histogram option "{name}" can not be used for 3D plots,'
-                        f' in "{text}"')
-    if ( name == 'range' ) != ( nexprs == 1 ):
-        use = 'range' if nexprs == 1 else 'xrange and yrange'
-        raise MCPLError(f'Histogram option "{name}" can only be used for'
-                        f' {"2D" if nexprs == 1 else "1D"} histograms'
-                        f' (use {use}), in "{text}"')
 
 def _bins_arg( bins, nexprs ):
     """The argument bins of a histogram of nexprs expressions (None for auto)
@@ -342,10 +343,12 @@ def _hist_with_args( expression, given ):
     which can be a histogram string with options, and the options given as
     arguments (those which are not None or False)"""
     o = _parse_hist(expression) if isinstance(expression,str) else _hist_defaults([ expression ])
+    defaults = _hist_defaults(o['exprs'])
+    names = { name for name in _hist_options if o[name] != defaults[name] }
     for name, v in given.items():
         if v is None or v is False:
             continue
-        if o[name] not in ( None, False ):
+        if name in names:
             raise MCPLError(f'The histogram option {name} can not be given'
                             ' both as an argument and in the expression'
                             f' "{expression}"')
@@ -357,8 +360,8 @@ def _hist_with_args( expression, given ):
         if name == 'bins':
             v = _bins_arg(v,len(o['exprs']))
         if name == 'range':
-            _check_range_option(name,len(o['exprs']),expression)
             v = _as_range(v)
         o[name] = v
-    _check_hist_options(o,expression)
+        names.add(name)
+    _check_hist_options(o,names,expression)
     return o

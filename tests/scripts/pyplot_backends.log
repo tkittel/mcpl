@@ -15,9 +15,9 @@ plot() with MPLBACKEND=agg: exit code 1
 mcpldev._common.MCPLError: Plots can not be shown in a window here (is there no display?).
 ==> mcpltool -H ekin/MeV;bins=3;display_by=single -t: exit code 0
    | (weights per bin)
-   |     1003 ┤███████████████████████
-   |          │███████████████████████
-   |          │███████████████████████
+   |      727 ┤                       ███████████████████████
+   |          │                       ███████████████████████
+   |          │                       ███████████████████████
 ==> mcpltool -H ekin/MeV;bins=3;display_by=single -t -o tool1.txt: exit code 0
    | Created tool1.txt
 ==> mcpltool -H ekin/MeV;bins=3;display_by=single -o tool2.svg: exit code 0

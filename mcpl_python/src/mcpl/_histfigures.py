@@ -76,7 +76,7 @@ def _hist2d_panel( h ):
                xlabel = _with_unit(h.xexpression,h.xunit,notes.get('x',h.xnote)),
                ylabel = _with_unit(h.yexpression,h.yunit,notes.get('y',h.ynote)),
                aspect = h.aspect, logx = h.logx, logy = h.logy )
-    p.add(Hist2D(h.xedges,h.yedges,h.contents,logz = h.logz))
+    p.add(Hist2D(h.xedges,h.yedges,h.contents,logz = _log_scale(h.logz,[ h.contents ])))
     return p
 
 def _points3d_panel( h ):
@@ -113,8 +113,8 @@ def _xlabel( histograms ):
 
 def _log_scale( flag, arrays ):
     """Whether values (the arrays) get a logarithmic scale with the flag (of
-    the option logy): if it is on, or with 'auto', if their positive values
-    span more than two decades"""
+    the option logy or logz): if it is on, or with 'auto', if their positive
+    values span more than two decades"""
     if flag != 'auto':
         return bool(flag)
     v = np.concatenate([ np.ravel(a) for a in arrays ]) if len(arrays) else np.zeros(0)

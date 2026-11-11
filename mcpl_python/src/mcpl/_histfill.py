@@ -31,7 +31,7 @@ __all__ = []
 import math
 import os
 
-from ._common import MCPLError
+from ._common import MCPLError, _listed
 from ._expr_eval import _dimstr
 from ._expressions import ParticleValue, _as_edit, _as_expression, _expr_of
 from ._exprplot import _plot_unit, _PlotValue
@@ -521,9 +521,9 @@ def _filler_for( o, labels = ( None, ), _maxbins = None ):
         return _Hist2DFiller(o['exprs'][0],o['exprs'][1],bins = bins,
                              xrange = o['xrange'],yrange = o['yrange'],
                              unweighted = o['unweighted'],_maxbins = _maxbins,
-                             logz = o['logz'] is not False,equal = o['equal'],
+                             logz = o['logz'],equal = o['equal'],
                              display_edit = o['display_edit'],logx = o['logx'],
-                             logy = o['logy'] or False)
+                             logy = o['logy'])
     if o['bar'] is not False:
         return _HistDiscreteFiller(o['exprs'][0],
                                    limit = 10 if o['bar'] is True else o['bar'],
@@ -532,7 +532,7 @@ def _filler_for( o, labels = ( None, ), _maxbins = None ):
     return _Hist1DFiller(o['exprs'][0],bins = bins,range = o['range'],
                          logx = o['logx'],unweighted = o['unweighted'],display_by = display_by,
                          lethargy = o['lethargy'],
-                         logy = o['logy'] or False,labels = labels,_maxbins = _maxbins,
+                         logy = o['logy'],labels = labels,_maxbins = _maxbins,
                          display_edit = o['display_edit'])
 
 class _Filler:
@@ -663,8 +663,8 @@ class _Filler:
 class _Hist1DFiller(_Filler):
     """Makes the histogram of histogram() (see _Filler)"""
     def __init__( self, expression, bins = 'auto', range = None,
-                  logx = False, unweighted = False, display_by = None,
-                  lethargy = False, max_curves = 8, logy = False,
+                  logx = 'auto', unweighted = False, display_by = None,
+                  lethargy = False, max_curves = 8, logy = 'auto',
                   labels = ( None, ), _maxbins = None, display_edit = None ):
         super().__init__([ expression ],unweighted,labels,display_edit)
         self._dby = _DisplayByValue(display_by) if display_by is not None else None
@@ -788,8 +788,7 @@ class _HistDiscreteFiller(_Filler):
     def result( self ):
         e = self._vals[0]
         h = _HistDiscreteData(e.expression,weighted=self._weighted,title=self._title)
-        if self._logy is not None:
-            h.logy = self._logy
+        h.logy = self._logy
         h.note, h._plot_notes['x'] = ( self._notes[0].note(u) for u in ( False, True ) )
         #(the sums of all values, of all files):
         h._value_sums = {}
@@ -813,8 +812,9 @@ class _Hist2DFiller(_Filler):
                   logx = 'auto', logy = 'auto' ):
         super().__init__([ xexpression, yexpression ],unweighted,( None, ),display_edit)
         self._bins, self._maxbins, self._logz, self._equal = bins, _maxbins, logz, equal
-        #(logarithmic axes, or 'auto' to decide from the ranges, see _auto_logx):
-        self._log = [ logx, logy ]
+        #(logarithmic axes, or 'auto' to decide from the ranges, see _auto_logx,
+        #except with equal scales, whose axes are not logarithmic):
+        self._log = [ False if equal and lg == 'auto' else lg for lg in ( logx, logy ) ]
         self._positive = [ lg is True for lg in self._log ]
         if equal:
             self._need_equal()

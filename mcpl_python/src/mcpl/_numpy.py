@@ -58,3 +58,12 @@ def np_fma( a, b, c ):
     import math
     fct = getattr(math,'fma',_fma_exact)
     return np.frompyfunc(fct,3,1)(a,b,c).astype(float)
+
+def np_isin_few( values, choices ):
+    """np.isin(values,choices) for a few choices (with one comparison for each,
+    which is much faster than np.isin then)"""
+    values = np.asarray(values)
+    res = np.zeros(values.shape,dtype=bool)
+    for c in choices:
+        res |= ( values == c )
+    return res

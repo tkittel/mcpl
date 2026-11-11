@@ -596,9 +596,10 @@ def _nonfinite_masks( b, check_polarisation = True, check_weight = True ):
         if mask.any():
             res[name] = mask
     add('position',b.x,b.y,b.z)
-    if type(b) is MCPLParticleBlock and len(b):
+    if ( isinstance(b,MCPLParticleBlock) and len(b)
+         and not {'ux','uy','uz'}.intersection(getattr(b,'_edits',())) ):
         #Only unpack directions which might be non-finite (packed values
-        #can be infinite for valid directions):
+        #can be infinite for valid directions), unless they are edited:
         mask = np.zeros(len(b),dtype=bool)
         cand = ~( np.isfinite(b._data['uve1']) & np.isfinite(b._data['uve2']) )
         if cand.any():

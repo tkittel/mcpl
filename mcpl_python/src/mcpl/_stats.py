@@ -148,8 +148,9 @@ def _collect_stats(mcplfile,stats,bin_data):
 
 class _StatsAccumulator:
     """The statistics of collect_stats, collected from the particle blocks
-    given to add1 (first pass, for the ranges of the histograms), and then,
-    after start2, to add2 (second pass). If neither pass is needed, the blocks
+    given to add1 (first pass, for everything but the histograms, which need
+    the ranges found then), and then, after start2, to add2 (second pass, for
+    the histograms). If neither pass is needed, the blocks
     are instead given to add_weights, if needs_weight_sum. The file (an
     MCPLFile or a view of one) is only used for its header information."""
 
@@ -198,8 +199,13 @@ class _StatsAccumulator:
             #statistics for histogram ranges:
             for s in std_stats:
                 self.collected_stats[s] = _StatCollector()
-        self.needs_pass1 = bool(std_stats)
-        self.needs_pass2 = bool( (std_stats and bin_data) or freq_stats )
+        self._freq_uc = { s : ( np.asarray([],dtype=int), np.asarray([],dtype=float) )
+                          for s in freq_stats }
+        self._sumw = 0.0
+        #(the second pass is only needed for the histograms of the standard
+        #stats, whose ranges are found in the first pass):
+        self.needs_pass1 = bool( std_stats or freq_stats )
+        self.needs_pass2 = bool( std_stats and bin_data )
 
     def add1(self,pb):
         if not len(pb):
@@ -210,6 +216,18 @@ class _StatsAccumulator:
                 sc.add_data(vals_weight)
             else:
                 sc.add_data(getattr(pb,s),vals_weight)
+        freq_stats, freq_uc = self._freq, self._freq_uc
+        disable=[]
+        for s in freq_stats:
+            uc_block = _unique_count(getattr(pb,s),vals_weight)
+            freq_uc[s] = _merge_unique_count(freq_uc[s],uc_block)
+            if len(freq_uc[s][0])>10000:
+                _warning(f"Too many unique values in {s} field. Disabling {s} statistics")
+                disable+=[s]
+        for s in disable:
+            del freq_uc[s]
+            freq_stats.remove(s)
+        self._sumw += vals_weight.sum()
 
     def start2(self,nparticles):
         """Prepare for the second pass, for a file with nparticles particles"""
@@ -232,27 +250,15 @@ class _StatsAccumulator:
         self._ranges = ranges
         self._hists={}
         self._outside={}
-        self._freq_uc={s: (np.asarray([],dtype=int),np.asarray([],dtype=float)) for s in self._freq}
-        self._sumw = 0.0
-        self.needs_weight_sum = self._weight_sum is None and not self.needs_pass2
+        #(the sum of the weights is found in the first pass, if there is one):
+        self.needs_weight_sum = self._weight_sum is None and not self.needs_pass1
 
     def add2(self,pb):
         if not len(pb):
             return#(no particles kept in this block)
-        freq_stats, freq_uc = self._freq, self._freq_uc
         ranges, nbins, hists, outside = self._ranges, self._nbins, self._hists, self._outside
         vals_weight = pb.weight
-        disable=[]
-        for s in freq_stats:
-            uc_block = _unique_count(getattr(pb,s),vals_weight)
-            freq_uc[s] = _merge_unique_count(freq_uc[s],uc_block)
-            if len(freq_uc[s][0])>10000:
-                _warning(f"Too many unique values in {s} field. Disabling {s} statistics")
-                disable+=[s]
-        for s in disable:
-            del freq_uc[s]
-            freq_stats.remove(s)
-        for s in (self._std if self._bin_data else []):
+        for s in self._std:
             vals = getattr(pb,s) if s!='weight' else vals_weight
             w = None if s=='weight' else vals_weight
             h,bins = np.histogram(vals, bins=nbins, range=ranges[s],
@@ -264,7 +270,6 @@ class _StatsAccumulator:
             out = ( vals < ranges[s][0] ) | ( vals > ranges[s][1] )
             outside[s] = outside.get(s,0.0) + float( np.count_nonzero(out)
                                                      if w is None else w[out].sum() )
-        self._sumw += pb.weight.sum()
 
     def add_weights(self,pb):
         self._sumw += pb.weight.sum()

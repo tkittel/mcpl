@@ -55,7 +55,7 @@ from ._expr_vocab import (
     _modified_fields,
 )
 from ._exprunits import _dim_unknown
-from ._numpy import np
+from ._numpy import np, np_isin_few
 
 
 def _parsed( expression, kind, unused_ok = False ):

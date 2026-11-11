@@ -47,7 +47,7 @@ dependencies = {
     '_ascii'            : ( '_common', '_reader' ),
     '_blocks'           : ( '_common', '_numpy', '_physics' ),
     '_cli'              : ( '_ascii', '_clistats', '_common', '_examples', '_expressions', '_exprhelp', '_extract', '_fileops', '_histfill', '_histstring', '_messages', '_reader', '_writer' ),
-    '_clistats'         : ( '_common', '_histfigures', '_histfill', '_histstring', '_plotregistry', '_reader', '_stats' ),
+    '_clistats'         : ( '_common', '_histfigures', '_histfill', '_plotregistry', '_reader', '_stats' ),
     '_common'           : (  ),
     'constants'         : (  ),
     '_examples'         : ( '_common', '_messages', '_numpy', '_writer' ),

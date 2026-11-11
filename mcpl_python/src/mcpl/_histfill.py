@@ -48,17 +48,13 @@ from ._particles import _pdg_colors
 from ._reader import MCPLFile
 
 
-def _is_file( s ):
-    """Whether s is an opened file (an MCPLFile, or a view of one)"""
-    return hasattr(s,'particle_blocks') and hasattr(s,'_filename')
-
 def _as_files( sources ):
     """List of (label,source) for a file or a list of files"""
-    if isinstance(sources,(str,bytes,os.PathLike)) or _is_file(sources):
+    if isinstance(sources,(str,bytes,os.PathLike,MCPLFile)):
         sources = [ sources ]
     res = []
     for s in sources:
-        name = s._filename if _is_file(s) else s
+        name = s._filename if isinstance(s,MCPLFile) else s
         res.append( (os.path.basename(os.fsdecode(name)),s) )
     if not res:
         raise MCPLError('No files given')
@@ -67,7 +63,7 @@ def _as_files( sources ):
 def _blocks( source ):
     """Iterate over the particle blocks of a file (an MCPLFile, or the name of
     a file, which is then closed when done)"""
-    if not _is_file(source):
+    if not isinstance(source,MCPLFile):
         with MCPLFile(source) as f:
             yield from f.particle_blocks
         return

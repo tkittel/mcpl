@@ -33,6 +33,10 @@ import math
 #wavelengths, and temperatures (of userdata) in K:
 _dim_none = (0,0,0,0)
 _dim_L, _dim_E, _dim_T, _dim_K = (1,0,0,0), (0,1,0,0), (0,0,1,0), (0,0,0,1)
+#The base dimensions, with their units in MCPL and in SI:
+_base_dims = ( _dim_L, _dim_E, _dim_T, _dim_K )
+_base_units_mcpl = ( 'cm', 'MeV', 'ms', 'K' )
+_base_units_si = ( 'm', 'eV', 's', 'K' )
 #(the dimension of fields of the userdata when expressions are checked
 #without a file, which have units only in the layouts of files: everything
 #computed from them has unknown units, which are never refused):

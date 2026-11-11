@@ -163,6 +163,7 @@ def test_expressions():
                 'wl > 1Aa', 'dirx > 0', 't < 1ms', 'is_neutron', 'neutron_wl > 1Aa',
                 'degrees(acos(uz)) < 10',
                 'ekin = 1MeV', 'ekin > 1MeV & x < 2cm', 'foo > 1',
+                'x and ux > 0', 'ux > 0 or x', 'not weight', 'ekin or 1',
                 "__import__('os').system('ls')", 'ekin', 'lambda: 1',
                 'sin(x, y=1) > 0', 'x.real > 0', '[x][0] > 0', "x > 'a'", '',
                 'sqrt(x/cm) > 1', '1/(x/cm - x/cm) > 1', 'log(ekin/MeV - ekin/MeV) > 0',

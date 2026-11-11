@@ -3,15 +3,18 @@ MCPL: Would create mcplexample_source.mcpl with 500 particles (neutrons leaving 
 MCPL: Would create mcplexample_target.mcpl with 500 particles (mixed particles leaving the surroundings of a target)
 MCPL: Would create mcplexample_beam.mcpl with 500 particles (polarised neutron beam, with userdata)
 MCPL: dry run, nothing was written
+    exit code 0
 --> mcpltool --create-examples=2.5e3 --dry-run
 MCPL: Would create mcplexample_source.mcpl with 2500 particles (neutrons leaving a moderator surface)
 MCPL: Would create mcplexample_target.mcpl with 2500 particles (mixed particles leaving the surroundings of a target)
 MCPL: Would create mcplexample_beam.mcpl with 2500 particles (polarised neutron beam, with userdata)
 MCPL: dry run, nothing was written
+    exit code 0
 --> mcpltool --create-examples=2500
 MCPL: Creating mcplexample_source.mcpl with 2500 particles (neutrons leaving a moderator surface)
 MCPL: Creating mcplexample_target.mcpl with 2500 particles (mixed particles leaving the surroundings of a target)
 MCPL: Creating mcplexample_beam.mcpl with 2500 particles (polarised neutron beam, with userdata)
+    exit code 0
 Created: mcplexample_beam.mcpl, mcplexample_source.mcpl, mcplexample_target.mcpl
 mcplexample_beam.mcpl: 2500 particles, comments ['Example file made by mcpltool --create-examples, with particles generated from simple distributions (not by a simulation)', 'Polarised neutron beam, with userdata'], polarisation: True, userdata: nscat:uint8,pathlength:float32,origin:uint32
 mcplexample_source.mcpl: 2500 particles, comments ['Example file made by mcpltool --create-examples, with particles generated from simple distributions (not by a simulation)', 'Neutrons leaving a moderator surface'], polarisation: False, userdata: None
@@ -53,6 +56,7 @@ A second run gives the same particles (fixed random seed):
 MCPL: Creating mcplexample_source.mcpl with 2500 particles (neutrons leaving a moderator surface)
 MCPL: Creating mcplexample_target.mcpl with 2500 particles (mixed particles leaving the surroundings of a target)
 MCPL: Creating mcplexample_beam.mcpl with 2500 particles (polarised neutron beam, with userdata)
+    exit code 0
 mcplexample_beam.mcpl: same particles: True
 mcplexample_source.mcpl: same particles: True
 mcplexample_target.mcpl: same particles: True

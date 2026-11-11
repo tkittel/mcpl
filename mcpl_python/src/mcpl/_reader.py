@@ -917,7 +917,6 @@ class MCPLFile:
         self.rewind()
         if not self._filtered:
             self.skip_forward(skip)
-            particles = iter(self.read,None)
         else:
             #(skipping whole blocks, and the rest in the next one, see read):
             while skip:

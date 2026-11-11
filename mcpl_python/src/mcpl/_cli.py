@@ -294,7 +294,7 @@ def _app_mcpltool(progname,args):
         dry_run = opts['--dry-run']
         create_examples( n, dry_run = dry_run, allow_overwrite = opts['--allow-overwrite'] )
         _mcpltool_dryrun_note(dry_run)
-        return
+        sys.exit(0)
 
     #The options as flags (set of long names), values (dict by long name), -l,
     #-s, and -b:

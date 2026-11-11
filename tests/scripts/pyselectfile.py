@@ -25,6 +25,8 @@
 # Test the edit arguments of MCPLFile and MCPLOutFile, and the
 # blocks of edited particles.
 
+import contextlib
+import io
 import pathlib
 import shutil
 
@@ -37,6 +39,13 @@ ex = 'example.mcpl'
 
 def same_file(f1, f2):
     return pathlib.Path(f1).read_bytes() == pathlib.Path(f2).read_bytes()
+
+def dumped_indices( f, **kwargs ):
+    """The indices in the file of the particles shown by f.dump_particles"""
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        f.dump_particles(**kwargs)
+    return [ int(line.split()[0]) for line in buf.getvalue().splitlines()[1:] ]
 
 def test_read():
     ref = mcpl.MCPLFile(ex).read_block()

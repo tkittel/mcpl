@@ -87,5 +87,3 @@ def mcpltool_hist(filelist,o,skip,limit,edit,outfn,terminal,color=None,
             print('Created ' + ', '.join(bk.save([figure(h)],outfn)))
         else:
             bk.show([figure(h)])
-    finally:
-        files.close()

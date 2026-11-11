@@ -152,7 +152,7 @@ class _StatsAccumulator:
     the ranges found then), and then, after start2, to add2 (second pass, for
     the histograms). If neither pass is needed, the blocks
     are instead given to add_weights, if needs_weight_sum. The file (an
-    MCPLFile or a view of one) is only used for its header information."""
+    MCPLFile) is only used for its header information."""
 
     def __init__(self,mcplfile,stats='all',bin_data=True):
         #Normal stats (will be used weighted, except for stats about the weight field itself):

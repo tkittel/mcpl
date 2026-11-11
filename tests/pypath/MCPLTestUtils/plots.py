@@ -22,6 +22,8 @@
 """Figures for tests of the plotting backends, with the kinds of plots of
 mcpl: curves (also several in one plot), a 2D map, and bars."""
 
+import contextlib
+
 _plots = ( 'ekin;logx=auto;logy;display_by=pdgcode', 'angle(dir,(0,0,1))/deg;logy;display_by=pdgcode',
            'x : y', 'time;logx=auto;logy;display_by=single', 'pdgcode;bar;logy=auto',
            'x;display_by=single' )
@@ -48,7 +50,8 @@ def internal_histogram( mcpl, files, expression, *, edit = None, bins = None, ra
                         display_edit = None, lethargy = False, bar = False, _maxbins = None ):
     """The histogram (of _histfill, with all its details) of the expression for
     the particles in the files, with the options of histogram strings also as
-    keyword arguments (mcpl is the mcpl module)"""
+    keyword arguments, and the files opened with the edit if given (mcpl is
+    the mcpl module)"""
     hs = _module(mcpl,'_histstring')
     given = { 'bins' : bins, 'range' : range, 'logx' : logx, 'unweighted' : unweighted,
               'display_by' : display_by, 'display_edit' : display_edit,

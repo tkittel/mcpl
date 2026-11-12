@@ -76,7 +76,7 @@ def _extraction_comment( skip, limit, edit ):
 def _mcpltool_code(filename, lang, limit, skip, edit, preventcomment):
     """Print the program in the language (c or cpp) which does what mcpltool
     -x does with the options, for files like the given one (with its
-    userdata layout and stat:sum entries), see _expr_ast2c"""
+    userdata layout and stat:sum entries), see _expr_ast2code"""
     with MCPLFile(filename,skip=skip,limit=limit,edit=edit) as f:
         layout, ( scale, reason ) = f.userdata_layout, f._stat_sum_scale
         skip, limit = f._skip, f._limit

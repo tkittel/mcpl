@@ -1,0 +1,355 @@
+Operations of the translator:
+  'pdgcode == neutron and pdgcode in (11,22) and pdgcode not in (-11)':
+    keep if and((pdgcode == 2112[neutron]), or((pdgcode == 11[electron]), (pdgcode == 22[gamma])), not(or((pdgcode == -11[positron]))))
+  'not x > 0cm or +x > 0cm or -x < 0cm or (1,2,3).z > 0':
+    keep if or(not((finite(x) > 0.0[0m])), (finite(x) > 0.0[0m]), (-finite(x) < 0.0[0m]), (3 > 0))
+  'x > pi*cm and -2147483648 < pdgcode and fileidx > 3':
+    keep if and((finite(x) > finite((3.141592653589793[pi] * 1.0[cm]))), (-2147483648 < pdgcode), (fileidx > 3))
+  'mod(userflags,4) == 0 and mod(fileidx,3) == 0 and userflags // 2 > 0':
+    keep if and((exact_mod_u32(userflags, 4) == 0), (mod_i64(fileidx, 3) == 0), (exact_div_u32(userflags, 2) > 0))
+  'userflags & 3 == 1 and userflags | 1 > 0':
+    keep if and((exact_&_u32(userflags, 3) == 1), (exact_|_u32(userflags, 1) > 0))
+  'userflags + 1 > 0 and userflags + pdgcode > 0 and userflags > -1':
+    keep if and((add_u32(userflags, 1) > 0), (add_u32(userflags, as_u32(pdgcode)) > 0), (userflags > as_u32(-1)))
+  'abs(x) > 1cm and abs(pdgcode) > 0 and abs(userflags) > 0':
+    keep if and((finite(fabs(finite(x))) > 1.0[1cm]), (abs_i32(pdgcode) > 0), (userflags > 0))
+  'round(x/cm) > 0 and floor(userflags) > 0 and ceil(ux) > 0':
+    keep if and((toint_round(finite((finite(x) / 1.0[cm]))) > 0), (userflags > 0), (toint_ceil(finite(ux)) > 0))
+  'min(userflags,3) > 1 and max(x,y,z) > 0cm and clamp(x,0cm,1cm) > 0cm':
+    keep if and((min_u32(userflags, 3) > 1), (finite(max_f64(max_f64(finite(x), finite(y)), finite(z))) > 0.0[0m]), (finite(min_f64(max_f64(finite(x), 0.0[0m]), 1.0[1cm])) > 0.0[0m]))
+  'hypot(x,y) > 1cm and sqrt(ekin/MeV) > 1 and atan2(x,y) > 0':
+    keep if and((finite(sqrt(finite((finite((finite(x) * finite(x))) + finite((finite(y) * finite(y))))))) > 1.0[1cm]), (finite(sqrt(finite((finite(ekin) / 1.0[MeV])))) > 1), (finite(atan2(finite(x), finite(y))) > 0))
+  'sin(ux) > 0 and x^3 > 1cm^3 and x*y/z > 1cm':
+    keep if and((finite(sin(finite(ux))) > 0), (finite(pow(finite(x), float(3))) > 1.0[1cm^3]), (finite((finite((finite(x) * finite(y))) / finite(z))) > 1.0[1cm]))
+  'pos^2 > 1cm^2 and dot(pos,dir) > 0cm and cross(pos,dir).z > 0cm':
+    keep if and((finite((finite((finite((finite(x) * finite(x))) + finite((finite(y) * finite(y))))) + finite((finite(z) * finite(z))))) > 1.0[1cm^2]), (finite((finite((finite((finite(x) * finite(ux))) + finite((finite(y) * finite(uy))))) + finite((finite(z) * finite(uz))))) > 0.0[0m]), (finite((finite((finite(x) * finite(uy))) - finite((finite(y) * finite(ux))))) > 0.0[0m]))
+  'angle((x,y),(1,1)) < 1rad and angle(dir,(0,0,1)) < 1deg':
+    keep if and((finite(angle(finite(x), finite(y), 0.0, float(1), float(1), 0.0)) < 1.0[1rad]), (finite(angle(finite(ux), finite(uy), finite(uz), float(0), float(0), float(1))) < 0.017453292519943295[1deg]))
+  'through_sphere((0,0,1m),5cm) and through_box((0,0,1m),(1cm,2cm,3cm))':
+    keep if and(sphere(finite((float(0) - finite(x))), finite((float(0) - finite(y))), finite((100.0[1m] - finite(z))), finite(ux), finite(uy), finite(uz), 5.0[5cm]), box(finite((float(0) - finite(x))), finite((float(0) - finite(y))), finite((100.0[1m] - finite(z))), finite(ux), finite(uy), finite(uz), 1.0[1cm], 2.0[2cm], 3.0[3cm]))
+  'pdgcode == neutron and wavelength > 1Aa':
+    keep if and((pdgcode == 2112[neutron]), (wavelength > 1e-08[1Aa]))
+  'userdata.a > 10deg and userdata.n > 1 and userdata.v.at(2) > 0':
+    keep if and((ud.a*0.017453292519943295[deg] > 0.17453292519943295[10deg]), (ud.n > 1), (ud.v[2] > 0))
+  'r = (x,y,0cm); abs(r) > 1cm and r.y > 0cm':
+    r = (finite(x), finite(y), 0.0[0m])
+    keep if and((finite(sqrt(finite((finite((finite((r.0 * r.0)) + finite((r.1 * r.1)))) + finite((r.2 * r.2)))))) > 1.0[1cm]), (r.1 > 0.0[0m]))
+  'r = x; r > 0cm':
+    r = finite(x) (f64)
+    keep if (r > 0.0[0m])
+  'x = 1cm; r = 2cm; y = r; weight *= 2':
+    set x = 1.0[1cm]
+    r = 2.0[2cm] (f64)
+    set y = r
+    set weight = finite((finite(weight) * float(2)))
+  'pos = pos + dir*1cm; dir = -dir; pol = pol/2':
+    set x, y, z = finite((finite(x) + finite((finite(ux) * 1.0[1cm])))), finite((finite(y) + finite((finite(uy) * 1.0[1cm])))), finite((finite(z) + finite((finite(uz) * 1.0[1cm]))))
+    set ux, uy, uz = -finite(ux), -finite(uy), -finite(uz)
+    set polx, poly, polz = finite((finite(polx) / float(2))), finite((finite(poly) / float(2))), finite((finite(polz) / float(2)))
+  'wavelength = 2Aa':
+    set wavelength = 2e-08[2Aa]
+  'pdgcode = neutron; userflags = 7':
+    set pdgcode = 2112[neutron]
+    set userflags = 7
+  'pdgcode = 2.5; userflags = pdgcode':
+    set pdgcode = to_pdgcode(2.5, -2147483648..2147483647)
+    set userflags = to_userflags(float(pdgcode), 0..4294967295)
+  'pdgcode = 2147483648':
+    set pdgcode = to_pdgcode(float(2147483648), -2147483648..2147483647)
+  'swap(x,y); swap(pdgcode,userflags)':
+    tmp = finite(x) (f64)
+    set x = finite(y)
+    set y = tmp
+    tmp = pdgcode (i32)
+    set pdgcode = to_pdgcode(float(userflags), -2147483648..2147483647)
+    set userflags = to_userflags(float(tmp), 0..4294967295)
+  'rotate_z(90deg); rotate_x(ux*1rad)':
+    rotate_z(1.5707963267948966[90deg]) of finite(x),finite(y), finite(ux),finite(uy), finite(polx),finite(poly)
+    rotate_x(finite((finite(ux) * 1.0[1rad]))) of finite(y),finite(z), finite(uy),finite(uz), finite(poly),finite(polz)
+  'rotate_around((1,1,0),30deg); rotate_frame(dir,(0,0,1),pos,(1,0,0))':
+    rotate_around((float(1), float(1), float(0)), 0.5235987755982988[30deg]) of finite(x), ...
+    rotate_frame((finite(ux), finite(uy), finite(uz)), (float(0), float(0), float(1)), (finite(x), finite(y), finite(z)), (float(1), float(0), float(0))) of finite(x), ...
+Conditions translated when needed:
+  'x > 0cm and log(x/cm) > 1': and: condition 1; field x; and: condition 2; field x; math log
+  '0cm < x < log(y/cm)*1cm < 1m': and: condition 1; field x; and: condition 2; field y; math log; and: condition 3
+  'x > 0cm or ux > 0 and sqrt(uy) > 0': or: condition 1; field x; or: condition 2; and: condition 1; field ux; and: condition 2; field uy; math sqrt
+  'rotate_z(atan2(uy,ux)*1rad)': rotate_z: angle; field uy; field ux; math atan2; field x; field y; field ux; field uy; field polx; field poly
+  'rotate_around((ux,uy,0),sqrt(uz)*1rad)': rotate_around: arguments; field ux; field uy; field uz; math sqrt; field x
+Values:
+  7: 7 (i32), const 7, checked False
+  -7: -7 (i32), const -7, checked False
+  neutron: 2112 (i32), const 2112, checked False
+  x: finite(x) (f64), const None, checked True
+  x/y: finite((finite(x) / finite(y))) (f64), const None, checked True
+  sqrt(x/cm): finite(sqrt(finite((finite(x) / 1.0[cm])))) (f64), const None, checked True
+  abs(x): finite(fabs(finite(x))) (f64), const None, checked True
+Code of statements:
+  C for 'fileidx > -9223372036854775808 and fileidx < 9223372036854775807':
+    if ( !( ( fileidx > (-INT64_C( 9223372036854775807 )-1) && fileidx < INT64_C( 9223372036854775807 ) ) ) )
+      continue;
+    (helpers: none)
+  C++ for 'fileidx > -9223372036854775808 and fileidx < 9223372036854775807':
+    if ( !( ( fileidx > std::int64_t( (-9223372036854775807-1) ) && fileidx < std::int64_t( 9223372036854775807 ) ) ) )
+      continue;
+    (helpers: none)
+  C for 'userdata.u > 18446744073709551615 - 1 and pdgcode > -2147483648', layout 'u:uint64':
+    if ( !( ( mcpl_userdata_get_uint64( ud, offset_u ) > sub_u64( UINT64_C( 18446744073709551615 ), 1 ) && p_in->pdgcode > (-2147483647-1) ) ) )
+      continue;
+    (helpers: sub_u64)
+  C++ for 'userdata.u > 18446744073709551615 - 1 and pdgcode > -2147483648', layout 'u:uint64':
+    if ( !( ( ud_u( p ) > sub_u64( std::uint64_t( 18446744073709551615u ), 1 ) && p.pdgcode() > (-2147483647-1) ) ) )
+      continue;
+    (helpers: sub_u64)
+  C for 'userdata.v.at(2) > 1 and userdata.a > 10deg', layout 'v:int16[3],a:float64:deg':
+    if ( !( ( mcpl_userdata_get_int16( ud, offset_v + 2 * 2 ) > 1 && ( mcpl_userdata_get_float64( ud, offset_a ) * 0.017453292519943295/*deg*/ ) > 0.17453292519943295/*10deg*/ ) ) )
+      continue;
+    (helpers: none)
+  C++ for 'userdata.v.at(2) > 1 and userdata.a > 10deg', layout 'v:int16[3],a:float64:deg':
+    if ( !( ( ud_v( p, 2 ) > 1 && ( ud_a( p ) * 0.017453292519943295/*deg*/ ) > 0.17453292519943295/*10deg*/ ) ) )
+      continue;
+    (helpers: none)
+  C for 'r = x; not r > 0cm or min(r,y) > 0cm':
+    double v_r = check_finite( p_in->position[0] );
+    if ( !( ( !( v_r > 0.0/*0m*/ ) || check_finite( min_f64( v_r, check_finite( p_in->position[1] ) ) ) > 0.0/*0m*/ ) ) )
+      continue;
+    (helpers: check_finite, min_f64)
+  C++ for 'r = x; not r > 0cm or min(r,y) > 0cm':
+    double v_r = check_finite( p.x() );
+    if ( !( ( !( v_r > 0.0/*0m*/ ) || check_finite( min_f64( v_r, check_finite( p.y() ) ) ) > 0.0/*0m*/ ) ) )
+      continue;
+    (helpers: check_finite, min_f64)
+  C for 'userflags = mod(userflags,4) + pdgcode':
+    p.userflags = to_userflags( (double)( add_u32( ( p.userflags % 4 ), as_u32( p.pdgcode ) ) ) );
+    (helpers: as_u32, add_u32, to_userflags)
+  C++ for 'userflags = mod(userflags,4) + pdgcode':
+    out.set_userflags( to_userflags( static_cast<double>( add_u32( ( out.userflags() % 4 ), as_u32( out.pdgcode() ) ) ) ) );
+    (helpers: as_u32, add_u32, to_userflags)
+  C for 'x = 1cm; pos = pos + dir*1cm; pos = -pos':
+    p.position[0] = 1.0/*1cm*/;
+    double new_x = check_finite( check_finite( p.position[0] ) + check_finite( check_finite( p.direction[0] ) * 1.0/*1cm*/ ) );
+    double new_y = check_finite( check_finite( p.position[1] ) + check_finite( check_finite( p.direction[1] ) * 1.0/*1cm*/ ) );
+    double new_z = check_finite( check_finite( p.position[2] ) + check_finite( check_finite( p.direction[2] ) * 1.0/*1cm*/ ) );
+    p.position[0] = new_x;
+    p.position[1] = new_y;
+    p.position[2] = new_z;
+    double new_x_2 = -check_finite( p.position[0] );
+    double new_y_2 = -check_finite( p.position[1] );
+    double new_z_2 = -check_finite( p.position[2] );
+    p.position[0] = new_x_2;
+    p.position[1] = new_y_2;
+    p.position[2] = new_z_2;
+    (helpers: check_finite)
+  C++ for 'x = 1cm; pos = pos + dir*1cm; pos = -pos':
+    out.set_x( 1.0/*1cm*/ );
+    double new_x = check_finite( check_finite( out.x() ) + check_finite( check_finite( out.ux() ) * 1.0/*1cm*/ ) );
+    double new_y = check_finite( check_finite( out.y() ) + check_finite( check_finite( out.uy() ) * 1.0/*1cm*/ ) );
+    double new_z = check_finite( check_finite( out.z() ) + check_finite( check_finite( out.uz() ) * 1.0/*1cm*/ ) );
+    out.set_x( new_x );
+    out.set_y( new_y );
+    out.set_z( new_z );
+    double new_x_2 = -check_finite( out.x() );
+    double new_y_2 = -check_finite( out.y() );
+    double new_z_2 = -check_finite( out.z() );
+    out.set_x( new_x_2 );
+    out.set_y( new_y_2 );
+    out.set_z( new_z_2 );
+    (helpers: check_finite)
+  C for 'wavelength = 2Aa; pdgcode = neutron':
+    p.ekin = ekin_of_wavelength( 2e-08/*2Aa*/, p.pdgcode );
+    p.pdgcode = 2112/*neutron*/;
+    (helpers: ekin_of_wavelength)
+  C++ for 'wavelength = 2Aa; pdgcode = neutron':
+    out.set_ekin( ekin_of_wavelength( 2e-08/*2Aa*/, out.pdgcode() ) );
+    out.set_pdgcode( 2112/*neutron*/ );
+    (helpers: ekin_of_wavelength)
+  C for 'swap(x,y); swap(pdgcode,userflags); r = (x,y,0cm); y = r.x':
+    double tmp = check_finite( p.position[0] );
+    p.position[0] = check_finite( p.position[1] );
+    p.position[1] = tmp;
+    int32_t tmp_2 = p.pdgcode;
+    p.pdgcode = to_pdgcode( (double)( p.userflags ) );
+    p.userflags = to_userflags( (double)( tmp_2 ) );
+    double v_r_x = check_finite( p.position[0] );
+    double v_r_y = check_finite( p.position[1] );
+    double v_r_z = 0.0/*0m*/;
+    p.position[1] = v_r_x;
+    (helpers: check_finite, to_pdgcode, to_userflags)
+  C++ for 'swap(x,y); swap(pdgcode,userflags); r = (x,y,0cm); y = r.x':
+    double tmp = check_finite( out.x() );
+    out.set_x( check_finite( out.y() ) );
+    out.set_y( tmp );
+    std::int32_t tmp_2 = out.pdgcode();
+    out.set_pdgcode( to_pdgcode( static_cast<double>( out.userflags() ) ) );
+    out.set_userflags( to_userflags( static_cast<double>( tmp_2 ) ) );
+    double v_r_x = check_finite( out.x() );
+    double v_r_y = check_finite( out.y() );
+    double v_r_z = 0.0/*0m*/;
+    out.set_y( v_r_x );
+    (helpers: check_finite, to_pdgcode, to_userflags)
+  C for 'rotate_x(30deg)':
+    double c, s;
+    exact_cos_sin( 0.5235987755982988/*30deg*/, &c, &s );
+    double old_y = check_finite( p.position[1] ), old_z = check_finite( p.position[2] );
+    p.position[1] = c * old_y - s * old_z + 0.0;
+    p.position[2] = s * old_y + c * old_z + 0.0;
+    double old_uy = check_finite( p.direction[1] ), old_uz = check_finite( p.direction[2] );
+    p.direction[1] = c * old_uy - s * old_uz + 0.0;
+    p.direction[2] = s * old_uy + c * old_uz + 0.0;
+    double old_poly = check_finite( p.polarisation[1] ), old_polz = check_finite( p.polarisation[2] );
+    p.polarisation[1] = c * old_poly - s * old_polz + 0.0;
+    p.polarisation[2] = s * old_poly + c * old_polz + 0.0;
+    (helpers: exact_cos_sin, check_finite)
+  C++ for 'rotate_x(30deg)':
+    double c, s;
+    exact_cos_sin( 0.5235987755982988/*30deg*/, &c, &s );
+    double old_y = check_finite( out.y() ), old_z = check_finite( out.z() );
+    out.set_y( c * old_y - s * old_z + 0.0 );
+    out.set_z( s * old_y + c * old_z + 0.0 );
+    double old_uy = check_finite( out.uy() ), old_uz = check_finite( out.uz() );
+    out.set_uy( c * old_uy - s * old_uz + 0.0 );
+    out.set_uz( s * old_uy + c * old_uz + 0.0 );
+    double old_poly = check_finite( out.poly() ), old_polz = check_finite( out.polz() );
+    out.set_poly( c * old_poly - s * old_polz + 0.0 );
+    out.set_polz( s * old_poly + c * old_polz + 0.0 );
+    (helpers: exact_cos_sin, check_finite)
+  C for 'rotate_around(dir,30deg)':
+    double R[9];
+    double arg0[3] = { check_finite( p.direction[0] ), check_finite( p.direction[1] ), check_finite( p.direction[2] ) };
+    rotate_around( arg0, 0.5235987755982988/*30deg*/, R );
+    double old_x = check_finite( p.position[0] ), old_y = check_finite( p.position[1] ), old_z = check_finite( p.position[2] );
+    p.position[0] = R[0] * old_x + R[1] * old_y + R[2] * old_z + 0.0;
+    p.position[1] = R[3] * old_x + R[4] * old_y + R[5] * old_z + 0.0;
+    p.position[2] = R[6] * old_x + R[7] * old_y + R[8] * old_z + 0.0;
+    double old_ux = check_finite( p.direction[0] ), old_uy = check_finite( p.direction[1] ), old_uz = check_finite( p.direction[2] );
+    p.direction[0] = R[0] * old_ux + R[1] * old_uy + R[2] * old_uz + 0.0;
+    p.direction[1] = R[3] * old_ux + R[4] * old_uy + R[5] * old_uz + 0.0;
+    p.direction[2] = R[6] * old_ux + R[7] * old_uy + R[8] * old_uz + 0.0;
+    double old_polx = check_finite( p.polarisation[0] ), old_poly = check_finite( p.polarisation[1] ), old_polz = check_finite( p.polarisation[2] );
+    p.polarisation[0] = R[0] * old_polx + R[1] * old_poly + R[2] * old_polz + 0.0;
+    p.polarisation[1] = R[3] * old_polx + R[4] * old_poly + R[5] * old_polz + 0.0;
+    p.polarisation[2] = R[6] * old_polx + R[7] * old_poly + R[8] * old_polz + 0.0;
+    (helpers: unit_vector, exact_matrix, exact_cos_sin, rotate_around, check_finite)
+  C++ for 'rotate_around(dir,30deg)':
+    double R[9];
+    double arg0[3] = { check_finite( out.ux() ), check_finite( out.uy() ), check_finite( out.uz() ) };
+    rotate_around( arg0, 0.5235987755982988/*30deg*/, R );
+    double old_x = check_finite( out.x() ), old_y = check_finite( out.y() ), old_z = check_finite( out.z() );
+    out.set_x( R[0] * old_x + R[1] * old_y + R[2] * old_z + 0.0 );
+    out.set_y( R[3] * old_x + R[4] * old_y + R[5] * old_z + 0.0 );
+    out.set_z( R[6] * old_x + R[7] * old_y + R[8] * old_z + 0.0 );
+    double old_ux = check_finite( out.ux() ), old_uy = check_finite( out.uy() ), old_uz = check_finite( out.uz() );
+    out.set_ux( R[0] * old_ux + R[1] * old_uy + R[2] * old_uz + 0.0 );
+    out.set_uy( R[3] * old_ux + R[4] * old_uy + R[5] * old_uz + 0.0 );
+    out.set_uz( R[6] * old_ux + R[7] * old_uy + R[8] * old_uz + 0.0 );
+    double old_polx = check_finite( out.polx() ), old_poly = check_finite( out.poly() ), old_polz = check_finite( out.polz() );
+    out.set_polx( R[0] * old_polx + R[1] * old_poly + R[2] * old_polz + 0.0 );
+    out.set_poly( R[3] * old_polx + R[4] * old_poly + R[5] * old_polz + 0.0 );
+    out.set_polz( R[6] * old_polx + R[7] * old_poly + R[8] * old_polz + 0.0 );
+    (helpers: unit_vector, exact_matrix, exact_cos_sin, rotate_around, check_finite)
+Helper functions:
+  static int32_t add_i32( int32_t a, int32_t b )
+  static int32_t sub_i32( int32_t a, int32_t b )
+  static int32_t mul_i32( int32_t a, int32_t b )
+  static int32_t div_i32( int32_t a, int32_t b )
+  static int32_t mod_i32( int32_t a, int32_t b )
+  static int32_t neg_i32( int32_t a )
+  static int32_t abs_i32( int32_t a )
+  static uint32_t add_u32( uint32_t a, uint32_t b )
+  static uint32_t sub_u32( uint32_t a, uint32_t b )
+  static uint32_t mul_u32( uint32_t a, uint32_t b )
+  static uint32_t div_u32( uint32_t a, uint32_t b )
+  static uint32_t mod_u32( uint32_t a, uint32_t b )
+  static uint32_t neg_u32( uint32_t a )
+  static uint32_t as_u32( int64_t a )
+  static int64_t add_i64( int64_t a, int64_t b )
+  static int64_t sub_i64( int64_t a, int64_t b )
+  static int64_t mul_i64( int64_t a, int64_t b )
+  static int64_t div_i64( int64_t a, int64_t b )
+  static int64_t mod_i64( int64_t a, int64_t b )
+  static int64_t neg_i64( int64_t a )
+  static int64_t abs_i64( int64_t a )
+  static uint64_t add_u64( uint64_t a, uint64_t b )
+  static uint64_t sub_u64( uint64_t a, uint64_t b )
+  static uint64_t mul_u64( uint64_t a, uint64_t b )
+  static uint64_t div_u64( uint64_t a, uint64_t b )
+  static uint64_t mod_u64( uint64_t a, uint64_t b )
+  static uint64_t neg_u64( uint64_t a )
+  static uint64_t as_u64( int64_t a )
+  returned: check_finite, check_finite, toint, min_u64, rotate_around, rotate_frame, rotate_around, to_pdgcode
+  written: check_finite, toint, min_u64, unit_vector, exact_matrix, exact_cos_sin, rotate_around, frame, cross_norm, rotate_frame, to_pdgcode
+  C:
+    static uint64_t as_u64( int64_t a )
+    {
+      if ( a < 0 ) {
+        fprintf( stderr, "ERROR: Negative integer value\n" );
+        exit( 1 );
+      }
+      return (uint64_t)( a );
+    }
+    static double wavelength( double ekin, int32_t pdgcode )
+    {
+      /* Wavelength in cm, of neutrons and gammas */
+      if ( pdgcode != 2112 && pdgcode != 22 ) {
+        fprintf( stderr, "ERROR: The wavelength is only defined for neutrons and gammas\n" );
+        exit( 1 );
+      }
+      if ( !( ekin > 0.0 ) ) {
+        fprintf( stderr, "ERROR: The wavelength is infinite for zero kinetic energy\n" );
+        exit( 1 );
+      }
+      double pc = pdgcode == 22 ? ekin : sqrt( ekin * ( ekin + 2 * 939.5654219340053 ) );
+      return 12398.419843320025 * 1e-6 / pc * 1e-08;
+    }
+  C++:
+    static std::uint64_t as_u64( std::int64_t a )
+    {
+      if ( a < 0 )
+        throw std::runtime_error( "Negative integer value" );
+      return static_cast<std::uint64_t>( a );
+    }
+    static double wavelength( double ekin, std::int32_t pdgcode )
+    {
+      /* Wavelength in cm, of neutrons and gammas */
+      if ( pdgcode != 2112 && pdgcode != 22 )
+        throw std::runtime_error( "The wavelength is only defined for neutrons and gammas" );
+      if ( !( ekin > 0.0 ) )
+        throw std::runtime_error( "The wavelength is infinite for zero kinetic energy" );
+      double pc = pdgcode == 22 ? ekin : std::sqrt( ekin * ( ekin + 2 * 939.5654219340053 ) );
+      return 12398.419843320025 * 1e-6 / pc * 1e-08;
+    }
+Layout:
+  |short( a, b );
+  |  if ( value_0 &&
+  |      value_1 &&
+  |      value_2 &&
+  |      value_3 &&
+  |      value_4 &&
+  |      value_5 &&
+  |      value_6 &&
+  |      value_7 &&
+  |      value_8 &&
+  |      value_9 &&
+  |      value_10 &&
+  |      value_11 &&
+  |      value_12 &&
+  |      value_13 )
+  |  x = value_0 + value_1 + value_2 + value_3 + value_4 + value_5 + value_6 + value_7 + value_8 +
+  |      value_9 + value_10 + value_11 + value_12 + value_13;
+  |  y = value_0, value_1, value_2, value_3, value_4, value_5, value_6, value_7, value_8, value_9,
+  |      value_10, value_11, value_12, value_13;
+  |  z = f( g( value_0, value_1, value_2, value_3, value_4,
+  |      value_5 ) ) + hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh;
+  |  s = "value_0, value_1, value_2, value_3, value_4, value_5, value_6, value_7, value_8, value_9, value_10, value_11, value_12, value_13";
+  |  c = 1; /* value_0 && value_1 && value_2 && value_3 && value_4 && value_5 && value_6 && value_7 && value_8 && value_9 && value_10 && value_11 && value_12 && value_13 */
+  |  wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww;
+  split at 12: ['one two ', 'three; four ', 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ', 'five']
+  split anywhere at 12: ['one two ', 'three; four ', 'xxxxxxxxxxxx', 'xxxxxxxxxxxx', 'xxxxxx five']
+  |/* a comment a comment a comment a comment a comment a comment a comment a comment a comment a
+  | * comment a comment a comment a comment a comment a comment */
+  |puts( "short" );
+  |puts( "a long text a long text a long text a long text a long text a long text a "
+  |      "long text a long text a long text a long text a long text a long text " );
+Program parts:
+  C++ for 'userdata.a > 1': auto ud_a = fin.userdata_field<std::int32_t>( "a" ); | for ( auto p : fin ) {
+  C++ for 'mod(fileidx,2) == 0': for ( [[maybe_unused]] auto p : fin ) {
+  C++ for 'x += 1cm': auto ud_a = fin.userdata_field<std::int32_t>( "a" ); | auto out_a = fout.userdata_field<std::int32_t>( "a" ); | auto ud_b = fin.userdata_field<double>( "b" ); | auto out_b = fout.userdata_field<double>( "b" ); | for ( auto p : fin ) {

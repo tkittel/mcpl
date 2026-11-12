@@ -41,9 +41,9 @@ int main( int argc, char ** argv )
   const uint8_t * ud;
   while ( ( p_in = mcpl_read_with_userdata( fi, &ud ) ) ) {
     mcpl_particle_t p = *p_in;
-    if ( !( ( ( p.pdgcode == 22/*gamma*/ || 
-        p.pdgcode == 2112/*neutron*/ ) && 
-        add_u64( mcpl_userdata_get_uint64( ud, offset_id ), 1 ) > 100 && 
+    if ( !( ( ( p.pdgcode == 22/*gamma*/ ||
+        p.pdgcode == 2112/*neutron*/ ) &&
+        add_u64( mcpl_userdata_get_uint64( ud, offset_id ), 1 ) > 100 &&
         ( p.userflags % 4 ) == 0 ) ) )
       continue;
     p.ekin = 2.5e-08/*25meV*/;
@@ -100,9 +100,9 @@ int main( int argc, char ** argv )
       out.set_pdgcode( p.pdgcode() );
       out.set_userflags( p.userflags() );
       out.set_userdata( out_id, ud_id( p ) );
-      if ( !( ( ( out.pdgcode() == 22/*gamma*/ || 
-          out.pdgcode() == 2112/*neutron*/ ) && 
-          add_u64( ud_id( p ), 1 ) > 100 && 
+      if ( !( ( ( out.pdgcode() == 22/*gamma*/ ||
+          out.pdgcode() == 2112/*neutron*/ ) &&
+          add_u64( ud_id( p ), 1 ) > 100 &&
           ( out.userflags() % 4 ) == 0 ) ) )
         continue;
       out.set_ekin( 2.5e-08/*25meV*/ );
@@ -146,7 +146,7 @@ int main( int argc, char ** argv )
   mcpl_transfer_metadata( fi, fo );
   const mcpl_particle_t * p_in;
   while ( ( p_in = mcpl_read( fi ) ) ) {
-    if ( !( ( p_in->pdgcode == 2112/*neutron*/ && 
+    if ( !( ( p_in->pdgcode == 2112/*neutron*/ &&
         check_finite( p_in->ekin ) < 2.5e-08/*25meV*/ ) ) )
       continue;
     mcpl_transfer_last_read_particle( fi, fo );
@@ -1040,12 +1040,12 @@ int main( int argc, char ** argv )
         check_finite( 2.0/*2cm*/ - check_finite( p_in->position[1] ) ), check_finite( 3.0/*3cm*/ -
         check_finite( p_in->position[2] ) ), check_finite( p_in->direction[0] ),
         check_finite( p_in->direction[1] ), check_finite( p_in->direction[2] ), 1.0/*1cm*/ ) &&
-        check_finite( fabs( check_finite( p_in->position[0] ) ) ) < 2.0/*2cm*/ && 
-        check_finite( fabs( check_finite( p_in->position[1] ) ) ) < 2.0/*2cm*/ && 
-        check_finite( fabs( check_finite( p_in->position[2] ) ) ) < 20.0/*20cm*/ && 
-        check_finite( p_in->ekin ) > 0.1/*100keV*/ && 
-        check_finite( p_in->ekin ) < 10.0/*10MeV*/ && 
-        check_finite( p_in->weight ) > 0.001 ) || 
+        check_finite( fabs( check_finite( p_in->position[0] ) ) ) < 2.0/*2cm*/ &&
+        check_finite( fabs( check_finite( p_in->position[1] ) ) ) < 2.0/*2cm*/ &&
+        check_finite( fabs( check_finite( p_in->position[2] ) ) ) < 20.0/*20cm*/ &&
+        check_finite( p_in->ekin ) > 0.1/*100keV*/ &&
+        check_finite( p_in->ekin ) < 10.0/*10MeV*/ &&
+        check_finite( p_in->weight ) > 0.001 ) ||
         check_finite( check_finite( check_finite( check_finite( check_finite( check_finite(
         check_finite( check_finite( p_in->position[0] ) +
         check_finite( p_in->position[1] ) ) + check_finite( p_in->position[2] ) ) / 1.0/*cm*/ ) *
@@ -1114,12 +1114,12 @@ int main( int argc, char ** argv )
           check_finite( 2.0/*2cm*/ - check_finite( p.y() ) ), check_finite( 3.0/*3cm*/ -
           check_finite( p.z() ) ), check_finite( p.ux() ), check_finite( p.uy() ),
           check_finite( p.uz() ), 1.0/*1cm*/ ) &&
-          check_finite( std::fabs( check_finite( p.x() ) ) ) < 2.0/*2cm*/ && 
-          check_finite( std::fabs( check_finite( p.y() ) ) ) < 2.0/*2cm*/ && 
-          check_finite( std::fabs( check_finite( p.z() ) ) ) < 20.0/*20cm*/ && 
-          check_finite( p.ekin() ) > 0.1/*100keV*/ && 
-          check_finite( p.ekin() ) < 10.0/*10MeV*/ && 
-          check_finite( p.weight() ) > 0.001 ) || 
+          check_finite( std::fabs( check_finite( p.x() ) ) ) < 2.0/*2cm*/ &&
+          check_finite( std::fabs( check_finite( p.y() ) ) ) < 2.0/*2cm*/ &&
+          check_finite( std::fabs( check_finite( p.z() ) ) ) < 20.0/*20cm*/ &&
+          check_finite( p.ekin() ) > 0.1/*100keV*/ &&
+          check_finite( p.ekin() ) < 10.0/*10MeV*/ &&
+          check_finite( p.weight() ) > 0.001 ) ||
           check_finite( check_finite( check_finite( check_finite( check_finite( check_finite(
           check_finite( check_finite( p.x() ) +
           check_finite( p.y() ) ) + check_finite( p.z() ) ) / 1.0/*cm*/ ) *

@@ -378,7 +378,7 @@ def _quantity_functions( coords ):
 def _edit_code( lang, edit, layout = None, **kwargs ):
     """A C ('c') or C++ ('cpp') program doing what the edit (an edit
     expression, a ParticleEdit, or None) does, for files with the userdata
-    layout (see _expr_ast2c for the keyword arguments)"""
+    layout (see _expr_ast2code for the keyword arguments)"""
     edit = _as_edit(edit)
     if lang == 'c':
         from ._expr_ast2c import _expr_ast2c as generate

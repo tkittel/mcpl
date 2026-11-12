@@ -48,9 +48,21 @@ from ._expr_ast import (
     Vector,
 )
 from ._expr_ast2str import _expr_ast2str
+from ._expr_ints import (
+    _ctype,
+    _int_abs,
+    _int_arith,
+    _int_array,
+    _int_bitwise,
+    _int_field_values,
+    _int_mod,
+    _int_negate,
+    _int_operands,
+    _is_int,
+    _np_types,
+)
 from ._expr_vocab import (
     _assignable,
-    _common_int_type,
     _expr_constants,
     _expr_field_dims,
     _expr_unit_hints,
@@ -60,11 +72,9 @@ from ._expr_vocab import (
     _functions_nodim,
     _functions_toint,
     _functions_vector,
-    _int_constant_type,
     _int_field_types,
     _is_filter,
     _is_square,
-    _promoted_type,
     _rotated_vectors,
     _rotation_matrix_args,
     _rotation_matrix_usage,
@@ -118,35 +128,6 @@ class _Q:
     def __init__( self, v, d = None, zero = False ):
         self.v, self.d = v, ( None if d == _dim_none else d )
         self.zero = zero
-
-#Integers in expressions work like in C (see _common_int_type), but results
-#which do not fit their type are errors instead of wrapping around, and so are
-#unsigned integers combined with negative values (e.g. in comparisons, which
-#are therefore exact). The numpy types of the integer types:
-_np_types = { 'i32' : np.int32, 'u32' : np.uint32, 'i64' : np.int64, 'u64' : np.uint64 }
-
-def _is_int( v ):
-    return np.asarray(v).dtype.kind in 'iu'
-
-def _int_type( dtype ):
-    """The type of integers (or booleans) of the numpy type after the integer
-    promotions"""
-    dt = np.dtype(dtype)
-    return _promoted_type(8 * dt.itemsize,dt.kind == 'u')
-
-def _ctype( dtype ):
-    """The numpy type of integers (or booleans) after the integer promotions"""
-    return np.dtype(_np_types[_int_type(dtype)])
-
-def _common_ctype( *dtypes ):
-    """The numpy type of results of integers with these types"""
-    return np.dtype(_np_types[_common_int_type(*map(_int_type,dtypes))])
-
-def _int_constant( v ):
-    """Integer constants typed like in C (see _int_constant_type), or None if
-    they are too large"""
-    t = _int_constant_type(v)
-    return None if t is None else np.asarray(v,dtype=_np_types[t])
 
 class _V:
     """A vector in an expression: its values (_Q, two or three, with the same
@@ -211,6 +192,11 @@ class _ExprEvaluator:
         self.state = { k : _kept_value(q,idx,n) for k, q in self.state.items() }
     def error( self, msg ):
         raise MCPLError(f'{msg}, in expression "{self._expr}"')
+    def fail( self, bad, msg ):
+        """Stop with the message if bad is true for any of the particles in
+        use (see the operations of _expr_ints)"""
+        if self._any_active(bad):
+            self.error(msg)
     def name( self, n ):
         if n == 'wavelength':
             self._check_wavelength()
@@ -350,7 +336,7 @@ class _ExprEvaluator:
         return self(node.expr)
     def _int( self, node ):
         v = node.value
-        c = _int_constant(v)
+        c = _int_array(v)
         if c is None:
             self.error(f'The integer {v} is too large (integers must fit in 64 bits)')
         return _Q(c,zero=(v==0))
@@ -373,7 +359,7 @@ class _ExprEvaluator:
     def _name( self, node ):
         return self.name(node.id)
     def _particle( self, node ):
-        return _Q(_int_constant(_particle_names[node.name]))
+        return _Q(_int_array(_particle_names[node.name]))
     def _vector( self, node ):
         return self.vector([ self(c) for c in node.components ])
     def _part( self, node ):
@@ -483,97 +469,24 @@ class _ExprEvaluator:
             return _dim_unknown
         da, db = da or _dim_none, db or _dim_none
         return tuple( i + sign * j for i,j in zip(da,db) )
-    def masked( self, bad ):
-        """The values of bad for the particles in use"""
-        return bad if self.active is None else ( bad & self.active )
-    def int_operands( self, values, what ):
-        """The type of the result of integers (like in C) and the values in
-        that type, which must not be negative for unsigned types"""
-        values = [ np.asarray(v) for v in values ]
-        rt = _common_ctype(*( v.dtype for v in values ))
-        if rt.kind == 'u':
-            for v in values:
-                if v.dtype.kind != 'u' and np.any(self.masked( v < 0 )):
-                    self.error(f'Unsigned integers (like userflags) can not be'
-                               f' combined with negative values (in {what.lower()})')
-        with np.errstate(invalid='ignore'):
-            return rt, [ v.astype(rt,copy=False) for v in values ]
-    def int_overflow( self, bad, rt, what ):
-        if np.any(self.masked(bad)):
-            desc = ( f'{"unsigned " if rt.kind == "u" else ""}'
-                     f'{8*rt.itemsize}-bit integers' )
-            self.error(f'{what} of integers gives values outside the range of {desc}')
     def int_arith( self, op, a, b, what ):
-        """+, -, *, and // of integers, like in C, but with errors instead of
-        wrapping around (// only divides non-negative integers, where Python
-        and C agree)"""
+        """+, -, *, and // of integers (see _int_arith)"""
         if op in ( '+', '-' ):
             _, _, d = self.same(a,b,'arithmetic')
         else:
             d = self.muldim(a.d,b.d,1 if op == '*' else -1)
-        rt, ( x, y ) = self.int_operands((a.v,b.v),what)
-        info = np.iinfo(rt)
-        if op == '//':
-            if np.any(self.masked( ( x < 0 ) | ( y < 0 ) )):
-                self.error('The operator // can not be used with negative values')
-            zero = y == 0
-            if np.any(self.masked(zero)):
-                self.error('Division by zero (of integers)')
-            y = np.where(zero,np.ones_like(y),y)
-        if rt.itemsize == 4:
-            #(computed in 64 bits, where the results of 32-bit integers fit):
-            wide = np.uint64 if rt.kind == 'u' else np.int64
-            x, y = x.astype(wide), y.astype(wide)
-            if op == '-' and rt.kind == 'u':
-                x, y = x.astype(np.int64), y.astype(np.int64)
-            v = self._int_op(op,x,y)
-            self.int_overflow( ( v < info.min ) | ( v > info.max ),rt,what)
-            return _Q(v.astype(rt),d)
-        with np.errstate(over='ignore'):
-            v = self._int_op(op,x,y)
-            if op == '+':
-                bad = ( v < x ) if rt.kind == 'u' else ( ( ( x ^ v ) & ( y ^ v ) ) < 0 )
-            elif op == '-':
-                bad = ( x < y ) if rt.kind == 'u' else ( ( ( x ^ y ) & ( x ^ v ) ) < 0 )
-            elif op == '*':
-                nz = x != 0
-                bad = nz & ( v // np.where(nz,x,np.ones_like(x)) != y )
-                if rt.kind == 'i':
-                    bad |= ( ( x == -1 ) & ( y == info.min ) ) | ( ( y == -1 ) & ( x == info.min ) )
-            else:
-                bad = False#(no overflow, since the values are not negative)
-        self.int_overflow(bad,rt,what)
-        return _Q(v,d)
-    @staticmethod
-    def _int_op( op, x, y ):
-        if op == '+':
-            return x + y
-        if op == '-':
-            return x - y
-        if op == '*':
-            return x * y
-        #Integer division (of non-negative integers, see int_arith):
-        return np.floor_divide(x,y)
+        return _Q(_int_arith(self.fail,op,a.v,b.v,what),d)
     def negate( self, q ):
         """-q (of integers like in C, but with errors instead of wrapping around)"""
         if np.asarray(q.v).dtype.kind not in 'iub':
             return _Q(-q.v,q.d,zero=q.zero)
         #(conditions are 32-bit integers, as in C, so -(x > 0cm) is -1 or 0):
-        return _Q(self.int_negate(q.v,'Negation'),q.d,zero=q.zero)
-    def int_negate( self, v, what ):
-        rt, ( v, ) = self.int_operands((v,),what)
-        if rt.kind == 'u':
-            if np.any(self.masked( v != 0 )):
-                self.error(f'{what} of unsigned integers (like userflags) gives'
-                           ' negative values, which they can not have')
-            return v
-        self.int_overflow( v == np.iinfo(rt).min,rt,what)
-        return -v
+        return _Q(_int_negate(self.fail,q.v,'Negation'),q.d,zero=q.zero)
     def compare( self, fct, a, b ):
         """Comparisons, of integers like in C, but where unsigned integers can
         not be compared with negative values"""
         if np.asarray(a).dtype.kind in 'iub' and np.asarray(b).dtype.kind in 'iub':
-            _, ( a, b ) = self.int_operands((a,b),'a comparison')
+            _, ( a, b ) = _int_operands(self.fail,(a,b),'a comparison')
         return fct(a,b)
     def bitwise( self, op, a, b ):
         """& and | of integers, like in C"""
@@ -581,8 +494,7 @@ class _ExprEvaluator:
             if not _is_int(q.v):
                 self.error(f'The bitwise operator {op} can only be used with integers'
                            ' (use "and" and "or" for logical and/or)')
-        _, ( x, y ) = self.int_operands((a.v,b.v),f'the operation {op}')
-        return _Q(np.bitwise_and(x,y) if op == '&' else np.bitwise_or(x,y))
+        return _Q(_int_bitwise(self.fail,op,a.v,b.v))
     def dimpow( self, d, e, what ):
         """The dimension d to the power e, which must give whole or half powers
         of the units (as in sqrt(ekin))"""
@@ -710,8 +622,7 @@ class _ExprEvaluator:
         for q in ( *center.c, radius ):
             self.same(q,x,'the center and radius of through_sphere(center,radius), which'
                       ' must be lengths')
-        if np.any(self.masked( np.asarray(radius.v) < 0 )):
-            self.error('The radius of through_sphere(center,radius) can not be negative')
+        self.fail(np.asarray(radius.v) < 0,'The radius of through_sphere(center,radius) can not be negative')
         #(the distance of the center from the line is the length of the cross
         #product of the direction, a unit vector, and the vector to the center):
         to_center = _V( self.binop('-',c,p) for c, p in zip(center.c,self.name('pos').c) )
@@ -732,8 +643,8 @@ class _ExprEvaluator:
             self.same(q,x,'the center and half dimensions of through_box(center,half), which'
                       ' must be lengths')
         h = [ np.asarray(self.as_float(q).v) for q in half.c ]
-        if any( np.any(self.masked( v < 0 )) for v in h ):
-            self.error('The half dimensions of through_box(center,half) can not be negative')
+        self.fail(np.logical_or.reduce([ v < 0 for v in h ]),
+                  'The half dimensions of through_box(center,half) can not be negative')
         #(the line passes through the box if the parts of it between the two
         #planes of the box along x, y, and z overlap; a line parallel to such
         #planes must be between them):
@@ -755,27 +666,20 @@ class _ExprEvaluator:
             if any( q.d not in ( None, _dim_unknown ) for q in args ):
                 self.error('mod(a,b) requires integers without units'
                            ' (like userflags or pdgcode)')
-            _, ( a, b ) = self.int_operands((args[0].v,args[1].v),what)
-            if np.any(self.masked( ( a < 0 ) | ( b < 0 ) )):
-                self.error('mod(a,b) can not be used with negative values')
-            zero = b == 0
-            if np.any(self.masked(zero)):
-                self.error('Division by zero in mod(a,b)')
-            return _Q(np.mod(a,np.where(zero,np.ones_like(b),b)))
+            return _Q(_int_mod(self.fail,args[0].v,args[1].v,what))
         if fname in ('abs','round','floor','ceil'):
             q = args[0]
             if fname != 'abs':
                 self.nodim(q,what)
-            rt, ( v, ) = self.int_operands((q.v,),what)
-            if fname == 'abs' and rt.kind == 'i':
-                neg = v < 0
-                v = np.where(neg,self.int_negate(np.where(neg,v,0),what),v)
+            if fname == 'abs':
+                return _Q(_int_abs(self.fail,q.v,what),q.d,zero=q.zero)
+            _, ( v, ) = _int_operands(self.fail,(q.v,),what)
             return _Q(v,q.d,zero=q.zero)
         d = args[0].d
         for q in args[1:]:
             _, _, d2 = self.same(args[0],q,what)
             d = d or d2
-        _, vals = self.int_operands([ q.v for q in args ],what)
+        _, vals = _int_operands(self.fail,[ q.v for q in args ],what)
         return _Q(_min_max(fname,vals),d)
     def boolval( self, q, node ):
         """The values of q, of the expression node, as a condition (true for
@@ -930,22 +834,9 @@ def _assign_field( ev, name, q, text, modified ):
         _set_wavelength(ev,v,text,modified)
         return
     if name in ('pdgcode','userflags'):
-        v = _int_field_values(name,v,text)
+        v = _int_field_values(ev.fail,name,v)
     ev.state[name] = _Q(v,d)
     modified.add(name)
-
-def _int_field_values( name, v, text ):
-    """Values for pdgcode or userflags, which must be integers in the range
-    of their types (see _int_field_types)"""
-    v = np.asarray(v)
-    if v.dtype.kind not in 'iub' and not np.all( np.round(v) == v ):
-        raise MCPLError(f'Non-integer values assigned to {name}, in'
-                        f' expression "{text}"')
-    info = np.iinfo(_np_types[_int_field_types[name]])
-    if np.any( ( v < info.min ) | ( v > info.max ) ):
-        raise MCPLError(f'Values assigned to {name} must be integers from'
-                        f' {info.min} to {info.max}, in expression "{text}"')
-    return v.astype(info.dtype)
 
 def _rotate_by_matrix( ev, call, modified ):
     """Rotate the positions, directions, and polarisations with the matrix

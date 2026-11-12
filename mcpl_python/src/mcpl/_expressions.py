@@ -40,9 +40,9 @@ from ._expr_eval import (
     _dimstr,
     _EmptyBlock,
     _ExprEvaluator,
-    _int_field_values,
     _run_statements,
 )
+from ._expr_ints import _int_field_values
 from ._expr_str2ast import _expr_normalise, _expr_str2ast
 from ._expr_vocab import (
     _expr_field_domains,
@@ -343,7 +343,7 @@ class ParticleEdit:
             v = np.asarray(state[name].v)
             if name in ('pdgcode','userflags'):
                 #(e.g. after swap(..)):
-                v = _int_field_values(name,v,self._expr)
+                v = _int_field_values(ev.fail,name,v)
             fields[name] = np.broadcast_to(v,(n,))
         return ev.kept, fields
 

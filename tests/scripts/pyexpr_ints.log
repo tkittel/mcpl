@@ -1,0 +1,51 @@
+Operations, with the values at the limits of the types:
+  +: 890 exact, 168 negative unsigned, 238 overflow
+  -: 789 exact, 168 negative unsigned, 339 overflow
+  *: 704 exact, 168 negative unsigned, 424 overflow
+  //: 112 division by zero, 672 exact, 344 negative, 168 negative unsigned
+  mod: 112 division by zero, 672 exact, 344 negative, 168 negative unsigned
+  &: 1128 exact, 168 negative unsigned
+  |: 1128 exact, 168 negative unsigned
+  neg: 22 exact, 2 overflow, 12 unsigned negative
+  abs: 34 exact, 2 overflow
+Comparisons:
+  1128 exact, 168 negative unsigned
+Types:
+  bool -> i32 (int32)
+  int8 -> i32 (int32)
+  uint8 -> i32 (int32)
+  int16 -> i32 (int32)
+  uint16 -> i32 (int32)
+  int32 -> i32 (int32)
+  uint32 -> u32 (uint32)
+  int64 -> i64 (int64)
+  uint64 -> u64 (uint64)
+  integers: int8 True, uint64 True, bool False, float64 False
+  0: int32
+  2147483647: int32
+  2147483648: int64
+  -2147483648: int32
+  -2147483649: int64
+  9223372036854775807: int64
+  9223372036854775808: uint64
+  18446744073709551615: uint64
+  18446744073709551616: too large
+  -9223372036854775808: int64
+  -9223372036854775809: too large
+Values for fields:
+  pdgcode = 2112: 2112 (int32)
+  pdgcode = -2147483648: -2147483648 (int32)
+  pdgcode = 2147483647: 2147483647 (int32)
+  pdgcode = 2147483648: Values assigned to pdgcode must be integers from -2147483648 to 2147483647
+  pdgcode = 2.0: 2 (int32)
+  pdgcode = 2.5: Non-integer values assigned to pdgcode
+  pdgcode = nan: Non-integer values assigned to pdgcode
+  pdgcode = inf: Values assigned to pdgcode must be integers from -2147483648 to 2147483647
+  userflags = 0: 0 (uint32)
+  userflags = 4294967295: 4294967295 (uint32)
+  userflags = -1: Values assigned to userflags must be integers from 0 to 4294967295
+  userflags = 4294967296: Values assigned to userflags must be integers from 0 to 4294967295
+  userflags = 7.0: 7 (uint32)
+Only used values:
+  [1, 2147483647] + 1, using the first: 2
+  using both: Addition of integers gives values outside the range of 32-bit integers

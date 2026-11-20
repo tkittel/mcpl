@@ -546,6 +546,10 @@ v2.2.9  (work in progress)
         the end of the file.
       * Opening a file which was not closed properly now also gives a warning
         if it only contains part of the first particle.
+      * The shared library now has a versioned name on Linux and macOS,
+        libmcpl.so.3 (libmcpl.3.dylib), with libmcpl.so (libmcpl.dylib) as
+        a link to it for linking. Python wheels only contain the versioned
+        file.
       * ...
 
 v2.2.8  2026-02-18

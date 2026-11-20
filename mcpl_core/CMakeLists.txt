@@ -252,6 +252,13 @@ endif()
 
 set_target_properties( mcpl PROPERTIES C_VISIBILITY_PRESET "hidden" )
 
+#ABI versioning: SONAME libmcpl.so.<major> (macOS: libmcpl.<major>.dylib). No
+#VERSION property, to avoid a third file (libmcpl.so.X.Y.Z). DLL names on
+#Windows are not affected:
+if ( NOT WIN32 )
+  set_target_properties( mcpl PROPERTIES SOVERSION "${PROJECT_VERSION_MAJOR}" )
+endif()
+
 include( "mcpl_headercreate" )
 mcpl_create_header( mcplheader_include_path )
 #The header-only C++ interface is placed next to the generated mcpl.h:
@@ -283,13 +290,20 @@ mctools_detect_math_libs( "MCPL_MATH_LIBRARIES" )
 
 target_link_libraries(mcpl PRIVATE ${MCPL_MATH_LIBRARIES} )
 
+#Wheels can not contain symlinks (they would become copies), so skip the
+#unversioned namelink there (linking uses full paths anyway):
+set( _tmp_namelink "" )
+if ( DEFINED SKBUILD_PROJECT_NAME )
+  set( _tmp_namelink NAMELINK_SKIP )
+endif()
 install(
   TARGETS mcpl
   EXPORT MCPLTargets
   RUNTIME DESTINATION ${MCPL_SHLIBDIR}
   ARCHIVE DESTINATION ${MCPL_LIBDIR}
-  LIBRARY DESTINATION ${MCPL_LIBDIR}
+  LIBRARY DESTINATION ${MCPL_LIBDIR} ${_tmp_namelink}
 )
+unset( _tmp_namelink )
 
 install(
   FILES "${mcplheader_include_path}/mcpl.h" "${mcplheader_include_path}/mcplcpp.h"

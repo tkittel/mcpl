@@ -73,15 +73,18 @@ include( mctools_utils )
 
 #Find MCPL (mcpl-core):
 if ( NOT TARGET MCPL::MCPL )
-  if( NOT DEFINED "MCPL_DIR" )
-    #Need to invoke "mcpl-config --show cmakedir" if we want to be able to
-    #work with mcpl-core installed via python wheels:
+  #Find MCPL directly if possible (e.g. via CMAKE_PREFIX_PATH or MCPL_DIR, or
+  #when built with scikit-build-core against mcpl-core from Python wheels), and
+  #only otherwise ask "mcpl-config --show cmakedir" (which is not always
+  #possible, e.g. when cross-compiling):
+  find_package( MCPL 2.2.9 QUIET )
+  if ( NOT MCPL_FOUND )
     execute_process(
       COMMAND mcpl-config --show cmakedir
       OUTPUT_VARIABLE "MCPL_DIR" OUTPUT_STRIP_TRAILING_WHITESPACE
     )
+    find_package( MCPL 2.2.9 REQUIRED )
   endif()
-  find_package( MCPL 2.2.9 REQUIRED )
 endif()
 
 if ( DEFINED SKBUILD_PROJECT_NAME )

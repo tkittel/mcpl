@@ -550,6 +550,10 @@ v2.2.9  (work in progress)
         libmcpl.so.3 (libmcpl.3.dylib), with libmcpl.so (libmcpl.dylib) as
         a link to it for linking. Python wheels only contain the versioned
         file.
+      * Projects built with scikit-build-core find mcpl-core from Python
+        wheels with find_package(MCPL). The CMake files of mcpl-extra and of
+        the downstream CMake example now try find_package(MCPL) first, and
+        only otherwise ask mcpl-config.
       * ...
 
 v2.2.8  2026-02-18

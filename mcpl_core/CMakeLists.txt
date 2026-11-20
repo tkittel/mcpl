@@ -382,6 +382,19 @@ if ( DEFINED SKBUILD_PROJECT_NAME )
   endif()
   file( MAKE_DIRECTORY "${pymoddir}" )
   file( WRITE "${pymoddir}/__init__.py" "__version__='${MCPL_VERSION}'\n" )
+  #The cmake.prefix entry point (in pyproject.toml) adds the directory of this
+  #Python module to the CMake search path, where find_package(MCPL) does not
+  #look into data/lib/cmake/MCPL. So we add forwarding config files in the
+  #cmake/ subdirectory:
+  file( RELATIVE_PATH _tmp_fwd "/r/${mcplcore_pymodname}/cmake"
+                               "/r/${MCPL_CMAKEDIR}" )
+  foreach( _tmp_f MCPLConfig.cmake MCPLConfigVersion.cmake )
+    file( WRITE "${PROJECT_BINARY_DIR}/pymod_cmakefwd/${_tmp_f}"
+          "include(\"\${CMAKE_CURRENT_LIST_DIR}/${_tmp_fwd}/${_tmp_f}\")\n" )
+    install( FILES "${PROJECT_BINARY_DIR}/pymod_cmakefwd/${_tmp_f}"
+             DESTINATION "${mcplcore_pymodname}/cmake" )
+  endforeach()
+  unset( _tmp_fwd )
   #First generated a configured version of the template:
   if ( mcpl_skbuild_shlib_in_wheel_scripts )
     #dll is over in the wheel scripts dir, at an unknown relative location.

@@ -118,7 +118,7 @@ def check_metadata():
     #devel/dependency_database.yml in _check_deps.py)
     #assert ( projkeys_monolith - projkeys_core ) == set(['dependencies'])
     #assert ( projkeys_core - projkeys_monolith ) == set([])
-    assert ( projkeys_core - projkeys_meta ) == {'scripts'}
+    assert ( projkeys_core - projkeys_meta ) == {'scripts','entry-points'}
     assert ( projkeys_meta - projkeys_core ) == {'dependencies',
                                                  'optional-dependencies'}
     assert ( projkeys_extra - projkeys_meta ) == {'scripts'}
@@ -133,9 +133,13 @@ def check_metadata():
         assert extras_meta[k] == [f'mcpl-python[{k}]'], (k,extras_meta[k])
     #assert ( projkeys_py - projkeys_monolith ) == set(['dynamic'])
     #assert ( projkeys_monolith - projkeys_py ) == set(['version'])
-    assert ( projkeys_core - projkeys_meta ) == {'scripts'}
+    assert ( projkeys_core - projkeys_meta ) == {'scripts','entry-points'}
     assert ( projkeys_coreempty - projkeys_core ) == set()
-    assert ( projkeys_core - projkeys_coreempty ) == {'scripts'}
+    assert ( projkeys_core - projkeys_coreempty ) == {'scripts',
+                                                      'entry-points'}
+    #cmake.prefix entry point (for find_package in scikit-build-core builds):
+    assert ( data_core['project']['entry-points']
+             == {'cmake.prefix':{'MCPL':'_mcpl_core'}} )
 
     cmp_common_entries( 'project', data_coreempty, data_core )
     cmp_common_entries( 'build-system', data_coreempty, data_py )

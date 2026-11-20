@@ -41,6 +41,10 @@ classifiers = [
 [project.scripts]
 mcpl-config = "_mcpl_core.info:_mcpl_config_cli_wrapper"
 
+#Lets scikit-build-core builds find MCPL with find_package(MCPL):
+[project.entry-points."cmake.prefix"]
+MCPL = "_mcpl_core"
+
 [build-system]
 requires = ["scikit-build-core>=0.11.0"]
 build-backend = "scikit_build_core.build"

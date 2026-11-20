@@ -554,6 +554,9 @@ v2.2.9  (work in progress)
         wheels with find_package(MCPL). The CMake files of mcpl-extra and of
         the downstream CMake example now try find_package(MCPL) first, and
         only otherwise ask mcpl-config.
+      * Files for building Debian and Ubuntu packages (libmcpl3, libmcpl-dev,
+        python3-mcpl, mcpl, and mcpl-extra) are in devel/packaging, and the
+        packages are built and tested in CI.
       * ...
 
 v2.2.8  2026-02-18

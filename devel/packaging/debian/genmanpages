@@ -1,0 +1,75 @@
+#!/usr/bin/python3
+
+#Generates man pages for all commands into debian/tmp/usr/share/man/man1, after
+#the install step, from the --help output of the installed commands.
+
+import os
+import pathlib
+import subprocess
+import sys
+import tomllib
+
+#One-line descriptions (NAME section) of all commands:
+descriptions = {
+    'mcpltool' : 'inspect or modify MCPL files',
+    'mcpl-config' : 'information about the MCPL installation',
+    'ssw2mcpl' : 'convert MCNP SSW files to MCPL files',
+    'mcpl2ssw' : 'convert MCPL files to MCNP SSW files',
+    'phits2mcpl' : 'convert PHITS dump files to MCPL files',
+    'mcpl2phits' : 'convert MCPL files to PHITS dump files',
+}
+
+#Options giving the most complete help text (default: --help):
+helpopts = { 'mcpltool' : '--full-help' }
+
+def roff_escape( s ):
+    return s.replace('\\','\\e').replace('-','\\-')
+
+def manpage( name, version, helptext ):
+    out = [ f'.TH {name.upper()} 1 "" "MCPL {version}" "MCPL"',
+            '.SH NAME',
+            f'{roff_escape(name)} \\- {roff_escape(descriptions[name])}',
+            '.SH DESCRIPTION',
+            '.nf' ]
+    for line in helptext.splitlines():
+        line = roff_escape(line)
+        out.append( ( '\\&' + line ) if line.startswith(('.',"'")) else line )
+    out.append('.fi')
+    return '\n'.join(out)+'\n'
+
+def main():
+    srcdir = pathlib.Path(__file__).absolute().parent.parent
+    deb = srcdir / 'debian'
+    destdir = deb / 'tmp'
+    version = ( srcdir / 'VERSION' ).read_text().strip()
+    sitepkgs = [ str(p) for p in
+                 deb.glob('python3-mcpl/usr/lib/python3*/dist-packages') ]
+    assert len(sitepkgs)==1, sitepkgs
+    libs = list(destdir.glob('usr/lib/*/libmcpl.so.*'))
+    assert len(libs)==1, libs
+    env = dict( os.environ, PYTHONPATH = sitepkgs[0],
+                LD_LIBRARY_PATH = str(libs[0].parent) )
+    def pyproject_scripts( subdir ):
+        f = srcdir / subdir / 'pyproject.toml'
+        return list( tomllib.loads( f.read_text() )['project']['scripts'] )
+    #The Python commands (moved to debian/mcpl), and the compiled ones in
+    #debian/tmp (for mcpl-extra, the scripts in its pyproject.toml are wrappers
+    #of the compiled commands in its Python wheels):
+    cmds = {}
+    for name in pyproject_scripts('mcpl_python'):
+        if name == 'pymcpltool':
+            continue#(deprecated old name of mcpltool, not packaged)
+        cmds[name] = [ sys.executable, str(deb / 'mcpl/usr/bin' / name) ]
+    for name in ['mcpl-config'] + pyproject_scripts('mcpl_extra'):
+        cmds[name] = [ str(destdir / 'usr/bin' / name) ]
+    mandir = destdir / 'usr/share/man/man1'
+    mandir.mkdir( parents = True, exist_ok = True )
+    for name, cmd in sorted( cmds.items() ):
+        helptext = subprocess.run( cmd + [ helpopts.get(name,'--help') ],
+                                   env = env, check = True,
+                                   capture_output = True, text = True ).stdout
+        ( mandir / f'{name}.1' ).write_text( manpage(name, version, helptext) )
+        print(f'genmanpages: wrote {name}.1')
+
+if __name__ == '__main__':
+    main()

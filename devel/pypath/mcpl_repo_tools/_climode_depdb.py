@@ -42,10 +42,11 @@ def gathertestdeps():
     return needs
 
 def fixreqfiles():
-    from ._check_deps import check_env_files
+    from ._check_deps import check_debian_control, check_env_files
     from .depdb import load_depdb
     db = load_depdb()
     check_env_files( db, fix = True )
+    check_debian_control( db, fix = True )
 
 def main( parser ):
     parser.init( short_description() )

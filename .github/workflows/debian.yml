@@ -1,0 +1,101 @@
+name: debian
+
+#Builds Debian packages from devel/packaging/debian, checks them with lintian,
+#installs them and runs the package tests (debian/tests) via autopkgtest, on
+#Debian 13 and Ubuntu 26.04. Also for Ubuntu 24.04, with
+#devel/packaging/ubuntu2404.patch applied.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest,    arch: amd64, image: 'debian:trixie', dist: trixie }
+          - { os: ubuntu-24.04-arm, arch: arm64, image: 'debian:trixie', dist: trixie }
+          - { os: ubuntu-latest,    arch: amd64, image: 'ubuntu:26.04',  dist: ubuntu2604 }
+          - { os: ubuntu-24.04-arm, arch: arm64, image: 'ubuntu:26.04',  dist: ubuntu2604 }
+          - { os: ubuntu-latest,    arch: amd64, image: 'ubuntu:24.04',  dist: ubuntu2404 }
+          - { os: ubuntu-24.04-arm, arch: arm64, image: 'ubuntu:24.04',  dist: ubuntu2404 }
+    name: ${{ matrix.dist }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.image }}
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Install packaging tools
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends \
+          ca-certificates git devscripts lintian autopkgtest
+
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        path: src
+
+    - name: Prepare source tree
+      run: |
+        mkdir -p ci-logs
+        cd src
+        v="$(cat VERSION)-1~ci${{ github.run_number }}"
+        if [ "${{ matrix.dist }}" == "ubuntu2404" ]; then
+          devel/packaging/prepare-debian --ubuntu2404
+          v="${v}~ubuntu24.04"
+        else
+          devel/packaging/prepare-debian
+        fi
+        d="$(dpkg-parsechangelog -S Distribution)"
+        DEBFULLNAME="MCPL CI" DEBEMAIL="mcpl-developers@cern.ch" \
+          dch --create --package mcpl --newversion "$v" \
+          --distribution "$d" --force-distribution "CI build." \
+          -c debian/changelog.new
+        mv debian/changelog.new debian/changelog
+
+    - name: Install build dependencies
+      run: |
+        cd src
+        apt-get build-dep -y ./
+
+    - name: Build packages
+      run: |
+        cd src
+        dpkg-buildpackage -b -us -uc 2>&1 | tee ../ci-logs/build.log
+
+    - name: Lintian
+      run: lintian --fail-on error --info *.changes 2>&1 | tee ci-logs/lintian.log
+
+    - name: Install packages and run package tests
+      run: |
+        autopkgtest --output-dir ci-logs/autopkgtest ./*.deb ./src -- null \
+          2>&1 | tee ci-logs/autopkgtest.log
+
+    - name: Package logs
+      if: always()
+      run: |
+        mkdir -p ci-logs
+        for f in src/obj-*/Testing/Temporary/LastTest.log; do
+          if [ -f "$f" ]; then cp "$f" ci-logs/; fi
+        done
+
+    - name: Upload packages
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: debs-${{ matrix.dist }}-${{ matrix.arch }}
+        path: '*.deb'
+
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: ci-logs-${{ matrix.dist }}-${{ matrix.arch }}
+        path: ci-logs
+        if-no-files-found: warn

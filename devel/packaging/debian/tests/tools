@@ -1,0 +1,15 @@
+#!/bin/sh
+#The command-line tools and the Python module, with the example file.
+set -eux
+ex="$(pwd)/examples/example.mcpl"
+cd "$AUTOPKGTEST_TMP"
+mcpltool --version
+mcpltool "$ex"
+mcpltool -S "$ex"
+mcpltool -t "ekin/MeV;logx" "$ex"
+mcpltool -e -p "pdgcode == neutron" "$ex" neutrons.mcpl.gz
+mcpltool neutrons.mcpl.gz
+python3 -c 'import mcpl,sys; print(mcpl.MCPLFile(sys.argv[1]).nparticles)' \
+  neutrons.mcpl.gz
+test -f "$(mcpl-config --show libpath)"
+test -f "$(mcpl-config --show includedir)/mcpl.h"

@@ -125,11 +125,49 @@ def check_env_files(db, *, fix = False):
     if not ok:
         error('some files needs to be updated')
 
+def check_debian_control(db, *, fix = False):
+    #Versions in "python3-<dep> (>= X)" entries in the Debian packaging must
+    #be the minimum versions in the database.
+    import re
+
+    from .dirs import reporoot
+    frel = 'devel/packaging/debian/control'
+    f = reporoot.joinpath(*frel.split('/'))
+    deps = db['dependencies']
+    bad = []
+    def repl( m ):
+        name, v = m.group(1), m.group(2)
+        minv = deps.get(name,{}).get('min_version')
+        if minv is None:
+            bad.append(f'python3-{name} (>= {v}) has no minimum version in'
+                       ' devel/dependency_database.yml')
+            return m.group(0)
+        if v != minv:
+            bad.append(f'python3-{name} (>= {v}) should be (>= {minv})')
+        return f'python3-{name} (>= {minv})'
+    content = f.read_text()
+    newcontent = re.sub(r'python3-([a-z0-9-]+) \(>= ([^)]+)\)',
+                        repl, content)
+    if not bad:
+        return
+    if fix and newcontent != content:
+        print(f'Updating versions in {frel}')
+        f.write_text(newcontent)
+        return
+    print()
+    for b in bad:
+        print(f'ERROR: {frel}: {b}')
+    print()
+    print('Fix with: mcpldevtool depdb --mode=fixreqfiles')
+    print()
+    raise SystemExit(1)
+
 def main():
     from .depdb import load_depdb
     db = load_depdb()
     check_deps_in_toml_files( db )
     check_env_files( db )
+    check_debian_control( db )
 
 if __name__=='__main__':
     main()

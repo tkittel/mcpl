@@ -1,0 +1,15 @@
+#!/bin/sh
+#Compiles and runs the C and C++ examples, and the example of a downstream
+#CMake project.
+set -eux
+src="$(pwd)/examples"
+cd "$AUTOPKGTEST_TMP"
+gcc -o writemcpl "$src/example_writemcpl.c" -lmcpl -lm
+./writemcpl written.mcpl
+gcc -o readmcpl "$src/example_readmcpl.c" -lmcpl
+./readmcpl written.mcpl
+g++ -o cppmcpl "$src/example_cppmcpl.cc" -lmcpl
+./cppmcpl "$src/example.mcpl" fromcpp.mcpl
+cmake -S "$src/downstream_cmake" -B bld
+cmake --build bld
+./bld/testapp "$src/example.mcpl"

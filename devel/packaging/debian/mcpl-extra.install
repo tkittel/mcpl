@@ -1,0 +1,8 @@
+usr/bin/ssw2mcpl
+usr/bin/mcpl2ssw
+usr/bin/phits2mcpl
+usr/bin/mcpl2phits
+usr/share/man/man1/ssw2mcpl.1
+usr/share/man/man1/mcpl2ssw.1
+usr/share/man/man1/phits2mcpl.1
+usr/share/man/man1/mcpl2phits.1

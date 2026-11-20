@@ -1,0 +1,11 @@
+#!/bin/sh
+#Converts the example file to PHITS dump files and back (there are no SSW files
+#in the source tree, so for the SSW converters only --help).
+set -eux
+ex="$(pwd)/examples/example.mcpl"
+cd "$AUTOPKGTEST_TMP"
+mcpl2phits "$ex" example.dmp
+phits2mcpl example.dmp back.mcpl
+mcpltool -S back.mcpl
+ssw2mcpl --help
+mcpl2ssw --help

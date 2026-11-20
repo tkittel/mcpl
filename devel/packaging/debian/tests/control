@@ -1,0 +1,11 @@
+Tests: tools
+Depends: mcpl
+Restrictions: allow-stderr
+
+Tests: compile
+Depends: libmcpl-dev, build-essential, cmake
+Restrictions: allow-stderr
+
+Tests: extra
+Depends: mcpl-extra, mcpl
+Restrictions: allow-stderr

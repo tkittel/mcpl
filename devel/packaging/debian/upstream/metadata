@@ -1,0 +1,13 @@
+Bug-Database: https://github.com/mctools/mcpl/issues
+Bug-Submit: https://github.com/mctools/mcpl/issues/new
+Documentation: https://mctools.github.io/mcpl/
+Repository: https://github.com/mctools/mcpl.git
+Repository-Browse: https://github.com/mctools/mcpl
+Reference:
+ - Author: T. Kittelmann and E. Klinkby and E. B. Knudsen and P. Willendrup and X. X. Cai and K. Kanaki
+   Title: "Monte Carlo Particle Lists: MCPL"
+   Journal: Computer Physics Communications
+   Volume: 218
+   Year: 2017
+   Pages: 17-42
+   DOI: 10.1016/j.cpc.2017.04.012

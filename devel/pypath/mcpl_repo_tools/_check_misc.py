@@ -29,6 +29,11 @@ ignore_list_nonascii = {
     'devel/misc/test_encodings.x',
 }
 
+#Makefiles need TABs:
+ignore_list_tabs = {
+    'devel/packaging/debian/rules',
+}
+
 def get_frel(f):
     from .dirs import reporoot
     return str(f.relative_to(reporoot)).replace('\\','/')
@@ -100,7 +105,7 @@ def main():
 
         lines = content.splitlines()
         for e in lines:
-            if '\t' in e:
+            if '\t' in e and frel not in ignore_list_tabs:
                 raise SystemExit(f'TABs found in {f}')
             if ( e.endswith(' ')
                  and not frel.startswith('tests/data/refnc1/')

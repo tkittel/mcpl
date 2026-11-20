@@ -1,0 +1,34 @@
+#!/bin/sh
+#Sets up the debian/ directory in the root of the MCPL source tree from the
+#template in devel/packaging/debian, for the version in the VERSION file: the
+#library package is named after the major version (libmcpl<major>), and
+#debian/changelog gets an entry for the version (for the Ubuntu release when run
+#on Ubuntu, otherwise for Debian unstable). With --ubuntu2404, the patch
+#for Ubuntu 24.04 is added as well. See devel/packaging/README.md.
+set -eu
+cd "$(dirname "$0")/../.."
+if [ -e debian ]; then
+    echo "Error: debian/ already exists" >&2
+    exit 1
+fi
+version="$(cat VERSION)"
+somajor="${version%%.*}"
+dist="$( . /etc/os-release 2>/dev/null || true
+         if [ "${ID:-}" = ubuntu ]; then echo "${VERSION_CODENAME}";
+         else echo unstable; fi )"
+cp -r devel/packaging/debian debian
+sed -i "s/@SOMAJOR@/${somajor}/g" debian/control
+mv debian/libmcpl.install "debian/libmcpl${somajor}.install"
+cat > debian/changelog <<EOT
+mcpl (${version}-1) ${dist}; urgency=medium
+
+  * MCPL ${version}.
+
+ -- MCPL developers <mcpl-developers@cern.ch>  $(date -R)
+EOT
+if [ "${1:-}" = "--ubuntu2404" ]; then
+    mkdir debian/patches
+    cp devel/packaging/ubuntu2404.patch debian/patches/
+    echo ubuntu2404.patch > debian/patches/series
+fi
+echo "Created debian/ for MCPL ${version} (library package libmcpl${somajor})"

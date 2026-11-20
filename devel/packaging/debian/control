@@ -1,0 +1,78 @@
+Source: mcpl
+Section: science
+Priority: optional
+Maintainer: MCPL developers <mcpl-developers@cern.ch>
+Build-Depends: debhelper-compat (= 13),
+               cmake,
+               zlib1g-dev,
+               dh-sequence-python3,
+               pybuild-plugin-pyproject,
+               python3-all,
+               python3-setuptools,
+               python3-numpy <!nocheck>,
+               python3-matplotlib (>= 3.6) <!nocheck>
+Standards-Version: 4.7.2
+Homepage: https://mctools.github.io/mcpl/
+Vcs-Git: https://github.com/mctools/mcpl.git
+Vcs-Browser: https://github.com/mctools/mcpl
+Rules-Requires-Root: no
+
+Package: libmcpl@SOMAJOR@
+Section: libs
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Monte Carlo Particle Lists (library)
+ MCPL is a binary file format for lists of particle state information, for
+ storing particles and exchanging them between Monte Carlo simulation codes.
+ .
+ This package contains the shared library.
+
+Package: libmcpl-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: libmcpl@SOMAJOR@ (= ${binary:Version}), zlib1g-dev, ${misc:Depends}
+Description: Monte Carlo Particle Lists (headers)
+ MCPL is a binary file format for lists of particle state information, for
+ storing particles and exchanging them between Monte Carlo simulation codes.
+ .
+ This package contains the C and C++ headers and CMake configuration files.
+
+Package: python3-mcpl
+Section: python
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}
+Suggests: python3-matplotlib (>= 3.6), python3-tk
+Description: Monte Carlo Particle Lists (Python)
+ MCPL is a binary file format for lists of particle state information, for
+ storing particles and exchanging them between Monte Carlo simulation codes.
+ .
+ This package contains the MCPL Python module.
+
+Package: mcpl
+Architecture: any
+Depends: python3-mcpl (= ${source:Version}),
+         libmcpl-dev (= ${binary:Version}),
+         ${shlibs:Depends},
+         ${python3:Depends},
+         ${misc:Depends}
+Recommends: python3-matplotlib (>= 3.6), python3-tk
+Suggests: mcpl-extra
+Description: Monte Carlo Particle Lists
+ MCPL is a binary file format for lists of particle state information, for
+ storing particles and exchanging them between Monte Carlo simulation codes.
+ .
+ This package contains the command-line tools mcpltool and mcpl-config, and
+ depends on the MCPL library, headers, and Python module.
+
+Package: mcpl-extra
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Monte Carlo Particle Lists (converters for MCNP and PHITS)
+ MCPL is a binary file format for lists of particle state information, for
+ storing particles and exchanging them between Monte Carlo simulation codes.
+ .
+ This package contains the converters between MCPL files and the SSW files of
+ MCNP (ssw2mcpl and mcpl2ssw), and the dump files of PHITS (phits2mcpl and
+ mcpl2phits).

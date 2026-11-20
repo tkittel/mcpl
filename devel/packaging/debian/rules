@@ -1,0 +1,53 @@
+#!/usr/bin/make -f
+
+#Packaging template for Debian, see devel/packaging/README.md.
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export PYBUILD_SYSTEM = pyproject
+
+#Optimise as in upstream's default (Release) builds, except with noopt
+#(then -O0 and assertions enabled, for debugging):
+ifeq (,$(filter noopt,$(DEB_BUILD_OPTIONS)))
+export DEB_CFLAGS_MAINT_APPEND = -O3
+export DEB_CXXFLAGS_MAINT_APPEND = -O3
+export DEB_CPPFLAGS_MAINT_APPEND = -DNDEBUG
+endif
+
+#The CMake project in the root directory builds mcpl-core and mcpl-extra, and
+#the test suite of all of MCPL (Python module included), which dh_auto_test
+#runs:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+CMAKEOPTS = -DMCPL_ENABLE_TESTING=ON -DPython3_EXECUTABLE=/usr/bin/python3
+else
+CMAKEOPTS = -DMCPL_ENABLE_TESTING=OFF
+endif
+
+#Runs dh_auto_$(1) with pybuild for the Python module, which pybuild installs
+#directly into debian/python3-mcpl:
+define pysteps
+PYBUILD_NAME=mcpl dh_auto_$(1) --buildsystem=pybuild \
+  --sourcedirectory=mcpl_python
+endef
+
+%:
+	dh $@ --buildsystem=cmake
+
+override_dh_auto_configure:
+	dh_auto_configure -- $(CMAKEOPTS)
+	$(call pysteps,configure)
+
+override_dh_auto_build:
+	dh_auto_build
+	$(call pysteps,build)
+
+override_dh_auto_install:
+	dh_auto_install
+	$(call pysteps,install)
+
+#The command-line tools of the Python module belong in the mcpl package (except
+#pymcpltool, the deprecated old name of mcpltool):
+execute_after_dh_auto_install:
+	mkdir -p debian/mcpl/usr
+	mv debian/python3-mcpl/usr/bin debian/mcpl/usr/
+	rm debian/mcpl/usr/bin/pymcpltool
+	debian/genmanpages
